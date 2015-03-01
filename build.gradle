@@ -13,7 +13,7 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 
 jar {
-    baseName = 'gs-rest-service'
+    baseName = 'dime-server'
     version =  '0.1.0'
 }
 
@@ -23,6 +23,7 @@ repositories {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
     testCompile("junit:junit")
 }
 

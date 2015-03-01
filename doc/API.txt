@@ -1,0 +1,25 @@
+/ -> user interface, control panel
+
+/api/ -> REST API
+
+# initial test
+POST /api/logger/
+AppEvent
+
+* OpenPDS
+
+# answers
+/api/personal_data/answer/?key=
+/api/personal_data/answerlist/?key=
+
+# oauth / registry
+# https://github.com/HumanDynamics/openPDSClient/blob/master/src/edu/mit/media/openpds/client/RegistryClient.java
+LOGIN_URL = "/account/login";
+SIGNUP_URL= "/account/signup";
+CLIENTS_URL = "/account/clients";
+TOKEN_URL = "/oauth2/token/";
+USERINFO_URL = "/oauth2/userinfo";
+PROFILE_API_URL = "/account/api/v1/profile/";
+AUTHORIZATION_URL = "/oauth2/authorize";
+SHIBBOLETH_LOGIN_URL = "/Shibboleth.sso/Login";
+BUG_REPORT_URL = "/bug_report";
