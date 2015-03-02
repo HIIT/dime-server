@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DiMe</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+  <p th:text="'Hello, ' + ${name} + '!'" />
+
+  <table>
+    <tr>
+      <th>name</th>
+      <th>event type</th>
+      <th>time</th>
+    </tr>
+    <tr th:each="event : ${appevents}">
+      <td th:text="${event.name}"></td>
+      <td th:text="${event.eventType}"></td>
+      <td th:text="${event.time}"></td>
+    </tr>
+  </table>
+</body>
+</html>
