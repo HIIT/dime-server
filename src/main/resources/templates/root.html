@@ -13,10 +13,10 @@
       <th>event type</th>
       <th>time</th>
     </tr>
-    <tr th:each="event : ${appevents}">
-      <td th:text="${event.name}"></td>
-      <td th:text="${event.eventType}"></td>
-      <td th:text="${event.time}"></td>
+    <tr th:each="event : ${events}">
+      <td th:text="${event.actor}"></td>
+      <td th:text="${event.manifestation}"></td>
+      <td th:text="${event.timestamp}"></td>
     </tr>
   </table>
 </body>

@@ -57,7 +57,7 @@ zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
 
 hostname = socket.gethostbyaddr(socket.gethostname())[0]
 
-server_url = 'http://localhost:8080/logger'
+server_url = 'http://localhost:8080/logger/zeitgeist'
 
 if len(sys.argv)>0 and sys.argv[-1] == 'debug':
     server_url = 'http://httpbin.org/post'
