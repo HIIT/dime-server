@@ -7,17 +7,18 @@
 <body>
   <p th:text="'Hello, ' + ${name} + '!'" />
 
-  <table>
-    <tr>
-      <th>name</th>
-      <th>event type</th>
-      <th>time</th>
-    </tr>
-    <tr th:each="event : ${events}">
-      <td th:text="${event.actor}"></td>
-      <td th:text="${event.manifestation}"></td>
-      <td th:text="${event.timestamp}"></td>
-    </tr>
-  </table>
+    <p th:each="event : ${events}">
+      <b>ID:</b> <span th:text="${event.id}"></span>
+      <b>Origin:</b> <span th:text="${event.origin}"></span>
+      <b>Actor:</b> <span th:text="${event.actor}"></span>
+      <b>Interpretation:</b> <span th:text="${event.interpretation}"></span>
+      <b>Manifestation:</b> <span th:text="${event.manifestation}"></span>
+      <b>Timestamp:</b> <span th:text="${event.timestamp}"></span>
+      <b>Subject URI:</b> <span th:text="${event.subject_uri}"></span>
+      <b>Subject interpretation</b> <span th:text="${event.subject_interpretation}"></span>
+      <b>Subject manifestation</b> <span th:text="${event.subject_manifestation}"></span>
+      <b>Subject mimetype</b> <span th:text="${event.subject_mimetype}"></span>
+    </p>
+
 </body>
 </html>
