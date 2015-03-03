@@ -10,15 +10,18 @@
     <p th:each="event : ${events}">
       <b>ID:</b> <span th:text="${event.id}"></span>
       <b>Origin:</b> <span th:text="${event.origin}"></span>
-      <b>Actor:</b> <span th:text="${event.actor}"></span>
-      <b>Interpretation:</b> <span th:text="${event.interpretation}"></span>
-      <b>Manifestation:</b> <span th:text="${event.manifestation}"></span>
-      <b>Timestamp:</b> <span th:text="${event.timestamp}"></span>
-      <b>Subject URI:</b> <span th:text="${event.subject_uri}"></span>
-      <b>Subject interpretation</b> <span th:text="${event.subject_interpretation}"></span>
-      <b>Subject manifestation</b> <span th:text="${event.subject_manifestation}"></span>
-      <b>Subject mimetype</b> <span th:text="${event.subject_mimetype}"></span>
-    </p>
+      <b>Actor:</b> <span th:text="${event.actor}"></span><br/>
+      <b>Interpretation:</b> <span th:text="${event.interpretation}"></span><br/>
+      <b>Manifestation:</b> <span th:text="${event.manifestation}"></span><br/>
+      <b>Timestamp:</b> <span th:text="${event.timestamp}"></span><br/>
+      <b>Subject:</b><br/>
+      <b>URI:</b> <span th:text="${event.subject_uri}"></span><br/>
+      <b>Interpretation:</b> <span th:text="${event.subject_interpretation}"></span><br/>
+      <b>Manifestation</b> <span th:text="${event.subject_manifestation}"></span><br/>
+      <b>Mimetype:</b> <span th:text="${event.subject_mimetype}"></span>
+      <b>Storage:</b> <span th:text="${event.subject_storage}"></span><br/>
+      <b>Text:</b> <span th:text="${event.subject_text}"></span><br/>
+</p>
 
 </body>
 </html>
