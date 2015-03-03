@@ -5,9 +5,8 @@ import java.util.Date;
 
 public class ZeitgeistEvent {
     @Id
-    private String dbId;
-
     private String id;
+
     private String actor;
 
     private String manifestation;
