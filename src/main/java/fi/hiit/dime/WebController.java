@@ -19,7 +19,7 @@ public class WebController {
     @RequestMapping("/")
     public String root(Model model) {
 	model.addAttribute("name", "World");
-        model.addAttribute("events", zgEventRepository.findAll());
+        model.addAttribute("events", zgEventRepository.findAllByOrderByTimestampDesc());
         return "root";
     }
 }
