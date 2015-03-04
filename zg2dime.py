@@ -25,7 +25,9 @@ def send_event(event):
     if os.path.isfile(filename):
         storage = uuid
         if event.subjects[0].mimetype == 'application/pdf':
-            text = subprocess.check_output("pdftotext %s - | tr '\n' ' ' | fmt | head" % filename, shell=True)
+            pdf_command = 'pdftotext %s - | head -20 | tr "\n" " " | fmt | head' % filename
+            #print pdf_command
+            text = subprocess.check_output(pdf_command, shell=True)
             text = text.rstrip()
 
     payload = {'origin':                 hostname,
@@ -52,6 +54,7 @@ def send_event(event):
 
     r = requests.post(server_url, data=json_payload, headers=headers)
     print(r.text)
+    print "---------------------------------------------------------"
 
 def on_insert(time_range, events):
     send_event(events[0])
