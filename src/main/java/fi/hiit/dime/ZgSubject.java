@@ -3,7 +3,7 @@ package fi.hiit.dime;
 import org.springframework.data.annotation.Id;
 import java.util.Date;
 
-public class ZeitgeistSubject {
+public class ZgSubject {
     @Id
     private String id;
 
@@ -14,9 +14,9 @@ public class ZeitgeistSubject {
     private String storage;
     private String text;
 
-    public ZeitgeistSubject() {}
+    public ZgSubject() {}
 
-    public ZeitgeistSubject(String id,
+    public ZgSubject(String id,
 			    String uri,
 			    String manifestation,
 			    String interpretation,

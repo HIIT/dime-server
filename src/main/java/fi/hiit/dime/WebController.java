@@ -9,18 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Controller
 public class WebController {
 
-    private final ZeitgeistEventRepository zeitgeistEventRepository;
+    private final ZgEventRepository zgEventRepository;
 
     @Autowired
-    WebController(ZeitgeistEventRepository zeitgeistEventRepository) {
-	this.zeitgeistEventRepository = zeitgeistEventRepository;
+    WebController(ZgEventRepository zgEventRepository) {
+	this.zgEventRepository = zgEventRepository;
     }
 
     @RequestMapping("/")
     public String root(Model model) {
 	model.addAttribute("name", "World");
-        model.addAttribute("events", zeitgeistEventRepository.findAll());
+        model.addAttribute("events", zgEventRepository.findAll());
         return "root";
     }
-
 }

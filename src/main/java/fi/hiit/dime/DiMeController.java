@@ -10,23 +10,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 public class DiMeController {
-    private final ZeitgeistEventRepository zeitgeistEventRepository;
-    private final ZeitgeistSubjectRepository zeitgeistSubjectRepository;
+    private final ZgEventRepository zgEventRepository;
+    private final ZgSubjectRepository zgSubjectRepository;
     
 
     @Autowired
-    DiMeController(ZeitgeistEventRepository zeitgeistEventRepository,
-		   ZeitgeistSubjectRepository zeitgeistSubjectRepository) {
-	this.zeitgeistEventRepository = zeitgeistEventRepository;
-	this.zeitgeistSubjectRepository = zeitgeistSubjectRepository;
+    DiMeController(ZgEventRepository zgEventRepository,
+		   ZgSubjectRepository zgSubjectRepository) {
+	this.zgEventRepository = zgEventRepository;
+	this.zgSubjectRepository = zgSubjectRepository;
     }
 
     @RequestMapping(value="/logger/zeitgeist", method = RequestMethod.POST)
-    public ResponseEntity<ZeitgeistEvent> zeitgeistLogger(@RequestBody ZeitgeistEvent input) {
-	ZeitgeistEvent event = zeitgeistEventRepository.save(input);
-	zeitgeistSubjectRepository.save(input.getSubject());
+    public ResponseEntity<ZgEvent> zgLogger(@RequestBody ZgEvent input) {
+	ZgEvent event = zgEventRepository.save(input);
+	zgSubjectRepository.save(input.getSubject());
 	
-	System.out.println("zeitgeistLogger: " + input.getActor());
-	return new ResponseEntity<ZeitgeistEvent>(input, HttpStatus.OK);
+	System.out.println("Event posted from: " + input.getOrigin() + " [" + input.getActor() + "]");
+	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
     }
 }

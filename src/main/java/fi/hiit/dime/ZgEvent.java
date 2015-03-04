@@ -3,7 +3,7 @@ package fi.hiit.dime;
 import org.springframework.data.annotation.Id;
 import java.util.Date;
 
-public class ZeitgeistEvent {
+public class ZgEvent {
     @Id
     private String id;
 
@@ -17,18 +17,18 @@ public class ZeitgeistEvent {
 
     private String payload;
 
-    private ZeitgeistSubject subject;
+    private ZgSubject subject;
 
-    public ZeitgeistEvent() {}
+    public ZgEvent() {}
 
-    public ZeitgeistEvent(String id,
+    public ZgEvent(String id,
 			  String actor, 
 			  String manifestation, 
 			  String interpretation,
 			  String origin,
 			  Date timestamp,
 			  String payload,
-			  ZeitgeistSubject subject) {
+			  ZgSubject subject) {
 	this.id = id;
     	this.actor = actor;
     	this.manifestation = manifestation;
@@ -46,5 +46,5 @@ public class ZeitgeistEvent {
     public String getOrigin() { return origin; }
     public Date getTimestamp() { return timestamp; }
     public String getPayload() { return payload; }
-    public ZeitgeistSubject getSubject() { return subject; }
+    public ZgSubject getSubject() { return subject; }
 }
