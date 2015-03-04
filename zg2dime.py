@@ -7,6 +7,7 @@ import socket
 import requests
 import json
 import hashlib
+import urllib
 
 from gi.repository import GLib
 
@@ -17,7 +18,7 @@ def send_event(event):
 
     storage = 'deleted'
     text = ''
-    filename = event.subjects[0].uri
+    filename = urllib.unquote(event.subjects[0].uri)
     if filename.startswith('file://'):
         filename = filename[7:]
     print filename
