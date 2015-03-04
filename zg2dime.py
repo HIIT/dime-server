@@ -25,7 +25,7 @@ def send_event(event):
     if os.path.isfile(filename):
         storage = uuid
         if event.subjects[0].mimetype == 'application/pdf':
-            pdf_command = 'pdftotext %s - | head -20 | tr "\n" " " | fmt | head' % filename
+            pdf_command = 'pdftotext "%s" - | head -20 | tr "\n" " " | fmt | head' % filename
             #print pdf_command
             text = subprocess.check_output(pdf_command, shell=True)
             text = text.rstrip()
