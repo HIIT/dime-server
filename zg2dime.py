@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import os.path
 import sys
+import subprocess
 import socket
 import requests
 import json
@@ -12,6 +14,19 @@ from zeitgeist.client import ZeitgeistClient
 from zeitgeist.datamodel import *
  
 def send_event(event):
+
+    storage = 'deleted'
+    text = ''
+    filename = event.subjects[0].uri
+    if filename.startswith('file://'):
+        filename = filename[7:]
+    print filename
+    if os.path.isfile(filename):
+        storage = uuid
+        if event.subjects[0].mimetype == 'application/pdf':
+            text = subprocess.check_output("pdftotext %s - | tr '\n' ' ' | fmt | head" % filename, shell=True)
+            text = text.rstrip()
+
     payload = {'origin':                 hostname,
                'actor':                  event.actor, 
                'interpretation':         event.interpretation,
@@ -20,7 +35,9 @@ def send_event(event):
                'subject_uri':            event.subjects[0].uri,
                'subject_interpretation': event.subjects[0].interpretation,
                'subject_manifestation':  event.subjects[0].manifestation,
-               'subject_mimetype':       event.subjects[0].mimetype}
+               'subject_mimetype':       event.subjects[0].mimetype,
+               'subject_storage':        storage,
+               'subject_text':           text}
 
     headers = {'content-type': 'application/json'}
  
@@ -56,6 +73,9 @@ zeitgeist.find_events_for_template(template, on_events_received, num_events=1)
 zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
 
 hostname = socket.gethostbyaddr(socket.gethostname())[0]
+
+uuid = subprocess.check_output("udevadm info -q all -n /dev/sda1 | grep ID_FS_UUID= | sed 's:^.*=::'", shell=True)
+uuid = uuid.rstrip()
 
 server_url = 'http://localhost:8080/logger/zeitgeist'
 
