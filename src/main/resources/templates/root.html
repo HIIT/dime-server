@@ -15,12 +15,12 @@
       <b>Manifestation:</b> <span th:text="${event.manifestation}"></span><br/>
       <b>Timestamp:</b> <span th:text="${event.timestamp}"></span><br/>
       <b>Subject:</b><br/>
-      <b>URI:</b> <span th:text="${event.subject_uri}"></span><br/>
-      <b>Interpretation:</b> <span th:text="${event.subject_interpretation}"></span><br/>
-      <b>Manifestation</b> <span th:text="${event.subject_manifestation}"></span><br/>
-      <b>Mimetype:</b> <span th:text="${event.subject_mimetype}"></span>
-      <b>Storage:</b> <span th:text="${event.subject_storage}"></span><br/>
-      <b>Text:</b> <pre th:text="${#strings.abbreviate(event.subject_text,500)}"></pre><br/>
+      <b>URI:</b> <span th:text="${event.subject.uri}"></span><br/>
+      <b>Interpretation:</b> <span th:text="${event.subject.interpretation}"></span><br/>
+      <b>Manifestation</b> <span th:text="${event.subject.manifestation}"></span><br/>
+      <b>Mimetype:</b> <span th:text="${event.subject.mimetype}"></span>
+      <b>Storage:</b> <span th:text="${event.subject.storage}"></span><br/>
+      <b>Text:</b> <pre th:text="${#strings.abbreviate(event.subject.text,500)}"></pre><br/>
 </p>
 
 </body>

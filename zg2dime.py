@@ -13,6 +13,12 @@ from gi.repository import GLib
 
 from zeitgeist.client import ZeitgeistClient
 from zeitgeist.datamodel import *
+
+def json_to_md5(payload):
+    json_payload = json.dumps(payload)
+    md5 = hashlib.md5()
+    md5.update(json_payload)
+    return md5.hexdigest()
  
 def send_event(event):
 
@@ -35,20 +41,19 @@ def send_event(event):
                'interpretation':         event.interpretation,
                'manifestation':          event.manifestation,               
                'timestamp':              event.timestamp,
-               'subject_uri':            event.subjects[0].uri,
-               'subject_interpretation': event.subjects[0].interpretation,
-               'subject_manifestation':  event.subjects[0].manifestation,
-               'subject_mimetype':       event.subjects[0].mimetype,
-               'subject_storage':        storage,
-               'subject_text':           text}
+               'subject': {
+                   'uri':            event.subjects[0].uri,
+                   'interpretation': event.subjects[0].interpretation,
+                   'manifestation':  event.subjects[0].manifestation,
+                   'mimetype':       event.subjects[0].mimetype,
+                   'storage':        storage,
+                   'text':           text}
+               }
 
     headers = {'content-type': 'application/json'}
  
-    json_payload = json.dumps(payload)
-    md5 = hashlib.md5()
-    md5.update(json_payload)
-    md5digest = md5.hexdigest()
-    payload['id'] = md5digest
+    payload['subject']['id'] = json_to_md5(payload['subject'])
+    payload['id'] = json_to_md5(payload)
     json_payload = json.dumps(payload)
     print(json_payload)
 

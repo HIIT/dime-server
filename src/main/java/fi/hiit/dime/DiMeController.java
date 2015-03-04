@@ -11,15 +11,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 @RestController
 public class DiMeController {
     private final ZeitgeistEventRepository zeitgeistEventRepository;
+    private final ZeitgeistSubjectRepository zeitgeistSubjectRepository;
+    
 
     @Autowired
-    DiMeController(ZeitgeistEventRepository zeitgeistEventRepository) {
+    DiMeController(ZeitgeistEventRepository zeitgeistEventRepository,
+		   ZeitgeistSubjectRepository zeitgeistSubjectRepository) {
 	this.zeitgeistEventRepository = zeitgeistEventRepository;
+	this.zeitgeistSubjectRepository = zeitgeistSubjectRepository;
     }
 
     @RequestMapping(value="/logger/zeitgeist", method = RequestMethod.POST)
     public ResponseEntity<ZeitgeistEvent> zeitgeistLogger(@RequestBody ZeitgeistEvent input) {
 	ZeitgeistEvent event = zeitgeistEventRepository.save(input);
+	zeitgeistSubjectRepository.save(input.getSubject());
 	
 	System.out.println("zeitgeistLogger: " + input.getActor());
 	return new ResponseEntity<ZeitgeistEvent>(input, HttpStatus.OK);
