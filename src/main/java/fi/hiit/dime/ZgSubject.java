@@ -39,4 +39,8 @@ public class ZgSubject {
     public String getMimetype() { return mimetype; }
     public String getStorage() { return storage; }
     public String getText() { return text; }
+
+    public boolean isStub() {
+	return uri == null || uri.isEmpty();
+    }
 }

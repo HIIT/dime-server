@@ -24,7 +24,10 @@ public class DiMeController {
     @RequestMapping(value="/logger/zeitgeist", method = RequestMethod.POST)
     public ResponseEntity<ZgEvent> zgLogger(@RequestBody ZgEvent input) {
 	ZgEvent event = zgEventRepository.save(input);
-	zgSubjectRepository.save(input.getSubject());
+
+	ZgSubject subject = input.getSubject();
+	if (!subject.isStub())
+	    zgSubjectRepository.save(subject);
 	
 	System.out.println("Event posted from: " + input.getOrigin() + " [" + input.getActor() + "]");
 	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
