@@ -1,4 +1,4 @@
-package fi.hiit.dime;
+package fi.hiit.dime.data;
 
 import org.springframework.data.annotation.Id;
 import java.util.Date;
@@ -39,4 +39,8 @@ public class ZgSubject {
     public String getMimetype() { return mimetype; }
     public String getStorage() { return storage; }
     public String getText() { return text; }
+
+    public boolean isStub() {
+	return uri == null || uri.isEmpty();
+    }
 }

@@ -8,23 +8,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import fi.hiit.dime.database.*;
+import fi.hiit.dime.data.*;
+
 @RestController
-public class DiMeController {
+@RequestMapping("/api/data")
+public class DataController {
+    // Mongodb repositories
     private final ZgEventRepository zgEventRepository;
     private final ZgSubjectRepository zgSubjectRepository;
-    
 
     @Autowired
-    DiMeController(ZgEventRepository zgEventRepository,
+    DataController(ZgEventRepository zgEventRepository,
 		   ZgSubjectRepository zgSubjectRepository) {
 	this.zgEventRepository = zgEventRepository;
 	this.zgSubjectRepository = zgSubjectRepository;
     }
 
-    @RequestMapping(value="/logger/zeitgeist", method = RequestMethod.POST)
-    public ResponseEntity<ZgEvent> zgLogger(@RequestBody ZgEvent input) {
+    @RequestMapping(value="/zgevent", method = RequestMethod.POST)
+    public ResponseEntity<ZgEvent> zgEvent(@RequestBody ZgEvent input) {
 	ZgEvent event = zgEventRepository.save(input);
-	zgSubjectRepository.save(input.getSubject());
+
+	ZgSubject subject = input.getSubject();
+	if (!subject.isStub())
+	    zgSubjectRepository.save(subject);
 	
 	System.out.println("Event posted from: " + input.getOrigin() + " [" + input.getActor() + "]");
 	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
