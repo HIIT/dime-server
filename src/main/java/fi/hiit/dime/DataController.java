@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import fi.hiit.dime.database.*;
+import fi.hiit.dime.data.*;
+
 @RestController
 @RequestMapping("/api/data")
 public class DataController {

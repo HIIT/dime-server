@@ -1,4 +1,4 @@
-package fi.hiit.dime;
+package fi.hiit.dime.data;
 
 import org.springframework.data.annotation.Id;
 import java.util.Date;

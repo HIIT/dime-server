@@ -1,0 +1,41 @@
+Digital Me (DiMe) server.
+
+To compile, run:
+
+    make
+
+To run the server in port 8080:
+
+    make run
+
+
+Requirements: 
+- java 7 SDK or newer
+- mongodb.
+
+
+
+Directory structure:
+
+config/
+  application.properties - config options, currently only the mongodb database name
+
+doc/
+  documentation goes here
+
+src/main/resources/templates
+  HTML files for the web dashboard
+
+src/main/java/fi/hiit/dime/
+  Java source code, main application and controllers
+
+  answer/
+    classes for answers, i.e. feature extraction side
+
+  data/
+    classes for data types that are stored in DiMe
+
+  database/
+    classes for interfacing with the database (mongodb)
+  
+
