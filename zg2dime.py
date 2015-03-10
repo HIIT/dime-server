@@ -78,7 +78,7 @@ zeitgeist = ZeitgeistClient()
  
 template = Event.new_for_values(subject_interpretation=Interpretation.DOCUMENT)
 
-zeitgeist.find_events_for_template(template, on_events_received, num_events=1)
+zeitgeist.find_events_for_template(template, on_events_received, num_events=20)
 zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
 
 hostname = socket.gethostbyaddr(socket.gethostname())[0]
