@@ -86,7 +86,7 @@ hostname = socket.gethostbyaddr(socket.gethostname())[0]
 uuid = subprocess.check_output("udevadm info -q all -n /dev/sda1 | grep ID_FS_UUID= | sed 's:^.*=::'", shell=True)
 uuid = uuid.rstrip()
 
-server_url = 'http://localhost:8080/logger/zeitgeist'
+server_url = 'http://localhost:8080/api/data/zgevent'
 
 if len(sys.argv)>0 and sys.argv[-1] == 'debug':
     server_url = 'http://httpbin.org/post'
