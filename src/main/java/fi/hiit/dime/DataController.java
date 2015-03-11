@@ -29,11 +29,11 @@ public class DataController {
     public ResponseEntity<ZgEvent> zgEvent(@RequestBody ZgEvent input) {
 	ZgEvent event = zgEventRepository.save(input);
 
-	ZgSubject subject = input.getSubject();
+	ZgSubject subject = input.subject;
 	if (!subject.isStub())
 	    zgSubjectRepository.save(subject);
 	
-	System.out.println("Event posted from: " + input.getOrigin() + " [" + input.getActor() + "]");
+	System.out.println("Event posted from: " + input.origin + " [" + input.actor + "]");
 	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
     }
 }
