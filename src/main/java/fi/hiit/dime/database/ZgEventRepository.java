@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import fi.hiit.dime.data.ZgEvent;
 
 interface CustomZgEventRepository {
-    List<ZgCount> zgHist(boolean percentage);
+    List<ZgCount> zgHist(String groupBy, boolean percentage);
 }
 
 class ZgEventRepositoryImpl implements CustomZgEventRepository {
@@ -36,11 +36,11 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 	this.operations = operations;
     }
 
-    public List<ZgCount> zgHist(boolean percentage) {
+    public List<ZgCount> zgHist(String groupBy, boolean percentage) {
 	// db.zgEvent.aggregate([{ $group: { _id: "$actor", nevents: { $sum: 1 } } }])
 
-	Aggregation agg = newAggregation(group("actor").count().as("nevents"),
-					 project("nevents").and("actor").previousOperation(),
+	Aggregation agg = newAggregation(group(groupBy).count().as("nevents"),
+					 project("nevents").and(groupBy).previousOperation(),
 					 sort(Direction.DESC, "nevents"));
 	AggregationResults<ZgCount> results = operations.aggregate(agg, "zgEvent", ZgCount.class);
 	List<ZgCount> zgCounts = results.getMappedResults();

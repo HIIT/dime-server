@@ -29,8 +29,9 @@ public class AnswerController {
     }
 
     @RequestMapping(value="/zghist", method = RequestMethod.GET)
-    public ResponseEntity<List<ZgCount>> zgHist(@RequestParam(defaultValue="false") String perc) {
-	List<ZgCount> results = zgEventRepository.zgHist(!perc.equals("false"));
+    public ResponseEntity<List<ZgCount>> zgHist(@RequestParam(defaultValue="false") String perc,
+						@RequestParam(defaultValue="actor") String groupBy) {
+	List<ZgCount> results = zgEventRepository.zgHist(groupBy, !perc.equals("false"));
 	return new ResponseEntity<List<ZgCount>>(results, HttpStatus.OK);
     }
 }

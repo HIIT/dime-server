@@ -5,8 +5,11 @@ function parseResponse(data) {
     for (var i=0; i<data.length; i++) {
 	var perc = data[i]["percentage"].toFixed(2);
 	var n = data[i]["nevents"];
+	var name = data[i]["actor"];
+	if (name == null)
+	    name = data[i]["origin"];
 
-	text += "<tr><td>" + data[i]["actor"] + " (" + n + ") </td>";
+	text += "<tr><td>" + name + " (" + n + ") </td>";
 
 	text += "<td width=\"60%\"><div class=\"progress\">\n" +
 	    "<div class=\"progress-bar\" role=\"progressbar\" aria-valuenow=\"" + perc +
