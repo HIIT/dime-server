@@ -31,9 +31,12 @@ def send_event(event):
     if os.path.isfile(filename):
         storage = uuid
         if event.subjects[0].mimetype == 'application/pdf':
-            pdf_command = 'pdftotext "%s" - | head -20 | tr "\n" " " | fmt | head' % filename
-            #print pdf_command
-            text = subprocess.check_output(pdf_command, shell=True)
+            shell_command = 'pdftotext "%s" - | head -20 | tr "\n" " " | fmt | head' % filename
+            text = subprocess.check_output(shell_command, shell=True)
+            text = text.rstrip()
+        elif 'text/' in event.subjects[0].mimetype:
+            shell_command = 'head -20 "%s" | tr "\n" " " | fmt | head' % filename
+            text = subprocess.check_output(shell_command, shell=True)
             text = text.rstrip()
 
     payload = {'origin':                 hostname,
@@ -78,7 +81,7 @@ zeitgeist = ZeitgeistClient()
  
 template = Event.new_for_values(subject_interpretation=Interpretation.DOCUMENT)
 
-zeitgeist.find_events_for_template(template, on_events_received, num_events=20)
+zeitgeist.find_events_for_template(template, on_events_received, num_events=100)
 zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
 
 hostname = socket.gethostbyaddr(socket.gethostname())[0]
