@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-#import os.path
+import os.path
 import sys
+import shutil
 import socket
 import subprocess
 import requests
@@ -17,15 +18,32 @@ def json_to_md5(payload):
 
 hostname = socket.gethostbyaddr(socket.gethostname())[0]
 
-server_url = 'http://localhost:8080/logger/zeitgeist'
+server_url = 'http://localhost:8080/api/data/zgevent'
 debug = 0
+max_events = 100
 
-if len(sys.argv)>0 and sys.argv[-1] == 'debug':
-    #server_url = 'http://httpbin.org/post'
-    debug = 1
+if len(sys.argv)>1:
+    if sys.argv[-1] == 'debug':
+        server_url = 'http://httpbin.org/post'
+        debug = 1
+    elif sys.argv[-1] == 'all':
+        max_events = 100000
+    else:
+        print "ERROR: Unrecognized command-line option: " +  sys.argv[-1]
+        sys.exit()
 
 history_file = "/home/jmakoske/.config/google-chrome/Default/History"
-conn = sqlite3.connect(history_file)
+if not os.path.isfile(history_file):
+    print "ERROR: Chrome history file not found at: " + history_file
+    sys.exit()
+
+tmp_history = "/tmp/chrome2dime.py_History"
+shutil.copy(history_file, tmp_history)
+if not os.path.isfile(tmp_history):
+    print "ERROR: Failed copying Chrome history to: " + tmp_history
+    sys.exit()
+
+conn = sqlite3.connect(tmp_history)
 c = conn.cursor()
 
 i = 0
@@ -66,7 +84,7 @@ for row in c.execute('''select strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/10
     
     i = i+1
     
-    if debug:
+    if i>=max_events or debug:
         break
 
 print "Submitted %d entries" % i
