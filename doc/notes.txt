@@ -1,0 +1,3 @@
+http://stackoverflow.com/questions/17008947/spring-data-mongotemplate-vs-mongorepository
+
+http://www.studytrails.com/java/json/jackson-create-json.jsp
