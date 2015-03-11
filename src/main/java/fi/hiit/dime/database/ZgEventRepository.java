@@ -13,6 +13,10 @@ import org.springframework.data.mongodb.core.MongoOperations;
 
 import org.springframework.util.Assert;
 
+
+import org.springframework.data.mongodb.core.query.Query;
+
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -20,7 +24,7 @@ import java.util.ArrayList;
 import fi.hiit.dime.data.ZgEvent;
 
 interface CustomZgEventRepository {
-    List<ZgCount> zgHist();
+    List<ZgCount> zgHist(boolean percentage);
 }
 
 class ZgEventRepositoryImpl implements CustomZgEventRepository {
@@ -32,7 +36,7 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 	this.operations = operations;
     }
 
-    public List<ZgCount> zgHist() {
+    public List<ZgCount> zgHist(boolean percentage) {
 	// db.zgEvent.aggregate([{ $group: { _id: "$actor", nevents: { $sum: 1 } } }])
 
 	Aggregation agg = newAggregation(group("actor").count().as("nevents"),
@@ -40,6 +44,13 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 					 sort(Direction.DESC, "nevents"));
 	AggregationResults<ZgCount> results = operations.aggregate(agg, "zgEvent", ZgCount.class);
 	List<ZgCount> zgCounts = results.getMappedResults();
+
+	if (percentage) {
+	    long total = operations.count(new Query(), "zgEvent");
+	    for (ZgCount zgc : zgCounts) {
+		zgc.percentage = 100.0*zgc.nevents/total;
+	    }
+	}
 	return zgCounts;
     }
 
