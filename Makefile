@@ -14,3 +14,8 @@ run:    $(TARGET)
 
 clean:
 	$(GRADLE) clean
+
+doc: $(SOURCES)
+	$(GRADLE) javadoc
+	@echo
+	@echo Now open ./build/docs/javadoc/index.html
