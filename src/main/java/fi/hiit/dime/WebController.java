@@ -20,8 +20,18 @@ public class WebController {
 
     @RequestMapping("/")
     public String root(Model model) {
+        return "root";
+    }
+
+    @RequestMapping("/log")
+    public String log(Model model) {
 	model.addAttribute("name", "World");
         model.addAttribute("events", zgEventRepository.findAllByOrderByTimestampDesc());
-        return "root";
+        return "log";
+    }
+
+    @RequestMapping("/login")
+    public String login(Model model) {
+	return "login";
     }
 }
