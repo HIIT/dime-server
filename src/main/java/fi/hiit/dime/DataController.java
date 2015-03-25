@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Date;
 
 import fi.hiit.dime.database.*;
 import fi.hiit.dime.data.*;
@@ -27,13 +28,16 @@ public class DataController {
 
     @RequestMapping(value="/zgevent", method = RequestMethod.POST)
     public ResponseEntity<ZgEvent> zgEvent(@RequestBody ZgEvent input) {
+	Date date = new Date();
+
 	ZgEvent event = zgEventRepository.save(input);
 
 	ZgSubject subject = input.subject;
 	if (!subject.isStub())
 	    zgSubjectRepository.save(subject);
 	
-	System.out.println("Event posted from: " + input.origin + " [" + input.actor + "]");
+	System.out.println("Event from " + input.origin + " at " + date +
+			   " [" + input.actor + "]");
 	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
     }
 }
