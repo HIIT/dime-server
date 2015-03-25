@@ -9,6 +9,7 @@ import requests
 import json
 import hashlib
 import sqlite3
+from os.path import expanduser
 
 def json_to_md5(payload):
     json_payload = json.dumps(payload)
@@ -32,7 +33,10 @@ if len(sys.argv)>1:
         print "ERROR: Unrecognized command-line option: " +  sys.argv[-1]
         sys.exit()
 
-history_file = "/home/jmakoske/.config/google-chrome/Default/History"
+history_file = expanduser("~/.config/google-chrome/Default/History")
+if not os.path.isfile(history_file):
+    history_file  = expanduser("~/.config/chromium/Default/History")
+
 if not os.path.isfile(history_file):
     print "ERROR: Chrome history file not found at: " + history_file
     sys.exit()
