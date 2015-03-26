@@ -27,12 +27,12 @@ if len(sys.argv)>1:
         server_url = 'http://httpbin.org/post'
         debug = 1
     elif sys.argv[-1] == 'all':
-        max_events = 100000
+        max_events = 1000
     else:
         print "ERROR: Unrecognized command-line option: " +  sys.argv[-1]
         sys.exit()
 
-history_file = "/home/jmakoske/.config/google-chrome/Default/History"
+history_file = "/home/jmakoske/.config/google-chrome/Profile 1/History"
 if not os.path.isfile(history_file):
     print "ERROR: Chrome history file not found at: " + history_file
     sys.exit()
