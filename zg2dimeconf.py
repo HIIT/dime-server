@@ -57,11 +57,11 @@ def process_config(config_file):
     # [DiMe]:
 
     process_config_string(parser, 'DiMe', 'server_url', 'server_url')
-    process_config_int(parser, 'DiMe', 'nevents', 'nevents')
 
     # [Zeitgeist]:
 
     process_config_boolean(parser, 'Zeitgeist', 'use', 'use_zeitgeist')
+    process_config_int(parser, 'Zeitgeist', 'nevents', 'nevents')
 
     if (process_config_string(parser, 'Zeitgeist', 'other_actors', 'tmp')):
         #print config['tmp']

@@ -17,6 +17,7 @@ from zeitgeist.datamodel import *
 
 from zg2dimeglobals import config
 import zg2dimeconf as conf
+import chrome2dime
 
 # -----------------------------------------------------------------------
 
@@ -133,12 +134,6 @@ def on_delete(time_range, event_ids):
 
 # -----------------------------------------------------------------------
 
-def foo():
-    print "foo"
-    return True
-
-# -----------------------------------------------------------------------
-
 print "Starting the zg2dime.py logger on " + time.strftime("%c")
 
 config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
@@ -174,7 +169,7 @@ uuid = uuid.rstrip()
 if __name__ == '__main__':
     try:
         if config['use_chrome']:
-            GLib.timeout_add(config['interval_chrome']*1000, )
+            GLib.timeout_add(config['interval_chrome']*1000, chrome2dime.run)
 
         GLib.MainLoop().run()
     except KeyboardInterrupt:
