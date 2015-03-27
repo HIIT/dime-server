@@ -168,7 +168,8 @@ if __name__ == '__main__':
 
     try:
         if config['use_chrome']:
-            GLib.timeout_add(config['interval_chrome']*1000, chrome2dime.run)
+            c2d = chrome2dime.Browserlogger('chrome')
+            GLib.timeout_add(config['interval_chrome']*1000, c2d.run)
 
         GLib.MainLoop().run()
 
