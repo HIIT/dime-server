@@ -15,47 +15,8 @@ from ConfigParser import SafeConfigParser
 from zeitgeist.client import ZeitgeistClient
 from zeitgeist.datamodel import *
 
-# -----------------------------------------------------------------------
-
-def process_config_item(parser, oldval, section, option):
-    if parser.has_section(section) and parser.has_option(section, option):
-        return parser.get(section, option)
-    return oldval
-
-# -----------------------------------------------------------------------
-
-def process_config():
-    global config_server_url, config_nevents
-
-    print "Processing config file: " + config_file
-
-    if not os.path.isfile(config_file):
-        print "ERROR: Config file not found"
-        return False
-
-    config_fp = open(config_file)     
-    parser = SafeConfigParser()    
-    parser.readfp(config_fp)
-
-    config_server_url = process_config_item(parser, config_server_url, 'DiMe', 'server_url')
-    config_nevents = process_config_item(parser, config_nevents, 'DiMe', 'nevents')
-
-    other_actors = ''
-    other_actors = process_config_item(parser, other_actors, 'Zeitgeist', 'other_actors')
-    if other_actors:
-        print other_actors
-        oa_list = other_actors.split(';')
-        for oa in oa_list:
-            oa = oa.strip()
-            print oa
-            oa_kv = oa.split('->')            
-            if len(oa_kv)==2:
-                print oa_kv[0] +" " + oa_kv[1]
-                config_actors[oa_kv[0]]=oa_kv[1]                
-            else:
-                print "ERROR: Unable to parse Zeitgeist/other_actors: " + oa
-
-    return True
+from zg2dimeglobals import config
+import zg2dimeconf as conf
 
 # -----------------------------------------------------------------------
 
@@ -129,7 +90,7 @@ def send_event(event):
             text = subprocess.check_output(shell_command, shell=True)
             text = text.rstrip()
 
-    payload = {'origin':                 hostname,
+    payload = {'origin':                 config['hostname'],
                'actor':                  map_actor(event.actor), 
                'interpretation':         event.interpretation,
                'manifestation':          event.manifestation,               
@@ -150,7 +111,7 @@ def send_event(event):
     json_payload = json.dumps(payload)
     print(json_payload)
 
-    r = requests.post(config_server_url, data=json_payload, headers=headers)
+    r = requests.post(config['server_url'], data=json_payload, headers=headers)
     print(r.text)
     print "---------------------------------------------------------"
 
@@ -180,32 +141,30 @@ def foo():
 
 print "Starting the zg2dime.py logger on " + time.strftime("%c")
 
-config_file = "zg2dime.ini"
-config_nevents = 10
-config_server_url = ''
-config_actors = {}
+config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
 
-process_config()
+conf.process_config("zg2dime.ini")
+conf.process_config("user.ini")
 
 if len(sys.argv)>1:
     if sys.argv[-1] == 'debug':
-        config_server_url = 'http://httpbin.org/post'
-        config_nevents = 1
+        config['server_url'] = 'http://httpbin.org/post'
+        config['nevents'] = 1
     elif sys.argv[-1] == 'all':
-        config_nevents = 1000
+        config['nevents'] = 1000
 
-print "DiMe server location: " + config_server_url
+print "DiMe server location: " + config['server_url']
 
-actors = config_actors
+actors = config['actors'].copy()
 
-zeitgeist = ZeitgeistClient()
+if config['use_zeitgeist']:
+
+    zeitgeist = ZeitgeistClient()
  
-template = Event.new_for_values(subject_interpretation=Interpretation.DOCUMENT)
+    template = Event.new_for_values(subject_interpretation=Interpretation.DOCUMENT)
 
-zeitgeist.find_events_for_template(template, on_events_received, num_events=config_nevents)
-zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
-
-hostname = socket.gethostbyaddr(socket.gethostname())[0]
+    zeitgeist.find_events_for_template(template, on_events_received, num_events=config['nevents'])
+    zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
 
 uuid = subprocess.check_output("udevadm info -q all -n /dev/sda1 | grep ID_FS_UUID= | sed 's:^.*=::'", shell=True)
 uuid = uuid.rstrip()
@@ -214,7 +173,9 @@ uuid = uuid.rstrip()
 
 if __name__ == '__main__':
     try:
-        GLib.timeout_add(60*1000, foo)
+        if config['use_chrome']:
+            GLib.timeout_add(config['interval_chrome']*1000, )
+
         GLib.MainLoop().run()
     except KeyboardInterrupt:
         print("Exiting")
