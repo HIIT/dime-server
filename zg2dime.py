@@ -134,44 +134,44 @@ def on_delete(time_range, event_ids):
 
 # -----------------------------------------------------------------------
 
-print "Starting the zg2dime.py logger on " + time.strftime("%c")
-
-config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
-
-conf.process_config("zg2dime.ini")
-conf.process_config("user.ini")
-
-if len(sys.argv)>1:
-    if sys.argv[-1] == 'debug':
-        config['server_url'] = 'http://httpbin.org/post'
-        config['nevents'] = 1
-    elif sys.argv[-1] == 'all':
-        config['nevents'] = 1000
-
-print "DiMe server location: " + config['server_url']
-
-actors = config['actors'].copy()
-
-if config['use_zeitgeist']:
-
-    zeitgeist = ZeitgeistClient()
- 
-    template = Event.new_for_values(subject_interpretation=Interpretation.DOCUMENT)
-
-    zeitgeist.find_events_for_template(template, on_events_received, num_events=config['nevents'])
-    zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
-
-uuid = subprocess.check_output("udevadm info -q all -n /dev/sda1 | grep ID_FS_UUID= | sed 's:^.*=::'", shell=True)
-uuid = uuid.rstrip()
-
-# -----------------------------------------------------------------------
-
 if __name__ == '__main__':
+
+    print "Starting the zg2dime.py logger on " + time.strftime("%c")
+
+    config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
+
+    conf.process_config("zg2dime.ini")
+    conf.process_config("user.ini")
+
+    if len(sys.argv)>1:
+        if sys.argv[-1] == 'debug':
+            config['server_url'] = 'http://httpbin.org/post'
+            config['nevents'] = 1
+        elif sys.argv[-1] == 'all':
+            config['nevents'] = 1000
+
+    print "DiMe server location: " + config['server_url']
+
+    actors = config['actors'].copy()
+
+    if config['use_zeitgeist']:
+
+        zeitgeist = ZeitgeistClient()
+
+        template = Event.new_for_values(subject_interpretation=Interpretation.DOCUMENT)
+
+        zeitgeist.find_events_for_template(template, on_events_received, num_events=config['nevents'])
+        zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
+
+    uuid = subprocess.check_output("udevadm info -q all -n /dev/sda1 | grep ID_FS_UUID= | sed 's:^.*=::'", shell=True)
+    uuid = uuid.rstrip()
+
     try:
         if config['use_chrome']:
             GLib.timeout_add(config['interval_chrome']*1000, chrome2dime.run)
 
         GLib.MainLoop().run()
+
     except KeyboardInterrupt:
         print("Exiting")
 
