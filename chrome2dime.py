@@ -16,32 +16,46 @@ import zg2dimeconf as conf
 
 debug = False
 
+old_history_file_sha1 = ''
+
 # -----------------------------------------------------------------------
 
-def json_to_md5(payload):
+def json_to_sha1(payload):
     json_payload = json.dumps(payload)
-    md5 = hashlib.md5()
-    md5.update(json_payload)
-    return md5.hexdigest()
+    sha1 = hashlib.sha1()
+    sha1.update(json_payload)
+    return sha1.hexdigest()
+
+# -----------------------------------------------------------------------
+
+def file_to_sha1(fn):
+    return hashlib.sha1(open(fn, 'rb').read()).hexdigest()
 
 # -----------------------------------------------------------------------
 
 def run():
+    global old_history_file_sha1
 
     print "Starting the chrome2dime.py logger on " + time.strftime("%c")
 
     if not config.has_key('history_file_chrome'):
         print "ERROR: Chrome history file not specified"
-        return
+        return False
 
     if not os.path.isfile(config['history_file_chrome']):
         print "ERROR: Chrome history file not found at: " + config['history_file_chrome']
-        return
+        return False
+
+    history_file_sha1 = file_to_sha1(config['history_file_chrome'])
+    if history_file_sha1 == old_history_file_sha1:
+        print "Chrome history not changed, exiting."
+        return True
+    old_history_file_sha1 = history_file_sha1
 
     shutil.copy(config['history_file_chrome'], config['tmpfile_chrome'])
     if not os.path.isfile(config['tmpfile_chrome']):
         print "ERROR: Failed copying Chrome history to: " + config['tmpfile_chrome']
-        return
+        return False
 
     conn = sqlite3.connect(config['tmpfile_chrome'])
     c = conn.cursor()
@@ -71,8 +85,8 @@ def run():
                        'text':           text}
                   }
 
-        payload['subject']['id'] = json_to_md5(payload['subject'])
-        payload['id'] = json_to_md5(payload)
+        payload['subject']['id'] = json_to_sha1(payload['subject'])
+        payload['id'] = json_to_sha1(payload)
         json_payload = json.dumps(payload)
         print(json_payload)
     
@@ -95,7 +109,7 @@ def run():
 
 if __name__ == '__main__':
 
-    print "Starting the zg2dime.py logger on " + time.strftime("%c")
+    print "Starting the chrome2dime.py logger on " + time.strftime("%c")
 
     config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
 

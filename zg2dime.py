@@ -21,11 +21,11 @@ import chrome2dime
 
 # -----------------------------------------------------------------------
 
-def json_to_md5(payload):
+def json_to_sha1(payload):
     json_payload = json.dumps(payload)
-    md5 = hashlib.md5()
-    md5.update(json_payload)
-    return md5.hexdigest()
+    sha1 = hashlib.sha1()
+    sha1.update(json_payload)
+    return sha1.hexdigest()
 
 # -----------------------------------------------------------------------
  
@@ -107,8 +107,8 @@ def send_event(event):
 
     headers = {'content-type': 'application/json'}
  
-    payload['subject']['id'] = json_to_md5(payload['subject'])
-    payload['id'] = json_to_md5(payload)
+    payload['subject']['id'] = json_to_sha1(payload['subject'])
+    payload['id'] = json_to_sha1(payload)
     json_payload = json.dumps(payload)
     print(json_payload)
 
