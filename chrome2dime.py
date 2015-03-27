@@ -9,9 +9,12 @@ import requests
 import json
 import hashlib
 import sqlite3
+import time
 
 from zg2dimeglobals import config
 import zg2dimeconf as conf
+
+debug = False
 
 # -----------------------------------------------------------------------
 
@@ -25,16 +28,22 @@ def json_to_md5(payload):
 
 def run():
 
+    print "Starting the chrome2dime.py logger on " + time.strftime("%c")
+
+    if not config.has_key('history_file_chrome'):
+        print "ERROR: Chrome history file not specified"
+        return
+
     if not os.path.isfile(config['history_file_chrome']):
         print "ERROR: Chrome history file not found at: " + config['history_file_chrome']
         return
 
-    shutil.copy(config['history_file_chrome'], config['tmp_file_chrome'])
-    if not os.path.isfile(config['tmp_file_chrome']):
-        print "ERROR: Failed copying Chrome history to: " + config['tmp_file_chrome']
+    shutil.copy(config['history_file_chrome'], config['tmpfile_chrome'])
+    if not os.path.isfile(config['tmpfile_chrome']):
+        print "ERROR: Failed copying Chrome history to: " + config['tmpfile_chrome']
         return
 
-    conn = sqlite3.connect(tmp_history)
+    conn = sqlite3.connect(config['tmpfile_chrome'])
     c = conn.cursor()
     
     i = 0
@@ -69,16 +78,18 @@ def run():
     
         headers = {'content-type': 'application/json'}
     
-        r = requests.post(server_url, data=json_payload, headers=headers)
+        r = requests.post(config['server_url'], data=json_payload, headers=headers)
         print(r.text)
         print "########################################################"
     
         i = i+1
     
-        if i>=max_events or debug:
+        if i>=config['nevents_chrome'] or debug:
             break
 
     print "Submitted %d entries" % i
+
+    return True
 
 # -----------------------------------------------------------------------
 
@@ -93,10 +104,10 @@ if __name__ == '__main__':
 
     if len(sys.argv)>1:
         if sys.argv[-1] == 'debug':
-            server_url = 'http://httpbin.org/post'
-            debug = 1
-        elif sys.argv[-1] == 'all':
-            max_events = 1000
+            config['server_url'] = 'http://httpbin.org/post'
+            debug = True
+        elif sys.argv[-1] == 'lots':
+            config['nevents_chrome'] = 1000
         else:
             print "ERROR: Unrecognized command-line option: " +  sys.argv[-1]
             sys.exit()

@@ -83,6 +83,9 @@ def process_config(config_file):
 
     process_config_boolean(parser, 'Chrome', 'use', 'use_chrome')
     process_config_int(parser, 'Chrome', 'interval', 'interval_chrome')
+    process_config_string(parser, 'Chrome', 'history_file', 'history_file_chrome')
+    process_config_string(parser, 'Chrome', 'tmpfile', 'tmpfile_chrome')
+    process_config_int(parser, 'Chrome', 'nevents', 'nevents_chrome')
                 
     return True
 
