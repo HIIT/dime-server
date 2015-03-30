@@ -82,10 +82,20 @@ def process_config(config_file):
     # [Chrome]:
 
     process_config_boolean(parser, 'Chrome', 'use', 'use_chrome')
+    process_config_string(parser, 'Chrome', 'actor', 'actor_chrome')
     process_config_int(parser, 'Chrome', 'interval', 'interval_chrome')
     process_config_string(parser, 'Chrome', 'history_file', 'history_file_chrome')
     process_config_string(parser, 'Chrome', 'tmpfile', 'tmpfile_chrome')
     process_config_int(parser, 'Chrome', 'nevents', 'nevents_chrome')
+
+    # [Chromium]:
+
+    process_config_boolean(parser, 'Chromium', 'use', 'use_chromium')
+    process_config_string(parser, 'Chromium', 'actor', 'actor_chromium')
+    process_config_int(parser, 'Chromium', 'interval', 'interval_chromium')
+    process_config_string(parser, 'Chromium', 'history_file', 'history_file_chromium')
+    process_config_string(parser, 'Chromium', 'tmpfile', 'tmpfile_chromium')
+    process_config_int(parser, 'Chromium', 'nevents', 'nevents_chromium')
                 
     return True
 

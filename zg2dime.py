@@ -171,6 +171,10 @@ if __name__ == '__main__':
             c2d = chrome2dime.Browserlogger('chrome')
             GLib.timeout_add(config['interval_chrome']*1000, c2d.run)
 
+        if config['use_chromium']:
+            c2d = chrome2dime.Browserlogger('chromium')
+            GLib.timeout_add(config['interval_chromium']*1000, c2d.run)
+
         GLib.MainLoop().run()
 
     except KeyboardInterrupt:

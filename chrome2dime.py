@@ -38,34 +38,42 @@ class Browserlogger:
 
     # -----------------------------------------------------------------------
 
+    def sqlite3command(self):
+        if self.name == 'firefox':
+            return '''enter firefox command here'''
+        else:
+            return '''select strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/1000000)-11644473600, 'unixepoch'),url,title from  urls order by last_visit_time desc'''
+
+    # -----------------------------------------------------------------------
+
     def run(self):
 
-        print "Starting the chrome2dime.py logger on " + time.strftime("%c")
+        print "Starting the " + self.name + " logger on " + time.strftime("%c")
 
-        if not config.has_key('history_file_chrome'):
-            print "ERROR: Chrome history file not specified"
+        if not config.has_key('history_file_'+self.name):
+            print "ERROR: History file not specified"
             return False
 
-        if not os.path.isfile(config['history_file_chrome']):
-            print "ERROR: Chrome history file not found at: " + config['history_file_chrome']
+        if not os.path.isfile(config['history_file_'+self.name]):
+            print "ERROR: History file not found at: " + config['history_file_'+self.name]
             return False
 
-        history_file_sha1 = self.file_to_sha1(config['history_file_chrome'])
+        history_file_sha1 = self.file_to_sha1(config['history_file_'+self.name])
         if history_file_sha1 == self.old_history_file_sha1:
-            print "Chrome history not changed, exiting."
+            print "History not changed, exiting."
             return True
         self.old_history_file_sha1 = history_file_sha1
 
-        shutil.copy(config['history_file_chrome'], config['tmpfile_chrome'])
-        if not os.path.isfile(config['tmpfile_chrome']):
-            print "ERROR: Failed copying Chrome history to: " + config['tmpfile_chrome']
+        shutil.copy(config['history_file_'+self.name], config['tmpfile_'+self.name])
+        if not os.path.isfile(config['tmpfile_'+self.name]):
+            print "ERROR: Failed copying history to: " + config['tmpfile_'+self.name]
             return False
 
-        conn = sqlite3.connect(config['tmpfile_chrome'])
+        conn = sqlite3.connect(config['tmpfile_'+self.name])
         c = conn.cursor()
 
         i = 0
-        for row in c.execute('''select strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/1000000)-11644473600, 'unixepoch'),url,title from  urls order by last_visit_time desc'''):
+        for row in c.execute(self.sqlite3command()):
 
             storage = 'net'
             mimetype = 'unknown'
@@ -73,10 +81,9 @@ class Browserlogger:
             datetime = row[0]
             uri      = row[1]
             text     = row[2]
-            #print "[%s] => [%s]" % (sd, item_datetime)
 
             payload = {'origin':                 config['hostname'],
-                       'actor':                  'Google Chrome',
+                       'actor':                  config['actor_'+self.name],
                        'interpretation':         'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#AccessEvent',
                        'manifestation':          'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#UserActivity',
                        'timestamp':              datetime,
@@ -102,7 +109,7 @@ class Browserlogger:
 
             i = i+1
 
-            if i>=config['nevents_chrome'] or self.debug:
+            if i>=config['nevents_'+self.name] or self.debug:
                 break
 
         print "Submitted %d entries" % i
@@ -125,7 +132,7 @@ if __name__ == '__main__':
             config['server_url'] = 'http://httpbin.org/post'
             debug = True
         elif sys.argv[-1] == 'lots':
-            config['nevents_chrome'] = 1000
+            config['nevents_'+self.name] = 1000
         else:
             print "ERROR: Unrecognized command-line option: " +  sys.argv[-1]
             sys.exit()
