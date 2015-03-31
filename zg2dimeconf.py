@@ -57,7 +57,7 @@ def process_browser(parser, section, suffix):
     process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix)
     process_config_int(parser, section, 'nevents', 'nevents_'+suffix)
 
-    if (process_config_string(parser, section, 'blacklist_'+suffix, 'tmp')):
+    if (process_config_string(parser, section, 'blacklist', 'tmp')):
         bl = config['tmp'].split(';')
         for bl_item in bl:
             bl_item = bl_item.strip()
