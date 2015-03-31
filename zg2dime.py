@@ -17,6 +17,7 @@ from zeitgeist.datamodel import *
 from zg2dimeglobals import config
 import zg2dimeconf as conf
 import chrome2dime
+import zg2dimeind
 
 # -----------------------------------------------------------------------
 
@@ -38,13 +39,13 @@ def _get_app_paths():
 # -----------------------------------------------------------------------
 
 def locate_desktop_file(filename, _paths=_get_app_paths()):
-    print filename
+    #print filename
     for path in _paths:
         for thispath, dirs, files in os.walk(os.path.join(path, 'applications')):
             if filename not in files:
                 continue
             fullname = os.path.join(thispath, filename)
-            print fullname
+            #print fullname
             return fullname
     else:
         raise IOError
@@ -80,49 +81,63 @@ def blacklisted(fn):
 
 def send_event(event):
 
-    storage = 'deleted'
-    text = ''
     filename = urllib.unquote(event.subjects[0].uri)
+    print ("Starting to process " + filename + " on " + time.strftime("%c") + 
+               " with " + str(len(subjects)) + " known subjects")
 
     if blacklisted(filename):
         return
 
     if filename.startswith('file://'):
         filename = filename[7:]
-    print filename
-    if os.path.isfile(filename):
-        storage = uuid
-        if event.subjects[0].mimetype == 'application/pdf':
-            shell_command = 'pdftotext "%s" - | head -20 | tr "\n" " " | fmt | head' % filename
-            text = subprocess.check_output(shell_command, shell=True)
-            text = text.rstrip()
-        elif 'text/' in event.subjects[0].mimetype:
-            shell_command = 'head -20 "%s" | tr "\n" " " | fmt | head' % filename
-            text = subprocess.check_output(shell_command, shell=True)
-            text = text.rstrip()
 
     payload = {'origin':                 config['hostname'],
                'actor':                  map_actor(event.actor), 
                'interpretation':         event.interpretation,
                'manifestation':          event.manifestation,               
-               'timestamp':              event.timestamp,
-               'subject': {
-                   'uri':            event.subjects[0].uri,
-                   'interpretation': event.subjects[0].interpretation,
-                   'manifestation':  event.subjects[0].manifestation,
-                   'mimetype':       event.subjects[0].mimetype,
-                   'storage':        storage,
-                   'text':           text}
-               }
+               'timestamp':              event.timestamp}
 
-    headers = {'content-type': 'application/json'}
- 
-    payload['subject']['id'] = json_to_sha1(payload['subject'])
+    subject = {'uri':            event.subjects[0].uri,
+               'interpretation': event.subjects[0].interpretation,
+               'manifestation':  event.subjects[0].manifestation,
+               'mimetype':       event.subjects[0].mimetype}
+
+    subject['id'] = json_to_sha1(subject)
+    payload['subject'] = {}
+    payload['subject']['id'] = subject['id']
     payload['id'] = json_to_sha1(payload)
+
+    if not subject['id'] in subjects:
+        print "Not found in known subjects, sending full data"
+        subjects.add(subject['id'])
+ 
+        if os.path.isfile(filename):
+            subject['storage'] = uuid
+            if config['pdftotext'] and event.subjects[0].mimetype == 'application/pdf':
+                print "Detected as PDF, converting to text"
+                shell_command = config['pdftotext_command'] % filename
+                try:
+                    subject['text'] = subprocess.check_output(shell_command, shell=True)
+                except subprocess.CalledProcessError:
+                    pass
+            elif 'text/' in event.subjects[0].mimetype:
+                with open (filename, "r") as myfile:
+                    subject['text'] = myfile.read()
+        else:
+            subject['storage'] = 'deleted'
+
+        if config['maxtextlength_zg']>0 and len(subject['text'])>config['maxtextlength_zg']:
+            subject['text'] = subject['text'][0:config['maxtextlength_zg']]
+
+        payload['subject'] = subject.copy()
+
     json_payload = json.dumps(payload)
     print(json_payload)
 
+    headers = {'content-type': 'application/json'}
     r = requests.post(config['server_url'], data=json_payload, headers=headers)
+    stats['nevents'] = stats['nevents'] + 1 
+    stats['data_sent'] = stats['data_sent'] + len(json_payload)
     print(r.text)
     print "---------------------------------------------------------"
 
@@ -144,6 +159,12 @@ def on_delete(time_range, event_ids):
 
 # -----------------------------------------------------------------------
 
+def update_ind():
+    ind.update(stats)
+    return True
+
+# -----------------------------------------------------------------------
+
 if __name__ == '__main__':
 
     print "Starting the zg2dime.py logger on " + time.strftime("%c")
@@ -159,7 +180,13 @@ if __name__ == '__main__':
 
     print "DiMe server location: " + config['server_url']
 
+    subjects = set()
+
     actors = config['actors'].copy()
+
+    stats = { 'nevents': 0,
+              'data_sent': 0,
+              'last_event': None }
 
     if config['use_zeitgeist']:
 
@@ -174,6 +201,10 @@ if __name__ == '__main__':
     uuid = uuid.rstrip()
 
     try:
+        if config['use_indicator']:
+            ind = zg2dimeind.Indicator()
+            GLib.timeout_add(config['interval_indicator']*1000, update_ind)
+
         if config['use_chrome']:
             c2d = chrome2dime.Browserlogger('chrome')
             GLib.timeout_add(config['interval_chrome']*1000, c2d.run)

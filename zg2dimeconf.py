@@ -95,6 +95,9 @@ def process_config(config_file):
 
     process_config_boolean(parser, 'Zeitgeist', 'use', 'use_zeitgeist')
     process_config_int(parser, 'Zeitgeist', 'nevents', 'nevents')
+    process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext')
+    process_config_string(parser, 'Zeitgeist', 'pdftotext_command', 'pdftotext_command')
+    process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg')
 
     if (process_config_string(parser, 'Zeitgeist', 'other_actors', 'tmp')):
         #print config['tmp']
@@ -118,13 +121,21 @@ def process_config(config_file):
 
     process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext')
     process_config_string(parser, 'Browsers', 'fulltext_command', 'fulltext_command')
-    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength')
+    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength_web')
+    process_config_string(parser, 'Browsers', 'event_interpretation', 'event_interpretation')
+    process_config_string(parser, 'Browsers', 'event_manifestation', 'event_manifestation')
+    process_config_string(parser, 'Browsers', 'subject_interpretation', 'subject_interpretation')
+    process_config_string(parser, 'Browsers', 'subject_manifestation', 'subject_manifestation')
 
     # [Chrome/Chromium/Firefox]:
 
     process_browser(parser, 'Chrome', 'chrome')
     process_browser(parser, 'Chromium', 'chromium')
     process_browser(parser, 'Firefox', 'firefox')
+
+    # [Indicator]:
+    process_config_boolean(parser, 'Indicator', 'use', 'use_indicator')
+    process_config_int(parser, 'Indicator', 'interval', 'interval_indicator')
 
     return True
 

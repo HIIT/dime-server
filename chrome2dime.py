@@ -107,13 +107,13 @@ class Browserlogger:
 
             payload = {'origin':         config['hostname'],
                        'actor':          config['actor_'+self.name],
-                       'interpretation': 'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#AccessEvent',
-                       'manifestation':  'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#UserActivity',
+                       'interpretation': config['event_interpretation'],
+                       'manifestation':  config['event_manifestation'],
                        'timestamp':      datetime}
 
             subject = {'uri':            uri,
-                       'interpretation': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document',
-                       'manifestation':  'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject',
+                       'interpretation': config['subject_interpretation'],
+                       'manifestation':  config['subject_manifestation'],
                        'mimetype':       mimetype,
                        'storage':        storage}
 
@@ -135,12 +135,11 @@ class Browserlogger:
                 if config['fulltext']:
                     lynx_command = config['fulltext_command'] % uri
                     try:
-                        text = subprocess.check_output(lynx_command, shell=True)
+                        subject['text'] = subprocess.check_output(lynx_command, shell=True)
                     except subprocess.CalledProcessError:
-                        text = row[2]
-                    if config['maxtextlength']>0 and len(text)>config['maxtextlength']:
-                        text = text[0:config['maxtextlength']]
-                    subject['text'] = text
+                        subject['text'] = row[2]
+                    if config['maxtextlength_web']>0 and len(subject['text'])>config['maxtextlength_web']:
+                        subject['text'] = subject['text'][0:config['maxtextlength_web']]
                 else:
                     subject['text'] = row[2]
 
