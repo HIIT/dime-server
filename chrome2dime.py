@@ -42,13 +42,15 @@ class Browserlogger:
 
     def sqlite3command(self):
         if self.name == 'firefox':
-            return '''enter firefox command here'''
+            return '''SELECT strftime('%Y-%m-%dT%H:%M:%SZ',(moz_historyvisits.visit_date/1000000), 'unixepoch'),moz_places.url,moz_places.title FROM moz_places, moz_historyvisits WHERE moz_places.id = moz_historyvisits.place_id ORDER BY moz_historyvisits.visit_date desc'''
         else:
-            return '''select strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/1000000)-11644473600, 'unixepoch'),url,title from  urls order by last_visit_time desc'''
+            return '''SELECT strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/1000000)-11644473600, 'unixepoch'),url,title FROM urls ORDER BY last_visit_time desc'''
 
     # -----------------------------------------------------------------------
     
     def blacklisted(self, uri):
+        if not config.has_key('blacklist_'+self.name):
+            return False
         for bl_substr in config['blacklist_'+self.name]:
             if bl_substr in uri:
                 print "URI %s matches a blacklist item [%s], skipping" % (uri, bl_substr) 
@@ -88,7 +90,7 @@ class Browserlogger:
         i = 0
         for row in c.execute(self.sqlite3command()):
 
-            if i>config['nevents_'+self.name]:
+            if i>=config['nevents_'+self.name]:
                 break
 
             storage  = 'net'
@@ -130,11 +132,14 @@ class Browserlogger:
                 print "Not found in known subjects, sending full data"
                 self.subjects.add(subject['id'])
 
-                lynx_command = 'lynx -dump -nolist %s' % uri
-                text     = subprocess.check_output(lynx_command, shell=True)
-                if config['maxtextlength_'+self.name]>0 and len(text)>config['maxtextlength_'+self.name]:
-                    text =  text[0:config['maxtextlength_'+self.name]]
-                subject['text'] = text
+                if config['fulltext']:
+                    lynx_command = config['fulltext_command'] % uri
+                    text     = subprocess.check_output(lynx_command, shell=True)
+                    if config['maxtextlength']>0 and len(text)>config['maxtextlength']:
+                        text =  text[0:config['maxtextlength']]
+                    subject['text'] = text
+                else:
+                    subject['text'] = row[2]
 
                 payload['subject'] = subject.copy()
 

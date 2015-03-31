@@ -40,6 +40,26 @@ def process_config_boolean(p, s, o, k, v=True):
 
 # -----------------------------------------------------------------------
 
+def process_browser(parser, section, suffix):
+
+    process_config_boolean(parser, section, 'use', 'use_'+suffix)
+    process_config_string(parser, section, 'actor', 'actor_'+suffix)
+    process_config_int(parser, section, 'interval', 'interval_'+suffix)
+    process_config_string(parser, section, 'history_file', 'history_file_'+suffix)
+    process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix)
+    process_config_int(parser, section, 'nevents', 'nevents_'+suffix)
+
+    if (process_config_string(parser, section, 'blacklist_'+suffix, 'tmp')):
+        bl = config['tmp'].split(';')
+        for bl_item in bl:
+            bl_item = bl_item.strip()
+            if not config.has_key('blacklist_'+suffix):
+                config['blacklist_'+suffix] = set()
+            config['blacklist_'+suffix].add(bl_item)
+        config.pop('tmp')
+                
+# -----------------------------------------------------------------------
+
 def process_config(config_file):
     print "Processing config file: " + config_file
 
@@ -80,35 +100,18 @@ def process_config(config_file):
                 print "ERROR: Unable to parse Zeitgeist/other_actors: " + oa
         config.pop('tmp')
 
-    # [Chrome]:
+    # [Browsers]:
 
-    process_config_boolean(parser, 'Chrome', 'use', 'use_chrome')
-    process_config_string(parser, 'Chrome', 'actor', 'actor_chrome')
-    process_config_int(parser, 'Chrome', 'interval', 'interval_chrome')
-    process_config_string(parser, 'Chrome', 'history_file', 'history_file_chrome')
-    process_config_string(parser, 'Chrome', 'tmpfile', 'tmpfile_chrome')
-    process_config_int(parser, 'Chrome', 'nevents', 'nevents_chrome')
-    process_config_int(parser, 'Chrome', 'maxtextlength', 'maxtextlength_chrome')
+    process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext')
+    process_config_string(parser, 'Browsers', 'fulltext_command', 'fulltext_command')
+    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength')
 
-    if (process_config_string(parser, 'Chrome', 'blacklist', 'tmp')):
-        bl = config['tmp'].split(';')
-        for bl_item in bl:
-            bl_item = bl_item.strip()
-            if not config.has_key('blacklist_chrome'):
-                config['blacklist_chrome'] = set()
-            config['blacklist_chrome'].add(bl_item)
-        config.pop('tmp')
+    # [Chrome/Chromium/Firefox]:
 
-    # [Chromium]:
+    process_browser(parser, 'Chrome', 'chrome')
+    process_browser(parser, 'Chromium', 'chromium')
+    process_browser(parser, 'Firefox', 'firefox')
 
-    process_config_boolean(parser, 'Chromium', 'use', 'use_chromium')
-    process_config_string(parser, 'Chromium', 'actor', 'actor_chromium')
-    process_config_int(parser, 'Chromium', 'interval', 'interval_chromium')
-    process_config_string(parser, 'Chromium', 'history_file', 'history_file_chromium')
-    process_config_string(parser, 'Chromium', 'tmpfile', 'tmpfile_chromium')
-    process_config_int(parser, 'Chromium', 'nevents', 'nevents_chromium')
-    process_config_int(parser, 'Chrome', 'maxtextlength', 'maxtextlength_chromium')
-                
     return True
 
 # -----------------------------------------------------------------------
