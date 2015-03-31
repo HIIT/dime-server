@@ -134,3 +134,13 @@ def configure():
     return True
 
 # -----------------------------------------------------------------------
+
+def parse_desktop_file(desktop_file, oldval):
+    parser = SafeConfigParser()
+    parser.read(desktop_file)
+    if parser.has_section('Desktop Entry') and parser.has_option('Desktop Entry', 'Name'):
+        return parser.get('Desktop Entry', 'Name')
+    else:
+        return oldval
+
+# -----------------------------------------------------------------------

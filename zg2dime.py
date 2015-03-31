@@ -10,7 +10,7 @@ import urllib
 import time
 
 from gi.repository import GLib
-from ConfigParser import SafeConfigParser
+
 from zeitgeist.client import ZeitgeistClient
 from zeitgeist.datamodel import *
 
@@ -61,12 +61,8 @@ def map_actor(actor):
     except IOError:
         actors[actor] = actor
         return actors[actor]
-    parser = SafeConfigParser()
-    parser.read(desktop_file)
-    if parser.has_section('Desktop Entry') and parser.has_option('Desktop Entry', 'Name'):
-        actors[actor] = parser.get('Desktop Entry', 'Name')
-    else:
-        actors[actor] = actor
+
+    actors[actor] = conf.parse_desktop_file(desktop_file, actor)
     return actors[actor]
 
 # -----------------------------------------------------------------------
