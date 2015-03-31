@@ -41,7 +41,7 @@
             <li th:class="${page == 'log' ? 'active' : ''}"><a th:href="@{/log}">Data stored</a></li>
 	  </ul>
 	  <form th:if="${#httpServletRequest.remoteUser}" class="navbar-form navbar-right" role="logout" th:action="@{/logout}" method="post">
-            <button type="submit" class="btn btn-default btn-sm">Log out</button>
+            <button type="submit" class="btn btn-default btn-sm">Sign out</button>
 	  </form>
 	  <ul th:unless="${#httpServletRequest.remoteUser}" class="nav navbar-nav navbar-right">
 	    <li><a th:href="@{/login}" class="navbar-link">Sign in</a></li>
