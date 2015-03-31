@@ -22,6 +22,8 @@ class Browserlogger:
         self.name = name
         self.debug = False
         self.old_history_file_sha1 = ''
+        self.events = set()
+        self.subjects = set()
 
     # -----------------------------------------------------------------------
 
@@ -45,10 +47,21 @@ class Browserlogger:
             return '''select strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/1000000)-11644473600, 'unixepoch'),url,title from  urls order by last_visit_time desc'''
 
     # -----------------------------------------------------------------------
+    
+    def blacklisted(self, uri):
+        for bl_substr in config['blacklist_'+self.name]:
+            if bl_substr in uri:
+                print "URI %s matches a blacklist item [%s], skipping" % (uri, bl_substr) 
+                return True
+        return False
+
+    # -----------------------------------------------------------------------
 
     def run(self):
 
-        print "Starting the " + self.name + " logger on " + time.strftime("%c")
+        print ("Starting the " + self.name + " logger on " + time.strftime("%c") + 
+               " with " + str(len(self.events)) + " known events and"
+               " with " + str(len(self.subjects)) + " known subjects")
 
         if not config.has_key('history_file_'+self.name):
             print "ERROR: History file not specified"
@@ -75,29 +88,56 @@ class Browserlogger:
         i = 0
         for row in c.execute(self.sqlite3command()):
 
-            storage = 'net'
+            if i>config['nevents_'+self.name]:
+                break
+
+            storage  = 'net'
             mimetype = 'unknown'
 
             datetime = row[0]
             uri      = row[1]
-            text     = row[2]
 
-            payload = {'origin':                 config['hostname'],
-                       'actor':                  config['actor_'+self.name],
-                       'interpretation':         'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#AccessEvent',
-                       'manifestation':          'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#UserActivity',
-                       'timestamp':              datetime,
-                       'subject': {
-                           'uri':            uri,
-                           'interpretation': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document',
-                           'manifestation':  'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject',
-                           'mimetype':       mimetype,
-                           'storage':        storage,
-                           'text':           text}
-                      }
+            print "Processing %d:%s" % (i, uri)
+            i = i+1
 
-            payload['subject']['id'] = self.json_to_sha1(payload['subject'])
+            if self.blacklisted(uri):
+                continue
+
+            payload = {'origin':         config['hostname'],
+                       'actor':          config['actor_'+self.name],
+                       'interpretation': 'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#AccessEvent',
+                       'manifestation':  'http://www.zeitgeist-project.com/ontologies/2010/01/27/zg#UserActivity',
+                       'timestamp':      datetime}
+
+            subject = {'uri':            uri,
+                       'interpretation': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document',
+                       'manifestation':  'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject',
+                       'mimetype':       mimetype,
+                       'storage':        storage}
+
+            subject['id'] = self.json_to_sha1(subject)
+            payload['subject'] = {}
+            payload['subject']['id'] = subject['id']
             payload['id'] = self.json_to_sha1(payload)
+
+            if payload['id'] in self.events:
+                print "Match found in known events, skipping"
+                continue
+            else:
+                self.events.add(payload['id'])
+
+            if not subject['id'] in self.subjects:
+                print "Not found in known subjects, sending full data"
+                self.subjects.add(subject['id'])
+
+                lynx_command = 'lynx -dump -nolist %s' % uri
+                text     = subprocess.check_output(lynx_command, shell=True)
+                if config['maxtextlength_'+self.name]>0 and len(text)>config['maxtextlength_'+self.name]:
+                    text =  text[0:config['maxtextlength_'+self.name]]
+                subject['text'] = text
+
+                payload['subject'] = subject.copy()
+
             json_payload = json.dumps(payload)
             print(json_payload)
 
@@ -106,11 +146,6 @@ class Browserlogger:
             r = requests.post(config['server_url'], data=json_payload, headers=headers)
             print(r.text)
             print "########################################################"
-
-            i = i+1
-
-            if i>=config['nevents_'+self.name] or self.debug:
-                break
 
         print "Submitted %d entries" % i
 
@@ -122,21 +157,13 @@ if __name__ == '__main__':
 
     print "Starting the chrome2dime.py logger on " + time.strftime("%c")
 
-    config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
-
-    conf.process_config("zg2dime.ini")
-    conf.process_config("user.ini")
-
+    conf.configure()
+    
     if len(sys.argv)>1:
-        if sys.argv[-1] == 'debug':
-            config['server_url'] = 'http://httpbin.org/post'
-            debug = True
-        elif sys.argv[-1] == 'lots':
-            config['nevents_'+self.name] = 1000
-        else:
-            print "ERROR: Unrecognized command-line option: " +  sys.argv[-1]
-            sys.exit()
-
-    run()
+        config['use_'+sys.argv[-1]] = True
+        c2d = Browserlogger(sys.argv[-1])
+        c2d.run()
+    else:
+        print "Usage: " + sys.argv[0] + " chrome|chromium|firefox"
 
 # -----------------------------------------------------------------------
