@@ -1,5 +1,6 @@
 
 import os.path
+import socket
 from ConfigParser import SafeConfigParser
 
 from zg2dimeglobals import config
@@ -87,6 +88,16 @@ def process_config(config_file):
     process_config_string(parser, 'Chrome', 'history_file', 'history_file_chrome')
     process_config_string(parser, 'Chrome', 'tmpfile', 'tmpfile_chrome')
     process_config_int(parser, 'Chrome', 'nevents', 'nevents_chrome')
+    process_config_int(parser, 'Chrome', 'maxtextlength', 'maxtextlength_chrome')
+
+    if (process_config_string(parser, 'Chrome', 'blacklist', 'tmp')):
+        bl = config['tmp'].split(';')
+        for bl_item in bl:
+            bl_item = bl_item.strip()
+            if not config.has_key('blacklist_chrome'):
+                config['blacklist_chrome'] = set()
+            config['blacklist_chrome'].add(bl_item)
+        config.pop('tmp')
 
     # [Chromium]:
 
@@ -96,7 +107,19 @@ def process_config(config_file):
     process_config_string(parser, 'Chromium', 'history_file', 'history_file_chromium')
     process_config_string(parser, 'Chromium', 'tmpfile', 'tmpfile_chromium')
     process_config_int(parser, 'Chromium', 'nevents', 'nevents_chromium')
+    process_config_int(parser, 'Chrome', 'maxtextlength', 'maxtextlength_chromium')
                 
+    return True
+
+# -----------------------------------------------------------------------
+
+def configure():
+
+    config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
+
+    process_config("zg2dime.ini")
+    process_config("user.ini")
+
     return True
 
 # -----------------------------------------------------------------------

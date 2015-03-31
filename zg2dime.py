@@ -3,7 +3,6 @@
 import os.path
 import sys
 import subprocess
-import socket
 import requests
 import json
 import hashlib
@@ -138,10 +137,7 @@ if __name__ == '__main__':
 
     print "Starting the zg2dime.py logger on " + time.strftime("%c")
 
-    config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
-
-    conf.process_config("zg2dime.ini")
-    conf.process_config("user.ini")
+    conf.configure()
 
     if len(sys.argv)>1:
         if sys.argv[-1] == 'debug':
