@@ -3,3 +3,4 @@
 *~
 HOWTO
 *.pyc
+/user.ini
