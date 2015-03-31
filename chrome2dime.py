@@ -134,9 +134,12 @@ class Browserlogger:
 
                 if config['fulltext']:
                     lynx_command = config['fulltext_command'] % uri
-                    text     = subprocess.check_output(lynx_command, shell=True)
+                    try:
+                        text = subprocess.check_output(lynx_command, shell=True)
+                    except subprocess.CalledProcessError:
+                        text = row[2]
                     if config['maxtextlength']>0 and len(text)>config['maxtextlength']:
-                        text =  text[0:config['maxtextlength']]
+                        text = text[0:config['maxtextlength']]
                     subject['text'] = text
                 else:
                     subject['text'] = row[2]
