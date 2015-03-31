@@ -67,11 +67,26 @@ def map_actor(actor):
 
 # -----------------------------------------------------------------------
 
+def blacklisted(fn):
+    if not config.has_key('blacklist_zeitgeist'):
+        return False
+    for bl_substr in config['blacklist_zeitgeist']:
+        if bl_substr in fn:
+            print "File %s matches a blacklist item [%s], skipping" % (fn, bl_substr) 
+            return True
+    return False
+
+# -----------------------------------------------------------------------
+
 def send_event(event):
 
     storage = 'deleted'
     text = ''
     filename = urllib.unquote(event.subjects[0].uri)
+
+    if blacklisted(filename):
+        return
+
     if filename.startswith('file://'):
         filename = filename[7:]
     print filename

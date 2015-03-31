@@ -48,15 +48,7 @@ def process_config_boolean(p, s, o, k, v=True):
 
 # -----------------------------------------------------------------------
 
-def process_browser(parser, section, suffix):
-
-    process_config_boolean(parser, section, 'use', 'use_'+suffix)
-    process_config_string(parser, section, 'actor', 'actor_'+suffix)
-    process_config_int(parser, section, 'interval', 'interval_'+suffix)
-    process_config_path(parser, section, 'history_file', 'history_file_'+suffix)
-    process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix)
-    process_config_int(parser, section, 'nevents', 'nevents_'+suffix)
-
+def process_blacklist(parser, section, suffix):
     if (process_config_string(parser, section, 'blacklist', 'tmp')):
         bl = config['tmp'].split(';')
         for bl_item in bl:
@@ -65,6 +57,18 @@ def process_browser(parser, section, suffix):
                 config['blacklist_'+suffix] = set()
             config['blacklist_'+suffix].add(bl_item)
         config.pop('tmp')
+
+# -----------------------------------------------------------------------
+
+def process_browser(parser, section, suffix):
+
+    process_config_boolean(parser, section, 'use', 'use_'+suffix)
+    process_config_string(parser, section, 'actor', 'actor_'+suffix)
+    process_config_int(parser, section, 'interval', 'interval_'+suffix)
+    process_config_path(parser, section, 'history_file', 'history_file_'+suffix)
+    process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix)
+    process_config_int(parser, section, 'nevents', 'nevents_'+suffix)
+    process_blacklist(parser, section, suffix)
                 
 # -----------------------------------------------------------------------
 
@@ -107,6 +111,8 @@ def process_config(config_file):
             else:
                 print "ERROR: Unable to parse Zeitgeist/other_actors: " + oa
         config.pop('tmp')
+
+    process_blacklist(parser, 'Zeitgeist', 'zeitgeist')
 
     # [Browsers]:
 
