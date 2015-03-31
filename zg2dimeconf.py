@@ -25,6 +25,14 @@ def process_config_item(parser, section, option, key, mode, verbose):
 
 # -----------------------------------------------------------------------
 
+def process_config_path(p, s, o, key, v=True):
+    val = process_config_item(p, s, o, key, 'string', v)
+    if config.has_key(key):
+        config[key] = os.path.expanduser(config[key])
+    return val
+
+# -----------------------------------------------------------------------
+
 def process_config_string(p, s, o, k, v=True):
     return process_config_item(p, s, o, k, 'string', v)
 
@@ -45,7 +53,7 @@ def process_browser(parser, section, suffix):
     process_config_boolean(parser, section, 'use', 'use_'+suffix)
     process_config_string(parser, section, 'actor', 'actor_'+suffix)
     process_config_int(parser, section, 'interval', 'interval_'+suffix)
-    process_config_string(parser, section, 'history_file', 'history_file_'+suffix)
+    process_config_path(parser, section, 'history_file', 'history_file_'+suffix)
     process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix)
     process_config_int(parser, section, 'nevents', 'nevents_'+suffix)
 
