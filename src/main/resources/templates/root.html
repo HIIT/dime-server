@@ -17,7 +17,8 @@
       </div>
       
       <div th:unless="${#httpServletRequest.remoteUser}">
-	<p>Please <a th:href="@{/login}">sign in.</a></p>
+	<p>Please <a th:href="@{/login}">sign in</a> or
+	<a th:href="@{/user/create}">register</a>.</p>
       </div>
     </div>
   </div>

@@ -22,17 +22,33 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.authentication;
 
-import java.util.Date;
+import javax.validation.constraints.NotNull;
 
-public class ZgEvent extends DiMeData {
-    public String actor;
-
-    public String origin;
-    public Date timestamp;
+/**
+   Data object for the user creation form.
+*/
+public class UserCreateForm {
     
-    public String payload;
+    @NotNull
+    private String username = "";
 
-    public ZgSubject subject;
+    public void setUsername(String username) {
+	this.username = username;
+    }
+
+    public String getUsername() {
+	return username;
+    }
+
+    @NotNull
+    public String password = "";
+
+    @NotNull
+    public String passwordRepeated = "";
+
+    @NotNull
+    public Role role = Role.USER;
+    
 }

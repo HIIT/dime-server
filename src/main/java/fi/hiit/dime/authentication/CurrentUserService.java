@@ -22,17 +22,8 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.authentication;
 
-import java.util.Date;
-
-public class ZgEvent extends DiMeData {
-    public String actor;
-
-    public String origin;
-    public Date timestamp;
-    
-    public String payload;
-
-    public ZgSubject subject;
+public interface CurrentUserService {
+    boolean canAccessUser(CurrentUser currentUser, String userId);
 }

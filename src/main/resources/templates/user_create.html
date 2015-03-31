@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="bootstrap :: head"></head>
+<body>
+  <div th:replace="bootstrap :: navbar (user_create)"></div>
+
+    <div class="container">
+
+      <div class="starter-template">
+
+	<h1>Register new user</h1>
+
+        <div th:if="${param.error}">
+            <p>Error or something.</p>
+        </div>
+
+        <form role="form" name="form" action="#" th:action="@{/user/create}" method="post">
+	  <div>
+	    <label for="username">Username</label>
+	    <input type="text" th:field="${form.username}"/>
+	  </div>
+	  <div>
+	    <label for="password">Password</label>
+	    <input type="password" name="password" id="password"/>
+	  </div>
+	  <div>
+	    <label for="passwordRepeated">Repeat</label>
+	    <input type="password" name="passwordRepeated" id="passwordRepeated" />
+	  </div>
+	  <!-- <div> -->
+	  <!--   <label for="role">Role</label> -->
+	  <!--   <select name="role" id="role" required> -->
+	  <!--     <option <#if form.role == 'USER'>selected</#if>>USER</option> -->
+	  <!--     <option <#if form.role == 'ADMIN'>selected</#if>>ADMIN</option> -->
+	  <!--   </select> -->
+	  <!-- </div> -->
+	  <button type="submit">Save</button>
+        </form>
+
+      </div>
+    </div>
+    
+  <div th:replace="bootstrap :: js"></div>
+</body>
+</html>
