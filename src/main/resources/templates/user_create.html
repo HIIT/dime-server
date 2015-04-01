@@ -17,7 +17,7 @@
         <form role="form" name="form" action="#" th:action="@{/user/create}" method="post">
 	  <div>
 	    <label for="username">Username</label>
-	    <input type="text" th:field="${form.username}"/>
+	    <input type="text" name="username" id="username" th:value="${form.username}"/>
 	  </div>
 	  <div>
 	    <label for="password">Password</label>

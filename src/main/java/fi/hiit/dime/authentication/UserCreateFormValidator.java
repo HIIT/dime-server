@@ -46,13 +46,13 @@ public class UserCreateFormValidator implements Validator {
 
     @Override
     public void validate(Object target, Errors errors) {
-        UserCreateForm form = (UserCreateForm) target;
+        UserCreateForm form = (UserCreateForm)target;
         validatePasswords(errors, form);
         validateUsername(errors, form);
     }
 
     private void validatePasswords(Errors errors, UserCreateForm form) {
-        if (!form.password.equals(form.passwordRepeated)) {
+        if (!form.getPassword().equals(form.getPasswordRepeated())) {
             errors.reject("password.no_match", "Passwords do not match");
         }
     }

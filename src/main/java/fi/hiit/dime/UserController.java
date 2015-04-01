@@ -26,22 +26,22 @@ package fi.hiit.dime;
 
 //------------------------------------------------------------------------------
 
-import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
+import fi.hiit.dime.authentication.UserService;
+import javax.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.validation.BindingResult;
-import javax.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.validation.ObjectError;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 //------------------------------------------------------------------------------
 
@@ -64,17 +64,13 @@ public class UserController extends WebMvcConfigurerAdapter {
         binder.addValidators(userCreateFormValidator);
     }
 
-    // @RequestMapping("/user/{id}")
-    // public ModelAndView getUserPage(@PathVariable Long id) {
-    //     return new ModelAndView("user", "user", userService.getUserById(id)
-    //             .orElseThrow(() -> new NoSuchElementException(String.format("User=%s not found", id))));
-    // }
-
+    /** Web page for registering a new user */
     @RequestMapping(value = "/user/create", method = RequestMethod.GET)
     public ModelAndView getUserCreatePage() {
         return new ModelAndView("user_create", "form", new UserCreateForm());
     }
 
+    /** Handles processing of the new user registration form */
     @RequestMapping(value = "/user/create", method = RequestMethod.POST)
     public String handleUserCreateForm(@Valid @ModelAttribute("form") UserCreateForm form,
 				       BindingResult bindingResult) {
@@ -90,4 +86,17 @@ public class UserController extends WebMvcConfigurerAdapter {
         }
         return "redirect:/users";
     }    
+
+    /** Viewing users, FIXME: should be accessible only to ADMIN users */
+    @RequestMapping("/users")
+    public ModelAndView getUsersPage() {
+        return new ModelAndView("users", "users", userService.getAllUsers());
+    }
+
+    // @RequestMapping("/user/{id}")
+    // public ModelAndView getUserPage(@PathVariable Long id) {
+    //     return new ModelAndView("user", "user", userService.getUserById(id)
+    //             .orElseThrow(() -> new NoSuchElementException(String.format("User=%s not found", id))));
+    // }
+
 }

@@ -24,13 +24,19 @@
 
 package fi.hiit.dime;
 
+//------------------------------------------------------------------------------
+
+import fi.hiit.dime.database.ZgEventRepository;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.ModelAndView;
 
-import fi.hiit.dime.database.ZgEventRepository;
+//------------------------------------------------------------------------------
 
 @Controller
 public class WebController {
@@ -54,8 +60,8 @@ public class WebController {
         return "log";
     }
 
-    @RequestMapping("/login")
-    public String login(Model model) {
-	return "login";
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public ModelAndView getLoginPage(@RequestParam Optional<String> error) {
+        return new ModelAndView("login", "error", error);
     }
 }

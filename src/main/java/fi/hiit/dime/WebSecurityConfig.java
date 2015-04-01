@@ -13,8 +13,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+//@EnableGlobalMethodSecurity(prePostEnabled = true)
+
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 @Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -24,32 +25,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-	    .antMatchers("/", "/css/*", "/js/*", "/user/**").permitAll()
-	    .anyRequest().authenticated()
+	    .antMatchers("/", "/css/*", "/js/*", "/user/**", "/users/**").permitAll()
+	    .anyRequest().fullyAuthenticated()
 	    .and()
 	    // login
             .formLogin()
 	    .loginPage("/login")
+	    .failureUrl("/login?error")
 	    .usernameParameter("username")
 	    .permitAll()
 	    .and()
 	    // logout
             .logout()
-	    .permitAll();
-	// TODO
-	// .deleteCookies("remember-me")
-	//      .logoutSuccessUrl("/")
-	//      .permitAll()
-	//      .and()
-	//      .rememberMe();
+	    .logoutUrl("/logout")
+	    .deleteCookies("remember-me")
+	    .logoutSuccessUrl("/")
+	    .permitAll()
+	    .and()
+	    .rememberMe();
     }
 
     @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-	auth.userDetailsService(userDetailsService)
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    	auth.userDetailsService(userDetailsService)
 	    .passwordEncoder(new BCryptPasswordEncoder());
     }
-
 
     // @Autowired
     // public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {

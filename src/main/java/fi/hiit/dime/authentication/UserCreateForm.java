@@ -30,25 +30,24 @@ import javax.validation.constraints.NotNull;
    Data object for the user creation form.
 */
 public class UserCreateForm {
-    
     @NotNull
     private String username = "";
-
-    public void setUsername(String username) {
-	this.username = username;
-    }
-
-    public String getUsername() {
-	return username;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
     @NotNull
-    public String password = "";
+    private String password = "";
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
     @NotNull
-    public String passwordRepeated = "";
+    private String passwordRepeated = "";
+    public String getPasswordRepeated() { return passwordRepeated; }
+    public void setPasswordRepeated(String passwordRepeated) { 
+	this.passwordRepeated = passwordRepeated; }
 
     @NotNull
-    public Role role = Role.USER;
-    
+    private Role role = Role.USER;
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 }

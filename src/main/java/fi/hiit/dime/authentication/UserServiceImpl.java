@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> getUserByUsername(String username) {
-	return userRepository.findOneByUsername(username);
+    	return userRepository.findOneByUsername(username);
     }
     
     @Override
@@ -64,8 +64,8 @@ public class UserServiceImpl implements UserService {
     public User create(UserCreateForm form) {
 	User user = new User();
 	user.username = form.getUsername();
-	user.passwordHash = new BCryptPasswordEncoder().encode(form.password);
-	user.role = form.role;
+	user.passwordHash = new BCryptPasswordEncoder().encode(form.getPassword());
+	user.role = form.getRole();
 	return userRepository.save(user);
     }
 }
