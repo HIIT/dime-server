@@ -98,6 +98,8 @@ def process_config(config_file):
     process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext')
     process_config_string(parser, 'Zeitgeist', 'pdftotext_command', 'pdftotext_command')
     process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg')
+    process_config_string(parser, 'Zeitgeist', 'uuid_command', 'uuid_command')
+    process_config_string(parser, 'Zeitgeist', 'mimetype_command', 'mimetype_command')
 
     if (process_config_string(parser, 'Zeitgeist', 'other_actors', 'tmp')):
         #print config['tmp']

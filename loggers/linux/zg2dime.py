@@ -73,7 +73,8 @@ def blacklisted(fn):
         return False
     for bl_substr in config['blacklist_zeitgeist']:
         if bl_substr in fn:
-            print "File %s matches a blacklist item [%s], skipping" % (fn, bl_substr) 
+            print "File %s matches a blacklist item [%s], skipping" % \
+                   (fn, bl_substr)
             return True
     return False
 
@@ -82,7 +83,7 @@ def blacklisted(fn):
 def send_event(event):
 
     filename = urllib.unquote(event.subjects[0].uri)
-    print ("Starting to process " + filename + " on " + time.strftime("%c") + 
+    print ("Starting to process " + filename + " on " + time.strftime("%c") +
                " with " + str(len(subjects)) + " known subjects")
 
     if blacklisted(filename):
@@ -100,7 +101,8 @@ def send_event(event):
     subject = {'uri':            event.subjects[0].uri,
                'interpretation': event.subjects[0].interpretation,
                'manifestation':  event.subjects[0].manifestation,
-               'mimetype':       event.subjects[0].mimetype}
+               'mimetype':       event.subjects[0].mimetype,
+               'text':           event.subjects[0].text}
 
     subject['id'] = json_to_sha1(subject)
     payload['subject'] = {}
@@ -110,23 +112,38 @@ def send_event(event):
     if not subject['id'] in subjects:
         print "Not found in known subjects, sending full data"
         subjects.add(subject['id'])
- 
+
         if os.path.isfile(filename):
             subject['storage'] = uuid
-            if config['pdftotext'] and event.subjects[0].mimetype == 'application/pdf':
+
+            if subject['mimetype'] == "" or subject['mimetype'] == "unknown":
+                shell_command = config['mimetype_command'] % filename
+                try:
+                    subject['mimetype'] = subprocess.check_output(shell_command,
+                                                                  shell=True)
+                    subject['mimetype'] = subject['mimetype'].rstrip()
+                except subprocess.CalledProcessError:
+                    subject['mimetype'] = "unknown"
+
+            if (config['pdftotext'] and
+                event.subjects[0].mimetype == 'application/pdf'):
                 print "Detected as PDF, converting to text"
                 shell_command = config['pdftotext_command'] % filename
                 try:
-                    subject['text'] = subprocess.check_output(shell_command, shell=True)
+                    subject['text'] = subprocess.check_output(shell_command,
+                                                              shell=True)
                 except subprocess.CalledProcessError:
                     pass
-            elif 'text/' in event.subjects[0].mimetype:
+            elif 'text/' in subject['mimetype']:
+                if subject['interpretation'] == Interpretation.DOCUMENT:
+                    subject['interpretation'] = Interpretation.TEXT_DOCUMENT
                 with open (filename, "r") as myfile:
                     subject['text'] = myfile.read()
         else:
             subject['storage'] = 'deleted'
 
-        if config['maxtextlength_zg']>0 and len(subject['text'])>config['maxtextlength_zg']:
+        if (config['maxtextlength_zg']>0 and
+            len(subject['text'])>config['maxtextlength_zg']):
             subject['text'] = subject['text'][0:config['maxtextlength_zg']]
 
         payload['subject'] = subject.copy()
@@ -135,9 +152,11 @@ def send_event(event):
     print(json_payload)
 
     headers = {'content-type': 'application/json'}
-    r = requests.post(config['server_url'], data=json_payload, headers=headers)
+    r = requests.post(config['server_url'], data=json_payload,
+                      headers=headers)
     stats['zeitgeist']['events_sent'] = stats['zeitgeist']['events_sent'] + 1
-    stats['zeitgeist']['data_sent'] = stats['zeitgeist']['data_sent'] + len(json_payload)
+    stats['zeitgeist']['data_sent'] = (stats['zeitgeist']['data_sent'] +
+                                       len(json_payload))
     stats['zeitgeist']['latest'] = int(time.time())
     print(r.text)
     print "---------------------------------------------------------"
@@ -212,8 +231,11 @@ if __name__ == '__main__':
         zeitgeist.find_events_for_template(template, on_events_received, num_events=config['nevents'])
         zeitgeist.install_monitor(TimeRange.always(), [template], on_insert, on_delete)
 
-    uuid = subprocess.check_output("udevadm info -q all -n /dev/sda1 | grep ID_FS_UUID= | sed 's:^.*=::'", shell=True)
-    uuid = uuid.rstrip()
+        try:
+            uuid = subprocess.check_output(config['uuid_command'], shell=True)
+            uuid = uuid.rstrip()
+        except subprocess.CalledProcessError:
+            uuid = 'unknown'
 
     try:
         if config['use_indicator']:
