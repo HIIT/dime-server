@@ -136,6 +136,7 @@ def process_config(config_file):
     # [Indicator]:
     process_config_boolean(parser, 'Indicator', 'use', 'use_indicator')
     process_config_int(parser, 'Indicator', 'interval', 'interval_indicator')
+    process_config_path(parser, 'Indicator', 'icon', 'icon_indicator')
 
     return True
 

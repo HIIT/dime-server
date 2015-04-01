@@ -24,6 +24,9 @@ class Browserlogger:
         self.old_history_file_sha1 = ''
         self.events = set()
         self.subjects = set()
+        self.events_sent = 0
+        self.data_sent = 0
+        self.latest = 0
 
     # -----------------------------------------------------------------------
 
@@ -154,7 +157,11 @@ class Browserlogger:
             print(r.text)
             print "########################################################"
 
-        print "Submitted %d entries" % i
+            self.events_sent = self.events_sent + 1 
+            self.data_sent = self.data_sent + len(json_payload)
+            self.latest = int(time.time())
+
+        print "Processed %d entries" % i
 
         return True
 

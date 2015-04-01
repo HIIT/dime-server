@@ -136,8 +136,9 @@ def send_event(event):
 
     headers = {'content-type': 'application/json'}
     r = requests.post(config['server_url'], data=json_payload, headers=headers)
-    stats['nevents'] = stats['nevents'] + 1 
-    stats['data_sent'] = stats['data_sent'] + len(json_payload)
+    stats['zeitgeist']['events_sent'] = stats['zeitgeist']['events_sent'] + 1
+    stats['zeitgeist']['data_sent'] = stats['zeitgeist']['data_sent'] + len(json_payload)
+    stats['zeitgeist']['latest'] = int(time.time())
     print(r.text)
     print "---------------------------------------------------------"
 
@@ -160,6 +161,19 @@ def on_delete(time_range, event_ids):
 # -----------------------------------------------------------------------
 
 def update_ind():
+    if config['use_chrome']:
+        stats['chrome']['events_sent'] = chromelogger.events_sent
+        stats['chrome']['data_sent'] = chromelogger.data_sent
+        stats['chrome']['latest'] = chromelogger.latest
+    if config['use_chromium']:
+        stats['chromium']['events_sent'] = chromiumlogger.events_sent
+        stats['chromium']['data_sent'] = chromiumlogger.data_sent
+        stats['chromium']['latest'] = chromiumlogger.latest
+    if config['use_firefox']:
+        stats['firefox']['events_sent'] = firefoxlogger.events_sent
+        stats['firefox']['data_sent'] = firefoxlogger.data_sent
+        stats['firefox']['latest'] = firefoxlogger.latest
+
     ind.update(stats)
     return True
 
@@ -184,9 +198,10 @@ if __name__ == '__main__':
 
     actors = config['actors'].copy()
 
-    stats = { 'nevents': 0,
-              'data_sent': 0,
-              'last_event': None }
+    stats = {'zeitgeist': {'events_sent': 0, 'data_sent': 0, 'latest': 0},
+             'chrome': {'events_sent': 0, 'data_sent': 0, 'latest': 0},
+             'chromium': {'events_sent': 0, 'data_sent': 0, 'latest': 0},
+             'firefox': {'events_sent': 0, 'data_sent': 0, 'latest': 0}}
 
     if config['use_zeitgeist']:
 
@@ -206,16 +221,16 @@ if __name__ == '__main__':
             GLib.timeout_add(config['interval_indicator']*1000, update_ind)
 
         if config['use_chrome']:
-            c2d = chrome2dime.Browserlogger('chrome')
-            GLib.timeout_add(config['interval_chrome']*1000, c2d.run)
+            chromelogger = chrome2dime.Browserlogger('chrome')
+            GLib.timeout_add(config['interval_chrome']*1000, chromelogger.run)
 
         if config['use_chromium']:
-            c2d = chrome2dime.Browserlogger('chromium')
-            GLib.timeout_add(config['interval_chromium']*1000, c2d.run)
+            chromiumlogger = chrome2dime.Browserlogger('chromium')
+            GLib.timeout_add(config['interval_chromium']*1000, chromiumlogger.run)
 
         if config['use_firefox']:
-            c2d = chrome2dime.Browserlogger('firefox')
-            GLib.timeout_add(config['interval_firefox']*1000, c2d.run)
+            firefoxlogger = chrome2dime.Browserlogger('firefox')
+            GLib.timeout_add(config['interval_firefox']*1000, firefoxlogger.run)
 
         GLib.MainLoop().run()
 
