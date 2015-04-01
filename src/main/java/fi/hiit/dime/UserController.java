@@ -59,7 +59,7 @@ public class UserController extends WebMvcConfigurerAdapter {
 	this.userCreateFormValidator = userCreateFormValidator;
     }
 
-    @InitBinder("from")
+    @InitBinder("form")
     public void initBinder(WebDataBinder binder) {
         binder.addValidators(userCreateFormValidator);
     }

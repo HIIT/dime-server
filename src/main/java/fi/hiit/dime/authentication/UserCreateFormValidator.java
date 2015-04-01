@@ -28,9 +28,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class UserCreateFormValidator implements Validator {
+    private static final Logger LOG = LoggerFactory.getLogger(UserCreateForm.class);
 
     private final UserService userService;
 
@@ -58,8 +61,7 @@ public class UserCreateFormValidator implements Validator {
     }
 
     private void validateUsername(Errors errors, UserCreateForm form) {
-        if (userService.getUserByUsername(form.getUsername()).isPresent()) {
+        if (userService.getUserByUsername(form.getUsername()).isPresent())
             errors.reject("username.exists", "This username is already in use");
-        }
     }
 }
