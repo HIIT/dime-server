@@ -1,5 +1,18 @@
 #!/usr/bin/env python
 
+# Examples of entries to .bashrc:
+#
+# less () {
+#     /PATH-TO-DIME/dime-server/loggers/linux/cl2dime.py less "$@"
+#     command less "$@"
+# }
+#
+# cat () {
+#     /PATH-TO-DIME/loggers/linux/cl2dime.py cat "$@"
+#     command cat "$@" 
+# }
+
+
 import sys
 import os
 import subprocess
