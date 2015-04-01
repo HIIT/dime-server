@@ -47,7 +47,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Controller
 public class UserController extends WebMvcConfigurerAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
     private final UserCreateFormValidator userCreateFormValidator;
@@ -75,13 +75,13 @@ public class UserController extends WebMvcConfigurerAdapter {
     public String handleUserCreateForm(@Valid @ModelAttribute("form") UserCreateForm form,
 				       BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-	    LOGGER.debug("has errors");
             return "user_create";
         }
         try {
             userService.create(form);
         } catch (DataIntegrityViolationException e) {
-            bindingResult.reject("username.exists", "Username already exists");
+            bindingResult.rejectValue("username", "exists",
+				      "This user name is no longer available.");
             return "user_create";
         }
         return "redirect:/users";

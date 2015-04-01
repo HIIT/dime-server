@@ -10,23 +10,36 @@
 
 	<h1>Register new user</h1>
 
-        <div th:if="${param.error}">
-            <p>Error or something.</p>
-        </div>
 
-        <form role="form" name="form" action="#" th:action="@{/user/create}" method="post">
-	  <div>
-	    <label for="username">Username</label>
-	    <input type="text" name="username" id="username" th:value="${form.username}"/>
+	<form action="#" th:object="${form}" th:action="@{/user/create}" method="post">
+
+	  <div class="alert alert-danger" th:if="${#fields.hasErrors('*')}">
+	    There were some problems in registering your account,
+	    please fix the errors below.
 	  </div>
-	  <div>
-	    <label for="password">Password</label>
-	    <input type="password" name="password" id="password"/>
+
+	  <div class="form-group" name="username" th:errorclass="has-error">
+	    <label class="control-label" for="username">User name</label>
+	    <input type="text" class="form-control" id="username" name="username" 
+		   th:field="*{username}" placeholder="User name"/>
+	    <span id="helpBlock" class="help-block" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
 	  </div>
-	  <div>
-	    <label for="passwordRepeated">Repeat</label>
-	    <input type="password" name="passwordRepeated" id="passwordRepeated" />
+	  <div class="form-group" name="password" th:errorclass="has-error">
+	    <label class="control-label" for="password">Password</label>
+	    <input type="password" class="form-control" id="password" name="password"
+		   placeholder="Password"/>
+	    <span id="helpBlock" class="help-block" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
 	  </div>
+	  <div class="form-group" name="passwordRepeated" th:errorclass="has-error">
+	    <label class="control-label" for="passwordRepeated">Repeat</label>
+	    <input type="password" class="form-control" id="passwordRepeated"
+		   name="passwordRepeated" placeholder="Password again"/>
+	    <span id="helpBlock" class="help-block" th:if="${#fields.hasErrors('passwordRepeated')}" th:errors="*{passwordRepeated}"></span>
+	  </div>
+	  <button type="submit" class="btn btn-default">Register</button>
+	</form>
+
+
 	  <!-- <div> -->
 	  <!--   <label for="role">Role</label> -->
 	  <!--   <select name="role" id="role" required> -->
@@ -34,8 +47,6 @@
 	  <!--     <option <#if form.role == 'ADMIN'>selected</#if>>ADMIN</option> -->
 	  <!--   </select> -->
 	  <!-- </div> -->
-	  <button type="submit">Save</button>
-        </form>
 
       </div>
     </div>

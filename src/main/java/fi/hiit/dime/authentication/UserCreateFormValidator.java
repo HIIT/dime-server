@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 @Component
 public class UserCreateFormValidator implements Validator {
     private static final Logger LOG = LoggerFactory.getLogger(UserCreateForm.class);
+    private static final int MIN_PASSWORD_LENGTH = 3;
 
     private final UserService userService;
 
@@ -55,13 +56,20 @@ public class UserCreateFormValidator implements Validator {
     }
 
     private void validatePasswords(Errors errors, UserCreateForm form) {
-        if (!form.getPassword().equals(form.getPasswordRepeated())) {
-            errors.reject("password.no_match", "Passwords do not match");
-        }
+        if (!form.getPassword().equals(form.getPasswordRepeated()))
+            errors.rejectValue("passwordRepeated", "match",
+			       "Passwords do not match.");
+
+        if (form.getPassword().length() < MIN_PASSWORD_LENGTH)
+            errors.rejectValue("password", "short",
+			       String.format("Password is too short! "+
+					     "Please use at least %d characters.",
+					     MIN_PASSWORD_LENGTH));
     }
 
     private void validateUsername(Errors errors, UserCreateForm form) {
         if (userService.getUserByUsername(form.getUsername()).isPresent())
-            errors.reject("username.exists", "This username is already in use");
+            errors.rejectValue("username", "exists",
+			       "This user name is no longer available.");
     }
 }
