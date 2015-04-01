@@ -3,12 +3,12 @@
 # Examples of entries to .bashrc:
 #
 # less () {
-#     /PATH-TO-DIME/dime-server/loggers/linux/cl2dime.py less "$@"
+#     /PATH-TO-DIME/dime-server/loggers/linux/cl2zg.py less "$@"
 #     command less "$@"
 # }
 #
 # cat () {
-#     /PATH-TO-DIME/loggers/linux/cl2dime.py cat "$@"
+#     /PATH-TO-DIME/loggers/linux/cl2zg.py cat "$@"
 #     command cat "$@" 
 # }
 
