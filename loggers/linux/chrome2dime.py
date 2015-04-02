@@ -168,7 +168,6 @@ class Browserlogger:
 
                 payload['subject'] = subject.copy()
 
-
             json_payload = self.payload_to_json(payload, row[2])
             if (json_payload == ''):
                 print "Something went wrong in JSON conversion, skipping"
