@@ -28,7 +28,7 @@ class Browserlogger:
         self.data_sent = 0
         self.latest = 0
 
-    # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
     def json_to_sha1(self, payload):
         json_payload = json.dumps(payload)
@@ -36,12 +36,12 @@ class Browserlogger:
         sha1.update(json_payload)
         return sha1.hexdigest()
 
-    # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
     def file_to_sha1(self, fn):
         return hashlib.sha1(open(fn, 'rb').read()).hexdigest()
 
-    # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
 
     def sqlite3command(self):
         if self.name == 'firefox':
@@ -49,7 +49,7 @@ class Browserlogger:
         else:
             return '''SELECT strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/1000000)-11644473600, 'unixepoch'),url,title FROM urls ORDER BY last_visit_time desc'''
 
-    # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
     
     def blacklisted(self, uri):
         if not config.has_key('blacklist_'+self.name):
@@ -60,7 +60,27 @@ class Browserlogger:
                 return True
         return False
 
-    # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+
+    def payload_to_json(self, payload, alt_text):
+        try:
+            return json.dumps(payload)
+        except UnicodeDecodeError:
+            pass
+
+        payload['subject']['text'] = alt_text
+        try:
+            return json.dumps(payload)
+        except UnicodeDecodeError:
+            pass
+
+        payload['subject']['text'] = ''
+        try:
+            return json.dumps(payload)
+        except UnicodeDecodeError:
+            return ''
+
+# -----------------------------------------------------------------------
 
     def run(self):
 
@@ -148,7 +168,11 @@ class Browserlogger:
 
                 payload['subject'] = subject.copy()
 
-            json_payload = json.dumps(payload)
+
+            json_payload = self.payload_to_json(payload, row[2])
+            if (json_payload == ''):
+                print "Something went wrong in JSON conversion, skipping"
+                continue
             print(json_payload)
 
             headers = {'content-type': 'application/json'}
