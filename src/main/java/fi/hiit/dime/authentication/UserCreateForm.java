@@ -46,8 +46,8 @@ public class UserCreateForm {
     public void setPasswordRepeated(String passwordRepeated) { 
 	this.passwordRepeated = passwordRepeated; }
 
-    @NotNull
-    private Role role = Role.USER;
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    // @NotNull
+    // private Role role = Role.USER;
+    // public Role getRole() { return role; }
+    // public void setRole(Role role) { this.role = role; }
 }

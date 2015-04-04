@@ -19,7 +19,7 @@
 	</thead>
 	<tbody>
 	  <tr th:each="user : ${users}">
-	    <td><a href="#" th:text="${user.username}"></a></td>
+	    <td><a th:href="@{'/user/'+${user.username}}" th:text="${user.username}"></a></td>
 	    <td th:text="${user.role}"></td>
 	  </tr>
 	</tbody>

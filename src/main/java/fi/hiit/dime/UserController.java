@@ -26,9 +26,11 @@ package fi.hiit.dime;
 
 //------------------------------------------------------------------------------
 
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
+import java.util.NoSuchElementException;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,10 +95,13 @@ public class UserController extends WebMvcConfigurerAdapter {
         return new ModelAndView("users", "users", userService.getAllUsers());
     }
 
-    // @RequestMapping("/user/{id}")
-    // public ModelAndView getUserPage(@PathVariable Long id) {
-    //     return new ModelAndView("user", "user", userService.getUserById(id)
-    //             .orElseThrow(() -> new NoSuchElementException(String.format("User=%s not found", id))));
-    // }
+    @RequestMapping("/user/{name}")
+    public ModelAndView getUserPage(@PathVariable String name) {
+	User user = userService.getUserByUsername(name);
+	if (user == null)
+	    throw new NoSuchElementException(String.format("User %s not found",
+							   name));
+        return new ModelAndView("user", "user", user);
+    }
 
 }
