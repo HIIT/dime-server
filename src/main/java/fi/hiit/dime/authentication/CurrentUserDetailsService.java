@@ -48,9 +48,9 @@ public class CurrentUserDetailsService implements UserDetailsService {
 	String notFoundError = String.format("User with username=%s was not found",
 					     username);
 
-	User user = userService.getUserByUsername(username)
-	    .orElseThrow(() -> 
-			 new UsernameNotFoundException(notFoundError));
+	User user = userService.getUserByUsername(username);
+	if (user == null)
+	    throw new UsernameNotFoundException(notFoundError);
 	return new CurrentUser(user);
     }
 }

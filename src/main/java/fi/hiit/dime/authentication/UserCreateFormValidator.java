@@ -68,7 +68,7 @@ public class UserCreateFormValidator implements Validator {
     }
 
     private void validateUsername(Errors errors, UserCreateForm form) {
-        if (userService.getUserByUsername(form.getUsername()).isPresent())
+        if (userService.getUserByUsername(form.getUsername()) != null)
             errors.rejectValue("username", "exists",
 			       "This user name is no longer available.");
     }

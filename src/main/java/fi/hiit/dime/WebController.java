@@ -27,7 +27,6 @@ package fi.hiit.dime;
 //------------------------------------------------------------------------------
 
 import fi.hiit.dime.database.ZgEventRepository;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -61,7 +60,7 @@ public class WebController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public ModelAndView getLoginPage(@RequestParam Optional<String> error) {
+    public ModelAndView getLoginPage(@RequestParam(required=false) String error) {
         return new ModelAndView("login", "error", error);
     }
 }

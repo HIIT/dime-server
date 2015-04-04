@@ -8,7 +8,7 @@
 
       <div class="starter-template">
 
-	<div th:if="${error.isPresent()}" class="alert alert-danger" role="alert">
+	<div th:if="${error}" class="alert alert-danger" role="alert">
           Invalid username and/or password.
         </div>
         <div th:if="${param.logout}">

@@ -25,12 +25,11 @@
 package fi.hiit.dime.authentication;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public interface UserService {
-    Optional<User> getUserById(String id);
+    User getUserById(String id);
 
-    Optional<User> getUserByUsername(String username);
+    User getUserByUsername(String username);
     
     Collection<User> getAllUsers();
 
