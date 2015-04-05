@@ -34,9 +34,9 @@ import org.springframework.stereotype.Service;
 public class CurrentUserServiceImpl implements CurrentUserService {
     
     @Override
-    public boolean canAccessUser(CurrentUser currentUser, String userId) {
+    public boolean canAccessUser(CurrentUser currentUser, String username) {
 	return currentUser != null &&
 	    (currentUser.getRole() == Role.ADMIN ||
-	     currentUser.getId().equals(userId));
+	     currentUser.getUsername().equals(username));
     }
 }

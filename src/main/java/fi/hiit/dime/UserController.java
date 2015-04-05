@@ -49,7 +49,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Controller
 public class UserController extends WebMvcConfigurerAdapter {
-    private static final Logger LOG = LoggerFactory.getLogger(UserController.class);
+    private static final Logger LOG = 
+	LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
     private final UserCreateFormValidator userCreateFormValidator;
@@ -74,7 +75,8 @@ public class UserController extends WebMvcConfigurerAdapter {
 
     /** Handles processing of the new user registration form */
     @RequestMapping(value = "/user/create", method = RequestMethod.POST)
-    public String handleUserCreateForm(@Valid @ModelAttribute("form") UserCreateForm form,
+    public String handleUserCreateForm(@Valid @ModelAttribute("form") 
+				       UserCreateForm form,
 				       BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return "user_create";
@@ -89,19 +91,19 @@ public class UserController extends WebMvcConfigurerAdapter {
         return "redirect:/users";
     }    
 
-    /** Viewing users, FIXME: should be accessible only to ADMIN users */
+    /** Viewing users */
     @RequestMapping("/users")
     public ModelAndView getUsersPage() {
         return new ModelAndView("users", "users", userService.getAllUsers());
     }
 
+    @PreAuthorize("@currentUserServiceImpl.canAccessUser(principal, #name)")
     @RequestMapping("/user/{name}")
-    public ModelAndView getUserPage(@PathVariable String name) {
+    public ModelAndView getUserPage(@PathVariable("name") String name) {
 	User user = userService.getUserByUsername(name);
 	if (user == null)
 	    throw new NoSuchElementException(String.format("User %s not found",
 							   name));
         return new ModelAndView("user", "user", user);
     }
-
 }
