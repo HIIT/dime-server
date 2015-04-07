@@ -48,6 +48,18 @@ def process_config_boolean(p, s, o, k, v=True):
 
 # -----------------------------------------------------------------------
 
+def process_blacklist(parser, section, suffix):
+    if (process_config_string(parser, section, 'blacklist', 'tmp')):
+        bl = config['tmp'].split(';')
+        for bl_item in bl:
+            bl_item = bl_item.strip()
+            if not config.has_key('blacklist_'+suffix):
+                config['blacklist_'+suffix] = set()
+            config['blacklist_'+suffix].add(bl_item)
+        config.pop('tmp')
+
+# -----------------------------------------------------------------------
+
 def process_browser(parser, section, suffix):
 
     process_config_boolean(parser, section, 'use', 'use_'+suffix)
@@ -56,15 +68,7 @@ def process_browser(parser, section, suffix):
     process_config_path(parser, section, 'history_file', 'history_file_'+suffix)
     process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix)
     process_config_int(parser, section, 'nevents', 'nevents_'+suffix)
-
-    if (process_config_string(parser, section, 'blacklist_'+suffix, 'tmp')):
-        bl = config['tmp'].split(';')
-        for bl_item in bl:
-            bl_item = bl_item.strip()
-            if not config.has_key('blacklist_'+suffix):
-                config['blacklist_'+suffix] = set()
-            config['blacklist_'+suffix].add(bl_item)
-        config.pop('tmp')
+    process_blacklist(parser, section, suffix)
                 
 # -----------------------------------------------------------------------
 
@@ -91,6 +95,11 @@ def process_config(config_file):
 
     process_config_boolean(parser, 'Zeitgeist', 'use', 'use_zeitgeist')
     process_config_int(parser, 'Zeitgeist', 'nevents', 'nevents')
+    process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext')
+    process_config_string(parser, 'Zeitgeist', 'pdftotext_command', 'pdftotext_command')
+    process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg')
+    process_config_string(parser, 'Zeitgeist', 'uuid_command', 'uuid_command')
+    process_config_string(parser, 'Zeitgeist', 'mimetype_command', 'mimetype_command')
 
     if (process_config_string(parser, 'Zeitgeist', 'other_actors', 'tmp')):
         #print config['tmp']
@@ -108,17 +117,28 @@ def process_config(config_file):
                 print "ERROR: Unable to parse Zeitgeist/other_actors: " + oa
         config.pop('tmp')
 
+    process_blacklist(parser, 'Zeitgeist', 'zeitgeist')
+
     # [Browsers]:
 
     process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext')
     process_config_string(parser, 'Browsers', 'fulltext_command', 'fulltext_command')
-    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength')
+    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength_web')
+    process_config_string(parser, 'Browsers', 'event_interpretation', 'event_interpretation')
+    process_config_string(parser, 'Browsers', 'event_manifestation', 'event_manifestation')
+    process_config_string(parser, 'Browsers', 'subject_interpretation', 'subject_interpretation')
+    process_config_string(parser, 'Browsers', 'subject_manifestation', 'subject_manifestation')
 
     # [Chrome/Chromium/Firefox]:
 
     process_browser(parser, 'Chrome', 'chrome')
     process_browser(parser, 'Chromium', 'chromium')
     process_browser(parser, 'Firefox', 'firefox')
+
+    # [Indicator]:
+    process_config_boolean(parser, 'Indicator', 'use', 'use_indicator')
+    process_config_int(parser, 'Indicator', 'interval', 'interval_indicator')
+    process_config_path(parser, 'Indicator', 'icon', 'icon_indicator')
 
     return True
 

@@ -14,17 +14,21 @@ other_actors: acroread.desktop->Adobe Reader; kde4-okular.desktop->Okular
 use: yes
 interval: 60
 nevents: 10
-history_file: ~/.config/google-chrome/Profile 1/History
+history_file: ~/.config/google-chrome/Default/History
 blacklist: localhost; iltalehti.fi
 
 [Chromium]
 use: no
 interval: 60
 nevents: 10
-history_file: ~/.config/google-chrome/Profile 1/History
+history_file: ~/.config/chromium/Default/History
 
 [Firefox]
 use: no
 interval: 60
 nevents: 10
-history_file: ~/.mozilla/firefox/5c9ft9qi.default/places.sqlite
+history_file: ~/.mozilla/firefox/XXXXXXXX.default/places.sqlite
+
+[Indicator]
+use: no
+#icon: ~/path/to/dime/loggers/linux/ReKnow_logo_rgb_icon.png
