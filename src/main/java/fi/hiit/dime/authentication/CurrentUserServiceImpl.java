@@ -26,6 +26,7 @@ package fi.hiit.dime.authentication;
 
 //------------------------------------------------------------------------------
 
+import fi.hiit.dime.data.Role;
 import org.springframework.stereotype.Service;
 
 //------------------------------------------------------------------------------

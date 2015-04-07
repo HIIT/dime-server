@@ -27,7 +27,7 @@ package fi.hiit.dime.database;
 //------------------------------------------------------------------------------
 
 import org.springframework.data.mongodb.repository.MongoRepository;
-import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.User;
 
 //------------------------------------------------------------------------------
 

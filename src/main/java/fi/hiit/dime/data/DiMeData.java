@@ -56,6 +56,8 @@ public class DiMeData {
      */
     public String manifestation;
 
+    /** User associated with the object. */
+    public User user;
 
     public DiMeData() {
 	// Set to current date and time

@@ -26,6 +26,8 @@ package fi.hiit.dime.authentication;
 
 //------------------------------------------------------------------------------
 
+import fi.hiit.dime.data.User;
+import fi.hiit.dime.data.Role;
 import fi.hiit.dime.database.UserRepository;
 import fi.hiit.dime.util.RandomPassword;
 import java.security.SecureRandom;

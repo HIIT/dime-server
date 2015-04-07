@@ -24,7 +24,12 @@
 
 package fi.hiit.dime.authentication;
 
+//------------------------------------------------------------------------------
+
+import fi.hiit.dime.data.User;
 import java.util.Collection;
+
+//------------------------------------------------------------------------------
 
 public interface UserService {
     User getUserById(String id);

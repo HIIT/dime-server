@@ -26,7 +26,7 @@ package fi.hiit.dime;
 
 //------------------------------------------------------------------------------
 
-import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;

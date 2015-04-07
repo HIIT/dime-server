@@ -24,28 +24,23 @@
 
 package fi.hiit.dime.database;
 
-import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
-
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.data.mongodb.core.MongoOperations;
-
-import org.springframework.util.Assert;
-
-
-import org.springframework.data.mongodb.core.query.Query;
-
-
-import java.util.List;
-import java.util.ArrayList;
-
+//------------------------------------------------------------------------------
 
 import fi.hiit.dime.data.ZgEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.util.Assert;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
+
+//------------------------------------------------------------------------------
 
 interface CustomZgEventRepository {
     List<ZgCount> zgHist(String groupBy, boolean percentage);
