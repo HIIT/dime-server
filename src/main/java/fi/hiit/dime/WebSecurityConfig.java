@@ -70,7 +70,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	    .logoutSuccessUrl("/")
 	    .permitAll()
 	    .and()
-	    .rememberMe();
+	    // remember me
+	    .rememberMe()
+	    .and()
+	    // http basic
+	    .httpBasic()
+	    .and()
+	    // csrf
+	    .csrf().disable();
+
+	// FIXME: http://stackoverflow.com/questions/20602436/in-spring-security-with-java-config-why-does-httpbasic-post-want-csrf-token
     }
 
     @Override

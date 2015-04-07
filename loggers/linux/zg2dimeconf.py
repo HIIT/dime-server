@@ -90,6 +90,8 @@ def process_config(config_file):
     # [DiMe]:
 
     process_config_string(parser, 'DiMe', 'server_url', 'server_url')
+    process_config_string(parser, 'DiMe', 'username', 'username')
+    process_config_string(parser, 'DiMe', 'password', 'password')
 
     # [Zeitgeist]:
 

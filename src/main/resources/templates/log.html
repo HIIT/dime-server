@@ -9,7 +9,7 @@
       <div class="starter-template">
 
 	<h1 th:text="'Digital Work Me with ' + ${events.size()} + ' entries'"></h1>
-        <h2 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]!</h2>
+        <h2 th:text="'Hello ' + ${currentUser.username} + '!'"></h2>
 
 	<span th:each="event,iterStat : ${events}">
 	  <hr/>

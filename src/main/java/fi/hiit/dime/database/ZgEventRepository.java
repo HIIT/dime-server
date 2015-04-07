@@ -24,6 +24,9 @@
 
 package fi.hiit.dime.database;
 
+// FIXME use mongotemplates instead
+// http://docs.spring.io/spring-data/data-mongo/docs/1.7.0.RELEASE/reference/html/#mongo-template
+
 //------------------------------------------------------------------------------
 
 import fi.hiit.dime.data.ZgEvent;
@@ -39,11 +42,15 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import org.bson.types.ObjectId;
 
 //------------------------------------------------------------------------------
 
 interface CustomZgEventRepository {
     List<ZgCount> zgHist(String groupBy, boolean percentage);
+    List<ZgEvent> eventsForUser(String id);
 }
 
 class ZgEventRepositoryImpl implements CustomZgEventRepository {
@@ -55,13 +62,16 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 	this.operations = operations;
     }
 
+    @Override
     public List<ZgCount> zgHist(String groupBy, boolean percentage) {
 	// db.zgEvent.aggregate([{ $group: { _id: "$actor", nevents: { $sum: 1 } } }])
 
-	Aggregation agg = newAggregation(group(groupBy).count().as("nevents"),
-					 project("nevents").and(groupBy).previousOperation(),
-					 sort(Direction.DESC, "nevents"));
-	AggregationResults<ZgCount> results = operations.aggregate(agg, "zgEvent", ZgCount.class);
+	Aggregation agg =
+	    newAggregation(group(groupBy).count().as("nevents"),
+			   project("nevents").and(groupBy).previousOperation(),
+			   sort(Direction.DESC, "nevents"));
+	AggregationResults<ZgCount> results =
+	    operations.aggregate(agg, "zgEvent", ZgCount.class);
 	List<ZgCount> zgCounts = results.getMappedResults();
 
 	if (percentage) {
@@ -73,8 +83,15 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 	return zgCounts;
     }
 
+    @Override
+    public List<ZgEvent> eventsForUser(String id) {
+	return operations.find(query(where("user._id").is(new ObjectId(id))), 
+			       ZgEvent.class, "zgEvent");
+    }
+    
 }
 
 public interface ZgEventRepository extends MongoRepository<ZgEvent, String>, CustomZgEventRepository {
-    public List<ZgEvent> findAllByOrderByTimestampDesc();
+    // public List<ZgEvent> findAllByOrderByTimestampDesc();
+    public List<ZgEvent> findByIdOrderByTimestampDesc(String id);
 }

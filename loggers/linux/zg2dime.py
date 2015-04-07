@@ -153,7 +153,9 @@ def send_event(event):
 
     headers = {'content-type': 'application/json'}
     r = requests.post(config['server_url'], data=json_payload,
-                      headers=headers)
+                      headers=headers,
+                      auth=(config['username'], 
+                            config['password']))
     stats['zeitgeist']['events_sent'] = stats['zeitgeist']['events_sent'] + 1
     stats['zeitgeist']['data_sent'] = (stats['zeitgeist']['data_sent'] +
                                        len(json_payload))
