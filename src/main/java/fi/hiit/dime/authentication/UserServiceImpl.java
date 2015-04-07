@@ -26,22 +26,59 @@ package fi.hiit.dime.authentication;
 
 //------------------------------------------------------------------------------
 
+import fi.hiit.dime.database.UserRepository;
+import fi.hiit.dime.util.RandomPassword;
+import java.security.SecureRandom;
 import java.util.Collection;
+import javax.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Sort;
-import fi.hiit.dime.database.UserRepository;
 
 //------------------------------------------------------------------------------
 
+/**
+   Service that gives us a general interface to fetch and create users
+   independent of the underlying user database.
+*/
 @Service
 public class UserServiceImpl implements UserService {
+    private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
+    private final static String ADMIN_USERNAME = "admin";
+    private final static String ADMIN_PASSWORD = ""; // empty means random
+    private RandomPassword pw;
 
     @Autowired
     UserServiceImpl(UserRepository userRepository) {
 	this.userRepository = userRepository;
+	this.pw = new RandomPassword();
+    }
+
+    /** 
+	This method is run on startup, to create a default admin user
+	if it is not already present.
+    */
+    @PostConstruct
+    public void installAdminUser() {
+	if (getUserByUsername(ADMIN_USERNAME) == null) {
+	    String passwd = ADMIN_PASSWORD;
+	    if (passwd.isEmpty())
+		passwd = pw.getPassword(20, true, false);
+
+	    UserCreateForm form = new UserCreateForm();
+	    form.setUsername(ADMIN_USERNAME);
+	    form.setPassword(passwd);
+	    form.setRole(Role.ADMIN);
+
+	    create(form);
+
+	    System.out.printf("\nCreated default admin user with password " +
+			      "\"%s\"\n\n.", passwd);
+	}
     }
 
     @Override
@@ -64,7 +101,7 @@ public class UserServiceImpl implements UserService {
 	User user = new User();
 	user.username = form.getUsername();
 	user.passwordHash = new BCryptPasswordEncoder().encode(form.getPassword());
-	user.role = Role.USER;
+	user.role = form.getRole();
 	return userRepository.save(user);
     }
 }

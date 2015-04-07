@@ -82,6 +82,7 @@ public class UserController extends WebMvcConfigurerAdapter {
             return "user_create";
         }
         try {
+	    // FIXME: check that only admin can create other admin user
             userService.create(form);
         } catch (DataIntegrityViolationException e) {
             bindingResult.rejectValue("username", "exists",

@@ -22,32 +22,43 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.authentication;
+package fi.hiit.dime.util;
 
-import javax.validation.constraints.NotNull;
+//------------------------------------------------------------------------------
 
-/**
-   Data object for the user creation form.
-*/
-public class UserCreateForm {
-    @NotNull
-    private String username = "";
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
-    @NotNull
-    private String password = "";
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+//------------------------------------------------------------------------------
 
-    @NotNull
-    private String passwordRepeated = "";
-    public String getPasswordRepeated() { return passwordRepeated; }
-    public void setPasswordRepeated(String passwordRepeated) { 
-	this.passwordRepeated = passwordRepeated; }
-    
-    @NotNull
-    private Role role = Role.USER;
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+public class RandomPasswordTest {
+    private RandomPassword rand;
+
+    @Before
+    public void setup() {
+	rand = new RandomPassword();
+    }
+
+    @Test
+    public void testLength() {
+	for (int i=1; i<30; i++) {
+	    String p1 = rand.getPassword(i, true, true);
+	    String p2 = rand.getPassword(i, false, true);
+	    String p3 = rand.getPassword(i, true, false);
+	    String p4 = rand.getPassword(i, false, false);
+
+	    System.out.println("p1 = " + p1);
+	    System.out.println("p2 = " + p2);
+	    System.out.println("p3 = " + p3);
+	    System.out.println("p4 = " + p4);
+
+	    assertEquals(p1.length(), i);
+	    assertEquals(p2.length(), i);
+	    assertEquals(p3.length(), i);
+	    assertEquals(p4.length(), i);
+	}
+    }
+
+    //FIXME: test contents
 }
