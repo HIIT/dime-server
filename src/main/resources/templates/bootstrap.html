@@ -38,7 +38,8 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li th:class="${page == 'log' ? 'active' : ''}"><a th:href="@{/log}">Data stored</a></li>
+            <li th:class="${page == 'log' ? 'active' : ''}"><a th:href="@{/log}">Data log</a></li>
+            <li th:class="${page == 'search' ? 'active' : ''}"><a th:href="@{/search}">Search</a></li>
 	  </ul>
 	  <form th:if="${#httpServletRequest.remoteUser}" class="navbar-form navbar-right" role="logout" th:action="@{/logout}" method="post">
             <button type="submit" class="btn btn-default btn-sm">Sign out</button>

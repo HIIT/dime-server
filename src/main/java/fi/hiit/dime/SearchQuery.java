@@ -22,20 +22,18 @@
   SOFTWARE.
 */
 
-//------------------------------------------------------------------------------
-
-package fi.hiit.dime.data;
-import org.springframework.data.mongodb.core.index.TextIndexed;
+package fi.hiit.dime;
 
 //------------------------------------------------------------------------------
 
-public class ZgSubject extends DiMeData {
-    public String uri;
-    public String mimetype;
-    public String storage;
-    @TextIndexed public String text;
+public class SearchQuery {
+    private String query = "";
+    
+    public String getQuery() {
+	return query;
+    }
 
-    public boolean isStub() {
-	return uri == null || uri.isEmpty();
+    public void setQuery(String query) {
+	this.query = query; 
     }
 }

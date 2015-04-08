@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="bootstrap :: head"></head>
+<body>
+  <div th:replace="bootstrap :: navbar (search)"></div>
+    <div class="container">
+      <div class="starter-template">
+
+	<h1>Search your DiMe</h1>
+
+	<form class="form-inline" th:object="${search}" th:action="@{/search}"
+	      method="post">
+	  <div class="form-group col-xs-4">
+	    <label class="sr-only" for="query">Text query</label>
+	    <input style="width: 100%" type="text" class="form-control"
+		   id="query" name="query" placeholder="Text query"
+		   th:field="*{query}" />
+	  </div>
+	  <button type="submit" class="btn btn-primary">Search</button>
+	</form>
+
+	<span th:each="subject,iterStat : ${results}">
+	  <hr/>
+	  <p>
+	    [<span th:text="${iterStat.index}"></span>] <b>ID:</b> <span th:text="${subject.id}"></span>
+	    <b>URI:</b> <span th:text="${subject.uri}"></span><br/>
+	    <b>Interpretation:</b> <span th:text="${subject.interpretation}"></span><br/>
+	    <b>Manifestation</b> <span th:text="${subject.manifestation}"></span><br/>
+	    <b>Mimetype:</b> <span th:text="${subject.mimetype}"></span>
+	    <b>Storage:</b> <span th:text="${subject.storage}"></span><br/>
+	    <b>Text:</b> <pre th:text="${#strings.abbreviate(subject.text,500)}"></pre><br/>
+	  </p>
+	</span>
+
+      </div>
+    </div>
+  <div th:replace="bootstrap :: js"></div>
+</body>
+</html>

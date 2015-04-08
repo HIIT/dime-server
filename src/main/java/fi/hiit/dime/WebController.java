@@ -31,7 +31,10 @@ import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.data.User;
+import fi.hiit.dime.data.ZgSubject;
 import fi.hiit.dime.database.ZgEventRepository;
+import fi.hiit.dime.database.ZgSubjectRepository;
+import java.util.List;
 import java.util.NoSuchElementException;
 import javax.validation.Valid;
 import org.slf4j.Logger;
@@ -58,6 +61,9 @@ public class WebController extends WebMvcConfigurerAdapter {
     @Autowired
     private ZgEventRepository zgEventRepository;
 
+    @Autowired
+    private ZgSubjectRepository zgSubjectRepository;
+
     //@Autowired
     //private Authentication authentication;
 
@@ -73,11 +79,17 @@ public class WebController extends WebMvcConfigurerAdapter {
     // 	return new CurrentUser();
     // }
 
+
+    //------------------------------------------------------------------------------
+    // Various "regular" pages
+    //------------------------------------------------------------------------------
+
     @RequestMapping("/")
     public String root(Model model) {
         return "root";
     }
 
+    /** Show log of all data */
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
@@ -85,6 +97,32 @@ public class WebController extends WebMvcConfigurerAdapter {
 			   zgEventRepository.eventsForUser(userId));
         return "log";
     }
+
+    /** Search page */
+
+    @RequestMapping("/search")
+    public String search(@ModelAttribute SearchQuery search,
+			 Authentication authentication,
+			 Model model) {
+
+	String query = search.getQuery();
+	if (!query.isEmpty()) {
+	    List<ZgSubject> results = zgSubjectRepository.textSearch(query);
+	    model.addAttribute("results", results);
+	}
+
+        model.addAttribute("search", search);
+
+	// FIXME: only return results for given user
+	// String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+
+        return "search";
+    }
+
+
+    //------------------------------------------------------------------------------
+    // User management
+    //------------------------------------------------------------------------------
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public ModelAndView getLoginPage(@RequestParam(required=false) String error) {

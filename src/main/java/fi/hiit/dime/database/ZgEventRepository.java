@@ -32,7 +32,6 @@ package fi.hiit.dime.database;
 import fi.hiit.dime.data.ZgEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.List;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
