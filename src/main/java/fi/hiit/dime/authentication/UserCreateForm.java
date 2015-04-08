@@ -22,15 +22,38 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.database;
+package fi.hiit.dime.authentication;
 
 //------------------------------------------------------------------------------
 
-import fi.hiit.dime.data.ZgSubject;
-import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import fi.hiit.dime.data.User;
+import fi.hiit.dime.data.Role;
+import javax.validation.constraints.NotNull;
 
 //------------------------------------------------------------------------------
 
-public interface ZgSubjectRepository extends MongoRepository<ZgSubject, String> {
+/**
+   Data object for the user creation form.
+*/
+public class UserCreateForm {
+    @NotNull
+    private String username = "";
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    @NotNull
+    private String password = "";
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    @NotNull
+    private String passwordRepeated = "";
+    public String getPasswordRepeated() { return passwordRepeated; }
+    public void setPasswordRepeated(String passwordRepeated) { 
+	this.passwordRepeated = passwordRepeated; }
+    
+    @NotNull
+    private Role role = Role.USER;
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 }

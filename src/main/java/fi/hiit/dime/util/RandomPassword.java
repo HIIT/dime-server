@@ -22,15 +22,55 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.database;
+package fi.hiit.dime.util;
 
 //------------------------------------------------------------------------------
 
-import fi.hiit.dime.data.ZgSubject;
-import java.util.List;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import java.security.SecureRandom;
 
 //------------------------------------------------------------------------------
 
-public interface ZgSubjectRepository extends MongoRepository<ZgSubject, String> {
+public class RandomPassword {
+    private SecureRandom mRand;
+
+    private final static String chars_alpha =
+	"abcdefghijklmnopqrstuvwxyz" +
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    
+    private final static String chars_numeric = 
+	"01234567890";
+
+    private final static String chars_symbols = 
+	"_,.;:!#%&/()={}[]?+^<>*";
+    
+    public RandomPassword() {
+	mRand = new SecureRandom();
+	// FIXME: implement handling of seed
+    }
+
+    public String getPassword(int length, boolean numeric, boolean symbols) {
+	StringBuilder chars = new StringBuilder(chars_alpha);
+	if (numeric)
+	    chars.append(chars_numeric);
+	if (symbols)
+	    chars.append(chars_symbols);
+
+	StringBuilder p = new StringBuilder(length);
+	int l = chars.length();
+	
+	for (int i=0; i<length;) {
+	    byte b[] = new byte[1];
+	    mRand.nextBytes(b);
+	    int r = b[0] & 0xff;
+	    if (r < l) {
+		p.append(chars.charAt(r));
+		i++;
+	    }
+	}
+	return p.toString();
+    }
+
+    public String getPassword(int length) {
+	return getPassword(length, true, true);
+    }
 }

@@ -24,15 +24,37 @@
 
 package fi.hiit.dime.data;
 
+//------------------------------------------------------------------------------
+
+import org.springframework.data.annotation.Id;
 import java.util.Date;
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+//------------------------------------------------------------------------------
 
-    public String origin;
-    public Date timestamp;
+/**
+   Class for storing users and associated information for this DiMe.
+*/
+public class User {
+
+    /** Unique identifier in the database */
+    @Id
+    public String id;
     
-    public String payload;
-
-    public ZgSubject subject;
+    /** Unique username */
+    public String username;
+    
+    /** Hash of password (never store the actual password!) */
+    public String passwordHash;
+    
+    /** Email */
+    public String email;       
+    
+    /** Date and time when the user was registered */
+    public Date time_registered;
+    
+    /** Date and time when the user last logged in */ 
+    public Date time_login;
+    
+    /** User role, e.g. user or admin. */
+    public Role role;
 }

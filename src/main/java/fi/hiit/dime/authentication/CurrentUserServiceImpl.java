@@ -22,17 +22,22 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.authentication;
 
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+import fi.hiit.dime.data.Role;
+import org.springframework.stereotype.Service;
 
-    public String origin;
-    public Date timestamp;
+//------------------------------------------------------------------------------
+
+@Service
+public class CurrentUserServiceImpl implements CurrentUserService {
     
-    public String payload;
-
-    public ZgSubject subject;
+    @Override
+    public boolean canAccessUser(CurrentUser currentUser, String username) {
+	return currentUser != null &&
+	    (currentUser.getRole() == Role.ADMIN ||
+	     currentUser.getUsername().equals(username));
+    }
 }

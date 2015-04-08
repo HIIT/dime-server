@@ -22,17 +22,15 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.database;
 
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import fi.hiit.dime.data.User;
 
-    public String origin;
-    public Date timestamp;
-    
-    public String payload;
+//------------------------------------------------------------------------------
 
-    public ZgSubject subject;
+public interface UserRepository extends MongoRepository<User, String> {
+    User findOneByUsername(String username);
 }

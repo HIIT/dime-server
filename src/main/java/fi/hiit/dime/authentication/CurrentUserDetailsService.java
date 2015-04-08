@@ -22,17 +22,36 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.authentication;
 
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+import fi.hiit.dime.data.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
-    public String origin;
-    public Date timestamp;
+//------------------------------------------------------------------------------
+
+@Service
+public class CurrentUserDetailsService implements UserDetailsService {
+    private final UserService userService;
+
+    @Autowired
+    public CurrentUserDetailsService(UserService userService) {
+	this.userService = userService;
+    }
     
-    public String payload;
+    @Override
+    public CurrentUser loadUserByUsername(String username)
+	throws UsernameNotFoundException {
+	String notFoundError = String.format("User with username=%s was not found",
+					     username);
 
-    public ZgSubject subject;
+	User user = userService.getUserByUsername(username);
+	if (user == null)
+	    throw new UsernameNotFoundException(notFoundError);
+	return new CurrentUser(user);
+    }
 }

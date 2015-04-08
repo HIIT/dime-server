@@ -22,17 +22,43 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.util;
 
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
-    public String origin;
-    public Date timestamp;
-    
-    public String payload;
+//------------------------------------------------------------------------------
 
-    public ZgSubject subject;
+public class RandomPasswordTest {
+    private RandomPassword rand;
+
+    @Before
+    public void setup() {
+	rand = new RandomPassword();
+    }
+
+    @Test
+    public void testLength() {
+	for (int i=1; i<30; i++) {
+	    String p1 = rand.getPassword(i, true, true);
+	    String p2 = rand.getPassword(i, false, true);
+	    String p3 = rand.getPassword(i, true, false);
+	    String p4 = rand.getPassword(i, false, false);
+
+	    System.out.println("p1 = " + p1);
+	    System.out.println("p2 = " + p2);
+	    System.out.println("p3 = " + p3);
+	    System.out.println("p4 = " + p4);
+
+	    assertEquals(p1.length(), i);
+	    assertEquals(p2.length(), i);
+	    assertEquals(p3.length(), i);
+	    assertEquals(p4.length(), i);
+	}
+    }
+
+    //FIXME: test contents
 }
