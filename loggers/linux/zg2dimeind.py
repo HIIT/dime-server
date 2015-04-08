@@ -75,24 +75,24 @@ class Indicator:
         if ago<10:
             return '(last just now)'
         agounit = 'secs'
-        if ago>60:
+        if ago>(24*60*60):
+            ago = int(ago/(24*60*60))
+            if ago==1:
+                agounit = 'day'
+            else:
+                agounit = 'days'
+        elif ago>(60*60):
+            ago = int(ago/(60*60))
+            if ago==1:
+                agounit = 'hour'
+            else:
+                agounit = 'hours'
+        elif ago>60:
             ago = int(ago/60)
             if ago==1:
                 agounit = 'min'
             else:
                 agounit = 'mins'
-        if ago>60:
-            ago = int(ago/60)
-            if ago==1:
-                agounit = 'hour'
-            else:
-                agounit = 'hours'
-        if ago>24:
-            ago = int(ago/24)
-            if ago==1:
-                agounit = 'day'
-            else:
-                agounit = 'days'
 
         return '(last %d %s ago)' % (ago, agounit)
 
