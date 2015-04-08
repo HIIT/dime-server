@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="bootstrap :: head"></head>
+<body>
+  <div th:replace="bootstrap :: navbar (user)"></div>
+
+  <div class="container">
+
+    <div class="starter-template">
+
+      <h1>User details</h1>
+
+      <table class="table">
+	<tr>
+	  <td>Id</td>
+	  <td th:text="${user.id}"></td>
+	</tr>
+	<tr>
+	  <td>Username</td>
+	  <td th:text="${user.username}"></td>
+	</tr>
+	<tr>
+	  <td>Role</td>
+	  <td th:text="${user.role}"></td>
+	</tr>
+      </table>
+    </div>
+  </div>
+    
+  <div th:replace="bootstrap :: js"></div>
+</body>
+</html>

@@ -22,17 +22,37 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.authentication;
 
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+import fi.hiit.dime.data.User;
+import fi.hiit.dime.data.Role;
+import org.springframework.security.core.authority.AuthorityUtils;
 
-    public String origin;
-    public Date timestamp;
-    
-    public String payload;
+//------------------------------------------------------------------------------
 
-    public ZgSubject subject;
+public class CurrentUser extends 
+			     org.springframework.security.core.userdetails.User
+{
+
+    private User user;
+
+    public CurrentUser(User user) {
+	super(user.username, user.passwordHash, 
+	      AuthorityUtils.createAuthorityList(user.role.toString()));
+	this.user = user;
+    }
+
+    public User getUser() {
+	return user;
+    }
+
+    public String getId() {
+	return user.id;
+    }
+
+    public Role getRole() {
+	return user.role;
+    }
 }

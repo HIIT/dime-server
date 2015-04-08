@@ -12,6 +12,10 @@ $(TARGET): $(SOURCES)
 run:    $(TARGET)
 	java -jar $(TARGET)
 
+test:
+	$(GRADLE) test
+	xdg-open build/reports/tests/index.html
+
 clean:
 	$(GRADLE) clean
 

@@ -4,6 +4,8 @@
 
 [DiMe]
 server_url: http://localhost:8080/api/data/zgevent
+username: foo
+password: bar
 
 [Zeitgeist]
 use: yes
@@ -32,3 +34,4 @@ history_file: ~/.mozilla/firefox/XXXXXXXX.default/places.sqlite
 [Indicator]
 use: no
 #icon: ~/path/to/dime/loggers/linux/ReKnow_logo_rgb_icon.png
+ 

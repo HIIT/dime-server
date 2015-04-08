@@ -22,17 +22,21 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.authentication;
 
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+import fi.hiit.dime.data.User;
+import java.util.Collection;
 
-    public String origin;
-    public Date timestamp;
+//------------------------------------------------------------------------------
+
+public interface UserService {
+    User getUserById(String id);
+
+    User getUserByUsername(String username);
     
-    public String payload;
+    Collection<User> getAllUsers();
 
-    public ZgSubject subject;
+    User create(UserCreateForm form);
 }
