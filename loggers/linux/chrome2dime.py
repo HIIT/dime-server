@@ -176,7 +176,10 @@ class Browserlogger:
 
             headers = {'content-type': 'application/json'}
 
-            r = requests.post(config['server_url'], data=json_payload, headers=headers)
+            r = requests.post(config['server_url'], data=json_payload,
+                              headers=headers,
+                              auth=(config['username'],
+                                    config['password']))
             print(r.text)
             print "########################################################"
 
