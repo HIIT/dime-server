@@ -109,10 +109,17 @@ def send_event(event):
     payload['subject']['id'] = subject['id']
     payload['id'] = json_to_sha1(payload)
 
+    full_data = False
     if not subject['id'] in subjects:
         print "Not found in known subjects, sending full data"
         subjects.add(subject['id'])
+        full_data = True
 
+    if payload['interpretation'] == Interpretation.MODIFY_EVENT:
+        print "This is a modify event, sending full data"
+        full_data = True
+
+    if full_data:
         if os.path.isfile(filename):
             subject['storage'] = uuid
 
