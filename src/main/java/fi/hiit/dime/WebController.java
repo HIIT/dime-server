@@ -81,10 +81,8 @@ public class WebController extends WebMvcConfigurerAdapter {
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
-	System.out.println("LOG " + userId);
         model.addAttribute("events", 
 			   zgEventRepository.eventsForUser(userId));
-			   //findByIdOrderByTimestampDesc(userId));
         return "log";
     }
 

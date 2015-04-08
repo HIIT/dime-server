@@ -75,8 +75,8 @@ public class DataController {
 	    }
 	}
 	
-	System.out.println("Event from " + input.origin + " at " + date +
-			   " [" + input.actor + "]");
+	System.out.printf("Event for user %s from %s at %s [%s]\n",
+			  user.username, input.origin, date, input.actor);
 	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
     }
 }

@@ -33,8 +33,10 @@ import fi.hiit.dime.data.ZgEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.List;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
@@ -44,7 +46,6 @@ import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
-import org.bson.types.ObjectId;
 
 //------------------------------------------------------------------------------
 
@@ -85,7 +86,8 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 
     @Override
     public List<ZgEvent> eventsForUser(String id) {
-	return operations.find(query(where("user._id").is(new ObjectId(id))), 
+	return operations.find(query(where("user._id").is(new ObjectId(id))).
+				     with(new Sort(Sort.Direction.DESC,  "timestamp")),
 			       ZgEvent.class, "zgEvent");
     }
     
