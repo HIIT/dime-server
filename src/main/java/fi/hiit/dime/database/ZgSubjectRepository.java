@@ -26,10 +26,15 @@ package fi.hiit.dime.database;
 
 //------------------------------------------------------------------------------
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.CommandResult;
+import com.mongodb.DBObject;
 import fi.hiit.dime.data.ZgSubject;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Query;
@@ -37,15 +42,14 @@ import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.util.Assert;
-import com.mongodb.CommandResult;
-import com.mongodb.DBObject;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBList;
+import org.springframework.data.mongodb.core.query.Criteria;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 //------------------------------------------------------------------------------
 
 interface CustomZgSubjectRepository {
-    List<ZgSubject> textSearch(String query);
+    List<ZgSubject> textSearch(String query, String userId);
 }
 
 //------------------------------------------------------------------------------
@@ -60,7 +64,7 @@ class ZgSubjectRepositoryImpl implements CustomZgSubjectRepository {
     }
 
     @Override
-    public List<ZgSubject> textSearch(String query) {
+    public List<ZgSubject> textSearch(String query, String userId) {
 	/* NOTE: this should work with mongodb 2.6, but does not work
 	   with 2.4.9 at least */
 
@@ -69,19 +73,26 @@ class ZgSubjectRepositoryImpl implements CustomZgSubjectRepository {
 	// dbQuery = new TextQuery(query); return
 	// operations.find(dbQuery, ZgSubject.class);
 
+	// Filter out other users
+	Criteria filterCriteria = where("user._id").is(new ObjectId(userId));
+
+	// Construct text search as a mongodb command (required for
+	// mongo 2.4)
 	DBObject command = new BasicDBObject();
 	command.put("text", "zgSubject");
 	command.put("search", query);
-        // command.put("filter", Query.query(filterCriteria).getQueryObject());
-        // command.put("limit", countAll());
+	command.put("filter", query(filterCriteria).getQueryObject());
+        // command.put("limit", n);
         // command.put("project", new BasicDBObject("_id", 1));
 
 	CommandResult commandResult = operations.executeCommand(command);
 
+	// Construct List<ZgSubjects> to return out of the
+	// CommandResult
 	List<ZgSubject> results = new ArrayList<ZgSubject>();
 
         BasicDBList resultList = (BasicDBList)commandResult.get("results");
-        if (resultList == null)
+        if (resultList == null) // return empty list if there are no results
 	    return results;
 
         Iterator<Object> it = resultList.iterator();

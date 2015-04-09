@@ -94,5 +94,5 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 
 public interface ZgEventRepository extends MongoRepository<ZgEvent, String>, CustomZgEventRepository {
     // public List<ZgEvent> findAllByOrderByTimestampDesc();
-    public List<ZgEvent> findByIdOrderByTimestampDesc(String id);
+    //    public List<ZgEvent> findByIdOrderByTimestampDesc(String id);
 }

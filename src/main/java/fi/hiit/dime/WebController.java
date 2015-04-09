@@ -105,16 +105,16 @@ public class WebController extends WebMvcConfigurerAdapter {
 			 Authentication authentication,
 			 Model model) {
 
+	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
-	    List<ZgSubject> results = zgSubjectRepository.textSearch(query);
+	    List<ZgSubject> results = zgSubjectRepository.textSearch(query, userId);
 	    model.addAttribute("results", results);
 	}
 
         model.addAttribute("search", search);
 
-	// FIXME: only return results for given user
-	// String userId = ((CurrentUser)authentication.getPrincipal()).getId();
 
         return "search";
     }
