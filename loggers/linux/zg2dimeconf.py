@@ -126,10 +126,10 @@ def process_config(config_file):
     process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext')
     process_config_string(parser, 'Browsers', 'fulltext_command', 'fulltext_command')
     process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength_web')
-    process_config_string(parser, 'Browsers', 'event_interpretation', 'event_interpretation')
-    process_config_string(parser, 'Browsers', 'event_manifestation', 'event_manifestation')
-    process_config_string(parser, 'Browsers', 'subject_interpretation', 'subject_interpretation')
-    process_config_string(parser, 'Browsers', 'subject_manifestation', 'subject_manifestation')
+    process_config_string(parser, 'Browsers', 'event_interpretation', 'event_interpretation_browser')
+    process_config_string(parser, 'Browsers', 'event_manifestation', 'event_manifestation_browser')
+    process_config_string(parser, 'Browsers', 'subject_interpretation', 'subject_interpretation_browser')
+    process_config_string(parser, 'Browsers', 'subject_manifestation', 'subject_manifestation_browser')
 
     # [Chrome/Chromium/Firefox]:
 
@@ -138,9 +138,16 @@ def process_config(config_file):
     process_browser(parser, 'Firefox', 'firefox')
 
     # [Indicator]:
+
     process_config_boolean(parser, 'Indicator', 'use', 'use_indicator')
     process_config_int(parser, 'Indicator', 'interval', 'interval_indicator')
     process_config_path(parser, 'Indicator', 'icon', 'icon_indicator')
+
+    # [Meetings]:
+    process_config_string(parser, 'Meetings', 'event_interpretation', 'event_interpretation_meeting')
+    process_config_string(parser, 'Meetings', 'event_manifestation', 'event_manifestation_meeting')
+    process_config_string(parser, 'Meetings', 'subject_interpretation', 'subject_interpretation_meeting')
+    process_config_string(parser, 'Meetings', 'subject_manifestation', 'subject_manifestation_meeting')
 
     return True
 

@@ -62,7 +62,7 @@ class Browserlogger:
 
 # -----------------------------------------------------------------------
 
-    def payload_to_json(self, payload, alt_text):
+    def payload_to_json(self, payload, alt_text=''):
         try:
             return json.dumps(payload)
         except UnicodeDecodeError:
@@ -130,13 +130,13 @@ class Browserlogger:
 
             payload = {'origin':         config['hostname'],
                        'actor':          config['actor_'+self.name],
-                       'interpretation': config['event_interpretation'],
-                       'manifestation':  config['event_manifestation'],
+                       'interpretation': config['event_interpretation_browser'],
+                       'manifestation':  config['event_manifestation_browser'],
                        'timestamp':      datetime}
 
             subject = {'uri':            uri,
-                       'interpretation': config['subject_interpretation'],
-                       'manifestation':  config['subject_manifestation'],
+                       'interpretation': config['subject_interpretation_browser'],
+                       'manifestation':  config['subject_manifestation_browser'],
                        'mimetype':       mimetype,
                        'storage':        storage}
 

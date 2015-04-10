@@ -4,8 +4,6 @@ import os.path
 import sys
 import subprocess
 import requests
-import json
-import hashlib
 import urllib
 import time
 
@@ -16,16 +14,9 @@ from zeitgeist.datamodel import *
 
 from zg2dimeglobals import config
 import zg2dimeconf as conf
+import zg2dimecommon as common
 import chrome2dime
 import zg2dimeind
-
-# -----------------------------------------------------------------------
-
-def json_to_sha1(payload):
-    json_payload = json.dumps(payload)
-    sha1 = hashlib.sha1()
-    sha1.update(json_payload)
-    return sha1.hexdigest()
 
 # -----------------------------------------------------------------------
  
@@ -104,10 +95,10 @@ def send_event(event):
                'mimetype':       event.subjects[0].mimetype,
                'text':           event.subjects[0].text}
 
-    subject['id'] = json_to_sha1(subject)
+    subject['id'] = common.json_to_sha1(subject)
     payload['subject'] = {}
     payload['subject']['id'] = subject['id']
-    payload['id'] = json_to_sha1(payload)
+    payload['id'] = common.json_to_sha1(payload)
 
     full_data = False
     if not subject['id'] in subjects:
@@ -155,7 +146,7 @@ def send_event(event):
 
         payload['subject'] = subject.copy()
 
-    json_payload = json.dumps(payload)
+    json_payload = common.json_dumps(payload)
     print(json_payload)
 
     headers = {'content-type': 'application/json'}
