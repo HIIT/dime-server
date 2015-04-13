@@ -41,6 +41,8 @@ parser.add_argument('--tz', action='store', required=True,
                     help='numeric time zone, e.g. "+0200"')
 parser.add_argument('--fps', action='store', type=int, required=True, 
                     help='frame rate of video')
+parser.add_argument('--dryrun', action='store_true',
+                    help='do not actually send anything')
 
 args = parser.parse_args()
 
@@ -104,6 +106,9 @@ for videofile in args.videos:
 
                 json_payload = common.json_dumps(payload)
                 print(json_payload)                
+
+                if args.dryrun:
+                    continue
 
                 headers = {'content-type': 'application/json'}
 
