@@ -70,7 +70,6 @@ for videofile in args.videos:
         print "Matches file %s not found, continuing" % matchesfile
         continue
 
-
     with open (matchesfile, "r") as matches:
         for line in matches:
             mparts = line.strip().split()            
@@ -78,11 +77,10 @@ for videofile in args.videos:
                 print "  slide found: [%s]" % line.strip()
                 i = i+1
                 seenslides.add(mparts[1])
-                slidetime = calc_slidetime(int(mparts[0]), tsparts[1])
-                datetime = "%sT%s%s" % (tsparts[0], slidetime, args.tz)
-                slidetxt = read_slidetxt(mparts[1])
+                datetime = "%sT%s%s" % (tsparts[0], 
+                                        calc_slidetime(int(mparts[0]), tsparts[1]), 
+                                        args.tz)
                 
-                mimetype = 'unknown'
                 uri      = 'file://' + videofile + '?f=' + mparts[0]
 
                 payload = {'origin':         config['hostname'],
@@ -94,14 +92,14 @@ for videofile in args.videos:
                 subject = {'uri':            uri,
                            'interpretation': config['subject_interpretation_meeting'],
                            'manifestation':  config['subject_manifestation_meeting'],
-                           'mimetype':       mimetype,
+                           'mimetype':       'unknown',
                            'storage':        'net'}
 
                 subject['id'] = common.json_to_sha1(subject)
                 payload['subject'] = {}
                 payload['subject']['id'] = subject['id']
                 payload['id'] = common.json_to_sha1(payload)
-                subject['text'] = slidetxt
+                subject['text'] = read_slidetxt(mparts[1])
                 payload['subject'] = subject.copy()
 
                 json_payload = common.json_dumps(payload)
