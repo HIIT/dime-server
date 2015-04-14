@@ -65,13 +65,21 @@ class ZgSubjectRepositoryImpl implements CustomZgSubjectRepository {
 
     @Override
     public List<ZgSubject> textSearch(String query, String userId) {
-	/* NOTE: this should work with mongodb 2.6, but does not work
-	   with 2.4.9 at least */
+	/* 
+	   NOTE: this should work with mongodb 2.6, but does not work
+	   with 2.4.9 at least 
+	*/
 
 	// Query dbQuery = TextQuery.queryText(new
 	// TextCriteria().matchingPhrase(query)).sortByScore(); Query
 	// dbQuery = new TextQuery(query); return
 	// operations.find(dbQuery, ZgSubject.class);
+
+	/* 
+	   For version 2.4 we use the raw mongodb command, e.g.
+	   db.zgSubject.runCommand( "text", { search: "SEARCH QUERY" } )
+	   http://docs.mongodb.org/v2.4/reference/command/text/#dbcmd.text
+	*/
 
 	// Filter out other users
 	Criteria filterCriteria = where("user._id").is(new ObjectId(userId));
