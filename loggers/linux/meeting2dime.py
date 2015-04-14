@@ -2,6 +2,7 @@
 
 import os.path
 import sys
+import time
 import argparse
 import requests
 
@@ -11,12 +12,13 @@ import zg2dimecommon as common
 
 # -----------------------------------------------------------------------
 
-def read_slidetxt(pngfn):
-    slidetxtfn = pngfn
-    slidetxtfn = slidetxtfn.replace(".png", ".txt")
-    slidetxtfn = args.slidepath + '/' + slidetxtfn
-    print slidetxtfn
-    with open (slidetxtfn, "r") as t:
+def read_txt(fn):
+    if args.slides:
+        txtfn = fn.replace(".png", ".txt")
+    else:
+        txtfn = fn
+    print "Opening " + txtfn
+    with open (txtfn, "r") as t:
         return t.read()
 
 # -----------------------------------------------------------------------
@@ -31,92 +33,116 @@ def calc_slidetime(frame, start_time):
 
 # -----------------------------------------------------------------------
 
+def create_payload(epoch, uri, fn):
+
+    datetime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(epoch))
+
+    tz = time.strftime("%Z", time.localtime(epoch))
+    if tz == "EET":
+        tz = "+0200"
+    elif tz == "EEST":
+        tz = "+0300"
+
+    payload = {'origin':         config['hostname'],
+               'actor':          'meeting2dime.py',
+               'interpretation': config['event_interpretation_meeting'],
+               'manifestation':  config['event_manifestation_meeting'],
+               'timestamp':      datetime+tz}
+    
+    subject = {'uri':            uri,
+               'interpretation': config['subject_interpretation_meeting'],
+               'manifestation':  config['subject_manifestation_meeting'],
+               'mimetype':       'unknown',
+               'storage':        'net'}
+    
+    subject['id'] = common.json_to_sha1(subject)
+    payload['subject'] = {}
+    payload['subject']['id'] = subject['id']
+    payload['id'] = common.json_to_sha1(payload)
+    subject['text'] = read_txt(fn)
+    payload['subject'] = subject.copy()
+    
+    return common.json_dumps(payload)
+
+# -----------------------------------------------------------------------
+
+def post_payload(json_payload):
+    headers = {'content-type': 'application/json'}
+
+    r = requests.post(config['server_url'], data=json_payload,
+                      headers=headers,
+                      auth=(config['username'],
+                            config['password']))
+
+    print(r.text)
+    print "########################################################"
+
+# -----------------------------------------------------------------------
+
 parser = argparse.ArgumentParser(description='Sends meeting slides to DiMe.')
 
-parser.add_argument('videos', metavar='N', nargs='+',
-                     help='meeting videos to be processed')
-parser.add_argument('--slides', action='store', required=True, dest='slidepath',
+parser.add_argument('videofile', metavar='N',
+                     help='meeting video to be processed')
+parser.add_argument('--slides', action='store_true', 
                     help='path to individual slides')
-parser.add_argument('--tz', action='store', required=True, 
-                    help='numeric time zone, e.g. "+0200"')
-parser.add_argument('--fps', action='store', type=int, required=True, 
-                    help='frame rate of video')
+parser.add_argument('--noslides', action='store', metavar='textdesc',
+                    help='no individual slides, use video-level description')
 parser.add_argument('--dryrun', action='store_true',
                     help='do not actually send anything')
 
 args = parser.parse_args()
+
+if args.slides and args.noslides:
+    print 'ERROR: Both "--slides" and "--noslides" cannot be set together'
+    sys.exit()
+
+if not args.slides and not args.noslides:
+    print 'ERROR: Either "--slides" and "--noslides" has to be set'
+    sys.exit()
 
 conf.configure()
 
 seenslides = set()
 
 i = 0
-for videofile in args.videos:
-    print "Processing %s" % videofile
-    timestampfile = videofile + ".txt"
-    if not os.path.isfile(timestampfile):
-        print "Timestamp file %s not found, continuing" % timestampfile
-        continue
 
-    with open (timestampfile, "r") as timestamp:
-        for line in timestamp:
-            tsparts = line.strip().split()
+timefile = args.videofile + ".txt"
+if not os.path.isfile(timefile):
+    print "ERROR: Timefile %s not found" % timefile
+    sys.exit()
+
+start_epoch = 0
+with open (timefile, "r") as tfile:
+    for line in tfile:
+        tsparts = line.strip().split()
+        epoch = int(tsparts[0])
+        if start_epoch==0:
+            start_epoch = epoch
+
+        if args.noslides:
+            i = i+1
+            json_payload = create_payload(epoch,
+                                          'file://' + args.videofile, 
+                                          args.noslides)
+            print(json_payload)
+
+            if not args.dryrun:
+                post_payload(json_payload)
+
             break
 
-    print "  timestamp: %sT%s%s" % (tsparts[0], tsparts[1], args.tz)
+        if len(tsparts)==2: # and not tsparts[1] in seenslides:
+            print "  slide found: [%s]" % line.strip()
+            i = i+1
+            seenslides.add(tsparts[1])
 
-    matchesfile = videofile + ".matches.txt"
-    if not os.path.isfile(matchesfile):
-        print "Matches file %s not found, continuing" % matchesfile
-        continue
+            uri = 'file://%s?s=%d' % (args.videofile, (epoch-start_epoch))
 
-    with open (matchesfile, "r") as matches:
-        for line in matches:
-            mparts = line.strip().split()            
-            if len(mparts)==2 and not mparts[1] in seenslides:
-                print "  slide found: [%s]" % line.strip()
-                i = i+1
-                seenslides.add(mparts[1])
-                datetime = "%sT%s%s" % (tsparts[0], 
-                                        calc_slidetime(int(mparts[0]), tsparts[1]), 
-                                        args.tz)
-                
-                uri      = 'file://' + videofile + '?f=' + mparts[0]
+            json_payload = create_payload(epoch, uri, tsparts[1])
+            print(json_payload)
 
-                payload = {'origin':         config['hostname'],
-                           'actor':          'meeting2dime.py',
-                           'interpretation': config['event_interpretation_meeting'],
-                           'manifestation':  config['event_manifestation_meeting'],
-                           'timestamp':      datetime}
-
-                subject = {'uri':            uri,
-                           'interpretation': config['subject_interpretation_meeting'],
-                           'manifestation':  config['subject_manifestation_meeting'],
-                           'mimetype':       'unknown',
-                           'storage':        'net'}
-
-                subject['id'] = common.json_to_sha1(subject)
-                payload['subject'] = {}
-                payload['subject']['id'] = subject['id']
-                payload['id'] = common.json_to_sha1(payload)
-                subject['text'] = read_slidetxt(mparts[1])
-                payload['subject'] = subject.copy()
-
-                json_payload = common.json_dumps(payload)
-                print(json_payload)                
-
-                if args.dryrun:
-                    continue
-
-                headers = {'content-type': 'application/json'}
-
-                r = requests.post(config['server_url'], data=json_payload,
-                                  headers=headers,
-                                  auth=(config['username'],
-                                        config['password']))
-
-                print(r.text)
-                print "########################################################"
+            if not args.dryrun:
+                post_payload(json_payload)
 
 print "Processed %d entries" % i
 
