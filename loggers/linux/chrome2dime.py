@@ -5,13 +5,13 @@ import sys
 import shutil
 import socket
 import subprocess
-import requests
 import json
 import hashlib
 import sqlite3
 import time
 
 from zg2dimeglobals import config
+import zg2dimecommon as common
 import zg2dimeconf as conf
 
 # -----------------------------------------------------------------------
@@ -27,14 +27,6 @@ class Browserlogger:
         self.events_sent = 0
         self.data_sent = 0
         self.latest = 0
-
-# -----------------------------------------------------------------------
-
-    def json_to_sha1(self, payload):
-        json_payload = json.dumps(payload)
-        sha1 = hashlib.sha1()
-        sha1.update(json_payload)
-        return sha1.hexdigest()
 
 # -----------------------------------------------------------------------
 
@@ -88,6 +80,10 @@ class Browserlogger:
                " with " + str(len(self.events)) + " known events and"
                " with " + str(len(self.subjects)) + " known subjects")
 
+        if not common.ping_server():
+            print "No connection to DiMe server, exiting"
+            return True
+
         if not config.has_key('history_file_'+self.name):
             print "ERROR: History file not specified"
             return False
@@ -140,10 +136,10 @@ class Browserlogger:
                        'mimetype':       mimetype,
                        'storage':        storage}
 
-            subject['id'] = self.json_to_sha1(subject)
+            subject['id'] = common.json_to_sha1(subject)
             payload['subject'] = {}
             payload['subject']['id'] = subject['id']
-            payload['id'] = self.json_to_sha1(payload)
+            payload['id'] = common.json_to_sha1(payload)
 
             if payload['id'] in self.events:
                 print "Match found in known events, skipping"
@@ -172,15 +168,10 @@ class Browserlogger:
             if (json_payload == ''):
                 print "Something went wrong in JSON conversion, skipping"
                 continue
-            print(json_payload)
+            print "PAYLOAD:\n" + json_payload
 
-            headers = {'content-type': 'application/json'}
-
-            r = requests.post(config['server_url'], data=json_payload,
-                              headers=headers,
-                              auth=(config['username'],
-                                    config['password']))
-            print(r.text)
+            r = common.post_json(json_payload)
+            print "RESPONSE:\n" + r.text
             print "########################################################"
 
             self.events_sent = self.events_sent + 1 

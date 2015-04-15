@@ -5,11 +5,12 @@ import time
 from gi.repository import Gtk, GLib
 
 try: 
-       from gi.repository import AppIndicator3 as AppIndicator  
+    from gi.repository import AppIndicator3 as AppIndicator  
 except:  
-       from gi.repository import AppIndicator
+    from gi.repository import AppIndicator
 
 from zg2dimeglobals import config
+import zg2dimecommon as common
 
 # -----------------------------------------------------------------------
 
@@ -38,6 +39,12 @@ class Indicator:
         item.set_label("zg2dime.py logger started on " + time.strftime("%c"))
         item.show()
         self.menu.append(item)
+
+        self.pingitem = Gtk.MenuItem()
+        self.pingitem.set_label("[Ping server]")
+        self.pingitem.show()
+        self.pingitem.connect("activate", self.handler_ping_server)
+        self.menu.append(self.pingitem)
         
         self.zeitgeistitem = Gtk.MenuItem()
         self.zeitgeistitem.set_label("Zeitgeist: waiting for data...")
@@ -137,8 +144,15 @@ class Indicator:
                                        stats['firefox']['data_sent']))
             self.firefoxitem.show()
 
-#    def handler_menu_exit(self, evt):
-#        print "handler_menu_exit";
+# -----------------------------------------------------------------------
+
+    def handler_ping_server(self, evt):
+        if common.ping_server():
+            pingstr = "OK"
+        else:
+            pingstr = "FAILED"
+        self.pingitem.set_label("Server ping %s on %s [Ping again]" % 
+                                (pingstr, time.strftime("%c")))        
 
 # -----------------------------------------------------------------------
 

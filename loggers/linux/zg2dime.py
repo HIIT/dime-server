@@ -147,30 +147,44 @@ def send_event(event):
         payload['subject'] = subject.copy()
 
     json_payload = common.json_dumps(payload)
-    print(json_payload)
+    print "PAYLOAD:\n" + json_payload
+    r = common.post_json(json_payload)
 
-    headers = {'content-type': 'application/json'}
-    r = requests.post(config['server_url'], data=json_payload,
-                      headers=headers,
-                      auth=(config['username'], 
-                            config['password']))
     stats['zeitgeist']['events_sent'] = stats['zeitgeist']['events_sent'] + 1
     stats['zeitgeist']['data_sent'] = (stats['zeitgeist']['data_sent'] +
                                        len(json_payload))
     stats['zeitgeist']['latest'] = int(time.time())
-    print(r.text)
+
+    print "RESPONSE:\n" + r.text
     print "---------------------------------------------------------"
 
 # -----------------------------------------------------------------------
 
 def on_insert(time_range, events):
-    send_event(events[0])
+    if not hasattr(on_insert, "last_ping_ok"):
+        on_insert.last_ping_ok = True
+
+    ping_ok = common.ping_server()
+    if ping_ok:
+        if on_insert.last_ping_ok:
+            send_event(events[0])
+        else:
+            zeitgeist.find_events_for_template(template, on_events_received,
+                                               num_events=config['nevents'])
+    else:
+        print "No connection to DiMe server on " + time.strftime("%c")
+
+    on_insert.last_ping_ok = ping_ok
 
 # -----------------------------------------------------------------------
 
 def on_events_received(events):
-    for event in events:
-        send_event(event)
+    if common.ping_server():
+        for event in events:
+            send_event(event)
+        print "Processed %d entries" % len(events)
+    else:
+        print "No connection to DiMe server on " + time.strftime("%c")
 
 # -----------------------------------------------------------------------
 
@@ -211,7 +225,11 @@ if __name__ == '__main__':
         elif sys.argv[-1] == 'all':
             config['nevents'] = 1000
 
-    print "DiMe server location: " + config['server_url']
+    pingstring = "Pinging DiMe server at location: " + config['server_url'] + " : "
+    if common.ping_server():
+        print pingstring + "OK"
+    else:
+        print pingstring + "FAILED"
 
     subjects = set()
 

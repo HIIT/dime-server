@@ -2,6 +2,9 @@
 
 import json
 import hashlib
+import requests
+
+from zg2dimeglobals import config
 
 # -----------------------------------------------------------------------
 
@@ -17,4 +20,25 @@ def json_dumps(text):
     return json.dumps(text)
 
 # -----------------------------------------------------------------------
+
+def ping_server():
+    try:
+        r = requests.post(config['server_url']+'/ping')
+        #print r.text
+    except requests.exceptions.ConnectionError:
+        return False
+    return True
+
+# -----------------------------------------------------------------------
+
+def post_json(payload):
+    headers = {'content-type': 'application/json'}
+    return requests.post(config['server_url']+"/data/zgevent",
+                         data=payload,
+                         headers=headers,
+                         auth=(config['username'],
+                               config['password']))
+
+# -----------------------------------------------------------------------
+
 

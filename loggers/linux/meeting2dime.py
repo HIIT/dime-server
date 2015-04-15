@@ -69,7 +69,8 @@ def create_payload(epoch, uri, fn):
 def post_payload(json_payload):
     headers = {'content-type': 'application/json'}
 
-    r = requests.post(config['server_url'], data=json_payload,
+    r = requests.post(config['server_url']+"/data/zgevent"
+                      data=json_payload,
                       headers=headers,
                       auth=(config['username'],
                             config['password']))
