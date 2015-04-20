@@ -69,7 +69,7 @@ def create_payload(epoch, uri, fn):
 def post_payload(json_payload):
     headers = {'content-type': 'application/json'}
 
-    r = requests.post(config['server_url']+"/data/zgevent"
+    r = requests.post(config['server_url']+"/data/zgevent",
                       data=json_payload,
                       headers=headers,
                       auth=(config['username'],
@@ -88,6 +88,8 @@ parser.add_argument('--slides', action='store_true',
                     help='path to individual slides')
 parser.add_argument('--noslides', action='store', metavar='textdesc',
                     help='no individual slides, use video-level description')
+parser.add_argument('--url', action='store',
+                    help='use this URL instead of file:// link to videofile')
 parser.add_argument('--dryrun', action='store_true',
                     help='do not actually send anything')
 
@@ -100,6 +102,11 @@ if args.slides and args.noslides:
 if not args.slides and not args.noslides:
     print 'ERROR: Either "--slides" and "--noslides" has to be set'
     sys.exit()
+
+if args.url:
+    url = args.url
+else:
+    url = 'file://' + args.videofile
 
 conf.configure()
 
@@ -122,8 +129,7 @@ with open (timefile, "r") as tfile:
 
         if args.noslides:
             i = i+1
-            json_payload = create_payload(epoch,
-                                          'file://' + args.videofile, 
+            json_payload = create_payload(epoch, url,
                                           args.noslides)
             print(json_payload)
 
@@ -137,9 +143,9 @@ with open (timefile, "r") as tfile:
             i = i+1
             seenslides.add(tsparts[1])
 
-            uri = 'file://%s?s=%d' % (args.videofile, (epoch-start_epoch))
+            timed_url = '%s#t=%d' % (url, (epoch-start_epoch))
 
-            json_payload = create_payload(epoch, uri, tsparts[1])
+            json_payload = create_payload(epoch, timed_url, tsparts[1])
             print(json_payload)
 
             if not args.dryrun:
