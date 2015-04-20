@@ -60,6 +60,18 @@ def process_blacklist(parser, section, suffix):
 
 # -----------------------------------------------------------------------
 
+def process_timing_applist(parser, applist):
+    if (process_config_string(parser, 'Timing', applist, 'tmp')):
+        al = config['tmp'].split(';')
+        for al_item in al:
+            al_item = al_item.strip()
+            if not config.has_key(applist+'_timing'):
+                config[applist+'_timing'] = set()
+            config[applist+'_timing'].add(al_item)
+        config.pop('tmp')
+        
+# -----------------------------------------------------------------------
+
 def process_browser(parser, section, suffix):
 
     process_config_boolean(parser, section, 'use', 'use_'+suffix)
@@ -86,6 +98,8 @@ def process_config(config_file):
     # [General]:
 
     process_config_string(parser, 'General', 'hostname', 'hostname')
+    process_config_string(parser, 'General', 'uuid_command', 'uuid_command')
+    process_config_string(parser, 'General', 'mimetype_command', 'mimetype_command')
 
     # [DiMe]:
 
@@ -100,8 +114,6 @@ def process_config(config_file):
     process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext')
     process_config_string(parser, 'Zeitgeist', 'pdftotext_command', 'pdftotext_command')
     process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg')
-    process_config_string(parser, 'Zeitgeist', 'uuid_command', 'uuid_command')
-    process_config_string(parser, 'Zeitgeist', 'mimetype_command', 'mimetype_command')
 
     if (process_config_string(parser, 'Zeitgeist', 'other_actors', 'tmp')):
         #print config['tmp']
@@ -144,11 +156,21 @@ def process_config(config_file):
     process_config_path(parser, 'Indicator', 'icon', 'icon_indicator')
 
     # [Meetings]:
+
     process_config_string(parser, 'Meetings', 'event_interpretation', 'event_interpretation_meeting')
     process_config_string(parser, 'Meetings', 'event_manifestation', 'event_manifestation_meeting')
     process_config_string(parser, 'Meetings', 'subject_interpretation', 'subject_interpretation_meeting')
     process_config_string(parser, 'Meetings', 'subject_manifestation', 'subject_manifestation_meeting')
 
+    # [Timing];
+    process_config_path(parser, 'Timing', 'applescript_file', 'applescript_file')
+    process_config_string(parser, 'Timing', 'applescript_command', 'applescript_command')
+    process_config_path(parser, 'Timing', 'datafile', 'datafile')
+    process_config_path(parser, 'Timing', 'timingfile', 'timingfile')
+
+    process_timing_applist(parser, 'access_apps')
+    process_timing_applist(parser, 'modify_apps')
+        
     return True
 
 # -----------------------------------------------------------------------
