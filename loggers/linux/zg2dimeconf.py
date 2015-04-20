@@ -157,7 +157,7 @@ def configure():
 
     config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
 
-    process_config("zg2dime.ini")
+    process_config("default.ini")
     process_config("user.ini")
 
     return True
