@@ -4,3 +4,4 @@
 HOWTO
 *.pyc
 /loggers/linux/user.ini
+/loggers/linux/imr
