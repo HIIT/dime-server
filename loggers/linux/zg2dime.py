@@ -60,6 +60,7 @@ def map_actor(actor):
 # -----------------------------------------------------------------------
 
 def blacklisted(fn):
+    """Check if filename matches (has as substring) a blacklisted string."""
     if not config.has_key('blacklist_zeitgeist'):
         return False
     for bl_substr in config['blacklist_zeitgeist']:
@@ -72,7 +73,7 @@ def blacklisted(fn):
 # -----------------------------------------------------------------------
 
 def send_event(event):
-
+    """Send an event to DiMe."""
     filename = urllib.unquote(event.subjects[0].uri)
     print ("Starting to process " + filename + " on " + time.strftime("%c") +
                " with " + str(len(subjects)) + " known subjects")
@@ -95,10 +96,10 @@ def send_event(event):
                'mimetype':       event.subjects[0].mimetype,
                'text':           event.subjects[0].text}
 
-    subject['id'] = common.json_to_sha1(subject)
+    subject['id'] = common.to_json_sha1(subject)
     payload['subject'] = {}
     payload['subject']['id'] = subject['id']
-    payload['id'] = common.json_to_sha1(payload)
+    payload['id'] = common.to_json_sha1(payload)
 
     full_data = False
     if not subject['id'] in subjects:
@@ -148,19 +149,21 @@ def send_event(event):
 
     json_payload = common.json_dumps(payload)
     print "PAYLOAD:\n" + json_payload
+
     r = common.post_json(json_payload)
+    print "RESPONSE:\n" + r.text
+    print "---------------------------------------------------------"
 
     stats['zeitgeist']['events_sent'] = stats['zeitgeist']['events_sent'] + 1
     stats['zeitgeist']['data_sent'] = (stats['zeitgeist']['data_sent'] +
                                        len(json_payload))
     stats['zeitgeist']['latest'] = int(time.time())
 
-    print "RESPONSE:\n" + r.text
-    print "---------------------------------------------------------"
 
 # -----------------------------------------------------------------------
 
 def on_insert(time_range, events):
+    """Process an insert to Zeitgeist: send either 1 or n events to DiMe."""
     if not hasattr(on_insert, "last_ping_ok"):
         on_insert.last_ping_ok = True
 
@@ -179,6 +182,7 @@ def on_insert(time_range, events):
 # -----------------------------------------------------------------------
 
 def on_events_received(events):
+    """Send n latest events to DiMe."""
     if common.ping_server():
         for event in events:
             send_event(event)
@@ -189,11 +193,13 @@ def on_events_received(events):
 # -----------------------------------------------------------------------
 
 def on_delete(time_range, event_ids):
+    """For completeness, not used."""
     print event_ids
 
 # -----------------------------------------------------------------------
 
 def update_ind():
+    """Update the data for the Unity menubar indicator."""
     if config['use_chrome']:
         stats['chrome']['events_sent'] = chromelogger.events_sent
         stats['chrome']['data_sent'] = chromelogger.data_sent

@@ -55,10 +55,10 @@ def create_payload(epoch, uri, fn):
                'mimetype':       'unknown',
                'storage':        'net'}
     
-    subject['id'] = common.json_to_sha1(subject)
+    subject['id'] = common.to_json_sha1(subject)
     payload['subject'] = {}
     payload['subject']['id'] = subject['id']
-    payload['id'] = common.json_to_sha1(payload)
+    payload['id'] = common.to_json_sha1(payload)
     subject['text'] = read_txt(fn)
     payload['subject'] = subject.copy()
     

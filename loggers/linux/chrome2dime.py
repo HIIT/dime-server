@@ -136,10 +136,10 @@ class Browserlogger:
                        'mimetype':       mimetype,
                        'storage':        storage}
 
-            subject['id'] = common.json_to_sha1(subject)
+            subject['id'] = common.to_json_sha1(subject)
             payload['subject'] = {}
             payload['subject']['id'] = subject['id']
-            payload['id'] = common.json_to_sha1(payload)
+            payload['id'] = common.to_json_sha1(payload)
 
             if payload['id'] in self.events:
                 print "Match found in known events, skipping"
