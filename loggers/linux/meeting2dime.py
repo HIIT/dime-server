@@ -59,7 +59,7 @@ def create_payload(epoch, uri, fn):
     payload['subject'] = {}
     payload['subject']['id'] = subject['id']
     payload['id'] = common.to_json_sha1(payload)
-    subject['text'] = read_txt(fn)
+    subject['text'] = read_txt(videofilepath+'/'+fn)
     payload['subject'] = subject.copy()
     
     return common.json_dumps(payload)
@@ -109,6 +109,9 @@ else:
     url = 'file://' + args.videofile
 
 conf.configure()
+
+videofilepath = os.path.abspath(args.videofile)
+videofilepath = os.path.split(videofilepath)[0]
 
 seenslides = set()
 
