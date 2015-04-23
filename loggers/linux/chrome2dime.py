@@ -41,36 +41,6 @@ class Browserlogger:
         else:
             return '''SELECT strftime('%Y-%m-%dT%H:%M:%SZ',(last_visit_time/1000000)-11644473600, 'unixepoch'),url,title FROM urls ORDER BY last_visit_time desc'''
 
-# -----------------------------------------------------------------------
-    
-    def blacklisted(self, uri):
-        if not config.has_key('blacklist_'+self.name):
-            return False
-        for bl_substr in config['blacklist_'+self.name]:
-            if bl_substr in uri:
-                print "URI %s matches a blacklist item [%s], skipping" % (uri, bl_substr) 
-                return True
-        return False
-
-# -----------------------------------------------------------------------
-
-    def payload_to_json(self, payload, alt_text=''):
-        try:
-            return json.dumps(payload)
-        except UnicodeDecodeError:
-            pass
-
-        payload['subject']['text'] = alt_text
-        try:
-            return json.dumps(payload)
-        except UnicodeDecodeError:
-            pass
-
-        payload['subject']['text'] = ''
-        try:
-            return json.dumps(payload)
-        except UnicodeDecodeError:
-            return ''
 
 # -----------------------------------------------------------------------
 
@@ -121,7 +91,7 @@ class Browserlogger:
             print "Processing %d:%s" % (i, uri)
             i = i+1
 
-            if self.blacklisted(uri):
+            if common.blacklisted(uri, 'blacklist_'+self.name):
                 continue
 
             payload = {'origin':         config['hostname'],
@@ -151,20 +121,14 @@ class Browserlogger:
                 print "Not found in known subjects, sending full data"
                 self.subjects.add(subject['id'])
 
-                if config['fulltext']:
-                    lynx_command = config['fulltext_command'] % uri
-                    try:
-                        subject['text'] = subprocess.check_output(lynx_command, shell=True)
-                    except subprocess.CalledProcessError:
-                        subject['text'] = row[2]
-                    if config['maxtextlength_web']>0 and len(subject['text'])>config['maxtextlength_web']:
-                        subject['text'] = subject['text'][0:config['maxtextlength_web']]
+                if config.has_key('fulltext') and config['fulltext']:
+                    common.uri_to_text(uri, row[2])
                 else:
                     subject['text'] = row[2]
 
                 payload['subject'] = subject.copy()
 
-            json_payload = self.payload_to_json(payload, row[2])
+            json_payload = common.payload_to_json(payload, row[2])
             if (json_payload == ''):
                 print "Something went wrong in JSON conversion, skipping"
                 continue

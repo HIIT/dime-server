@@ -59,26 +59,13 @@ def map_actor(actor):
 
 # -----------------------------------------------------------------------
 
-def blacklisted(fn):
-    """Check if filename matches (has as substring) a blacklisted string."""
-    if not config.has_key('blacklist_zeitgeist'):
-        return False
-    for bl_substr in config['blacklist_zeitgeist']:
-        if bl_substr in fn:
-            print "File %s matches a blacklist item [%s], skipping" % \
-                   (fn, bl_substr)
-            return True
-    return False
-
-# -----------------------------------------------------------------------
-
 def send_event(event):
     """Send an event to DiMe."""
     filename = urllib.unquote(event.subjects[0].uri)
     print ("Starting to process " + filename + " on " + time.strftime("%c") +
                " with " + str(len(subjects)) + " known subjects")
 
-    if blacklisted(filename):
+    if common.blacklisted(filename, 'blacklist_zeitgeist'):
         return
 
     if filename.startswith('file://'):
@@ -124,15 +111,9 @@ def send_event(event):
                 except subprocess.CalledProcessError:
                     subject['mimetype'] = "unknown"
 
-            if (config['pdftotext'] and
-                event.subjects[0].mimetype == 'application/pdf'):
-                print "Detected as PDF, converting to text"
-                shell_command = config['pdftotext_command'] % filename
-                try:
-                    subject['text'] = subprocess.check_output(shell_command,
-                                                              shell=True)
-                except subprocess.CalledProcessError:
-                    pass
+            if (config.has_key('pdftotext_zeitgeist') and config['pdftotext_zeitgeist']
+                and event.subjects[0].mimetype == 'application/pdf'):
+                subject['text'] = common.pdf_to_text(filename)
             elif 'text/' in subject['mimetype']:
                 if subject['interpretation'] == Interpretation.DOCUMENT:
                     subject['interpretation'] = Interpretation.TEXT_DOCUMENT
@@ -147,12 +128,16 @@ def send_event(event):
 
         payload['subject'] = subject.copy()
 
-    json_payload = common.json_dumps(payload)
+    json_payload = common.payload_to_json(payload)
     print "PAYLOAD:\n" + json_payload
 
     r = common.post_json(json_payload)
     print "RESPONSE:\n" + r.text
     print "---------------------------------------------------------"
+
+    if r.status_code != common.requests.codes.ok:
+        print "Post to DiMe failed: error=[%s], message=[%s]" % (r.json()['error'],
+                                                                 r.json()['message'])
 
     stats['zeitgeist']['events_sent'] = stats['zeitgeist']['events_sent'] + 1
     stats['zeitgeist']['data_sent'] = (stats['zeitgeist']['data_sent'] +
