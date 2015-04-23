@@ -25,11 +25,13 @@ def process_config_item(parser, section, option, key, mode, verbose):
 
 # -----------------------------------------------------------------------
 
-def process_config_path(p, s, o, key, v=True):
-    val = process_config_item(p, s, o, key, 'string', v)
-    if config.has_key(key):
+def process_config_path(p, s, o, key, verbose=True):
+    res = process_config_item(p, s, o, key, 'string', False)
+    if config.has_key(key):    
         config[key] = os.path.expanduser(config[key])
-    return val
+        if verbose:
+            print "  Setting " + key + "=" + config[key]
+    return res
 
 # -----------------------------------------------------------------------
 
@@ -48,26 +50,71 @@ def process_config_boolean(p, s, o, k, v=True):
 
 # -----------------------------------------------------------------------
 
-def process_blacklist(parser, section, suffix):
-    if (process_config_string(parser, section, 'blacklist', 'tmp')):
+def process_config_all_string(parser, section, verbose=True):
+    if parser.has_section(section):
+        items = parser.items(section)
+        for it in items:
+            config[it[0]] = it[1]
+            if verbose:
+                print "  Setting " + it[0] + "=" + it[1]
+
+# -----------------------------------------------------------------------
+
+def process_config_dict(parser, section, opt_to_read, opt_to_write,
+                        verbose=True):
+    if process_config_string(parser, section, opt_to_read, 'tmp', False):
+        #print config['tmp']
+        item_list = config['tmp'].split(';')
+        first = True
+        for item in item_list:
+            item = item.strip()
+            #print item
+            item_kv = item.split('->')            
+            if len(item_kv)==2:
+                #print item_kv[0] +" " + item_kv[1]
+                if not config.has_key(opt_to_write):
+                    config[opt_to_write] = {}
+                config[opt_to_write][item_kv[0]]=item_kv[1]                
+                if verbose and first:
+                    print "  Setting " + opt_to_write + "=<type 'dict'>"
+                first = False
+            else:
+                print "ERROR: Unable to parse %s/%s: %s" + (section,
+                                                            opt_to_read,
+                                                            item)
+                break
+        config.pop('tmp')
+
+# -----------------------------------------------------------------------
+
+def process_blacklist(parser, section, suffix, verbose=True):
+    if (process_config_string(parser, section, 'blacklist', 'tmp', False)):
         bl = config['tmp'].split(';')
+        first = True
         for bl_item in bl:
             bl_item = bl_item.strip()
             if not config.has_key('blacklist_'+suffix):
                 config['blacklist_'+suffix] = set()
             config['blacklist_'+suffix].add(bl_item)
+            if verbose and first:
+                print "  Setting blacklist_" + suffix + "=<type 'set'>"
+            first = False
         config.pop('tmp')
 
 # -----------------------------------------------------------------------
 
-def process_timing_applist(parser, applist):
-    if (process_config_string(parser, 'Timing', applist, 'tmp')):
+def process_timing_applist(parser, applist, verbose=True):
+    if (process_config_string(parser, 'Timing', applist, 'tmp', False)):
         al = config['tmp'].split(';')
+        first = True
         for al_item in al:
             al_item = al_item.strip()
             if not config.has_key(applist+'_timing'):
                 config[applist+'_timing'] = set()
             config[applist+'_timing'].add(al_item)
+            if verbose and first:
+                print "  Setting " + applist + "_timing=<type 'set'>"
+            first = False
         config.pop('tmp')
         
 # -----------------------------------------------------------------------
@@ -95,15 +142,24 @@ def process_config(config_file):
     parser = SafeConfigParser()    
     parser.readfp(config_fp)
 
+    # [Ontology]:
+
+    process_config_all_string(parser, 'Ontology')
+    
     # [General]:
 
     process_config_string(parser, 'General', 'hostname', 'hostname')
     process_config_string(parser, 'General', 'uuid_command', 'uuid_command')
     process_config_string(parser, 'General', 'mimetype_command', 'mimetype_command')
+    process_config_string(parser, 'General', 'pdftotext_command', 'pdftotext_command')
 
+    process_config_dict(parser, 'General', 'ext_mimetypes', 'ext_to_mimetype')
+    process_config_dict(parser, 'General', 'ext_interpretations', 'ext_to_interpretation')
+    
     # [DiMe]:
 
     process_config_string(parser, 'DiMe', 'server_url', 'server_url')
+    process_config_int(parser, 'DiMe', 'server_timeout', 'server_timeout')
     process_config_string(parser, 'DiMe', 'username', 'username')
     process_config_string(parser, 'DiMe', 'password', 'password')
 
@@ -111,25 +167,10 @@ def process_config(config_file):
 
     process_config_boolean(parser, 'Zeitgeist', 'use', 'use_zeitgeist')
     process_config_int(parser, 'Zeitgeist', 'nevents', 'nevents')
-    process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext')
-    process_config_string(parser, 'Zeitgeist', 'pdftotext_command', 'pdftotext_command')
+    process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext_zeitgeist')
     process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg')
 
-    if (process_config_string(parser, 'Zeitgeist', 'other_actors', 'tmp')):
-        #print config['tmp']
-        oa_list = config['tmp'].split(';')
-        for oa in oa_list:
-            oa = oa.strip()
-            #print oa
-            oa_kv = oa.split('->')            
-            if len(oa_kv)==2:
-                #print oa_kv[0] +" " + oa_kv[1]
-                if not config.has_key('actors'):
-                    config['actors'] = {}
-                config['actors'][oa_kv[0]]=oa_kv[1]                
-            else:
-                print "ERROR: Unable to parse Zeitgeist/other_actors: " + oa
-        config.pop('tmp')
+    process_config_dict(parser, 'Zeitgeist', 'other_actors', 'actors')
 
     process_blacklist(parser, 'Zeitgeist', 'zeitgeist')
 
@@ -167,9 +208,12 @@ def process_config(config_file):
     process_config_string(parser, 'Timing', 'applescript_command', 'applescript_command')
     process_config_path(parser, 'Timing', 'datafile', 'datafile')
     process_config_path(parser, 'Timing', 'timingfile', 'timingfile')
-
+    process_config_boolean(parser, 'Timing', 'pdftotext', 'pdftotext_timing')
+    
     process_timing_applist(parser, 'access_apps')
     process_timing_applist(parser, 'modify_apps')
+
+    process_blacklist(parser, 'Timing', 'timing')
         
     return True
 
