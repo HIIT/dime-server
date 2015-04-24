@@ -119,19 +119,19 @@ def process_timing_applist(parser, applist, verbose=True):
         
 # -----------------------------------------------------------------------
 
-def process_browser(parser, section, suffix):
+def process_browser(parser, section, suffix, v=True):
 
-    process_config_boolean(parser, section, 'use', 'use_'+suffix)
-    process_config_string(parser, section, 'actor', 'actor_'+suffix)
-    process_config_int(parser, section, 'interval', 'interval_'+suffix)
-    process_config_path(parser, section, 'history_file', 'history_file_'+suffix)
-    process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix)
-    process_config_int(parser, section, 'nevents', 'nevents_'+suffix)
-    process_blacklist(parser, section, suffix)
+    process_config_boolean(parser, section, 'use', 'use_'+suffix, v)
+    process_config_string(parser, section, 'actor', 'actor_'+suffix, v)
+    process_config_int(parser, section, 'interval', 'interval_'+suffix, v)
+    process_config_path(parser, section, 'history_file', 'history_file_'+suffix, v)
+    process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix, v)
+    process_config_int(parser, section, 'nevents', 'nevents_'+suffix, v)
+    process_blacklist(parser, section, suffix, v)
                 
 # -----------------------------------------------------------------------
 
-def process_config(config_file):
+def process_config(config_file, v=True):
     print "Processing config file: " + config_file
 
     if not os.path.isfile(config_file):
@@ -144,87 +144,87 @@ def process_config(config_file):
 
     # [Ontology]:
 
-    process_config_all_string(parser, 'Ontology')
+    process_config_all_string(parser, 'Ontology', v)
     
     # [General]:
 
-    process_config_string(parser, 'General', 'hostname', 'hostname')
-    process_config_string(parser, 'General', 'uuid_command', 'uuid_command')
-    process_config_string(parser, 'General', 'mimetype_command', 'mimetype_command')
-    process_config_string(parser, 'General', 'pdftotext_command', 'pdftotext_command')
+    process_config_string(parser, 'General', 'hostname', 'hostname', v)
+    process_config_string(parser, 'General', 'uuid_command', 'uuid_command', v)
+    process_config_string(parser, 'General', 'mimetype_command', 'mimetype_command', v)
+    process_config_string(parser, 'General', 'pdftotext_command', 'pdftotext_command', v)
 
-    process_config_dict(parser, 'General', 'ext_mimetypes', 'ext_to_mimetype')
-    process_config_dict(parser, 'General', 'ext_interpretations', 'ext_to_interpretation')
+    process_config_dict(parser, 'General', 'ext_mimetypes', 'ext_to_mimetype', v)
+    process_config_dict(parser, 'General', 'ext_interpretations', 'ext_to_interpretation', v)
     
     # [DiMe]:
 
-    process_config_string(parser, 'DiMe', 'server_url', 'server_url')
-    process_config_int(parser, 'DiMe', 'server_timeout', 'server_timeout')
-    process_config_string(parser, 'DiMe', 'username', 'username')
-    process_config_string(parser, 'DiMe', 'password', 'password')
+    process_config_string(parser, 'DiMe', 'server_url', 'server_url', v)
+    process_config_int(parser, 'DiMe', 'server_timeout', 'server_timeout', v)
+    process_config_string(parser, 'DiMe', 'username', 'username', v)
+    process_config_string(parser, 'DiMe', 'password', 'password', v)
 
     # [Zeitgeist]:
 
-    process_config_boolean(parser, 'Zeitgeist', 'use', 'use_zeitgeist')
-    process_config_int(parser, 'Zeitgeist', 'nevents', 'nevents')
-    process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext_zeitgeist')
-    process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg')
+    process_config_boolean(parser, 'Zeitgeist', 'use', 'use_zeitgeist', v)
+    process_config_int(parser, 'Zeitgeist', 'nevents', 'nevents', v)
+    process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext_zeitgeist', v)
+    process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg', v)
 
-    process_config_dict(parser, 'Zeitgeist', 'other_actors', 'actors')
+    process_config_dict(parser, 'Zeitgeist', 'other_actors', 'actors', v)
 
-    process_blacklist(parser, 'Zeitgeist', 'zeitgeist')
+    process_blacklist(parser, 'Zeitgeist', 'zeitgeist', v)
 
     # [Browsers]:
 
-    process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext')
-    process_config_string(parser, 'Browsers', 'fulltext_command', 'fulltext_command')
-    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength_web')
-    process_config_string(parser, 'Browsers', 'event_interpretation', 'event_interpretation_browser')
-    process_config_string(parser, 'Browsers', 'event_manifestation', 'event_manifestation_browser')
-    process_config_string(parser, 'Browsers', 'subject_interpretation', 'subject_interpretation_browser')
-    process_config_string(parser, 'Browsers', 'subject_manifestation', 'subject_manifestation_browser')
+    process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext', v)
+    process_config_string(parser, 'Browsers', 'fulltext_command', 'fulltext_command', v)
+    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength_web', v)
+    process_config_string(parser, 'Browsers', 'event_interpretation', 'event_interpretation_browser', v)
+    process_config_string(parser, 'Browsers', 'event_manifestation', 'event_manifestation_browser', v)
+    process_config_string(parser, 'Browsers', 'subject_interpretation', 'subject_interpretation_browser', v)
+    process_config_string(parser, 'Browsers', 'subject_manifestation', 'subject_manifestation_browser', v)
 
     # [Chrome/Chromium/Firefox]:
 
-    process_browser(parser, 'Chrome', 'chrome')
-    process_browser(parser, 'Chromium', 'chromium')
-    process_browser(parser, 'Firefox', 'firefox')
+    process_browser(parser, 'Chrome', 'chrome', v)
+    process_browser(parser, 'Chromium', 'chromium', v)
+    process_browser(parser, 'Firefox', 'firefox', v)
 
     # [Indicator]:
 
-    process_config_boolean(parser, 'Indicator', 'use', 'use_indicator')
-    process_config_int(parser, 'Indicator', 'interval', 'interval_indicator')
-    process_config_path(parser, 'Indicator', 'icon', 'icon_indicator')
+    process_config_boolean(parser, 'Indicator', 'use', 'use_indicator', v)
+    process_config_int(parser, 'Indicator', 'interval', 'interval_indicator', v)
+    process_config_path(parser, 'Indicator', 'icon', 'icon_indicator', v)
 
     # [Meetings]:
 
-    process_config_string(parser, 'Meetings', 'event_interpretation', 'event_interpretation_meeting')
-    process_config_string(parser, 'Meetings', 'event_manifestation', 'event_manifestation_meeting')
-    process_config_string(parser, 'Meetings', 'subject_interpretation', 'subject_interpretation_meeting')
-    process_config_string(parser, 'Meetings', 'subject_manifestation', 'subject_manifestation_meeting')
+    process_config_string(parser, 'Meetings', 'event_interpretation', 'event_interpretation_meeting', v)
+    process_config_string(parser, 'Meetings', 'event_manifestation', 'event_manifestation_meeting', v)
+    process_config_string(parser, 'Meetings', 'subject_interpretation', 'subject_interpretation_meeting', v)
+    process_config_string(parser, 'Meetings', 'subject_manifestation', 'subject_manifestation_meeting', v)
 
     # [Timing];
-    process_config_path(parser, 'Timing', 'applescript_file', 'applescript_file')
-    process_config_string(parser, 'Timing', 'applescript_command', 'applescript_command')
-    process_config_path(parser, 'Timing', 'datafile', 'datafile')
-    process_config_path(parser, 'Timing', 'timingfile', 'timingfile')
-    process_config_boolean(parser, 'Timing', 'pdftotext', 'pdftotext_timing')
+    process_config_path(parser, 'Timing', 'applescript_file', 'applescript_file', v)
+    process_config_string(parser, 'Timing', 'applescript_command', 'applescript_command', v)
+    process_config_path(parser, 'Timing', 'datafile', 'datafile', v)
+    process_config_path(parser, 'Timing', 'timingfile', 'timingfile', v)
+    process_config_boolean(parser, 'Timing', 'pdftotext', 'pdftotext_timing', v)
     
-    process_timing_applist(parser, 'access_apps')
-    process_timing_applist(parser, 'modify_apps')
+    process_timing_applist(parser, 'access_apps', v)
+    process_timing_applist(parser, 'modify_apps', v)
 
-    process_blacklist(parser, 'Timing', 'timing')
+    process_blacklist(parser, 'Timing', 'timing', v)
         
     return True
 
 # -----------------------------------------------------------------------
 
-def configure():
+def configure(verbose=True):
 
     config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
 
-    process_config("default.ini")
-    process_config("user.ini")
+    process_config("default.ini", verbose)
+    process_config("user.ini", verbose)
 
     return True
 
