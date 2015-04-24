@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os.path
+import os
 import sys
 import time
 import argparse
@@ -80,6 +80,8 @@ def post_payload(json_payload):
 
 # -----------------------------------------------------------------------
 
+os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+
 parser = argparse.ArgumentParser(description='Sends meeting slides to DiMe.')
 
 parser.add_argument('videofile', metavar='N',
@@ -92,6 +94,8 @@ parser.add_argument('--url', action='store',
                     help='use this URL instead of file:// link to videofile')
 parser.add_argument('--dryrun', action='store_true',
                     help='do not actually send anything')
+parser.add_argument('--firstonly', action='store_true',
+                    help='store only the first time each slide is shown')
 
 args = parser.parse_args()
 
@@ -109,6 +113,15 @@ else:
     url = 'file://' + args.videofile
 
 conf.configure()
+
+pingstring = "Pinging DiMe server at location: " + config['server_url'] + " : "
+if common.ping_server():
+    print pingstring + "OK"
+else:
+    print pingstring + "FAILED"
+    if not args.dryrun:
+        print 'Ping failed and "--dryrun" not set, exiting'
+        sys.exit()
 
 videofilepath = os.path.abspath(args.videofile)
 videofilepath = os.path.split(videofilepath)[0]
@@ -141,7 +154,9 @@ with open (timefile, "r") as tfile:
 
             break
 
-        if len(tsparts)==2: # and not tsparts[1] in seenslides:
+        if (len(tsparts)==2 and
+            not (args.firstonly and tsparts[1] in seenslides)):
+
             print "  slide found: [%s]" % line.strip()
             i = i+1
             seenslides.add(tsparts[1])
