@@ -17,9 +17,13 @@ def read_txt(fn):
         txtfn = fn.replace(".png", ".txt")
     else:
         txtfn = fn
-    print "Opening " + txtfn
-    with open (txtfn, "r") as t:
-        return t.read()
+    if os.path.isfile(txtfn):
+        print "Opening " + txtfn
+        with open (txtfn, "r") as t:
+            return t.read()
+    else:
+        print "WARNING: File not found: " + txtfn
+        return ''
 
 # -----------------------------------------------------------------------
 
@@ -59,7 +63,8 @@ def create_payload(epoch, uri, fn):
     payload['subject'] = {}
     payload['subject']['id'] = subject['id']
     payload['id'] = common.to_json_sha1(payload)
-    subject['text'] = read_txt(videofilepath+'/'+fn)
+    #subject['text'] = read_txt(videofilepath+'/'+fn)
+    subject['text'] = read_txt(fn)
     payload['subject'] = subject.copy()
     
     return common.json_dumps(payload)
@@ -79,8 +84,6 @@ def post_payload(json_payload):
     print "########################################################"
 
 # -----------------------------------------------------------------------
-
-os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 parser = argparse.ArgumentParser(description='Sends meeting slides to DiMe.')
 
@@ -112,7 +115,12 @@ if args.url:
 else:
     url = 'file://' + args.videofile
 
+cwd = os.getcwd()
+os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+
 conf.configure()
+
+os.chdir(cwd)
 
 pingstring = "Pinging DiMe server at location: " + config['server_url'] + " : "
 if common.ping_server():
