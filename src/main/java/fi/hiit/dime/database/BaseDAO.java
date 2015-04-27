@@ -26,8 +26,15 @@ package fi.hiit.dime.database;
 
 //------------------------------------------------------------------------------
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.CommandResult;
+// import com.mongodb.DBObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
+import com.mongodb.Mongo;
+import fi.hiit.dime.AppConfig;
+import java.util.Iterator;
 
 //------------------------------------------------------------------------------
 
@@ -35,6 +42,13 @@ abstract class BaseDAO<T extends Object> {
 
     @Autowired
     protected MongoOperations operations;
+
+    @Autowired
+    protected Mongo mongo;
+
+    //--------------------------------------------------------------------------
+
+    private static int[] version = null;
 
     //--------------------------------------------------------------------------
 
@@ -45,4 +59,26 @@ abstract class BaseDAO<T extends Object> {
     //--------------------------------------------------------------------------
 
     abstract public String collectionName();
+
+    //--------------------------------------------------------------------------
+
+    /**
+     * Get mongodb server version as an array of ints, e.g. {2, 4, 9}
+     * for version 2.4.9.
+     */
+    public int[] getMongoVersion() {
+	if (version == null) {
+	    CommandResult result = mongo.getDB(AppConfig.DB_NAME).command("buildinfo");
+
+	    BasicDBList resultList = (BasicDBList)result.get("versionArray");
+	    if (resultList == null) 
+		return null;
+
+	    version = new int[resultList.size()];
+	    for (int i=0; i<resultList.size(); i++) 
+		version[i] = (Integer)resultList.get(i);
+	}
+	return version;
+    }
+
 }

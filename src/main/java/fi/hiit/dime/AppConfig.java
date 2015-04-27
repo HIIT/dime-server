@@ -36,12 +36,14 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 @Configuration
 public class AppConfig {
+    public static final String DB_NAME = "dime";
 
-  public @Bean Mongo mongo() throws Exception {
-      return new MongoClient("localhost");
-  }
 
-  public @Bean MongoTemplate mongoTemplate() throws Exception {
-      return new MongoTemplate(mongo(), "dime");
-  }
+    public @Bean Mongo mongo() throws Exception {
+	return new MongoClient("localhost");
+    }
+    
+    public @Bean MongoTemplate mongoTemplate() throws Exception {
+	return new MongoTemplate(mongo(), DB_NAME);
+    }
 }

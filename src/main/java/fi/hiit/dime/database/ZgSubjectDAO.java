@@ -81,6 +81,9 @@ public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
 	   http://docs.mongodb.org/v2.4/reference/command/text/#dbcmd.text
 	*/
 
+	int[] version = getMongoVersion();
+	System.out.println(String.format("Mongo version = %d-%d-%d", version[0], version[1], version[2]));
+
 	// Filter out other users
 	Criteria filterCriteria = where("user._id").is(new ObjectId(userId));
 
