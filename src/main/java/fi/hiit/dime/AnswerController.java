@@ -46,8 +46,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/answer")
 public class AnswerController {
-    // Mongodb repositories
-    // private final ZgEventRepository zgEventRepository;
     private final ZgEventDAO zgEventDAO;
 
     @Autowired

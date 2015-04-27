@@ -48,34 +48,21 @@ import org.springframework.stereotype.Repository;
 
 //------------------------------------------------------------------------------
 
-public interface ZgSubjectDAO {
-    public void save(ZgSubject s);
-
-    public ZgSubject findById(String id);
-
-    public List<ZgSubject> textSearch(String query, String userId);
-}
-
-//------------------------------------------------------------------------------
-
 @Repository
-class ZgSubjectDAOImpl implements ZgSubjectDAO {
-    private static final String COLLECTION_NAME = "zgSubject";
-    private final MongoOperations operations;
+public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
 
-    @Autowired
-    public ZgSubjectDAOImpl(MongoOperations operations) {
-	Assert.notNull(operations, "MongoOperations must not be null!");
-	this.operations = operations;
+    @Override
+    public String collectionName() { 
+	return "zgSubject";
     }
 
-    public void save(ZgSubject s) {
-	operations.save(s, COLLECTION_NAME);
-    }
+    //--------------------------------------------------------------------------
 
     public ZgSubject findById(String id) {
-	return operations.findById(id, ZgSubject.class);
+    	return operations.findById(id, ZgSubject.class, collectionName());
     }
+
+    //--------------------------------------------------------------------------
 
     public List<ZgSubject> textSearch(String query, String userId) {
 	/* 
@@ -100,7 +87,7 @@ class ZgSubjectDAOImpl implements ZgSubjectDAO {
 	// Construct text search as a mongodb command (required for
 	// mongo 2.4)
 	DBObject command = new BasicDBObject();
-	command.put("text", COLLECTION_NAME);
+	command.put("text", collectionName());
 	command.put("search", query);
 	command.put("filter", query(filterCriteria).getQueryObject());
         // command.put("limit", n);

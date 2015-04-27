@@ -28,7 +28,7 @@ package fi.hiit.dime.authentication;
 
 import fi.hiit.dime.data.User;
 import fi.hiit.dime.data.Role;
-import fi.hiit.dime.database.UserRepository;
+import fi.hiit.dime.database.UserDAO;
 import fi.hiit.dime.util.RandomPassword;
 import java.security.SecureRandom;
 import java.util.Collection;
@@ -49,14 +49,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl implements UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
-    private final UserRepository userRepository;
+    private final UserDAO userDAO;
     private final static String ADMIN_USERNAME = "admin";
     private final static String ADMIN_PASSWORD = ""; // empty means random
     private RandomPassword pw;
 
     @Autowired
-    UserServiceImpl(UserRepository userRepository) {
-	this.userRepository = userRepository;
+    UserServiceImpl(UserDAO userDAO) {
+	this.userDAO = userDAO;
 	this.pw = new RandomPassword();
     }
 
@@ -85,17 +85,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(String id) {
-	return userRepository.findOne(id);
+	return userDAO.findById(id);
     }
 
     @Override
     public User getUserByUsername(String username) {
-    	return userRepository.findOneByUsername(username);
+    	return userDAO.findByUsername(username);
     }
     
     @Override
     public Collection<User> getAllUsers() {
-	return userRepository.findAll(new Sort("username"));
+	return userDAO.findAll();
     }
 
     @Override
@@ -104,6 +104,7 @@ public class UserServiceImpl implements UserService {
 	user.username = form.getUsername();
 	user.passwordHash = new BCryptPasswordEncoder().encode(form.getPassword());
 	user.role = form.getRole();
-	return userRepository.save(user);
+	userDAO.save(user);
+	return user;
     }
 }

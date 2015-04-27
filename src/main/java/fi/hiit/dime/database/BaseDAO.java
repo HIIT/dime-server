@@ -22,26 +22,27 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime;
+package fi.hiit.dime.database;
 
 //------------------------------------------------------------------------------
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoOperations;
 
 //------------------------------------------------------------------------------
 
-@Configuration
-public class AppConfig {
+abstract class BaseDAO<T extends Object> {
 
-  public @Bean Mongo mongo() throws Exception {
-      return new MongoClient("localhost");
-  }
+    @Autowired
+    protected MongoOperations operations;
 
-  public @Bean MongoTemplate mongoTemplate() throws Exception {
-      return new MongoTemplate(mongo(), "dime");
-  }
+    //--------------------------------------------------------------------------
+
+    public void save(T obj) {
+	operations.save(obj, collectionName());
+    }
+
+    //--------------------------------------------------------------------------
+
+    abstract public String collectionName();
 }

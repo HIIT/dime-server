@@ -45,31 +45,15 @@ import org.springframework.stereotype.Repository;
 
 //------------------------------------------------------------------------------
 
-public interface ZgEventDAO {
-    public void save(ZgEvent e);
-
-    public List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
-				boolean percentage);
-
-    public List<ZgEvent> eventsForUser(String id);
-}
-
-//------------------------------------------------------------------------------
-
 @Repository
-class ZgEventDAOImpl implements ZgEventDAO {
-    private static final String COLLECTION_NAME = "zgEvent";
-    private final MongoOperations operations;
+public class ZgEventDAO extends BaseDAO<ZgEvent> {
 
-    @Autowired
-    public ZgEventDAOImpl(MongoOperations operations) {
-	Assert.notNull(operations, "MongoOperations must not be null!");
-	this.operations = operations;
+    @Override
+    public String collectionName() { 
+	return "zgEvent";
     }
 
-    public void save(ZgEvent e) {
-	operations.save(e, COLLECTION_NAME);
-    }
+    //--------------------------------------------------------------------------
 
     public List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
 				boolean percentage) {
@@ -94,7 +78,7 @@ class ZgEventDAOImpl implements ZgEventDAO {
 			   project("nevents").and(groupBy).previousOperation(),
 			   sort(Direction.DESC, "nevents"));
 	AggregationResults<ZgCount> results =
-	    operations.aggregate(agg, COLLECTION_NAME, ZgCount.class);
+	    operations.aggregate(agg, collectionName(), ZgCount.class);
 	List<ZgCount> zgCounts = results.getMappedResults();
 
 	if (percentage) {
@@ -110,10 +94,12 @@ class ZgEventDAOImpl implements ZgEventDAO {
 	return zgCounts;
     }
 
+    //--------------------------------------------------------------------------
+
     public List<ZgEvent> eventsForUser(String id) {
 	return operations.find(query(where("user._id").is(new ObjectId(id))).
 				     with(new Sort(Sort.Direction.DESC,  "timestamp")),
-			       ZgEvent.class, COLLECTION_NAME);
+			       ZgEvent.class, collectionName());
     }
     
 }

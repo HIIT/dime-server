@@ -26,11 +26,41 @@ package fi.hiit.dime.database;
 
 //------------------------------------------------------------------------------
 
-import org.springframework.data.mongodb.repository.MongoRepository;
 import fi.hiit.dime.data.User;
+import java.util.List;
+import org.springframework.stereotype.Repository;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 //------------------------------------------------------------------------------
 
-public interface UserRepository extends MongoRepository<User, String> {
-    User findOneByUsername(String username);
+@Repository
+public class UserDAO extends BaseDAO<User> {
+
+    //--------------------------------------------------------------------------
+
+    @Override
+    public String collectionName() { 
+	return "user";
+    }
+
+    //--------------------------------------------------------------------------
+
+    public User findById(String id) {
+    	return operations.findById(id, User.class, collectionName());
+    }
+
+
+    //--------------------------------------------------------------------------
+
+    public User findByUsername(String username) {
+    	return operations.findOne(query(where("username").is(username)), User.class, collectionName());
+    }
+
+    //------------------------------------------------------------------------------
+
+    public List<User> findAll() {
+    	return operations.findAll(User.class, collectionName());
+    }
+
 }
