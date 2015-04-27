@@ -41,8 +41,8 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="index.html">Application</a></li>
-            <li><a href="subject.html">Subject</a></li>
+            <li><a href="index.html">Application</a></li>
+            <li class="active"><a href="subject.html">Subject</a></li>
             <li><a href="origin.html">Origin</a></li>
           </ul>
         </div><!--/.nav-collapse -->
@@ -52,7 +52,7 @@
     <div class="container">
 
       <div class="starter-template">
-	<h1>Zeitgeist - by application name</h1>
+	<h1>Zeitgeist - by subject</h1>
 	<div id="content"></div>
 
 	</div>
@@ -60,7 +60,7 @@
     
     <script type="application/javascript" src="main.js"></script>
     <script type="application/javascript"
-	    src="http://localhost:8080/api/answer/zghist?callback=parseResponse&perc=1">
+	    src="http://localhost:8080/api/answer/zghist?callback=parseResponse&perc=1&groupBy=subject.uri">
     </script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

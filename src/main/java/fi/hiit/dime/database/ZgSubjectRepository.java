@@ -120,4 +120,5 @@ class ZgSubjectRepositoryImpl implements CustomZgSubjectRepository {
 //------------------------------------------------------------------------------
 
 public interface ZgSubjectRepository extends MongoRepository<ZgSubject, String>, CustomZgSubjectRepository {
+    public ZgSubject findOneById(String id);
 }

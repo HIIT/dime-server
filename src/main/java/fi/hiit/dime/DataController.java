@@ -65,15 +65,33 @@ public class DataController {
 	Date date = new Date();
 
 	input.user = user;
-	ZgEvent event = zgEventRepository.save(input);
+
+	// FIXME: add needed fields here, e.g. uri:
+	//
+	// db.zgEvent.find( { "subject.uri": null}).forEach(
+	//     function(e) { 
+	// 	x=db.zgSubject.findOne({_id: e.subject._id}); 
+	// 	db.zgEvent.update({ '_id': e._id }, 
+	// 			  { $set: { 'subject.uri': x.uri } } );
+	//     } 
+	// )
 
 	ZgSubject subject = input.subject;
 	if (subject != null) {
 	    subject.user = user;
 	    if (!subject.isStub()) {
 		zgSubjectRepository.save(subject);
+	    } else {
+		ZgSubject expandedSubject = 
+		    zgSubjectRepository.findOneById(subject.id);
+		if (expandedSubject != null) {
+		    System.out.println("Expanded subject for " + expandedSubject.uri);
+		    expandedSubject.text = null;
+		    input.subject = expandedSubject;
+		}
 	    }
-	}
+	} 
+	ZgEvent event = zgEventRepository.save(input);
 	
 	System.out.printf("Event for user %s from %s at %s [%s]\n",
 			  user.username, input.origin, date, input.actor);

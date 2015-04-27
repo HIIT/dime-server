@@ -31,6 +31,7 @@ package fi.hiit.dime.database;
 
 import fi.hiit.dime.data.ZgEvent;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,8 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 //------------------------------------------------------------------------------
 
 interface CustomZgEventRepository {
-    List<ZgCount> zgHist(String groupBy, boolean percentage);
+    List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
+			 boolean percentage);
     List<ZgEvent> eventsForUser(String id);
 }
 
@@ -63,11 +65,28 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
     }
 
     @Override
-    public List<ZgCount> zgHist(String groupBy, boolean percentage) {
+    public List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
+				boolean percentage) {
 	// db.zgEvent.aggregate([{ $group: { _id: "$actor", nevents: { $sum: 1 } } }])
 
+	// db.zgEvent.aggregate([
+	//     { $match : { 
+	// 	timestamp : { 
+	// 	    $gte : ISODate("2015-04-22T00:00:00.000Z"), 
+	// 	    $lt : ISODate("2015-04-23T00:00:00.000Z") 
+	// 	} 
+	//     } },
+	//     { $group: { 
+	// 	_id: "$actor", 
+	// 	nevents: { $sum: 1 } 
+	//     } }
+	// ])
+
+	System.out.println("ZGHIST: " + fromDate + " " + toDate);
+
 	Aggregation agg =
-	    newAggregation(group(groupBy).count().as("nevents"),
+	    newAggregation(match(where("timestamp").gte(fromDate).lt(toDate)),
+			   group(groupBy).count().as("nevents"),
 			   project("nevents").and(groupBy).previousOperation(),
 			   sort(Direction.DESC, "nevents"));
 	AggregationResults<ZgCount> results =
@@ -75,7 +94,11 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 	List<ZgCount> zgCounts = results.getMappedResults();
 
 	if (percentage) {
-	    long total = operations.count(new Query(), "zgEvent");
+	    int total = 0;
+	    for (ZgCount zgc : zgCounts) {
+		total += zgc.nevents;
+	    }
+
 	    for (ZgCount zgc : zgCounts) {
 		zgc.percentage = 100.0*zgc.nevents/total;
 	    }
