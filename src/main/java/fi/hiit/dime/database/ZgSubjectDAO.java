@@ -35,21 +35,24 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.core.query.TextQuery;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
-import org.springframework.data.mongodb.core.query.Criteria;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
-import org.springframework.stereotype.Repository;
 
 //------------------------------------------------------------------------------
 
 @Repository
 public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
+    private static final Logger LOG = LoggerFactory.getLogger(ZgSubjectDAO.class);
 
     @Override
     public String collectionName() { 
@@ -65,58 +68,53 @@ public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
     //--------------------------------------------------------------------------
 
     public List<ZgSubject> textSearch(String query, String userId) {
-	/* 
-	   NOTE: this should work with mongodb 2.6, but does not work
-	   with 2.4.9 at least 
-	*/
-
-	// Query dbQuery = TextQuery.queryText(new
-	// TextCriteria().matchingPhrase(query)).sortByScore(); Query
-	// dbQuery = new TextQuery(query); return
-	// operations.find(dbQuery, ZgSubject.class);
-
-	/* 
-	   For version 2.4 we use the raw mongodb command, e.g.
-	   db.zgSubject.runCommand( "text", { search: "SEARCH QUERY" } )
-	   http://docs.mongodb.org/v2.4/reference/command/text/#dbcmd.text
-	*/
-
 	int[] version = getMongoVersion();
-	System.out.println(String.format("Mongo version = %d-%d-%d", version[0], version[1], version[2]));
 
 	// Filter out other users
 	Criteria filterCriteria = where("user._id").is(new ObjectId(userId));
 
-	// Construct text search as a mongodb command (required for
-	// mongo 2.4)
-	DBObject command = new BasicDBObject();
-	command.put("text", collectionName());
-	command.put("search", query);
-	command.put("filter", query(filterCriteria).getQueryObject());
-        // command.put("limit", n);
-        // command.put("project", new BasicDBObject("_id", 1));
+	// For mongodb versions >= 2.6, we can use the new TextQuery
+	// interface
+	if (version[0] >= 3 || (version[0] >= 2 && version[1] >= 6)) {
+	    System.out.println("Using new text query");
+	    Query dbQuery = TextQuery.queryText(new TextCriteria().matchingPhrase(query)).sortByScore().addCriteria(filterCriteria); 
+	    return operations.find(dbQuery, ZgSubject.class);
+	} else if (version[0] == 2 && version[1] >= 4) {
+	   // For version 2.4 we use the raw mongodb command, e.g.
+	   // db.zgSubject.runCommand( "text", { search: "SEARCH QUERY" } )
+	   // http://docs.mongodb.org/v2.4/reference/command/text/#dbcmd.text
 
-	CommandResult commandResult = operations.executeCommand(command);
+	    DBObject command = new BasicDBObject();
+	    command.put("text", collectionName());
+	    command.put("search", query);
+	    command.put("filter", query(filterCriteria).getQueryObject());
+	    // command.put("limit", n);
+	    // command.put("project", new BasicDBObject("_id", 1));
 
-	// Construct List<ZgSubjects> to return out of the
-	// CommandResult
-	List<ZgSubject> results = new ArrayList<ZgSubject>();
+	    CommandResult commandResult = operations.executeCommand(command);
 
-        BasicDBList resultList = (BasicDBList)commandResult.get("results");
-        if (resultList == null) // return empty list if there are no results
+	    // Construct List<ZgSubjects> to return out of the
+	    // CommandResult
+	    List<ZgSubject> results = new ArrayList<ZgSubject>();
+
+	    BasicDBList resultList = (BasicDBList)commandResult.get("results");
+	    if (resultList == null) // return empty list if there are no results
+		return results;
+
+	    Iterator<Object> it = resultList.iterator();
+	    while (it.hasNext()) {
+		BasicDBObject resultContainer = (BasicDBObject)it.next();
+		BasicDBObject resultObject = (BasicDBObject)resultContainer.get("obj");
+		
+		ZgSubject sub = operations.getConverter().read(ZgSubject.class, resultObject);
+		
+		results.add(sub);
+	    }
+
 	    return results;
-
-        Iterator<Object> it = resultList.iterator();
-        while (it.hasNext()) {
-            BasicDBObject resultContainer = (BasicDBObject)it.next();
-            BasicDBObject resultObject = (BasicDBObject)resultContainer.get("obj");
-
-	    ZgSubject sub = operations.getConverter().read(ZgSubject.class, resultObject);
-
-	    results.add(sub);
-        }
-
-	return results;
+	} else {
+	    return new ArrayList<ZgSubject>();
+	}
     }
 }
 
