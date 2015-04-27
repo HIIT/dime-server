@@ -29,12 +29,12 @@ package fi.hiit.dime.database;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
-// import com.mongodb.DBObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoOperations;
+import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 import fi.hiit.dime.AppConfig;
 import java.util.Iterator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoOperations;
 
 //------------------------------------------------------------------------------
 
@@ -45,8 +45,6 @@ abstract class BaseDAO<T extends Object> {
 
     @Autowired
     protected Mongo mongo;
-
-    //--------------------------------------------------------------------------
 
     private static int[] version = null;
 
@@ -59,6 +57,18 @@ abstract class BaseDAO<T extends Object> {
     //--------------------------------------------------------------------------
 
     abstract public String collectionName();
+
+    //--------------------------------------------------------------------------
+
+    public DBCollection getCollection() {
+	return operations.getCollection(collectionName());
+    }
+
+    //--------------------------------------------------------------------------
+
+    public void ensureIndex(String fieldName) {
+	getCollection().createIndex(new BasicDBObject(fieldName, "text"));
+    }
 
     //--------------------------------------------------------------------------
 

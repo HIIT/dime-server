@@ -97,6 +97,8 @@ public class ZgEventDAO extends BaseDAO<ZgEvent> {
     //--------------------------------------------------------------------------
 
     public List<ZgEvent> eventsForUser(String id) {
+	ensureIndex("timestamp");
+
 	return operations.find(query(where("user._id").is(new ObjectId(id))).
 				     with(new Sort(Sort.Direction.DESC,  "timestamp")),
 			       ZgEvent.class, collectionName());

@@ -54,6 +54,8 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
     private static final Logger LOG = LoggerFactory.getLogger(ZgSubjectDAO.class);
 
+    //--------------------------------------------------------------------------
+
     @Override
     public String collectionName() { 
 	return "zgSubject";
@@ -68,6 +70,8 @@ public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
     //--------------------------------------------------------------------------
 
     public List<ZgSubject> textSearch(String query, String userId) {
+	ensureIndex("text");
+
 	int[] version = getMongoVersion();
 
 	// Filter out other users
