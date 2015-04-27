@@ -47,14 +47,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/answer")
 public class AnswerController {
     // Mongodb repositories
-    private final ZgEventRepository zgEventRepository;
-    private final ZgSubjectRepository zgSubjectRepository;
+    // private final ZgEventRepository zgEventRepository;
+    private final ZgEventDAO zgEventDAO;
 
     @Autowired
-    AnswerController(ZgEventRepository zgEventRepository,
-		   ZgSubjectRepository zgSubjectRepository) {
-	this.zgEventRepository = zgEventRepository;
-	this.zgSubjectRepository = zgSubjectRepository;
+    AnswerController(ZgEventDAO zgEventDAO) {
+	this.zgEventDAO = zgEventDAO;
     }
 
     @RequestMapping(value="/zghist", method = RequestMethod.GET)
@@ -77,7 +75,7 @@ public class AnswerController {
 	    cal.add(Calendar.DAY_OF_MONTH, -1);
 	    Date fromDate = cal.getTime();
 
-	    List<ZgCount> results = zgEventRepository.zgHist(groupBy, fromDate, 
+	    List<ZgCount> results = zgEventDAO.zgHist(groupBy, fromDate, 
 							     toDate,
 							     !perc.equals("false"));
 

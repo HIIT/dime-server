@@ -32,8 +32,7 @@ import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.data.User;
 import fi.hiit.dime.data.ZgSubject;
-import fi.hiit.dime.database.ZgEventRepository;
-import fi.hiit.dime.database.ZgSubjectRepository;
+import fi.hiit.dime.database.*;
 import java.util.List;
 import java.util.NoSuchElementException;
 import javax.validation.Valid;
@@ -59,10 +58,10 @@ public class WebController extends WebMvcConfigurerAdapter {
 	LoggerFactory.getLogger(WebController.class);
 
     @Autowired
-    private ZgEventRepository zgEventRepository;
+    private ZgEventDAO zgEventDAO;
 
     @Autowired
-    private ZgSubjectRepository zgSubjectRepository;
+    private ZgSubjectDAO zgSubjectDAO;
 
     //@Autowired
     //private Authentication authentication;
@@ -94,7 +93,7 @@ public class WebController extends WebMvcConfigurerAdapter {
     public String log(Authentication authentication, Model model) {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
         model.addAttribute("events", 
-			   zgEventRepository.eventsForUser(userId));
+			   zgEventDAO.eventsForUser(userId));
         return "log";
     }
 
@@ -109,7 +108,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
-	    List<ZgSubject> results = zgSubjectRepository.textSearch(query, userId);
+	    List<ZgSubject> results = zgSubjectDAO.textSearch(query, userId);
 	    model.addAttribute("results", results);
 	}
 

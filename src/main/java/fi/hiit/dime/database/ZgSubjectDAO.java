@@ -40,30 +40,43 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.core.query.TextQuery;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.util.Assert;
 import org.springframework.data.mongodb.core.query.Criteria;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
+import org.springframework.stereotype.Repository;
 
 //------------------------------------------------------------------------------
 
-interface CustomZgSubjectRepository {
-    List<ZgSubject> textSearch(String query, String userId);
+public interface ZgSubjectDAO {
+    public void save(ZgSubject s);
+
+    public ZgSubject findById(String id);
+
+    public List<ZgSubject> textSearch(String query, String userId);
 }
 
 //------------------------------------------------------------------------------
 
-class ZgSubjectRepositoryImpl implements CustomZgSubjectRepository {
+@Repository
+class ZgSubjectDAOImpl implements ZgSubjectDAO {
+    private static final String COLLECTION_NAME = "zgSubject";
     private final MongoOperations operations;
 
     @Autowired
-    public ZgSubjectRepositoryImpl(MongoOperations operations) {
+    public ZgSubjectDAOImpl(MongoOperations operations) {
 	Assert.notNull(operations, "MongoOperations must not be null!");
 	this.operations = operations;
     }
 
-    @Override
+    public void save(ZgSubject s) {
+	operations.save(s, COLLECTION_NAME);
+    }
+
+    public ZgSubject findById(String id) {
+	return operations.findById(id, ZgSubject.class);
+    }
+
     public List<ZgSubject> textSearch(String query, String userId) {
 	/* 
 	   NOTE: this should work with mongodb 2.6, but does not work
@@ -87,7 +100,7 @@ class ZgSubjectRepositoryImpl implements CustomZgSubjectRepository {
 	// Construct text search as a mongodb command (required for
 	// mongo 2.4)
 	DBObject command = new BasicDBObject();
-	command.put("text", "zgSubject");
+	command.put("text", COLLECTION_NAME);
 	command.put("search", query);
 	command.put("filter", query(filterCriteria).getQueryObject());
         // command.put("limit", n);
@@ -117,8 +130,3 @@ class ZgSubjectRepositoryImpl implements CustomZgSubjectRepository {
     }
 }
 
-//------------------------------------------------------------------------------
-
-public interface ZgSubjectRepository extends MongoRepository<ZgSubject, String>, CustomZgSubjectRepository {
-    public ZgSubject findOneById(String id);
-}

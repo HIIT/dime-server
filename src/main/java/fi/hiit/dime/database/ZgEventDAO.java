@@ -24,13 +24,9 @@
 
 package fi.hiit.dime.database;
 
-// FIXME use mongotemplates instead
-// http://docs.spring.io/spring-data/data-mongo/docs/1.7.0.RELEASE/reference/html/#mongo-template
-
 //------------------------------------------------------------------------------
 
 import fi.hiit.dime.data.ZgEvent;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.bson.types.ObjectId;
@@ -40,35 +36,43 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.repository.MongoRepository;
+// import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
+import org.springframework.stereotype.Repository;
 
 //------------------------------------------------------------------------------
 
-interface CustomZgEventRepository {
-    List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
-			 boolean percentage);
-    List<ZgEvent> eventsForUser(String id);
+public interface ZgEventDAO {
+    public void save(ZgEvent e);
+
+    public List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
+				boolean percentage);
+
+    public List<ZgEvent> eventsForUser(String id);
 }
 
-class ZgEventRepositoryImpl implements CustomZgEventRepository {
+//------------------------------------------------------------------------------
+
+@Repository
+class ZgEventDAOImpl implements ZgEventDAO {
+    private static final String COLLECTION_NAME = "zgEvent";
     private final MongoOperations operations;
 
     @Autowired
-    public ZgEventRepositoryImpl(MongoOperations operations) {
+    public ZgEventDAOImpl(MongoOperations operations) {
 	Assert.notNull(operations, "MongoOperations must not be null!");
 	this.operations = operations;
     }
 
-    @Override
+    public void save(ZgEvent e) {
+	operations.save(e, COLLECTION_NAME);
+    }
+
     public List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
 				boolean percentage) {
-	// db.zgEvent.aggregate([{ $group: { _id: "$actor", nevents: { $sum: 1 } } }])
-
 	// db.zgEvent.aggregate([
 	//     { $match : { 
 	// 	timestamp : { 
@@ -82,7 +86,7 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 	//     } }
 	// ])
 
-	System.out.println("ZGHIST: " + fromDate + " " + toDate);
+	// System.out.println("ZGHIST: " + fromDate + " " + toDate);
 
 	Aggregation agg =
 	    newAggregation(match(where("timestamp").gte(fromDate).lt(toDate)),
@@ -90,7 +94,7 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 			   project("nevents").and(groupBy).previousOperation(),
 			   sort(Direction.DESC, "nevents"));
 	AggregationResults<ZgCount> results =
-	    operations.aggregate(agg, "zgEvent", ZgCount.class);
+	    operations.aggregate(agg, COLLECTION_NAME, ZgCount.class);
 	List<ZgCount> zgCounts = results.getMappedResults();
 
 	if (percentage) {
@@ -106,16 +110,10 @@ class ZgEventRepositoryImpl implements CustomZgEventRepository {
 	return zgCounts;
     }
 
-    @Override
     public List<ZgEvent> eventsForUser(String id) {
 	return operations.find(query(where("user._id").is(new ObjectId(id))).
 				     with(new Sort(Sort.Direction.DESC,  "timestamp")),
-			       ZgEvent.class, "zgEvent");
+			       ZgEvent.class, COLLECTION_NAME);
     }
     
-}
-
-public interface ZgEventRepository extends MongoRepository<ZgEvent, String>, CustomZgEventRepository {
-    // public List<ZgEvent> findAllByOrderByTimestampDesc();
-    //    public List<ZgEvent> findByIdOrderByTimestampDesc(String id);
 }

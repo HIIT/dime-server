@@ -45,14 +45,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/data")
 public class DataController {
     // Mongodb repositories
-    private final ZgEventRepository zgEventRepository;
-    private final ZgSubjectRepository zgSubjectRepository;
+    private final ZgEventDAO zgEventDAO;
+    private final ZgSubjectDAO zgSubjectDAO;
 
     @Autowired
-    DataController(ZgEventRepository zgEventRepository,
-		   ZgSubjectRepository zgSubjectRepository) {
-	this.zgEventRepository = zgEventRepository;
-	this.zgSubjectRepository = zgSubjectRepository;
+    DataController(ZgEventDAO zgEventDAO,
+		   ZgSubjectDAO zgSubjectDAO) {
+	this.zgEventDAO = zgEventDAO;
+	this.zgSubjectDAO = zgSubjectDAO;
     }
 
     @RequestMapping(value="/zgevent", method = RequestMethod.POST)
@@ -80,10 +80,10 @@ public class DataController {
 	if (subject != null) {
 	    subject.user = user;
 	    if (!subject.isStub()) {
-		zgSubjectRepository.save(subject);
+		zgSubjectDAO.save(subject);
 	    } else {
 		ZgSubject expandedSubject = 
-		    zgSubjectRepository.findOneById(subject.id);
+		    zgSubjectDAO.findById(subject.id);
 		if (expandedSubject != null) {
 		    System.out.println("Expanded subject for " + expandedSubject.uri);
 		    expandedSubject.text = null;
@@ -91,7 +91,7 @@ public class DataController {
 		}
 	    }
 	} 
-	ZgEvent event = zgEventRepository.save(input);
+	zgEventDAO.save(input);
 	
 	System.out.printf("Event for user %s from %s at %s [%s]\n",
 			  user.username, input.origin, date, input.actor);
