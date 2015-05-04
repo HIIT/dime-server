@@ -276,14 +276,9 @@ if __name__ == '__main__':
         text = ''
 
         if os.path.isfile(item_path):
-            storage = uuid
-            shell_command = config['mimetype_command'] % item_path
-            try:
-                mimetype = subprocess.check_output(shell_command,
-                                                              shell=True)
-                mimetype = mimetype.rstrip()
-            except subprocess.CalledProcessError:
-                mimetype = "unknown"
+            storage = 'local'
+            mimetype = common.get_mimetype(item_path)
+
             if mimetype == 'application/pdf':
                 subject_interpretation = config['sd_i_paginatedtextdocument']
                 if config.has_key('pdftotext_timing') and config['pdftotext_timing']:
