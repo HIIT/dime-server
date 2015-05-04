@@ -135,7 +135,11 @@ class Browserlogger:
             print "PAYLOAD:\n" + json_payload
 
             r = common.post_json(json_payload)
-            print "RESPONSE:\n" + r.text
+            print "RESPONSE:"
+            if r is not None:
+                r.text
+            else:
+                print "<None>"
             print "########################################################"
 
             self.events_sent = self.events_sent + 1 
