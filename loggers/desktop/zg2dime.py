@@ -132,7 +132,11 @@ def send_event(event):
     print "PAYLOAD:\n" + json_payload
 
     r = common.post_json(json_payload)
-    print "RESPONSE:\n" + r.text
+    print "RESPONSE:"
+    if r is not None:
+        r.text
+    else:
+        print "<None>"
     print "---------------------------------------------------------"
 
     if r.status_code != common.requests.codes.ok:
