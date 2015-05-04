@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>Label</key>
+		<string>fi.hiit.dime.timing2dime</string>
+		<key>Program</key>
+		<string>/FULL/PATH/TO/DIME/loggers/desktop/timing2dime.py</string>
+                <key>WorkingDirectory</key>
+                <string>/FULL/PATH/TO/DIME/loggers/desktop</string>
+                <key>StartInterval</key>
+                <integer>300</integer>
+                <key>StandardInPath</key>
+                <string>/tmp/fi.hiit.dime.timing2dime.stdin</string>
+                <key>StandardOutPath</key>
+                <string>/tmp/fi.hiit.dime.timing2dime.stdout</string>
+                <key>StandardErrorPath</key>
+                <string>/tmp/fi.hiit.dime.timing2dime.stderr</string>
+	</dict>
+</plist>

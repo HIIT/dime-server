@@ -34,5 +34,10 @@ history_file: ~/.mozilla/firefox/XXXXXXXX.default/places.sqlite
 
 [Indicator]
 use: no
-icon: ~/path/to/dime/loggers/desktop/ReKnow_logo_rgb_icon.png
+icon: ~/PATH/TO/DIME/loggers/desktop/ReKnow_logo_rgb_icon.png
+
+[Timing]
+access_apps: Skim; Preview; Adobe Reader; Google Chrome
+modify_apps: Aquamacs; Word; Evernote; Excel; AppleScript Editor
+blacklist: localhost; chrome://
  
