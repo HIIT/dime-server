@@ -122,7 +122,7 @@ class Browserlogger:
                 self.subjects.add(subject['id'])
 
                 if config.has_key('fulltext') and config['fulltext']:
-                    common.uri_to_text(uri, row[2])
+                    subject['text'] = common.uri_to_text(uri, row[2])
                 else:
                     subject['text'] = row[2]
 
