@@ -24,15 +24,18 @@
 
 package fi.hiit.dime.data;
 
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-public class ZgEvent extends DiMeData {
-    public String actor;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 
-    public String origin;
-    public Date timestamp;
-    
-    public String payload;
+//------------------------------------------------------------------------------
 
-    public ZgSubject subject;
+public class InformationElement extends DiMeData {
+    public String uri;
+    @TextIndexed public String plainTextContent;
+    public String representation;
+
+    public boolean isStub() {
+	return uri == null || uri.isEmpty();
+    }
 }

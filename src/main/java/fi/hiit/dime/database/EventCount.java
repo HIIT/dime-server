@@ -1,8 +1,8 @@
 package fi.hiit.dime.database;
 
-import fi.hiit.dime.data.ZgEvent;
+import fi.hiit.dime.data.Event;
 
-public class ZgCount extends ZgEvent {
+public class EventCount extends Event {
     public int nevents;
     public double percentage;
 }	

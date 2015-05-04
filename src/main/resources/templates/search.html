@@ -30,7 +30,7 @@
 	      <b>Manifestation</b> <a th:href="${subject.manifestation}" th:text="${subject.manifestation}"></a><br/>
 	      <b>Mimetype:</b> <span th:text="${subject.mimetype}"></span>
 	      <b>Storage:</b> <span th:text="${subject.storage}"></span><br/>
-	      <b>Text:</b> <pre th:text="${#strings.abbreviate(subject.text,500)}"></pre><br/>
+	      <b>Text:</b> <pre th:text="${#strings.abbreviate(subject.plainTextContent,500)}"></pre><br/>
 	    </p>
 	  </span>
 	</div>

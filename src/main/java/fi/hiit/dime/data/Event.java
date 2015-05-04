@@ -22,20 +22,19 @@
   SOFTWARE.
 */
 
-//------------------------------------------------------------------------------
-
 package fi.hiit.dime.data;
-import org.springframework.data.mongodb.core.index.TextIndexed;
 
 //------------------------------------------------------------------------------
 
-public class ZgSubject extends DiMeData {
-    public String uri;
-    public String mimetype;
-    public String storage;
-    @TextIndexed public String text;
+import java.util.Date;
 
-    public boolean isStub() {
-	return uri == null || uri.isEmpty();
-    }
+//------------------------------------------------------------------------------
+
+public class Event extends DiMeData {
+    public String actor;
+    public String origin;
+    public String type;
+
+    public Date timestamp;
+    public double duration;
 }

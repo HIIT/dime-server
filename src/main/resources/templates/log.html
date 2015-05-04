@@ -20,14 +20,16 @@
 	    <b>Interpretation:</b> <a th:href="${event.interpretation}" th:text="${event.interpretation}"></a><br/>
 	    <b>Manifestation:</b> <a th:href="${event.manifestation}" th:text="${event.manifestation}"></a><br/>
 	    <b>Timestamp:</b> <span th:text="${event.timestamp}"></span><br/><br/>
-	    <b>Subject:</b><br/>
-	    <b>ID:</b> <span th:text="${event.subject.id}"></span>
-	    <b>URI:</b> <a th:href="${event.subject.uri}" th:text="${event.subject.uri}"></a><br/>
-	    <b>Interpretation:</b> <a th:href="${event.subject.interpretation}" th:text="${event.subject.interpretation}"></a><br/>
-	    <b>Manifestation</b> <a th:href="${event.subject.manifestation}" th:text="${event.subject.manifestation}"></a><br/>
-	    <b>Mimetype:</b> <span th:text="${event.subject.mimetype}"></span>
-	    <b>Storage:</b> <span th:text="${event.subject.storage}"></span><br/>
-	    <b>Text:</b> <pre th:text="${#strings.abbreviate(event.subject.text,500)}"></pre><br/>
+	    <div th:if="${event.subject}">
+	      <b>Subject:</b><br/>
+	      <b>ID:</b> <span th:text="${event.subject.id}"></span>
+	      <b>URI:</b> <a th:href="${event.subject.uri}" th:text="${event.subject.uri}"></a><br/>
+	      <b>Interpretation:</b> <a th:href="${event.subject.interpretation}" th:text="${event.subject.interpretation}"></a><br/>
+	      <b>Manifestation</b> <a th:href="${event.subject.manifestation}" th:text="${event.subject.manifestation}"></a><br/>
+	      <b>Mimetype:</b> <span th:text="${event.subject.mimetype}"></span>
+	      <b>Storage:</b> <span th:text="${event.subject.storage}"></span><br/>
+	      <b>Text:</b> <pre th:text="${#strings.abbreviate(event.subject.plainTextContent,500)}"></pre><br/>
+	      </div>
 	  </p>
 	</span>
       </div>

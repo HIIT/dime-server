@@ -30,7 +30,7 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.DBObject;
-import fi.hiit.dime.data.ZgSubject;
+import fi.hiit.dime.data.InformationElement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -51,26 +51,26 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 //------------------------------------------------------------------------------
 
 @Repository
-public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
-    private static final Logger LOG = LoggerFactory.getLogger(ZgSubjectDAO.class);
+public class InformationElementDAO extends BaseDAO<InformationElement> {
+    private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
 
     //--------------------------------------------------------------------------
 
     @Override
     public String collectionName() { 
-	return "zgSubject";
+	return "informationElement";
     }
 
     //--------------------------------------------------------------------------
 
-    public ZgSubject findById(String id) {
-    	return operations.findById(id, ZgSubject.class, collectionName());
+    public InformationElement findById(String id) {
+    	return operations.findById(id, InformationElement.class, collectionName());
     }
 
     //--------------------------------------------------------------------------
 
-    public List<ZgSubject> textSearch(String query, String userId) {
-	ensureIndex("text");
+    public List<InformationElement> textSearch(String query, String userId) {
+	ensureIndex("plainTextContent");
 
 	int[] version = getMongoVersion();
 
@@ -81,8 +81,11 @@ public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
 	// interface
 	if (version[0] >= 3 || (version[0] >= 2 && version[1] >= 6)) {
 	    System.out.println("Using new text query");
-	    Query dbQuery = TextQuery.queryText(new TextCriteria().matchingPhrase(query)).sortByScore().addCriteria(filterCriteria); 
-	    return operations.find(dbQuery, ZgSubject.class);
+	    Query dbQuery = TextQuery.queryText(new TextCriteria()
+						.matchingPhrase(query))
+		.sortByScore()
+		.addCriteria(filterCriteria); 
+	    return operations.find(dbQuery, InformationElement.class);
 	} else if (version[0] == 2 && version[1] >= 4) {
 	   // For version 2.4 we use the raw mongodb command, e.g.
 	   // db.zgSubject.runCommand( "text", { search: "SEARCH QUERY" } )
@@ -97,9 +100,9 @@ public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
 
 	    CommandResult commandResult = operations.executeCommand(command);
 
-	    // Construct List<ZgSubjects> to return out of the
+	    // Construct List<InformationElements> to return out of the
 	    // CommandResult
-	    List<ZgSubject> results = new ArrayList<ZgSubject>();
+	    List<InformationElement> results = new ArrayList<InformationElement>();
 
 	    BasicDBList resultList = (BasicDBList)commandResult.get("results");
 	    if (resultList == null) // return empty list if there are no results
@@ -110,14 +113,14 @@ public class ZgSubjectDAO extends BaseDAO<ZgSubject> {
 		BasicDBObject resultContainer = (BasicDBObject)it.next();
 		BasicDBObject resultObject = (BasicDBObject)resultContainer.get("obj");
 		
-		ZgSubject sub = operations.getConverter().read(ZgSubject.class, resultObject);
+		InformationElement sub = operations.getConverter().read(InformationElement.class, resultObject);
 		
 		results.add(sub);
 	    }
 
 	    return results;
 	} else {
-	    return new ArrayList<ZgSubject>();
+	    return new ArrayList<InformationElement>();
 	}
     }
 }

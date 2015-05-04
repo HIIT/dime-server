@@ -45,19 +45,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/data")
 public class DataController {
     // Mongodb repositories
-    private final ZgEventDAO zgEventDAO;
-    private final ZgSubjectDAO zgSubjectDAO;
+    private final EventDAO eventDAO;
+    private final InformationElementDAO infoElemDAO;
 
     @Autowired
-    DataController(ZgEventDAO zgEventDAO,
-		   ZgSubjectDAO zgSubjectDAO) {
-	this.zgEventDAO = zgEventDAO;
-	this.zgSubjectDAO = zgSubjectDAO;
+    DataController(EventDAO eventDAO,
+		   InformationElementDAO infoElemDAO) {
+	this.eventDAO = eventDAO;
+	this.infoElemDAO = infoElemDAO;
     }
 
-    @RequestMapping(value="/zgevent", method = RequestMethod.POST)
-    public ResponseEntity<ZgEvent> zgEvent(Authentication authentication, 
-					   @RequestBody ZgEvent input) {
+    @RequestMapping(value="/documentevent", method = RequestMethod.POST)
+    public ResponseEntity<DocumentEvent> documentEvent(Authentication authentication, 
+						       @RequestBody DocumentEvent input) {
 
 	CurrentUser currentUser = (CurrentUser)authentication.getPrincipal();
 	User user = currentUser.getUser();
@@ -76,25 +76,25 @@ public class DataController {
 	//     } 
 	// )
 
-	ZgSubject subject = input.subject;
+	Document subject = input.subject;
 	if (subject != null) {
-	    subject.user = user;
 	    if (!subject.isStub()) {
-		zgSubjectDAO.save(subject);
+		subject.user = user;
+		infoElemDAO.save(subject);
 	    } else {
-		ZgSubject expandedSubject = 
-		    zgSubjectDAO.findById(subject.id);
+		Document expandedSubject = (Document)infoElemDAO.findById(subject.id);
 		if (expandedSubject != null) {
 		    System.out.println("Expanded subject for " + expandedSubject.uri);
-		    expandedSubject.text = null;
+		    // don't copy the text, takes too much space
+		    expandedSubject.plainTextContent = null; 
 		    input.subject = expandedSubject;
 		}
 	    }
 	} 
-	zgEventDAO.save(input);
+	eventDAO.save(input);
 	
 	System.out.printf("Event for user %s from %s at %s [%s]\n",
 			  user.username, input.origin, date, input.actor);
-	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
+	return new ResponseEntity<DocumentEvent>(input, HttpStatus.OK);
     }
 }

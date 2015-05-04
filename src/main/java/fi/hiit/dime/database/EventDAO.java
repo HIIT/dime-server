@@ -26,7 +26,7 @@ package fi.hiit.dime.database;
 
 //------------------------------------------------------------------------------
 
-import fi.hiit.dime.data.ZgEvent;
+import fi.hiit.dime.data.Event;
 import java.util.Date;
 import java.util.List;
 import org.bson.types.ObjectId;
@@ -46,17 +46,17 @@ import org.springframework.stereotype.Repository;
 //------------------------------------------------------------------------------
 
 @Repository
-public class ZgEventDAO extends BaseDAO<ZgEvent> {
+public class EventDAO extends BaseDAO<Event> {
 
     @Override
     public String collectionName() { 
-	return "zgEvent";
+	return "event";
     }
 
     //--------------------------------------------------------------------------
 
-    public List<ZgCount> zgHist(String groupBy, Date fromDate, Date toDate,
-				boolean percentage) {
+    public List<EventCount> eventHist(String groupBy, Date fromDate, Date toDate,
+				      boolean percentage) {
 	// db.zgEvent.aggregate([
 	//     { $match : { 
 	// 	timestamp : { 
@@ -70,38 +70,36 @@ public class ZgEventDAO extends BaseDAO<ZgEvent> {
 	//     } }
 	// ])
 
-	// System.out.println("ZGHIST: " + fromDate + " " + toDate);
-
 	Aggregation agg =
 	    newAggregation(match(where("timestamp").gte(fromDate).lt(toDate)),
 			   group(groupBy).count().as("nevents"),
 			   project("nevents").and(groupBy).previousOperation(),
 			   sort(Direction.DESC, "nevents"));
-	AggregationResults<ZgCount> results =
-	    operations.aggregate(agg, collectionName(), ZgCount.class);
-	List<ZgCount> zgCounts = results.getMappedResults();
+	AggregationResults<EventCount> results =
+	    operations.aggregate(agg, collectionName(), EventCount.class);
+	List<EventCount> eventCounts = results.getMappedResults();
 
 	if (percentage) {
 	    int total = 0;
-	    for (ZgCount zgc : zgCounts) {
-		total += zgc.nevents;
+	    for (EventCount evc : eventCounts) {
+		total += evc.nevents;
 	    }
 
-	    for (ZgCount zgc : zgCounts) {
-		zgc.percentage = 100.0*zgc.nevents/total;
+	    for (EventCount evc : eventCounts) {
+		evc.percentage = 100.0*evc.nevents/total;
 	    }
 	}
-	return zgCounts;
+	return eventCounts;
     }
 
     //--------------------------------------------------------------------------
 
-    public List<ZgEvent> eventsForUser(String id) {
+    public List<Event> eventsForUser(String id) {
 	ensureIndex("timestamp");
 
 	return operations.find(query(where("user._id").is(new ObjectId(id))).
 				     with(new Sort(Sort.Direction.DESC,  "timestamp")),
-			       ZgEvent.class, collectionName());
+			       Event.class, collectionName());
     }
     
 }

@@ -46,19 +46,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/answer")
 public class AnswerController {
-    private final ZgEventDAO zgEventDAO;
+    private final EventDAO eventDAO;
 
     @Autowired
-    AnswerController(ZgEventDAO zgEventDAO) {
-	this.zgEventDAO = zgEventDAO;
+    AnswerController(EventDAO eventDAO) {
+	this.eventDAO = eventDAO;
     }
 
-    @RequestMapping(value="/zghist", method = RequestMethod.GET)
-    public ResponseEntity<List<ZgHistAnswer>>
-	zgHist(@RequestParam(defaultValue="false") String perc,
-	       @RequestParam(defaultValue="actor") String groupBy) {
+    @RequestMapping(value="/eventhist", method = RequestMethod.GET)
+    public ResponseEntity<List<EventHistAnswer>>
+	eventHist(@RequestParam(defaultValue="false") String perc,
+		  @RequestParam(defaultValue="actor") String groupBy) {
 
-	List<ZgHistAnswer> answer = new ArrayList<ZgHistAnswer>();
+	List<EventHistAnswer> answer = new ArrayList<EventHistAnswer>();
 
 	// Set calendar to tomorrow at 00:00:00
 	Calendar cal = Calendar.getInstance();
@@ -73,13 +73,13 @@ public class AnswerController {
 	    cal.add(Calendar.DAY_OF_MONTH, -1);
 	    Date fromDate = cal.getTime();
 
-	    List<ZgCount> results = zgEventDAO.zgHist(groupBy, fromDate, 
-							     toDate,
-							     !perc.equals("false"));
+	    List<EventCount> results = eventDAO.eventHist(groupBy, fromDate, 
+							  toDate,
+							  !perc.equals("false"));
 
-	    answer.add(new ZgHistAnswer(fromDate, results));
+	    answer.add(new EventHistAnswer(fromDate, results));
 	}
 
-	return new ResponseEntity<List<ZgHistAnswer>>(answer, HttpStatus.OK);
+	return new ResponseEntity<List<EventHistAnswer>>(answer, HttpStatus.OK);
     }
 }
