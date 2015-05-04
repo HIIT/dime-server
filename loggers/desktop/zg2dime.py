@@ -100,16 +100,10 @@ def send_event(event):
 
     if full_data:
         if os.path.isfile(filename):
-            subject['storage'] = uuid
+            subject['storage'] = 'local'
 
             if subject['mimetype'] == "" or subject['mimetype'] == "unknown":
-                shell_command = config['mimetype_command'] % filename
-                try:
-                    subject['mimetype'] = subprocess.check_output(shell_command,
-                                                                  shell=True)
-                    subject['mimetype'] = subject['mimetype'].rstrip()
-                except subprocess.CalledProcessError:
-                    subject['mimetype'] = "unknown"
+                subject['mimetype'] = common.get_mimetype(filename)
 
             if (config.has_key('pdftotext_zeitgeist') and config['pdftotext_zeitgeist']
                 and event.subjects[0].mimetype == 'application/pdf'):

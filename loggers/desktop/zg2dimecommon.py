@@ -117,6 +117,23 @@ def post_json(payload):
 
 # -----------------------------------------------------------------------
 
+def uri_info(uri):
+    """HTTP HEAD request for uri."""
+    if uri.startswith('file://'):
+        return ('local', get_mimetype(uri[7:]))
+
+    try:
+        r = requests.head(uri)
+    except requests.exceptions.RequestException:
+        return ('deleted', 'unknown')
+
+    if r.status_code != requests.codes.ok:
+        return ('deleted', 'unknown')
+
+    return ('net', r.headers['content-type'])
+
+# -----------------------------------------------------------------------
+
 def blacklisted(item, blacklist):
     """Check if item matches (has as substring) a blacklisted string."""
     if not config.has_key(blacklist):
@@ -151,6 +168,18 @@ def uri_to_text(uri, alt_text=''):
         text = text[0:config['maxtextlength_web']]
     return text
 
+# -----------------------------------------------------------------------
+
+def get_mimetype(fn):
+    shell_command = config['mimetype_command'] % fn
+    try:
+        mimetype = subprocess.check_output(shell_command,
+                                           shell=True)
+        return mimetype.rstrip()
+    except subprocess.CalledProcessError:
+        return "unknown"
+
+# -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 
