@@ -3,7 +3,7 @@
 #hostname: foo
 
 [DiMe]
-server_url: http://localhost:8080/api/data/zgevent
+server_url: http://localhost:8080/api
 username: foo
 password: bar
 
@@ -11,6 +11,7 @@ password: bar
 use: yes
 nevents: 10
 other_actors: acroread.desktop->Adobe Reader; kde4-okular.desktop->Okular
+#blacklist: secret.txt; passwords.txt
 
 [Chrome]
 use: yes
@@ -33,5 +34,5 @@ history_file: ~/.mozilla/firefox/XXXXXXXX.default/places.sqlite
 
 [Indicator]
 use: no
-#icon: ~/path/to/dime/loggers/linux/ReKnow_logo_rgb_icon.png
+icon: ~/path/to/dime/loggers/desktop/ReKnow_logo_rgb_icon.png
  
