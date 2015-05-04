@@ -150,6 +150,7 @@ def process_config(config_file, v=True):
 
     process_config_string(parser, 'General', 'hostname', 'hostname', v)
     process_config_string(parser, 'General', 'uuid_command', 'uuid_command', v)
+    process_config_string(parser, 'General', 'uuid_command_mac', 'uuid_command_mac', v)
     process_config_string(parser, 'General', 'mimetype_command', 'mimetype_command', v)
     process_config_string(parser, 'General', 'pdftotext_command', 'pdftotext_command', v)
 
