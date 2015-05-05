@@ -55,7 +55,7 @@ public class DataController {
 	this.infoElemDAO = infoElemDAO;
     }
 
-    @RequestMapping(value="/documentevent", method = RequestMethod.POST)
+    @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
     public ResponseEntity<DesktopEvent> documentEvent(Authentication authentication, 
 						      @RequestBody DesktopEvent input) {
 
