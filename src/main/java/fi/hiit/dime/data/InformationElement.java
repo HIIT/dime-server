@@ -34,6 +34,7 @@ public class InformationElement extends DiMeData {
     public String uri;
     @TextIndexed public String plainTextContent;
     public String representation;
+    public String type;
 
     public boolean isStub() {
 	return uri == null || uri.isEmpty();
