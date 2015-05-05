@@ -47,25 +47,22 @@ def create_payload(epoch, uri, fn):
     elif tz == "EEST":
         tz = "+0300"
 
-    payload = {'origin':         config['hostname'],
-               'actor':          'meeting2dime.py',
-               'interpretation': config['event_interpretation_meeting'],
-               'manifestation':  config['event_manifestation_meeting'],
-               'timestamp':      datetime+tz}
+    payload = {'origin': config['hostname'],
+               'actor':  'meeting2dime.py',
+               'type':   common.ontology('event_type_meeting'),
+               'start':  datetime+tz}
     
-    subject = {'uri':            uri,
-               'interpretation': config['subject_interpretation_meeting'],
-               'manifestation':  config['subject_manifestation_meeting'],
-               'mimetype':       'unknown',
-               'storage':        'net'}
+    document = {'uri':            uri,
+                'type':           common.ontology('document_type_meeting'),
+                'isStoredAs':     common.ontology('document_isa_meeting'),
+                'mimeType':       'unknown'}
     
-    subject['id'] = common.to_json_sha1(subject)
-    payload['subject'] = {}
-    payload['subject']['id'] = subject['id']
+    document['id'] = common.to_json_sha1(document)
+    payload['targettedResource'] = {}
+    payload['targettedResource']['id'] = document['id']
     payload['id'] = common.to_json_sha1(payload)
-    #subject['text'] = read_txt(videofilepath+'/'+fn)
-    subject['text'] = read_txt(fn)
-    payload['subject'] = subject.copy()
+    document['text'] = read_txt(fn)
+    payload['targettedResource'] = document.copy()
     
     return common.json_dumps(payload)
 

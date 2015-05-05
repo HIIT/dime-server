@@ -117,23 +117,6 @@ def post_json(payload):
 
 # -----------------------------------------------------------------------
 
-def uri_info(uri):
-    """HTTP HEAD request for uri."""
-    if uri.startswith('file://'):
-        return ('local', get_mimetype(uri[7:]))
-
-    try:
-        r = requests.head(uri)
-    except requests.exceptions.RequestException:
-        return ('deleted', 'unknown')
-
-    if r.status_code != requests.codes.ok:
-        return ('deleted', 'unknown')
-
-    return ('net', r.headers['content-type'])
-
-# -----------------------------------------------------------------------
-
 def blacklisted(item, blacklist):
     """Check if item matches (has as substring) a blacklisted string."""
     if not config.has_key(blacklist):
@@ -180,6 +163,14 @@ def get_mimetype(fn):
         return "unknown"
 
 # -----------------------------------------------------------------------
+
+def ontology(entry):
+    if config.has_key('entry'):
+        oitem = config['entry']
+        if config.has_key(oitem):
+            return config[oitem]
+    return '[unknown ontology entry]'
+
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 
