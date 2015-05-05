@@ -8,5 +8,6 @@ db.zgEvent.renameCollection("event");
 db.zgSubject.renameCollection("informationElement");
 
 db.event.update({}, { $rename: {"interpretation": "type"} }, false, true);
-db.informationElement.update({}, { $rename: {"manifestation": "representation"} }, false, true);
+db.informationElement.update({}, { $rename: {"manifestation": "isStoredAs"} }, false, true);
 db.informationElement.update({}, { $rename: {"interpretation": "type"} }, false, true);
+db.informationElement.update({}, { $rename: {"mimetype": "mimeType"} }, false, true);

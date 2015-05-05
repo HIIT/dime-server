@@ -33,7 +33,7 @@ import org.springframework.data.mongodb.core.index.TextIndexed;
 public class InformationElement extends DiMeData {
     public String uri;
     @TextIndexed public String plainTextContent;
-    public String representation;
+    public String isStoredAs;
     public String type;
 
     public boolean isStub() {

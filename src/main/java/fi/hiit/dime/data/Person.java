@@ -29,6 +29,6 @@ package fi.hiit.dime.data;
 public class Person extends DiMeData {
     public String firstName;
     public String surName;
-    public String email_account;  // e.g. "foo.bar@hiit.fi"
-    public String dime_account;   // e.g. "foobar@dime.hiit.fi"
+    public String emailAccount;  // e.g. "foo.bar@hiit.fi"
+    public String dimeAccount;   // e.g. "foobar@dime.hiit.fi"
 }

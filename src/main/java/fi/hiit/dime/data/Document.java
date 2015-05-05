@@ -29,6 +29,5 @@ package fi.hiit.dime.data;
 //------------------------------------------------------------------------------
 
 public class Document extends InformationElement {
-    public String mimetype;
-    public String storage;
+    public String mimeType;
 }
