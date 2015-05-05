@@ -71,7 +71,7 @@ public class EventDAO extends BaseDAO<Event> {
 	// ])
 
 	Aggregation agg =
-	    newAggregation(match(where("timestamp").gte(fromDate).lt(toDate)),
+	    newAggregation(match(where("start").gte(fromDate).lt(toDate)),
 			   group(groupBy).count().as("nevents"),
 			   project("nevents").and(groupBy).previousOperation(),
 			   sort(Direction.DESC, "nevents"));
@@ -95,10 +95,10 @@ public class EventDAO extends BaseDAO<Event> {
     //--------------------------------------------------------------------------
 
     public List<Event> eventsForUser(String id) {
-	ensureIndex("timestamp");
+	ensureIndex("start");
 
 	return operations.find(query(where("user._id").is(new ObjectId(id))).
-				     with(new Sort(Sort.Direction.DESC,  "timestamp")),
+				     with(new Sort(Sort.Direction.DESC, "start")),
 			       Event.class, collectionName());
     }
     
