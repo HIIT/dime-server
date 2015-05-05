@@ -106,7 +106,7 @@ def post_json(payload):
     """HTTP POST JSON-format payload to DiMe."""
     headers = {'content-type': 'application/json'}
     try:
-        return requests.post(config['server_url']+"/data/zgevent",
+        return requests.post(config['server_url']+"/data/desktopevent",
                              data=payload,
                              headers=headers,
                              auth=(config['username'],
@@ -165,8 +165,8 @@ def get_mimetype(fn):
 # -----------------------------------------------------------------------
 
 def ontology(entry):
-    if config.has_key('entry'):
-        oitem = config['entry']
+    if config.has_key(entry):
+        oitem = config[entry]
         if config.has_key(oitem):
             return config[oitem]
     return '[unknown ontology entry]'

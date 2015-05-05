@@ -61,13 +61,13 @@ def map_actor(actor):
 
 def map_zg(zg):
     if zg.endswith("AccessEvent"):
-        return common.ontology('nuao_usageevent')
+        return config['nuao_usageevent']
     if zg.endswith("CreateEvent"):
-        return common.ontology('nuao_modificationevent')
+        return config['nuao_modificationevent']
     if zg.endswith("ModifyEvent"):
-        return common.ontology('nuao_modificationevent')
+        return config['nuao_modificationevent']
 
-    return common.ontology('nuao_event')
+    return config['nuao_event']
 
 # -----------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ def send_event(event):
     """Send an event to DiMe."""
     filename = urllib.unquote(event.subjects[0].uri)
     print ("Starting to process " + filename + " on " + time.strftime("%c") +
-               " with " + str(len(subjects)) + " known subjects")
+               " with " + str(len(documents)) + " known documents")
 
     if common.blacklisted(filename, 'blacklist_zeitgeist'):
         return
@@ -95,43 +95,43 @@ def send_event(event):
                 'plainTextContent': event.subjects[0].text}
 
     document['id'] = common.to_json_sha1(document)
-    payload['document'] = {}
-    payload['document']['id'] = subject['id']
+    payload['targettedResource'] = {}
+    payload['targettedResource']['id'] = document['id']
     payload['id'] = common.to_json_sha1(payload)
 
     full_data = False
-    if not subject['id'] in subjects:
-        print "Not found in known subjects, sending full data"
-        subjects.add(subject['id'])
+    if not document['id'] in documents:
+        print "Not found in known documents, sending full data"
+        documents.add(document['id'])
         full_data = True
 
-    if payload['interpretation'] == Interpretation.MODIFY_EVENT:
+    if payload['type'] == config['nuao_modificationevent']:
         print "This is a modify event, sending full data"
         full_data = True
 
     if full_data:
         if os.path.isfile(filename):
-            subject['storage'] = 'local'
+            document['storage'] = 'local'
 
-            if subject['mimetype'] == "" or subject['mimetype'] == "unknown":
-                subject['mimetype'] = common.get_mimetype(filename)
+            if document['mimeType'] == "" or document['mimeType'] == "unknown":
+                document['mimeType'] = common.get_mimetype(filename)
 
             if (config.has_key('pdftotext_zeitgeist') and config['pdftotext_zeitgeist']
                 and event.subjects[0].mimetype == 'application/pdf'):
-                subject['text'] = common.pdf_to_text(filename)
-            elif 'text/' in subject['mimetype']:
-                if subject['interpretation'] == Interpretation.DOCUMENT:
-                    subject['interpretation'] = Interpretation.TEXT_DOCUMENT
+                document['plainTextContent'] = common.pdf_to_text(filename)
+            elif 'text/' in document['mimeType']:
+                if document['type'] == config['nfo_document']:
+                    document['type'] = config['nfo_textdocument']
                 with open (filename, "r") as myfile:
-                    subject['text'] = myfile.read()
+                    document['plainTextContent'] = myfile.read()
         else:
-            subject['storage'] = 'deleted'
+            document['storage'] = 'deleted'
 
         if (config['maxtextlength_zg']>0 and
-            len(subject['text'])>config['maxtextlength_zg']):
-            subject['text'] = subject['text'][0:config['maxtextlength_zg']]
+            len(document['plainTextContent'])>config['maxtextlength_zg']):
+            document['plainTextContent'] = document['plainTextContent'][0:config['maxtextlength_zg']]
 
-        payload['subject'] = subject.copy()
+        payload['targettedResource'] = document.copy()
 
     json_payload = common.payload_to_json(payload)
     print "PAYLOAD:\n" + json_payload
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     else:
         print pingstring + "FAILED"
 
-    subjects = set()
+    documents = set()
 
     actors = config['actors'].copy()
 
