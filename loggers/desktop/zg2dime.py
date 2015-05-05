@@ -59,6 +59,12 @@ def map_actor(actor):
 
 # -----------------------------------------------------------------------
 
+def map_zg(zg):
+    if zg.endswith("CreateEvent"):
+        return common.ontology('')
+
+# -----------------------------------------------------------------------
+
 def send_event(event):
     """Send an event to DiMe."""
     filename = urllib.unquote(event.subjects[0].uri)
@@ -71,21 +77,20 @@ def send_event(event):
     if filename.startswith('file://'):
         filename = filename[7:]
 
-    payload = {'origin':                 config['hostname'],
-               'actor':                  map_actor(event.actor), 
-               'interpretation':         event.interpretation,
-               'manifestation':          event.manifestation,               
-               'timestamp':              event.timestamp}
+    payload = {'origin': config['hostname'],
+               'actor':  map_actor(event.actor), 
+               'type':   map_zg(event.interpretation),
+               'start':  event.timestamp}
 
-    subject = {'uri':            event.subjects[0].uri,
-               'interpretation': event.subjects[0].interpretation,
-               'manifestation':  event.subjects[0].manifestation,
-               'mimetype':       event.subjects[0].mimetype,
-               'text':           event.subjects[0].text}
+    document = {'uri':              event.subjects[0].uri,
+                'type':             map_zg(event.subjects[0].interpretation),
+                'isStoredAs':       map_zg(event.subjects[0].manifestation),
+                'mimeType':         event.subjects[0].mimetype,
+                'plainTextContent': event.subjects[0].text}
 
-    subject['id'] = common.to_json_sha1(subject)
-    payload['subject'] = {}
-    payload['subject']['id'] = subject['id']
+    document['id'] = common.to_json_sha1(document)
+    payload['document'] = {}
+    payload['document']['id'] = subject['id']
     payload['id'] = common.to_json_sha1(payload)
 
     full_data = False
