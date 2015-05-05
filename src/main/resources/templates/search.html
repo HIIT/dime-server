@@ -26,8 +26,8 @@
 	    <p>
 	      [<span th:text="${iterStat.index}"></span>] <b>ID:</b> <span th:text="${subject.id}"></span>
 	      <b>URI:</b> <a th:href="${subject.uri}" th:text="${subject.uri}"></a><br/>
-	      <b>Interpretation:</b> <a th:href="${subject.interpretation}" th:text="${subject.interpretation}"></a><br/>
-	      <b>Manifestation</b> <a th:href="${subject.manifestation}" th:text="${subject.manifestation}"></a><br/>
+	      <b>Type:</b> <a th:href="${subject.type}" th:text="${subject.type}"></a><br/>
+	      <b>Representation:</b> <a th:href="${subject.representation}" th:text="${subject.representation}"></a><br/>
 	      <b>Mimetype:</b> <span th:text="${subject.mimetype}"></span>
 	      <b>Storage:</b> <span th:text="${subject.storage}"></span><br/>
 	      <b>Text:</b> <pre th:text="${#strings.abbreviate(subject.plainTextContent,500)}"></pre><br/>

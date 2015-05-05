@@ -27,7 +27,5 @@ package fi.hiit.dime.data;
 //------------------------------------------------------------------------------
 
 public class DocumentEvent extends Event {
-    // public String payload;
-
     public Document subject;
 }

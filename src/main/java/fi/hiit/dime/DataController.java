@@ -81,7 +81,7 @@ public class DataController {
 	    if (!subject.isStub()) {
 		subject.user = user;
 		infoElemDAO.save(subject);
-	    } else {
+	    } else { // expand from if only a stub subject was included
 		Document expandedSubject = (Document)infoElemDAO.findById(subject.id);
 		if (expandedSubject != null) {
 		    System.out.println("Expanded subject for " + expandedSubject.uri);

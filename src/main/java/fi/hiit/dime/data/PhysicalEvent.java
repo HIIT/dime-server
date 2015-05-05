@@ -24,7 +24,9 @@
 
 package fi.hiit.dime.data;
 
+//------------------------------------------------------------------------------
 
 public class PhysicalEvent extends Event {
-    public double[] data;
+    public int samplerate;
+    public double[][] data;
 }

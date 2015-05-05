@@ -46,16 +46,6 @@ public class DiMeData {
     */
     public Date time_modified;
 
-    /** Type of data object.
-	FIXME defined DiMe ontology for interpretation.
-     */
-    public String interpretation;
-
-    /** How the data object was created.
-	FIXME defined DiMe ontology for manifestation.
-     */
-    public String manifestation;
-
     /** User associated with the object. */
     public User user;
 
