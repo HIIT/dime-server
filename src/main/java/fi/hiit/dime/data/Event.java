@@ -35,6 +35,8 @@ public class Event extends DiMeData {
     public String origin;
     public String type;
 
-    public Date timestamp;
+    public Date start;
+    public Date end;
+
     public double duration;
 }

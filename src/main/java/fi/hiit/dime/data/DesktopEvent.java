@@ -26,6 +26,6 @@ package fi.hiit.dime.data;
 
 //------------------------------------------------------------------------------
 
-public class DocumentEvent extends Event {
-    public Document subject;
+public class DesktopEvent extends Event {
+    public InformationElement targettedResource;
 }

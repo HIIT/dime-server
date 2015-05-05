@@ -56,8 +56,8 @@ public class DataController {
     }
 
     @RequestMapping(value="/documentevent", method = RequestMethod.POST)
-    public ResponseEntity<DocumentEvent> documentEvent(Authentication authentication, 
-						       @RequestBody DocumentEvent input) {
+    public ResponseEntity<DesktopEvent> documentEvent(Authentication authentication, 
+						      @RequestBody DesktopEvent input) {
 
 	CurrentUser currentUser = (CurrentUser)authentication.getPrincipal();
 	User user = currentUser.getUser();
@@ -76,18 +76,18 @@ public class DataController {
 	//     } 
 	// )
 
-	Document subject = input.subject;
-	if (subject != null) {
-	    if (!subject.isStub()) {
-		subject.user = user;
-		infoElemDAO.save(subject);
-	    } else { // expand from if only a stub subject was included
-		Document expandedSubject = (Document)infoElemDAO.findById(subject.id);
-		if (expandedSubject != null) {
-		    System.out.println("Expanded subject for " + expandedSubject.uri);
+	InformationElement res = input.targettedResource;
+	if (res != null) {
+	    if (!res.isStub()) {
+		res.user = user;
+		infoElemDAO.save(res);
+	    } else { // expand from if only a stub res was included
+		InformationElement expandedRes = infoElemDAO.findById(res.id);
+		if (expandedRes != null) {
+		    System.out.println("Expanded resouce for " + expandedRes.uri);
 		    // don't copy the text, takes too much space
-		    expandedSubject.plainTextContent = null; 
-		    input.subject = expandedSubject;
+		    expandedRes.plainTextContent = null; 
+		    input.targettedResource = expandedRes;
 		}
 	    }
 	} 
@@ -95,6 +95,6 @@ public class DataController {
 	
 	System.out.printf("Event for user %s from %s at %s [%s]\n",
 			  user.username, input.origin, date, input.actor);
-	return new ResponseEntity<DocumentEvent>(input, HttpStatus.OK);
+	return new ResponseEntity<DesktopEvent>(input, HttpStatus.OK);
     }
 }

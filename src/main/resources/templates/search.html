@@ -21,15 +21,15 @@
 
 	<div th:if="${results}">
 	  <p th:text="'Found ' + ${results.size()} + ' results.'"></p>
-	  <span th:each="subject,iterStat : ${results}">
+	  <span th:each="targettedResource,iterStat : ${results}">
 	    <hr/>
 	    <p>
-	      [<span th:text="${iterStat.index}"></span>] <b>ID:</b> <span th:text="${subject.id}"></span>
-	      <b>URI:</b> <a th:href="${subject.uri}" th:text="${subject.uri}"></a><br/>
-	      <b>Type:</b> <a th:href="${subject.type}" th:text="${subject.type}"></a><br/>
-	      <b>IsStoredAs:</b> <a th:href="${subject.isStoredAs}" th:text="${subject.isStoredAs}"></a><br/>
-	      <b>Mimetype:</b> <span th:text="${subject.mimeType}"></span>
-	      <b>Text:</b> <pre th:text="${#strings.abbreviate(subject.plainTextContent,500)}"></pre><br/>
+	      [<span th:text="${iterStat.index}"></span>] <b>ID:</b> <span th:text="${targettedResource.id}"></span>
+	      <b>URI:</b> <a th:href="${targettedResource.uri}" th:text="${targettedResource.uri}"></a><br/>
+	      <b>Type:</b> <a th:href="${targettedResource.type}" th:text="${targettedResource.type}"></a><br/>
+	      <b>IsStoredAs:</b> <a th:href="${targettedResource.isStoredAs}" th:text="${targettedResource.isStoredAs}"></a><br/>
+	      <b>Mimetype:</b> <span th:text="${targettedResource.mimeType}"></span>
+	      <b>Text:</b> <pre th:text="${#strings.abbreviate(targettedResource.plainTextContent,500)}"></pre><br/>
 	    </p>
 	  </span>
 	</div>

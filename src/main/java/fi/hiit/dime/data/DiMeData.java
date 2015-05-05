@@ -39,19 +39,19 @@ public class DiMeData {
     /** Date and time when the object was first uploaded via the
 	external API. 
      */
-    public Date time_created;
+    public Date timeCreated;
 
     /** Date and time when the objects was last modified via the
 	external API.
     */
-    public Date time_modified;
+    public Date timeModified;
 
     /** User associated with the object. */
     public User user;
 
     public DiMeData() {
 	// Set to current date and time
-	time_created = new Date();
-	time_modified = new Date();
+	timeCreated = new Date();
+	timeModified = new Date();
     }	
 }
