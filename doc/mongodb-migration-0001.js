@@ -1,4 +1,3 @@
-use dime;
 
 db.zgEvent.update({ '_class': "fi.hiit.dime.data.ZgEvent" }, { $set: { '_class': "fi.hiit.dime.data.DesktopEvent" } }, { multi:true } );
 db.zgSubject.update({ '_class': "fi.hiit.dime.data.ZgSubject" }, { $set: { '_class': "fi.hiit.dime.data.Document" } }, { multi:true } );

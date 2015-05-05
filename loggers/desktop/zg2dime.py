@@ -60,8 +60,14 @@ def map_actor(actor):
 # -----------------------------------------------------------------------
 
 def map_zg(zg):
+    if zg.endswith("AccessEvent"):
+        return common.ontology('nuao_usageevent')
     if zg.endswith("CreateEvent"):
-        return common.ontology('')
+        return common.ontology('nuao_modificationevent')
+    if zg.endswith("ModifyEvent"):
+        return common.ontology('nuao_modificationevent')
+
+    return common.ontology('nuao_event')
 
 # -----------------------------------------------------------------------
 
@@ -83,8 +89,8 @@ def send_event(event):
                'start':  event.timestamp}
 
     document = {'uri':              event.subjects[0].uri,
-                'type':             map_zg(event.subjects[0].interpretation),
-                'isStoredAs':       map_zg(event.subjects[0].manifestation),
+                'type':             event.subjects[0].interpretation,
+                'isStoredAs':       event.subjects[0].manifestation,
                 'mimeType':         event.subjects[0].mimetype,
                 'plainTextContent': event.subjects[0].text}
 
