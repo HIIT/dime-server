@@ -5,4 +5,5 @@ HOWTO
 *.pyc
 /loggers/desktop/user.ini
 /loggers/desktop/*.plist
+/loggers/desktop/*.json
 /loggers/desktop/imr

@@ -70,7 +70,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
     //--------------------------------------------------------------------------
 
     public List<InformationElement> textSearch(String query, String userId) {
-	ensureIndex("plainTextContent");
+	ensureTextIndex("plainTextContent");
 
 	int[] version = getMongoVersion();
 

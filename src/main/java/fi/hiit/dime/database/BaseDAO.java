@@ -66,7 +66,19 @@ abstract class BaseDAO<T extends Object> {
 
     //--------------------------------------------------------------------------
 
+    public void ensureIndex(String fieldName, Object value) {
+	getCollection().createIndex(new BasicDBObject(fieldName, value));
+    }
+
+    //--------------------------------------------------------------------------
+
     public void ensureIndex(String fieldName) {
+	getCollection().createIndex(new BasicDBObject(fieldName, 1));
+    }
+
+    //--------------------------------------------------------------------------
+
+    public void ensureTextIndex(String fieldName) {
 	getCollection().createIndex(new BasicDBObject(fieldName, "text"));
     }
 

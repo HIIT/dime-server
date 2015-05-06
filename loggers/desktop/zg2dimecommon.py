@@ -33,19 +33,19 @@ def payload_to_json(payload, alt_text=None):
         pass
 
     try:
-        payload['subject']['text'] = payload['subject']['text'].decode('utf-8', 'ignore')
+        payload['targettedResource']['plainTextContent'] = payload['targettedResource']['plainTextContent'].decode('utf-8', 'ignore')
         return json.dumps(payload)
     except UnicodeDecodeError:
         pass
     
     if alt_text is not None:
-        payload['subject']['text'] = alt_text
+        payload['targettedResource']['plainTextContent'] = alt_text
         try:
             return json.dumps(payload)
         except UnicodeDecodeError:
             pass
 
-    payload['subject']['text'] = ''
+    payload['targettedResource']['plainTextContent'] = ''
     try:
         return json.dumps(payload)
     except UnicodeDecodeError:

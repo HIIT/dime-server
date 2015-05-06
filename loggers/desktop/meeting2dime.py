@@ -39,6 +39,8 @@ def calc_slidetime(frame, start_time):
 
 def create_payload(epoch, uri, fn):
 
+    print "---------------------------------------------------------"
+
     datetime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(epoch))
 
     tz = time.strftime("%Z", time.localtime(epoch))
@@ -52,16 +54,16 @@ def create_payload(epoch, uri, fn):
                'type':   common.ontology('event_type_meeting'),
                'start':  datetime+tz}
     
-    document = {'uri':            uri,
-                'type':           common.ontology('document_type_meeting'),
-                'isStoredAs':     common.ontology('document_isa_meeting'),
-                'mimeType':       'unknown'}
+    document = {'uri':        uri,
+                'type':       common.ontology('document_type_meeting'),
+                'isStoredAs': common.ontology('document_isa_meeting'),
+                'mimeType':   'unknown'}
     
     document['id'] = common.to_json_sha1(document)
     payload['targettedResource'] = {}
     payload['targettedResource']['id'] = document['id']
     payload['id'] = common.to_json_sha1(payload)
-    document['text'] = read_txt(fn)
+    document['plainTextContent'] = read_txt(fn)
     payload['targettedResource'] = document.copy()
     
     return common.json_dumps(payload)
@@ -69,16 +71,12 @@ def create_payload(epoch, uri, fn):
 # -----------------------------------------------------------------------
 
 def post_payload(json_payload):
-    headers = {'content-type': 'application/json'}
-
-    r = requests.post(config['server_url']+"/data/zgevent",
-                      data=json_payload,
-                      headers=headers,
-                      auth=(config['username'],
-                            config['password']))
-
-    print(r.text)
-    print "########################################################"
+    r = common.post_json(json_payload)
+    print "RESPONSE:"
+    if r is not None:
+        r.text
+    else:
+        print "<None>"
 
 # -----------------------------------------------------------------------
 
@@ -152,7 +150,7 @@ with open (timefile, "r") as tfile:
             i = i+1
             json_payload = create_payload(epoch, url,
                                           args.noslides)
-            print(json_payload)
+            print "PAYLOAD:\n" + json_payload
 
             if not args.dryrun:
                 post_payload(json_payload)
@@ -169,7 +167,7 @@ with open (timefile, "r") as tfile:
             timed_url = '%s#t=%d' % (url, (epoch-start_epoch))
 
             json_payload = create_payload(epoch, timed_url, tsparts[1])
-            print(json_payload)
+            print "PAYLOAD:\n" + json_payload
 
             if not args.dryrun:
                 post_payload(json_payload)

@@ -28,7 +28,7 @@
 	      <b>URI:</b> <a th:href="${targettedResource.uri}" th:text="${targettedResource.uri}"></a><br/>
 	      <b>Type:</b> <a th:href="${targettedResource.type}" th:text="${targettedResource.type}"></a><br/>
 	      <b>IsStoredAs:</b> <a th:href="${targettedResource.isStoredAs}" th:text="${targettedResource.isStoredAs}"></a><br/>
-	      <b>Mimetype:</b> <span th:text="${targettedResource.mimeType}"></span>
+	      <!-- <b>Mimetype:</b> <span th:text="${targettedResource.mimeType}"></span> -->
 	      <b>Text:</b> <pre th:text="${#strings.abbreviate(targettedResource.plainTextContent,500)}"></pre><br/>
 	    </p>
 	  </span>
