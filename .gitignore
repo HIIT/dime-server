@@ -3,5 +3,6 @@
 *~
 HOWTO
 *.pyc
-/loggers/linux/user.ini
-/loggers/linux/imr
+/loggers/desktop/user.ini
+/loggers/desktop/*.plist
+/loggers/desktop/imr

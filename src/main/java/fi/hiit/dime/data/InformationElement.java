@@ -22,18 +22,19 @@
   SOFTWARE.
 */
 
+package fi.hiit.dime.data;
+
 //------------------------------------------------------------------------------
 
-package fi.hiit.dime.data;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 
 //------------------------------------------------------------------------------
 
-public class ZgSubject extends DiMeData {
+public class InformationElement extends DiMeData {
     public String uri;
-    public String mimetype;
-    public String storage;
-    @TextIndexed public String text;
+    @TextIndexed public String plainTextContent;
+    public String isStoredAs;
+    public String type;
 
     public boolean isStub() {
 	return uri == null || uri.isEmpty();

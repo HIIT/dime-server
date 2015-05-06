@@ -59,11 +59,23 @@ def map_actor(actor):
 
 # -----------------------------------------------------------------------
 
+def map_zg(zg):
+    if zg.endswith("AccessEvent"):
+        return config['nuao_usageevent']
+    if zg.endswith("CreateEvent"):
+        return config['nuao_modificationevent']
+    if zg.endswith("ModifyEvent"):
+        return config['nuao_modificationevent']
+
+    return config['nuao_event']
+
+# -----------------------------------------------------------------------
+
 def send_event(event):
     """Send an event to DiMe."""
     filename = urllib.unquote(event.subjects[0].uri)
     print ("Starting to process " + filename + " on " + time.strftime("%c") +
-               " with " + str(len(subjects)) + " known subjects")
+               " with " + str(len(documents)) + " known documents")
 
     if common.blacklisted(filename, 'blacklist_zeitgeist'):
         return
@@ -71,68 +83,65 @@ def send_event(event):
     if filename.startswith('file://'):
         filename = filename[7:]
 
-    payload = {'origin':                 config['hostname'],
-               'actor':                  map_actor(event.actor), 
-               'interpretation':         event.interpretation,
-               'manifestation':          event.manifestation,               
-               'timestamp':              event.timestamp}
+    payload = {'origin': config['hostname'],
+               'actor':  map_actor(event.actor), 
+               'type':   map_zg(event.interpretation),
+               'start':  event.timestamp}
 
-    subject = {'uri':            event.subjects[0].uri,
-               'interpretation': event.subjects[0].interpretation,
-               'manifestation':  event.subjects[0].manifestation,
-               'mimetype':       event.subjects[0].mimetype,
-               'text':           event.subjects[0].text}
+    document = {'uri':              event.subjects[0].uri,
+                'type':             event.subjects[0].interpretation,
+                'isStoredAs':       event.subjects[0].manifestation,
+                'mimeType':         event.subjects[0].mimetype,
+                'plainTextContent': event.subjects[0].text}
 
-    subject['id'] = common.to_json_sha1(subject)
-    payload['subject'] = {}
-    payload['subject']['id'] = subject['id']
+    document['id'] = common.to_json_sha1(document)
+    payload['targettedResource'] = {}
+    payload['targettedResource']['id'] = document['id']
     payload['id'] = common.to_json_sha1(payload)
 
     full_data = False
-    if not subject['id'] in subjects:
-        print "Not found in known subjects, sending full data"
-        subjects.add(subject['id'])
+    if not document['id'] in documents:
+        print "Not found in known documents, sending full data"
+        documents.add(document['id'])
         full_data = True
 
-    if payload['interpretation'] == Interpretation.MODIFY_EVENT:
+    if payload['type'] == config['nuao_modificationevent']:
         print "This is a modify event, sending full data"
         full_data = True
 
     if full_data:
         if os.path.isfile(filename):
-            subject['storage'] = uuid
+            document['storage'] = 'local'
 
-            if subject['mimetype'] == "" or subject['mimetype'] == "unknown":
-                shell_command = config['mimetype_command'] % filename
-                try:
-                    subject['mimetype'] = subprocess.check_output(shell_command,
-                                                                  shell=True)
-                    subject['mimetype'] = subject['mimetype'].rstrip()
-                except subprocess.CalledProcessError:
-                    subject['mimetype'] = "unknown"
+            if document['mimeType'] == "" or document['mimeType'] == "unknown":
+                document['mimeType'] = common.get_mimetype(filename)
 
             if (config.has_key('pdftotext_zeitgeist') and config['pdftotext_zeitgeist']
                 and event.subjects[0].mimetype == 'application/pdf'):
-                subject['text'] = common.pdf_to_text(filename)
-            elif 'text/' in subject['mimetype']:
-                if subject['interpretation'] == Interpretation.DOCUMENT:
-                    subject['interpretation'] = Interpretation.TEXT_DOCUMENT
+                document['plainTextContent'] = common.pdf_to_text(filename)
+            elif 'text/' in document['mimeType']:
+                if document['type'] == config['nfo_document']:
+                    document['type'] = config['nfo_textdocument']
                 with open (filename, "r") as myfile:
-                    subject['text'] = myfile.read()
+                    document['plainTextContent'] = myfile.read()
         else:
-            subject['storage'] = 'deleted'
+            document['storage'] = 'deleted'
 
         if (config['maxtextlength_zg']>0 and
-            len(subject['text'])>config['maxtextlength_zg']):
-            subject['text'] = subject['text'][0:config['maxtextlength_zg']]
+            len(document['plainTextContent'])>config['maxtextlength_zg']):
+            document['plainTextContent'] = document['plainTextContent'][0:config['maxtextlength_zg']]
 
-        payload['subject'] = subject.copy()
+        payload['targettedResource'] = document.copy()
 
     json_payload = common.payload_to_json(payload)
     print "PAYLOAD:\n" + json_payload
 
     r = common.post_json(json_payload)
-    print "RESPONSE:\n" + r.text
+    print "RESPONSE:"
+    if r is not None:
+        r.text
+    else:
+        print "<None>"
     print "---------------------------------------------------------"
 
     if r.status_code != common.requests.codes.ok:
@@ -222,7 +231,7 @@ if __name__ == '__main__':
     else:
         print pingstring + "FAILED"
 
-    subjects = set()
+    documents = set()
 
     actors = config['actors'].copy()
 

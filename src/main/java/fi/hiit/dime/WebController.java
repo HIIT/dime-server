@@ -31,7 +31,7 @@ import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.data.User;
-import fi.hiit.dime.data.ZgSubject;
+import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.database.*;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -58,10 +58,10 @@ public class WebController extends WebMvcConfigurerAdapter {
 	LoggerFactory.getLogger(WebController.class);
 
     @Autowired
-    private ZgEventDAO zgEventDAO;
+    private EventDAO eventDAO;
 
     @Autowired
-    private ZgSubjectDAO zgSubjectDAO;
+    private InformationElementDAO infoElemDAO;
 
     //@Autowired
     //private Authentication authentication;
@@ -92,8 +92,7 @@ public class WebController extends WebMvcConfigurerAdapter {
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        model.addAttribute("events", 
-			   zgEventDAO.eventsForUser(userId));
+        model.addAttribute("events", eventDAO.eventsForUser(userId));
         return "log";
     }
 
@@ -108,7 +107,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
-	    List<ZgSubject> results = zgSubjectDAO.textSearch(query, userId);
+	    List<InformationElement> results = infoElemDAO.textSearch(query, userId);
 	    model.addAttribute("results", results);
 	}
 

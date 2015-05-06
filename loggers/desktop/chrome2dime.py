@@ -82,9 +82,6 @@ class Browserlogger:
             if i>=config['nevents_'+self.name]:
                 break
 
-            storage  = 'net'
-            mimetype = 'unknown'
-
             datetime = row[0]
             uri      = row[1]
 
@@ -93,6 +90,8 @@ class Browserlogger:
 
             if common.blacklisted(uri, 'blacklist_'+self.name):
                 continue
+
+            storage, mimetype = common.uri_info(uri)
 
             payload = {'origin':         config['hostname'],
                        'actor':          config['actor_'+self.name],
@@ -121,7 +120,8 @@ class Browserlogger:
                 print "Not found in known subjects, sending full data"
                 self.subjects.add(subject['id'])
 
-                if config.has_key('fulltext') and config['fulltext']:
+                if ('text/' in mimetype and config.has_key('fulltext')
+                    and config['fulltext']):
                     subject['text'] = common.uri_to_text(uri, row[2])
                 else:
                     subject['text'] = row[2]
@@ -135,7 +135,11 @@ class Browserlogger:
             print "PAYLOAD:\n" + json_payload
 
             r = common.post_json(json_payload)
-            print "RESPONSE:\n" + r.text
+            print "RESPONSE:"
+            if r is not None:
+                r.text
+            else:
+                print "<None>"
             print "########################################################"
 
             self.events_sent = self.events_sent + 1 

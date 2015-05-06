@@ -24,34 +24,11 @@
 
 package fi.hiit.dime.data;
 
-import org.springframework.data.annotation.Id;
-import java.util.Date;
+//------------------------------------------------------------------------------
 
-/**
-   Base class for all DiMe data objects, i.e. data items uploaded to be stored.
-*/
-public class DiMeData {
-
-    /** Unique identifier in the database */
-    @Id
-    public String id;
-
-    /** Date and time when the object was first uploaded via the
-	external API. 
-     */
-    public Date timeCreated;
-
-    /** Date and time when the objects was last modified via the
-	external API.
-    */
-    public Date timeModified;
-
-    /** User associated with the object. */
-    public User user;
-
-    public DiMeData() {
-	// Set to current date and time
-	timeCreated = new Date();
-	timeModified = new Date();
-    }	
+public class Person extends DiMeData {
+    public String firstName;
+    public String surName;
+    public String emailAccount;  // e.g. "foo.bar@hiit.fi"
+    public String dimeAccount;   // e.g. "foobar@dime.hiit.fi"
 }

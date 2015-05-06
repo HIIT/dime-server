@@ -45,19 +45,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/data")
 public class DataController {
     // Mongodb repositories
-    private final ZgEventDAO zgEventDAO;
-    private final ZgSubjectDAO zgSubjectDAO;
+    private final EventDAO eventDAO;
+    private final InformationElementDAO infoElemDAO;
 
     @Autowired
-    DataController(ZgEventDAO zgEventDAO,
-		   ZgSubjectDAO zgSubjectDAO) {
-	this.zgEventDAO = zgEventDAO;
-	this.zgSubjectDAO = zgSubjectDAO;
+    DataController(EventDAO eventDAO,
+		   InformationElementDAO infoElemDAO) {
+	this.eventDAO = eventDAO;
+	this.infoElemDAO = infoElemDAO;
     }
 
-    @RequestMapping(value="/zgevent", method = RequestMethod.POST)
-    public ResponseEntity<ZgEvent> zgEvent(Authentication authentication, 
-					   @RequestBody ZgEvent input) {
+    @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
+    public ResponseEntity<DesktopEvent> documentEvent(Authentication authentication, 
+						      @RequestBody DesktopEvent input) {
 
 	CurrentUser currentUser = (CurrentUser)authentication.getPrincipal();
 	User user = currentUser.getUser();
@@ -76,25 +76,25 @@ public class DataController {
 	//     } 
 	// )
 
-	ZgSubject subject = input.subject;
-	if (subject != null) {
-	    subject.user = user;
-	    if (!subject.isStub()) {
-		zgSubjectDAO.save(subject);
-	    } else {
-		ZgSubject expandedSubject = 
-		    zgSubjectDAO.findById(subject.id);
-		if (expandedSubject != null) {
-		    System.out.println("Expanded subject for " + expandedSubject.uri);
-		    expandedSubject.text = null;
-		    input.subject = expandedSubject;
+	InformationElement res = input.targettedResource;
+	if (res != null) {
+	    if (!res.isStub()) {
+		res.user = user;
+		infoElemDAO.save(res);
+	    } else { // expand from if only a stub res was included
+		InformationElement expandedRes = infoElemDAO.findById(res.id);
+		if (expandedRes != null) {
+		    System.out.println("Expanded resouce for " + expandedRes.uri);
+		    // don't copy the text, takes too much space
+		    expandedRes.plainTextContent = null; 
+		    input.targettedResource = expandedRes;
 		}
 	    }
 	} 
-	zgEventDAO.save(input);
+	eventDAO.save(input);
 	
 	System.out.printf("Event for user %s from %s at %s [%s]\n",
 			  user.username, input.origin, date, input.actor);
-	return new ResponseEntity<ZgEvent>(input, HttpStatus.OK);
+	return new ResponseEntity<DesktopEvent>(input, HttpStatus.OK);
     }
 }

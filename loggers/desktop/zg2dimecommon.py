@@ -106,7 +106,7 @@ def post_json(payload):
     """HTTP POST JSON-format payload to DiMe."""
     headers = {'content-type': 'application/json'}
     try:
-        return requests.post(config['server_url']+"/data/zgevent",
+        return requests.post(config['server_url']+"/data/desktopevent",
                              data=payload,
                              headers=headers,
                              auth=(config['username'],
@@ -150,6 +150,26 @@ def uri_to_text(uri, alt_text=''):
         len(text)>config['maxtextlength_web']):
         text = text[0:config['maxtextlength_web']]
     return text
+
+# -----------------------------------------------------------------------
+
+def get_mimetype(fn):
+    shell_command = config['mimetype_command'] % fn
+    try:
+        mimetype = subprocess.check_output(shell_command,
+                                           shell=True)
+        return mimetype.rstrip()
+    except subprocess.CalledProcessError:
+        return "unknown"
+
+# -----------------------------------------------------------------------
+
+def ontology(entry):
+    if config.has_key(entry):
+        oitem = config[entry]
+        if config.has_key(oitem):
+            return config[oitem]
+    return '[unknown ontology entry]'
 
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
