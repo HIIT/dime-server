@@ -245,17 +245,17 @@ if __name__ == '__main__':
         recognized_app = False
         if (item_appl in config['modify_apps_timing']):
             recognized_app = True
-            event_interpretation = config['zg_i_modifyevent']
+            event_type = config['nuao_modificationevent']
         elif (item_appl in config['access_apps_timing']):
             recognized_app = True
-            event_interpretation = config['zg_i_accessevent']
+            event_type = config['nuao_usageevent']
 
         if not recognized_app:
             print "Application [%s] is not recognized, skipping" % item_appl
             continue
 
-        subject_interpretation = config['sd_i_document']
-        subject_manifestation  = config['sd_m_localfiledataobject']
+        document_type = config['nfo_document']
+        document_isa  = config['nfo_localfiledataobject']
 
         item_path = timing_item[u'path']
         if common.blacklisted(item_path, 'blacklist_timing'):
@@ -270,17 +270,15 @@ if __name__ == '__main__':
         if path_end>0:
             item_path = item_path[0:path_end]
 
-        storage = 'deleted'
         mimetype = 'unknown'
         uri_prefix = 'file://'
         text = ''
 
         if os.path.isfile(item_path):
-            storage = 'local'
             mimetype = common.get_mimetype(item_path)
 
             if mimetype == 'application/pdf':
-                subject_interpretation = config['sd_i_paginatedtextdocument']
+                document_type = config['nfo_paginatedtextdocument']
                 if config.has_key('pdftotext_timing') and config['pdftotext_timing']:
                     text = common.pdf_to_text(item_path)
             if mimetype == 'application/zip':
@@ -288,26 +286,24 @@ if __name__ == '__main__':
                 if (config.has_key('ext_to_mimetype') and
                     extension in config['ext_to_mimetype']):
                     mimetype = config['ext_to_mimetype'][extension]
-                if (config.has_key('ext_to_interpretation') and
-                    extension in config['ext_to_interpretation']):
-                    subject_interpretation = eval("config['" +
-                                                  config['ext_to_interpretation'][extension] +
+                if (config.has_key('ext_to_type') and
+                    extension in config['ext_to_type']):
+                    document_type = eval("config['" +
+                                                  config['ext_to_type'][extension] +
                                                   "']")
             elif 'text/' in mimetype:
                 if mimetype == 'text/x-python':
-                    subject_interpretation = config['sd_i_sourcecode']
+                    document_type = config['nfo_sourcecode']
                 else:
-                    subject_interpretation = config['sd_i_plaintextdocument']
+                    document_type = config['nfo_plaintextdocument']
                 with open (item_path, "r") as myfile:
                     text = myfile.read()
 
         elif item_appl == u'Evernote':
-            storage = 'internal'
             uri_prefix = 'evernote://'
 
         elif item_appl == u'Google Chrome':
-            subject_manifestation  = config['sd_m_remotefiledataobject']
-            storage = 'net'
+            document_isa  = config['nfo_remotefiledataobject']
             uri_prefix = ''
             text = common.uri_to_text(item_path)
 
@@ -316,24 +312,22 @@ if __name__ == '__main__':
         item_datetime = u'20'+sd[6:8]+u'-'+sd[3:5]+u'-'+sd[0:2]+u'T'+sd[9:11]+u':'+sd[12:14]+u':00+03:00'
         #print "[%s] => [%s]" % (sd, item_datetime)
 
-        payload = {'origin':                 config['hostname'],
-                   'actor':                  item_appl,
-                   'interpretation':         event_interpretation,
-                   'manifestation':          config['zg_m_useractivity'],
-                   'timestamp':              item_datetime}
+        payload = {'origin': config['hostname'],
+                   'actor':  item_appl,
+                   'type':   event_type,
+                   'start':  item_datetime}
             
-        subject = {'uri':            uri_prefix + item_path,
-                   'interpretation': subject_interpretation,
-                   'manifestation':  subject_manifestation,
-                   'mimetype':       mimetype,
-                   'storage':        storage}
+        document = {'uri':        uri_prefix + item_path,
+                    'type':       document_type,
+                    'isStoredAs': document_isa,
+                    'mimeType':   mimetype}
 
-        subject['id'] = common.to_json_sha1(subject)
-        payload['subject'] = {}
-        payload['subject']['id'] = subject['id']
+        document['id'] = common.to_json_sha1(document)
+        payload['targettedResource'] = {}
+        payload['targettedResource']['id'] = document['id']
         payload['id'] = common.to_json_sha1(payload)
-        subject['text'] = text
-        payload['subject'] = subject.copy()
+        document['plainTextContent'] = text
+        payload['targettedResource'] = document.copy()
 
         json_payload = common.payload_to_json(payload)
         if (json_payload == ''):
@@ -363,8 +357,8 @@ if __name__ == '__main__':
         data_item = {'id': item_id,
                      'item' : timing_item,
                      'response': {'id': r.json()['id'],
-                                  'time_created': r.json()['time_created'],
-                                  'time_modified': r.json()['time_modified']}}
+                                  'timeCreated': r.json()['timeCreated'],
+                                  'timeModified': r.json()['timeModified']}}
 
         data['items'].append(data_item)            
                          

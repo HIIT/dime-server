@@ -155,21 +155,21 @@ def process_config(config_file, v=True):
     process_config_string(parser, 'General', 'pdftotext_command', 'pdftotext_command', v)
 
     process_config_dict(parser, 'General', 'ext_mimetypes', 'ext_to_mimetype', v)
-    process_config_dict(parser, 'General', 'ext_interpretations', 'ext_to_interpretation', v)
+    process_config_dict(parser, 'General', 'ext_types', 'ext_to_type', v)
     
     # [DiMe]:
 
     process_config_string(parser, 'DiMe', 'server_url', 'server_url', v)
-    process_config_int(parser, 'DiMe', 'server_timeout', 'server_timeout', v)
+    process_config_int(parser,    'DiMe', 'server_timeout', 'server_timeout', v)
     process_config_string(parser, 'DiMe', 'username', 'username', v)
     process_config_string(parser, 'DiMe', 'password', 'password', v)
 
     # [Zeitgeist]:
 
     process_config_boolean(parser, 'Zeitgeist', 'use', 'use_zeitgeist', v)
-    process_config_int(parser, 'Zeitgeist', 'nevents', 'nevents', v)
+    process_config_int(parser,     'Zeitgeist', 'nevents', 'nevents', v)
     process_config_boolean(parser, 'Zeitgeist', 'pdftotext', 'pdftotext_zeitgeist', v)
-    process_config_int(parser, 'Zeitgeist', 'maxtextlength', 'maxtextlength_zg', v)
+    process_config_int(parser,     'Zeitgeist', 'maxtextlength', 'maxtextlength_zg', v)
 
     process_config_dict(parser, 'Zeitgeist', 'other_actors', 'actors', v)
 
@@ -178,12 +178,16 @@ def process_config(config_file, v=True):
     # [Browsers]:
 
     process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext', v)
-    process_config_string(parser, 'Browsers', 'fulltext_command', 'fulltext_command', v)
-    process_config_int(parser, 'Browsers', 'maxtextlength', 'maxtextlength_web', v)
-    process_config_string(parser, 'Browsers', 'event_interpretation', 'event_interpretation_browser', v)
-    process_config_string(parser, 'Browsers', 'event_manifestation', 'event_manifestation_browser', v)
-    process_config_string(parser, 'Browsers', 'subject_interpretation', 'subject_interpretation_browser', v)
-    process_config_string(parser, 'Browsers', 'subject_manifestation', 'subject_manifestation_browser', v)
+    process_config_string(parser,  'Browsers', 'fulltext_command', 'fulltext_command', v)
+    process_config_int(parser,     'Browsers', 'maxtextlength', 'maxtextlength_web', v)
+    process_config_string(parser,  'Browsers', 'event_interpretation',
+                          'event_interpretation_browser', v)
+    process_config_string(parser,  'Browsers', 'event_manifestation',
+                          'event_manifestation_browser', v)
+    process_config_string(parser,  'Browsers', 'subject_interpretation',
+                          'subject_interpretation_browser', v)
+    process_config_string(parser,  'Browsers', 'subject_manifestation',
+                          'subject_manifestation_browser', v)
 
     # [Chrome/Chromium/Firefox]:
 
