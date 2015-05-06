@@ -7,14 +7,17 @@ server_url: http://localhost:8080/api
 username: foo
 password: bar
 
+### LINUX-SPECIFIC: ###
+
 [Zeitgeist]
-use: yes
+use: no
 nevents: 10
-other_actors: acroread.desktop->Adobe Reader; kde4-okular.desktop->Okular
-#blacklist: secret.txt; passwords.txt
+other_actors: acroread.desktop->Adobe Reader; 
+	      kde4-okular.desktop->Okular
+#blacklist: secret.org; passwords.txt
 
 [Chrome]
-use: yes
+use: no
 interval: 60
 nevents: 10
 history_file: ~/.config/google-chrome/Default/History
@@ -36,8 +39,11 @@ history_file: ~/.mozilla/firefox/XXXXXXXX.default/places.sqlite
 use: no
 icon: ~/PATH/TO/DIME/loggers/desktop/ReKnow_logo_rgb_icon.png
 
+### MAC-SPECIFIC: ###
+
 [Timing]
 access_apps: Skim; Preview; Adobe Reader; Google Chrome
 modify_apps: Aquamacs; Word; Evernote; Excel; AppleScript Editor
 blacklist: localhost; chrome://
  
+###
