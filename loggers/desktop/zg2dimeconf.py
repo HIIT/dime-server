@@ -204,8 +204,8 @@ def process_config(config_file, v=True):
     # [Meetings]:
 
     process_config_string(parser, 'Meetings', 'event_type', 'event_type_meeting', v)
-    process_config_string(parser, 'Meetings', 'subject_type', 'subject_type_meeting', v)
-    process_config_string(parser, 'Meetings', 'subject_isa', 'subject_isa_meeting', v)
+    process_config_string(parser, 'Meetings', 'document_type', 'document_type_meeting', v)
+    process_config_string(parser, 'Meetings', 'document_isa', 'document_isa_meeting', v)
 
     # [Timing];
     process_config_path(parser, 'Timing', 'applescript_file', 'applescript_file', v)
