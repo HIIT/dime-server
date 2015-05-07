@@ -49,32 +49,34 @@ extend to multiple lines. An example:
 
 ### [DEFAULT]
 
-* `dimepath`: path to DiMe root, e.g. `~/dime-server`, **required**
+* `dimepath`: Path to DiMe root, e.g. `~/dime-server`.  This value can
+  then be used in other configuration options as `%(dimepath)s`.
+  **Required**
 
 ### [General]
 
-* `hostname`: determined automatically but can be overrided explicitly
-  here
+* `hostname`: Determined automatically but can be overrided explicitly
+  here.
 
 ### [DiMe]
 
-* `server_url`: URL address of the used DiMe server, **required**
-* `username`: DiMe username, **required**
-* `password`: DiMe password, **required**
+* `server_url`: URL address of the used DiMe server. **Required**
+* `username`: DiMe server username. **Required**
+* `password`: DiMe server password. **Required**
 
 ### [Zeitgeist]
 
 The Zeitgeist logging component monitors DBus for Zeitgeist events and
 sends them immediately to DiMe.
 
-* `use`: whether to use the Zeitgeist component
-* `nevents`: number of historical events to send at startup or when a
+* `use`: Whether to use the Zeitgeist component.
+* `nevents`: Number of historical events to send at startup or when a
   lost connection to the DiMe server is recovered. This is can be
   increased if the server is unreachable for longer periods of time.
-* `other_actors`: explicit mappings from Zeitgeist application labels
+* `other_actors`: Explicit mappings from Zeitgeist application labels
   (typically of format `*.desktop`) to real application names.  This
   might be needed for some more uncommon applications.
-* `blacklist`: list of substrings in URLs to discard.  Can be used to
+* `blacklist`: List of substrings in URLs to discard.  Can be used to
   blacklist files or directories from submission to DiMe.
 
 ### [Chrome/Chromium/Firefox]
@@ -85,13 +87,13 @@ regular intervals and send new items to DiMe.
 
 All have the following configuration options:
 
-* `use`: whether to use this particular logger 
-* `history_file`: path and filename of the history file, **required**
-* `interval`: update interval in seconds
-* `nevents`: number of most-recent items in the browser history to
+* `use`: Whether to use this particular logger.
+* `history_file`: Path and filename of the history file. **Required**
+* `interval`: Update interval in seconds.
+* `nevents`: Number of most-recent items in the browser history to
   consider. This is can be increased if the server is unreachable for
   longer periods of time.
-* `blacklist`: list of substrings in URLs to discard.  Can be used to
+* `blacklist`: List of substrings in URLs to discard.  Can be used to
   blacklist websites from submission to DiMe.
 
 ### [Indicator]
@@ -99,5 +101,6 @@ All have the following configuration options:
 An Ubuntu AppIndicator showing the state of the logger.  Probably will
 not work without the Unity desktop.
 
-* `use`: whether to use the indicator
-* `interval`: update interval in seconds
+* `use`: Whether to use the indicator.
+* `interval`: Update interval in seconds.
+* `icon`: Icon for the indicator.
