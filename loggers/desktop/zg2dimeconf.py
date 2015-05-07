@@ -180,14 +180,9 @@ def process_config(config_file, v=True):
     process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext', v)
     process_config_string(parser,  'Browsers', 'fulltext_command', 'fulltext_command', v)
     process_config_int(parser,     'Browsers', 'maxtextlength', 'maxtextlength_web', v)
-    process_config_string(parser,  'Browsers', 'event_interpretation',
-                          'event_interpretation_browser', v)
-    process_config_string(parser,  'Browsers', 'event_manifestation',
-                          'event_manifestation_browser', v)
-    process_config_string(parser,  'Browsers', 'subject_interpretation',
-                          'subject_interpretation_browser', v)
-    process_config_string(parser,  'Browsers', 'subject_manifestation',
-                          'subject_manifestation_browser', v)
+    process_config_string(parser,  'Browsers', 'event_type', 'event_type_browser', v)
+    process_config_string(parser,  'Browsers', 'document_type', 'document_type_browser', v)
+    process_config_string(parser,  'Browsers', 'document_isa', 'document_isa_browser', v)
 
     # [Chrome/Chromium/Firefox]:
 
