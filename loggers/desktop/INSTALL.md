@@ -31,8 +31,8 @@ example is provided as `user.ini.example`:
 
 There is also a second configuration file named `default.ini` for
 default values, but it should not be modified directly.  Use
-`user.ini` instead: all configuration options in `user.ini` take
-precedence over the defaults of `default.ini`.
+`user.ini` instead: all *non-list* configuration options in `user.ini`
+take precedence over the defaults of `default.ini`. 
 
 The configuration files are split into sections like `[Mysection]`.
 Each configuration option is a key,value pair formatted as `key:
@@ -40,7 +40,7 @@ value`.  All extra whitespace is removed.
 
 All lists in the configuration files use semicolons (`;`) to separate
 list items.  For dictionary maps, the format is `A->B`.  Lists can
-extend multiple lines. An example:
+extend to multiple lines. An example:
 
 	[Mysection]
 	mylist: foo; bar;
@@ -64,7 +64,10 @@ extend multiple lines. An example:
 
 ### [Zeitgeist]
 
-* `use`: whether to use the Zeitgeist document logging functionality
+The Zeitgeist logging component monitors DBus for Zeitgeist events and
+sends them immediately to DiMe.
+
+* `use`: whether to use the Zeitgeist component
 * `nevents`: number of historical events to send at startup or when a
   lost connection to the DiMe server is recovered. This is can be
   increased if the server is unreachable for longer periods of time.
@@ -76,10 +79,20 @@ extend multiple lines. An example:
 
 ### [Chrome/Chromium/Firefox]
 
-These browser loggers are independent and can be used simultaneously.
+These browser logging components are independent and can be used
+simultaneously.  They probe the browser-specific history file at
+regular intervals and send new items to DiMe.
+
 All have the following configuration options:
 
 * `use`: whether to use this particular logger 
+* `history_file`: path and filename of the history file, **required**
+* `interval`: update interval in seconds
+* `nevents`: number of most-recent items in the browser history to
+  consider. This is can be increased if the server is unreachable for
+  longer periods of time.
+* `blacklist`: list of substrings in URLs to discard.  Can be used to
+  blacklist websites from submission to DiMe.
 
 ### [Indicator]
 
@@ -87,4 +100,4 @@ An Ubuntu AppIndicator showing the state of the logger.  Probably will
 not work without the Unity desktop.
 
 * `use`: whether to use the indicator
-
+* `interval`: update interval in seconds
