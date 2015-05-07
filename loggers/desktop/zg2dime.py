@@ -80,8 +80,12 @@ def send_event(event):
     if common.blacklisted(filename, 'blacklist_zeitgeist'):
         return
 
+    document_isa = event.subjects[0].manifestation
     if filename.startswith('file://'):
         filename = filename[7:]
+        document_isa = common.o_match_replace(document_isa,
+                                              'nfo_filedataobject',
+                                              'nfo_localfiledataobject')
 
     payload = {'origin': config['hostname'],
                'actor':  map_actor(event.actor), 
@@ -90,7 +94,7 @@ def send_event(event):
 
     document = {'uri':              event.subjects[0].uri,
                 'type':             event.subjects[0].interpretation,
-                'isStoredAs':       event.subjects[0].manifestation,
+                'isStoredAs':       document_isa,
                 'mimeType':         event.subjects[0].mimetype,
                 'plainTextContent': event.subjects[0].text}
 
@@ -111,8 +115,6 @@ def send_event(event):
 
     if full_data:
         if os.path.isfile(filename):
-            document['storage'] = 'local'
-
             if document['mimeType'] == "" or document['mimeType'] == "unknown":
                 document['mimeType'] = common.get_mimetype(filename)
 
@@ -124,8 +126,6 @@ def send_event(event):
                     document['type'] = config['nfo_textdocument']
                 with open (filename, "r") as myfile:
                     document['plainTextContent'] = myfile.read()
-        else:
-            document['storage'] = 'deleted'
 
         if (config['maxtextlength_zg']>0 and
             len(document['plainTextContent'])>config['maxtextlength_zg']):
@@ -134,19 +134,11 @@ def send_event(event):
         payload['targettedResource'] = document.copy()
 
     json_payload = common.payload_to_json(payload)
-    print "PAYLOAD:\n" + json_payload
+    if (json_payload == ''):
+        print "Something went wrong in JSON conversion, skipping"
+        return
 
-    r = common.post_json(json_payload)
-    print "RESPONSE:"
-    if r is not None:
-        r.text
-    else:
-        print "<None>"
-    print "---------------------------------------------------------"
-
-    if r.status_code != common.requests.codes.ok:
-        print "Post to DiMe failed: error=[%s], message=[%s]" % (r.json()['error'],
-                                                                 r.json()['message'])
+    common.post_payload(json_payload)
 
     stats['zeitgeist']['events_sent'] = stats['zeitgeist']['events_sent'] + 1
     stats['zeitgeist']['data_sent'] = (stats['zeitgeist']['data_sent'] +

@@ -254,8 +254,8 @@ if __name__ == '__main__':
             print "Application [%s] is not recognized, skipping" % item_appl
             continue
 
-        document_type = config['nfo_document']
-        document_isa  = config['nfo_localfiledataobject']
+        document_type = common.o('nfo_document')
+        document_isa  = common.o('nfo_localfiledataobject')
 
         item_path = timing_item[u'path']
         if common.blacklisted(item_path, 'blacklist_timing'):
@@ -278,7 +278,7 @@ if __name__ == '__main__':
             mimetype = common.get_mimetype(item_path)
 
             if mimetype == 'application/pdf':
-                document_type = config['nfo_paginatedtextdocument']
+                document_type = common.o('nfo_paginatedtextdocument')
                 if config.has_key('pdftotext_timing') and config['pdftotext_timing']:
                     text = common.pdf_to_text(item_path)
             if mimetype == 'application/zip':
@@ -293,9 +293,9 @@ if __name__ == '__main__':
                                                   "']")
             elif 'text/' in mimetype:
                 if mimetype == 'text/x-python':
-                    document_type = config['nfo_sourcecode']
+                    document_type = common.o('nfo_sourcecode')
                 else:
-                    document_type = config['nfo_plaintextdocument']
+                    document_type = common.o('nfo_plaintextdocument')
                 with open (item_path, "r") as myfile:
                     text = myfile.read()
 
@@ -303,7 +303,7 @@ if __name__ == '__main__':
             uri_prefix = 'evernote://'
 
         elif item_appl == u'Google Chrome':
-            document_isa  = config['nfo_remotefiledataobject']
+            document_isa  = common.o('nfo_remotefiledataobject')
             uri_prefix = ''
             text = common.uri_to_text(item_path)
 
@@ -329,29 +329,14 @@ if __name__ == '__main__':
         document['plainTextContent'] = text
         payload['targettedResource'] = document.copy()
 
+        i = i+1
+
         json_payload = common.payload_to_json(payload)
         if (json_payload == ''):
             print "Something went wrong in JSON conversion, skipping"
             continue
-        print "PAYLOAD: " + str(type(json_payload))
-        print json_payload
 
-        r = common.post_json(json_payload)
-        if r is None:
-            break
-
-        print "RESPONSE: " + str(type(r.text))
-        try: 
-            print r.text.encode('utf-8')
-        except UnicodeEncodeError:
-            print "<UnicodeEncodeError>"
-        print "---------------------------------------------------------"
-
-        i = i+1
-
-        if r.status_code != common.requests.codes.ok:
-            print "Post to DiMe failed: error=[%s], message=[%s]" % (r.json()['error'],
-                                                                     r.json()['message'])
+        if not common.post_payload(json_payload):
             break
 
         data_item = {'id': item_id,
@@ -359,7 +344,7 @@ if __name__ == '__main__':
                      'response': {'id': r.json()['id'],
                                   'timeCreated': r.json()['timeCreated'],
                                   'timeModified': r.json()['timeModified']}}
-
+        
         data['items'].append(data_item)            
                          
         if debug:

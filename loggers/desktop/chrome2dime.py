@@ -23,7 +23,7 @@ class Browserlogger:
         self.debug = False
         self.old_history_file_sha1 = ''
         self.events = set()
-        self.subjects = set()
+        self.documents = set()
         self.events_sent = 0
         self.data_sent = 0
         self.latest = 0
@@ -48,7 +48,7 @@ class Browserlogger:
 
         print ("Starting the " + self.name + " logger on " + time.strftime("%c") + 
                " with " + str(len(self.events)) + " known events and"
-               " with " + str(len(self.subjects)) + " known subjects")
+               " with " + str(len(self.documents)) + " known documents")
 
         if not common.ping_server():
             print "No connection to DiMe server, exiting"
@@ -93,21 +93,19 @@ class Browserlogger:
 
             storage, mimetype = common.uri_info(uri)
 
-            payload = {'origin':         config['hostname'],
-                       'actor':          config['actor_'+self.name],
-                       'interpretation': config['event_interpretation_browser'],
-                       'manifestation':  config['event_manifestation_browser'],
-                       'timestamp':      datetime}
+            payload = {'origin': config['hostname'],
+                       'actor':  config['actor_'+self.name],
+                       'type':   common.o('event_type_browser'),
+                       'start':  datetime}
 
-            subject = {'uri':            uri,
-                       'interpretation': config['subject_interpretation_browser'],
-                       'manifestation':  config['subject_manifestation_browser'],
-                       'mimetype':       mimetype,
-                       'storage':        storage}
+            document = {'uri':       uri,
+                       'type':       common.o('document_type_browser'),
+                       'isStoredAs': common.o('document_isa_browser'),
+                       'mimeType':   mimetype}
 
-            subject['id'] = common.to_json_sha1(subject)
-            payload['subject'] = {}
-            payload['subject']['id'] = subject['id']
+            document['id'] = common.to_json_sha1(document)
+            payload['targettedResource'] = {}
+            payload['targettedResource']['id'] = document['id']
             payload['id'] = common.to_json_sha1(payload)
 
             if payload['id'] in self.events:
@@ -116,31 +114,24 @@ class Browserlogger:
             else:
                 self.events.add(payload['id'])
 
-            if not subject['id'] in self.subjects:
-                print "Not found in known subjects, sending full data"
-                self.subjects.add(subject['id'])
+            if not document['id'] in self.documents:
+                print "Not found in known documents, sending full data"
+                self.documents.add(document['id'])
 
                 if ('text/' in mimetype and config.has_key('fulltext')
                     and config['fulltext']):
-                    subject['text'] = common.uri_to_text(uri, row[2])
+                    document['plainTextContent'] = common.uri_to_text(uri, row[2])
                 else:
-                    subject['text'] = row[2]
+                    document['plainTextContent'] = row[2]
 
-                payload['subject'] = subject.copy()
+                payload['targettedResource'] = document.copy()
 
             json_payload = common.payload_to_json(payload, row[2])
             if (json_payload == ''):
                 print "Something went wrong in JSON conversion, skipping"
                 continue
-            print "PAYLOAD:\n" + json_payload
 
-            r = common.post_json(json_payload)
-            print "RESPONSE:"
-            if r is not None:
-                r.text
-            else:
-                print "<None>"
-            print "########################################################"
+            common.post_payload(json_payload)
 
             self.events_sent = self.events_sent + 1 
             self.data_sent = self.data_sent + len(json_payload)

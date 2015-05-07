@@ -26,7 +26,7 @@ def str_to_sha1(json_payload):
 
 # -----------------------------------------------------------------------
 
-def payload_to_json(payload, alt_text=None):
+def _payload_to_json(payload, alt_text):
     try:
         return json.dumps(payload)
     except UnicodeDecodeError:
@@ -52,6 +52,12 @@ def payload_to_json(payload, alt_text=None):
         pass
 
     return ''
+
+def payload_to_json(payload, alt_text=None):
+    json_payload = _payload_to_json(payload, alt_text)
+    print "PAYLOAD: " + str(type(json_payload))
+    print json_payload
+    return json_payload
 
 # -----------------------------------------------------------------------
 
@@ -117,6 +123,51 @@ def post_json(payload):
 
 # -----------------------------------------------------------------------
 
+def _post_payload(payload):
+    r = post_json(payload)
+    print "RESPONSE:"
+    if r is None:
+        print "<None>"
+        return False
+
+    try: 
+        print r.text.encode('utf-8')
+    except UnicodeEncodeError:
+        print "<UnicodeEncodeError>"
+
+    if r.status_code != requests.codes.ok:
+        print ("Post to DiMe failed: "
+               "error=[%s], message=[%s]") % (r.json()['error'],
+                                              r.json()['message'])
+        return False
+        
+    return False
+
+def post_payload(payload):
+    res = _post_payload(payload)
+    print "---###---###---###---###---###---###---###---###---###---###---"
+    print ""
+    return res
+
+# -----------------------------------------------------------------------
+
+def uri_info(uri):
+    """HTTP HEAD request for uri."""
+    if uri.startswith('file://'):
+        return ('local', get_mimetype(uri[7:]))
+
+    try:
+        r = requests.head(uri)
+    except requests.exceptions.RequestException:
+        return ('deleted', 'unknown')
+
+    if r.status_code != requests.codes.ok:
+        return ('deleted', 'unknown')
+
+    return ('net', r.headers['content-type'])
+
+# -----------------------------------------------------------------------
+
 def blacklisted(item, blacklist):
     """Check if item matches (has as substring) a blacklisted string."""
     if not config.has_key(blacklist):
@@ -164,12 +215,26 @@ def get_mimetype(fn):
 
 # -----------------------------------------------------------------------
 
-def ontology(entry):
+def o(entry):
+    """Safe ontology item access, up to two levels."""
     if config.has_key(entry):
         oitem = config[entry]
         if config.has_key(oitem):
             return config[oitem]
-    return '[unknown ontology entry]'
+        return oitem
+    return '[unknown ontology entry: %s]' % entry
+
+# -----------------------------------------------------------------------
+
+def o_match_replace(target, o_from, o_to):
+    """Replace target with o_to if it matches o_from."""
+    o_from = o(o_from)
+    idxhash = o_from.rfind('#')
+    if idxhash<0:
+        return target
+    if o_from[idxhash:] in target:
+        return o(o_to)
+    return target
 
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
