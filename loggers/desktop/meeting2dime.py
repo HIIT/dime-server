@@ -51,12 +51,12 @@ def create_payload(epoch, uri, fn):
 
     payload = {'origin': config['hostname'],
                'actor':  'meeting2dime.py',
-               'type':   common.ontology('event_type_meeting'),
+               'type':   common.o('event_type_meeting'),
                'start':  datetime+tz}
     
     document = {'uri':        uri,
-                'type':       common.ontology('document_type_meeting'),
-                'isStoredAs': common.ontology('document_isa_meeting'),
+                'type':       common.o('document_type_meeting'),
+                'isStoredAs': common.o('document_isa_meeting'),
                 'mimeType':   'unknown'}
     
     document['id'] = common.to_json_sha1(document)
