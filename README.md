@@ -70,7 +70,13 @@ This repository currently includes the following loggers:
 
 - [Installation instructions][3]
 
+### Mac desktop logger
+
+- [Installation instructions][5]
+
 [1]: http://docs.mongodb.org/v2.4/tutorial/enable-text-search/
 [2]: http://www.mongodb.org/
-[3]: https://github.com/HIIT/dime-server/blob/master/loggers/desktop/INSTALL.md
+[3]: https://github.com/HIIT/dime-server/wiki/Linux-desktop
 [4]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+[5]: https://github.com/HIIT/dime-server/wiki/Mac-desktop
+
