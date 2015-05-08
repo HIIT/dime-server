@@ -355,6 +355,7 @@ if __name__ == '__main__':
             break
 
     print "Processed %d entries, submitted %s entries" % (j, i)
+    print "Finishing the timing2dime.py logger on " + time.strftime("%c")
 
     exit(True, "all ok") 
 
