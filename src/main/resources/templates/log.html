@@ -21,6 +21,12 @@
 	    <b>Type:</b> <a th:href="${event.type}" 
 			    th:text="${#strings.substringAfter(event.type,'#')}"></a>
 	    <b>Time:</b> <span th:text="${event.start}"></span><br/><br/>
+
+	    <span th:if="${event instanceof T(fi.hiit.dime.data.SearchEvent)}">
+	      <b>Query:</b> <span th:text="${event.query}"></span><br/><br/>
+	    </span>
+
+	    <span th:if="${event instanceof T(fi.hiit.dime.data.DesktopEvent)}">
 	    <div th:if="${event.targettedResource}">
 	      <b>Information element:</b><br/>
 	      <b>ID:</b> <a th:href="@{/infoelem(id=${event.targettedResource.id})}" th:text="${event.targettedResource.id}"></a>
@@ -36,7 +42,8 @@
 	      </span>
 	      <!-- <b>Mimetype:</b> <span th:text="${event.targettedResource.mimeType}"></span> -->
 	      <b>Text content:</b> <pre th:text="${#strings.abbreviate(event.targettedResource.plainTextContent,500)}"></pre><br/>
-	      </div>
+	    </div>
+	    </span>
 	  </p>
 	</span>
       </div>
