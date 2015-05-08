@@ -30,6 +30,8 @@ import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +46,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/data")
 public class DataController {
+    private static final Logger LOG = 
+	LoggerFactory.getLogger(ApiController.class);
+
     // Mongodb repositories
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
@@ -55,28 +60,45 @@ public class DataController {
 	this.infoElemDAO = infoElemDAO;
     }
 
-    @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
-    public ResponseEntity<DesktopEvent> documentEvent(Authentication authentication, 
-						      @RequestBody DesktopEvent input) {
+    //--------------------------------------------------------------------------
 
-	CurrentUser currentUser = (CurrentUser)authentication.getPrincipal();
-	User user = currentUser.getUser();
-	
-	Date date = new Date();
+    protected void eventLog(String eventName, User user, Event input) {
+	LOG.info("{} for user {} from {} at {}, with actor {}",
+		 eventName, user.username, input.origin, new Date(), input.actor);
+    }
 
+    //--------------------------------------------------------------------------
+
+    protected User getUser(Authentication auth) {
+	CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
+	return currentUser.getUser();
+    }
+
+    //--------------------------------------------------------------------------
+
+    @RequestMapping(value="/searchevent", method = RequestMethod.POST)
+    public ResponseEntity<SearchEvent> searchEvent(Authentication auth, 
+						   @RequestBody SearchEvent input) {
+	User user = getUser(auth);
 	input.user = user;
 
-	// FIXME: add needed fields here, e.g. uri:
-	//
-	// db.zgEvent.find( { "subject.uri": null}).forEach(
-	//     function(e) { 
-	// 	x=db.zgSubject.findOne({_id: e.subject._id}); 
-	// 	db.zgEvent.update({ '_id': e._id }, 
-	// 			  { $set: { 'subject.uri': x.uri } } );
-	//     } 
-	// )
+	eventDAO.save(input);
+
+	eventLog("SearchEvent", user, input);
+	return new ResponseEntity<SearchEvent>(input, HttpStatus.OK);
+    }
+
+    //--------------------------------------------------------------------------
+
+    @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
+    public ResponseEntity<DesktopEvent> documentEvent(Authentication auth, 
+						      @RequestBody DesktopEvent input) {
+	User user = getUser(auth);
+	input.user = user;
 
 	InformationElement res = input.targettedResource;
+
+	// FIXME this should probably be generalised into its own function
 	if (res != null) {
 	    if (!res.isStub()) {
 		res.user = user;
@@ -84,17 +106,17 @@ public class DataController {
 	    } else { // expand from if only a stub res was included
 		InformationElement expandedRes = infoElemDAO.findById(res.id);
 		if (expandedRes != null) {
-		    System.out.println("Expanded resouce for " + expandedRes.uri);
+		    LOG.info("Expanded resouce for " + expandedRes.uri);
 		    // don't copy the text, takes too much space
 		    expandedRes.plainTextContent = null; 
 		    input.targettedResource = expandedRes;
 		}
 	    }
 	} 
+
 	eventDAO.save(input);
 	
-	System.out.printf("Event for user %s from %s at %s [%s]\n",
-			  user.username, input.origin, date, input.actor);
+	eventLog("DesktopEvent", user, input);
 	return new ResponseEntity<DesktopEvent>(input, HttpStatus.OK);
     }
 }
