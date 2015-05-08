@@ -193,6 +193,7 @@ if __name__ == '__main__':
             statusmode = True
         else:
             forced_id = sys.argv[-1]
+            print "Forced ID [%s] specified" % forced_id
 
     data = load_data()
     if data is None:
@@ -232,8 +233,11 @@ if __name__ == '__main__':
         j=j+1
         item_id = common.to_json_sha1(timing_item)
 
-        if forced_id is not None and item_id != forced_id:
-            continue
+        if forced_id is not None:
+            if item_id == forced_id:
+                print "Forced ID found"
+            else:
+                continue
 
         if forced_id is None:
             known_item = False
