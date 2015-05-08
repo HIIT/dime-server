@@ -153,6 +153,7 @@ def process_config(config_file, v=True):
     process_config_string(parser, 'General', 'uuid_command_mac', 'uuid_command_mac', v)
     process_config_string(parser, 'General', 'mimetype_command', 'mimetype_command', v)
     process_config_string(parser, 'General', 'pdftotext_command', 'pdftotext_command', v)
+    process_config_string(parser, 'General', 'fulltext_command', 'fulltext_command', v)
 
     process_config_dict(parser, 'General', 'ext_mimetypes', 'ext_to_mimetype', v)
     process_config_dict(parser, 'General', 'ext_types', 'ext_to_type', v)
@@ -178,7 +179,6 @@ def process_config(config_file, v=True):
     # [Browsers]:
 
     process_config_boolean(parser, 'Browsers', 'fulltext', 'fulltext', v)
-    process_config_string(parser,  'Browsers', 'fulltext_command', 'fulltext_command', v)
     process_config_int(parser,     'Browsers', 'maxtextlength', 'maxtextlength_web', v)
     process_config_string(parser,  'Browsers', 'event_type', 'event_type_browser', v)
     process_config_string(parser,  'Browsers', 'document_type', 'document_type_browser', v)
