@@ -175,10 +175,14 @@ if __name__ == '__main__':
     print "Starting the timing2dime.py logger on " + time.strftime("%c")
     print "------------------------------------------------------------------------------"
 
+    if len(sys.argv)>1:
+        if sys.argv[-1] == 'confonly':
+            conf.configure(True)
+            sys.exit()
+
     conf.configure(False)
 
-    debug = False
-    statusmode = False
+    (debug, statusmode) = (False, False)
     forced_id = None
     if len(sys.argv)>1:
         if sys.argv[-1] == 'debug':
@@ -247,7 +251,7 @@ if __name__ == '__main__':
         if (item_appl in config['modify_apps_timing']):
             recognized_app = True
             event_type = config['nuao_modificationevent']
-        elif (item_appl in config['access_apps_timing']):
+        elif (item_appl in config['usage_apps_timing']):
             recognized_app = True
             event_type = config['nuao_usageevent']
 
