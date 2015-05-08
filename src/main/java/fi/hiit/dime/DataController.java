@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/data")
 public class DataController {
     private static final Logger LOG = 
-	LoggerFactory.getLogger(ApiController.class);
+	LoggerFactory.getLogger(DataController.class);
 
     // Mongodb repositories
     private final EventDAO eventDAO;

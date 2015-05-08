@@ -31,6 +31,7 @@ import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.data.User;
+import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.database.*;
 import java.util.List;
@@ -49,6 +50,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //------------------------------------------------------------------------------
 
@@ -88,6 +91,8 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "root";
     }
 
+    //--------------------------------------------------------------------------
+
     /** Show log of all data */
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
@@ -96,8 +101,37 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "log";
     }
 
-    /** Search page */
+    //--------------------------------------------------------------------------
 
+    /** Show a specific event */
+    @RequestMapping("/event")
+    public String event(Authentication authentication, Model model,
+		      @RequestParam(value="id") String eventId) {
+	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	Event event = eventDAO.findById(eventId);
+
+	if (event.user.id.equals(userId))
+	    model.addAttribute("event", event);
+        return "event";
+    }
+
+    //--------------------------------------------------------------------------
+
+    /** Show a specific information element */
+    @RequestMapping("/infoelem")
+    public String infoElem(Authentication authentication, Model model,
+			   @RequestParam(value="id") String elemId) {
+	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	InformationElement elem = infoElemDAO.findById(elemId);
+
+	if (elem.user.id.equals(userId))
+	    model.addAttribute("elem", elem);
+        return "infoelem";
+    }
+
+    //--------------------------------------------------------------------------
+
+    /** Search page */
     @RequestMapping("/search")
     public String search(@ModelAttribute SearchQuery search,
 			 Authentication authentication,

@@ -2,20 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="bootstrap :: head"></head>
 <body>
-  <div th:replace="bootstrap :: navbar (log)"></div>
+  <div th:replace="bootstrap :: navbar (event)"></div>
 
     <div class="container">
 
       <div class="starter-template">
 
-	<h1 th:text="'Digital Work Me with ' + ${events.size()} + ' entries'"></h1>
-        <h2 th:text="'Hello ' + ${currentUser.username} + '!'"></h2>
-
-	<span th:each="event,iterStat : ${events}">
-	  <hr/>
 	  <p>
-	    [<span th:text="${iterStat.index}"></span>] <b>ID:</b> 
-	    <a th:href="@{/event(id=${event.id})}" th:text="${event.id}"></a>
+	    <b>ID:</b> <a th:href="@{/event(id=${event.id})}" th:text="${event.id}"></a>
 	    <b>Origin:</b> <span th:text="${event.origin}"></span>
 	    <b>Actor:</b> <span th:text="${event.actor}"></span><br/>
 	    <b>Type:</b> <a th:href="${event.type}" 
@@ -38,7 +32,6 @@
 	      <b>Text content:</b> <pre th:text="${#strings.abbreviate(event.targettedResource.plainTextContent,500)}"></pre><br/>
 	      </div>
 	  </p>
-	</span>
       </div>
     </div>
     

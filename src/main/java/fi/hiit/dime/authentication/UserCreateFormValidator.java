@@ -24,6 +24,8 @@
 
 package fi.hiit.dime.authentication;
 
+//------------------------------------------------------------------------------
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -31,9 +33,11 @@ import org.springframework.validation.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//------------------------------------------------------------------------------
+
 @Component
 public class UserCreateFormValidator implements Validator {
-    private static final Logger LOG = LoggerFactory.getLogger(UserCreateForm.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserCreateFormValidator.class);
     private static final int MIN_PASSWORD_LENGTH = 3;
 
     private final UserService userService;

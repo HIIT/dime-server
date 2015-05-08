@@ -30,23 +30,26 @@ import fi.hiit.dime.data.Event;
 import java.util.Date;
 import java.util.List;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-// import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
-import org.springframework.stereotype.Repository;
 
 //------------------------------------------------------------------------------
 
 @Repository
 public class EventDAO extends BaseDAO<Event> {
+    private static final Logger LOG = 
+	LoggerFactory.getLogger(EventDAO.class);
 
     @Override
     public String collectionName() { 
@@ -93,6 +96,12 @@ public class EventDAO extends BaseDAO<Event> {
     }
 
     //--------------------------------------------------------------------------
+
+    public Event findById(String id) {
+    	return operations.findById(id, Event.class, collectionName());
+    }
+
+    //------------------------------------------------------------------------------
 
     public List<Event> eventsForUser(String id) {
 	ensureIndex("start");
