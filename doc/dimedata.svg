@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created by diasvg.py -->
+<svg width="77.605cm" height="22.900cm" viewBox="-28.050 1.000 49.555 23.900"
+ xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+<rect x="21.850" y="1.050" width="5.890" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="21.850" y="1.050" width="5.890" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="24.795" y="2.000"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+DiMeData</text>
+<rect x="21.850" y="2.450" width="5.890" height="2.600" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="21.850" y="2.450" width="5.890" height="2.600" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="22.000" y="3.150"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++id</text>
+<text x="22.000" y="3.950"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++time_created</text>
+<text x="22.000" y="4.750"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++time_modified</text>
+<rect x="6.000" y="19.050" width="15.130" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="6.000" y="19.050" width="15.130" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="13.565" y="20.000"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+DesktopEvent</text>
+<rect x="6.000" y="20.450" width="15.130" height="1.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="6.000" y="20.450" width="15.130" height="1.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="6.150" y="21.150"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++targettedResource: InformationElement</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="7.560,17.362 7.560,18.125 13.565,18.125 13.565,19.000 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<rect x="23.000" y="19.100" width="5.087" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="23.000" y="19.100" width="5.087" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="25.544" y="20.050"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Document</text>
+<rect x="23.000" y="20.500" width="5.087" height="1.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="23.000" y="20.500" width="5.087" height="1.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.150" y="21.200"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++mimeType</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="27.751,14.962 27.751,16.950 25.544,16.950 25.544,19.050 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="28.151,14.962 27.751,14.162 27.351,14.962 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="28.151,14.962 27.751,14.162 27.351,14.962 "/>
+<rect x="5.000" y="10.000" width="5.120" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="5.000" y="10.000" width="5.120" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="7.560" y="10.950"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Event</text>
+<rect x="5.000" y="11.400" width="5.120" height="5.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="5.000" y="11.400" width="5.120" height="5.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="5.150" y="12.100"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++actor</text>
+<text x="5.150" y="12.900"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++origin</text>
+<text x="5.150" y="13.700"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++type</text>
+<text x="5.150" y="14.500"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++start: Date</text>
+<text x="5.150" y="15.300"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++end: Date</text>
+<text x="5.150" y="16.100"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++duration</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="24.795,6.012 24.795,7.925 7.560,7.925 7.560,9.950 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="25.195,6.012 24.795,5.212 24.395,6.012 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="25.195,6.012 24.795,5.212 24.395,6.012 "/>
+<rect x="23.000" y="10.000" width="9.502" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="23.000" y="10.000" width="9.502" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="27.751" y="10.950"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+InformationElement</text>
+<rect x="23.000" y="11.400" width="9.502" height="2.600" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="23.000" y="11.400" width="9.502" height="2.600" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.150" y="12.100"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++uri</text>
+<text x="23.150" y="12.900"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++plainTextContent</text>
+<text x="23.150" y="13.700"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++isStoredAs</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="24.795,6.012 24.795,7.925 27.751,7.925 27.751,9.950 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="25.195,6.012 24.795,5.212 24.395,6.012 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="25.195,6.012 24.795,5.212 24.395,6.012 "/>
+<rect x="44.000" y="10.000" width="5.505" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="44.000" y="10.000" width="5.505" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="46.752" y="10.950"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Person</text>
+<rect x="44.000" y="11.400" width="5.505" height="3.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="44.000" y="11.400" width="5.505" height="3.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="44.150" y="12.100"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++firstName</text>
+<text x="44.150" y="12.900"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++surname</text>
+<text x="44.150" y="13.700"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++emailAccount</text>
+<text x="44.150" y="14.500"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++dimeAccount</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="24.795,6.012 24.795,7.925 46.752,7.925 46.752,9.950 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="25.195,6.012 24.795,5.212 24.395,6.012 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="25.195,6.012 24.795,5.212 24.395,6.012 "/>
+<rect x="39.000" y="19.100" width="5.120" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="39.000" y="19.100" width="5.120" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="41.560" y="20.050"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+Message</text>
+<rect x="39.000" y="20.500" width="5.120" height="2.600" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="39.000" y="20.500" width="5.120" height="2.600" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="39.150" y="21.200"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++date</text>
+<text x="39.150" y="22.000"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++subject</text>
+<text x="39.150" y="22.800"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++attachments</text>
+<rect x="31.000" y="19.100" width="4.345" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="31.000" y="19.100" width="4.345" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="33.172" y="20.050"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+LivePost</text>
+<rect x="31.000" y="20.500" width="4.345" height="1.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="31.000" y="20.500" width="4.345" height="1.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="31.150" y="21.200"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++location</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="27.751,14.962 27.751,16.950 33.172,16.950 33.172,19.050 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="28.151,14.962 27.751,14.162 27.351,14.962 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="28.151,14.962 27.751,14.162 27.351,14.962 "/>
+<rect x="-28.000" y="19.100" width="7.045" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-28.000" y="19.100" width="7.045" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-24.477" y="20.050"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+PhysicalEvent</text>
+<rect x="-28.000" y="20.500" width="7.045" height="1.800" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-28.000" y="20.500" width="7.045" height="1.800" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-27.850" y="21.200"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++sampleRate</text>
+<text x="-27.850" y="22.000"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++data: double[][]</text>
+<rect x="-13.000" y="19.050" width="7.430" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-13.000" y="19.050" width="7.430" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-9.285" y="20.000"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+LivePostEvent</text>
+<rect x="-13.000" y="20.450" width="7.430" height="2.600" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-13.000" y="20.450" width="7.430" height="2.600" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-12.850" y="21.150"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++from: Person</text>
+<text x="-12.850" y="21.950"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++to: Person[]</text>
+<text x="-12.850" y="22.750"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++subject: LivePost</text>
+<rect x="-3.000" y="19.050" width="7.045" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-3.000" y="19.050" width="7.045" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="0.522" y="20.000"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+MessageEvent</text>
+<rect x="-3.000" y="20.450" width="7.045" height="3.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-3.000" y="20.450" width="7.045" height="3.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-2.850" y="21.150"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++from: Person</text>
+<text x="-2.850" y="21.950"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++to: Person[]</text>
+<text x="-2.850" y="22.750"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++cc: Person[]</text>
+<text x="-2.850" y="23.550"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++subject: Message</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="27.751,14.962 27.751,16.950 41.560,16.950 41.560,19.050 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="28.151,14.962 27.751,14.162 27.351,14.962 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="28.151,14.962 27.751,14.162 27.351,14.962 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="7.560,17.362 7.560,18.125 0.522,18.125 0.522,19.000 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="7.560,17.362 7.560,18.125 -9.285,18.125 -9.285,19.000 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="7.560,17.362 7.560,18.150 -24.477,18.150 -24.477,19.050 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<rect x="-20.000" y="19.050" width="6.162" height="1.400" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-20.000" y="19.050" width="6.162" height="1.400" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-16.919" y="20.000"  fill="#000000" text-anchor="middle" font-size="1.00" font-family="sans" font-style="normal" font-weight="700">
+SearchEvent</text>
+<rect x="-20.000" y="20.450" width="6.162" height="1.000" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-20.000" y="20.450" width="6.162" height="1.000" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-19.850" y="21.150"  fill="#000000" text-anchor="start" font-size="0.80" font-family="monospace" font-style="normal" font-weight="400">
++query</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="7.560,17.362 7.560,18.125 -16.919,18.125 -16.919,19.000 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="7.960,17.362 7.560,16.562 7.160,17.362 "/>
+</svg>
