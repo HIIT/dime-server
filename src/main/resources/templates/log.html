@@ -19,23 +19,23 @@
 	    <b>Origin:</b> <span th:text="${event.origin}"></span>
 	    <b>Actor:</b> <span th:text="${event.actor}"></span><br/>
 	    <b>Type:</b> <a th:href="${event.type}" 
-			    th:text="${#strings.substringAfter(event.type,'#')}"></a><br/>
+			    th:text="${#strings.substringAfter(event.type,'#')}"></a>
 	    <b>Time:</b> <span th:text="${event.start}"></span><br/><br/>
 	    <div th:if="${event.targettedResource}">
-	      <b>TargettedResource:</b><br/>
+	      <b>Information element:</b><br/>
 	      <b>ID:</b> <span th:text="${event.targettedResource.id}"></span>
 	      <b>URI:</b> <a th:href="${event.targettedResource.uri}" 
 			     th:text="${event.targettedResource.uri}"></a><br/>
 	      <span th:if="${event.targettedResource.type}">
 		<b>Type:</b> <a th:href="${event.targettedResource.type}" 
-				th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></a><br/>
+				th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></a>
 	      </span>
 	      <span th:if="${event.targettedResource.isStoredAs}">
-		<b>IsStoredAs:</b> <a th:href="${event.targettedResource.isStoredAs}" 
+		<b>Stored as:</b> <a th:href="${event.targettedResource.isStoredAs}" 
 				      th:text="${#strings.substringAfter(event.targettedResource.isStoredAs,'#')}"></a><br/>
 	      </span>
 	      <!-- <b>Mimetype:</b> <span th:text="${event.targettedResource.mimeType}"></span> -->
-	      <b>Text:</b> <pre th:text="${#strings.abbreviate(event.targettedResource.plainTextContent,500)}"></pre><br/>
+	      <b>Text content:</b> <pre th:text="${#strings.abbreviate(event.targettedResource.plainTextContent,500)}"></pre><br/>
 	      </div>
 	  </p>
 	</span>
