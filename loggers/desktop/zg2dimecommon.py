@@ -206,6 +206,8 @@ def uri_to_text(uri, alt_text=''):
     try:
         text = subprocess.check_output(lynx_command, shell=True)
     except subprocess.CalledProcessError:
+        print ("WARNING: uri_to_text(): CalledProcessError for: "+
+               lynx_command)
         text = alt_text
     if (config['maxtextlength_web']>0 and
         len(text)>config['maxtextlength_web']):
