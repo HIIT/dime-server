@@ -222,6 +222,7 @@ if __name__ == '__main__':
     data['timingfile_id'] = timing_id
 
     i = 0; j = 0
+    print "Processing %d items from %s" % (len(timing_data_json), config['timingfile'])
     for timing_item in timing_data_json:
 
         j=j+1
@@ -336,8 +337,11 @@ if __name__ == '__main__':
             print "Something went wrong in JSON conversion, skipping"
             continue
 
-        if not common.post_payload(json_payload):
+        r = common.post_json(json_payload)
+        if not common.check_response(r):
             break
+        print "---###---###---###---###---###---###---###---###---###---###---"
+        print ""
 
         data_item = {'id': item_id,
                      'item' : timing_item,

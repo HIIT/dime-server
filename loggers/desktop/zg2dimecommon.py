@@ -123,8 +123,24 @@ def post_json(payload):
 
 # -----------------------------------------------------------------------
 
+def post_payload(payload):
+    """Send payload to DiMe and check response.
+
+    Use this if DiMe response is not needed for anything else.
+    """
+    res = _post_payload(payload)
+    print "---###---###---###---###---###---###---###---###---###---###---"
+    print ""
+    return res
+
 def _post_payload(payload):
     r = post_json(payload)
+    return check_response(r)
+
+# -----------------------------------------------------------------------
+
+def check_response(r):
+    """Check response from DiMe, returns boolean."""
     print "RESPONSE:"
     if r is None:
         print "<None>"
@@ -141,13 +157,7 @@ def _post_payload(payload):
                                               r.json()['message'])
         return False
         
-    return False
-
-def post_payload(payload):
-    res = _post_payload(payload)
-    print "---###---###---###---###---###---###---###---###---###---###---"
-    print ""
-    return res
+    return True
 
 # -----------------------------------------------------------------------
 
