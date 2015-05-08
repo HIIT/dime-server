@@ -209,7 +209,7 @@ def process_config(config_file, v=True):
     process_config_path(parser, 'Timing', 'timingfile', 'timingfile', v)
     process_config_boolean(parser, 'Timing', 'pdftotext', 'pdftotext_timing', v)
     
-    process_timing_applist(parser, 'access_apps', v)
+    process_timing_applist(parser, 'usage_apps', v)
     process_timing_applist(parser, 'modify_apps', v)
 
     process_blacklist(parser, 'Timing', 'timing', v)
