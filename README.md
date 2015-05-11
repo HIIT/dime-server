@@ -20,6 +20,16 @@ package manager if possible, e.g. for Ubuntu or Debian:
 
     sudo apt-get install mongodb openjdk-7-jdk
 
+on OS X, use either Homebrew or Macports:
+
+    brew install mongod
+    sudo port install mongodb
+
+
+Remember to start mongod if it is not running, e.g.
+
+    mkdir ~/mongodata
+    mongod --dbpath ~/mongodata/
 
 ### Compile
 
@@ -79,4 +89,5 @@ This repository currently includes the following loggers:
 [3]: https://github.com/HIIT/dime-server/wiki/Linux-desktop
 [4]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 [5]: https://github.com/HIIT/dime-server/wiki/Mac-desktop
-
+[6]: http://brew.sh/
+[7]: https://www.macports.org/
