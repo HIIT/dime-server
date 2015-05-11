@@ -350,6 +350,10 @@ if __name__ == '__main__':
             uri_prefix = ''
             text = common.uri_to_text(item_path)
 
+        if (config['maxtextlength_timing']>0 and
+            len(text)>config['maxtextlength_timing']):
+            text = text[0:config['maxtextlength_timing']]
+
         print "Submitting: %s [%s]" % (timing_item, item_id)
 
         item_datetime = convert_date(timing_item[u'startDate'])
