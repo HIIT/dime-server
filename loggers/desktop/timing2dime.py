@@ -127,6 +127,21 @@ def print_status():
 
 # -----------------------------------------------------------------------
 
+def print_json(data, app):
+    if app is None:
+        print "Showing all Timing JSON entries:"
+    else:
+        print "Showing Timing JSON entries for " + app + ":"
+    i = 0
+    for item in data:
+        if app is not None and item[u'application'] != app:
+            continue
+        i=i+1
+        print "[%d] %s: %s (%s)" % (i, item[u'application'], item[u'path'],
+                                    convert_date(item[u'startDate']))
+
+# -----------------------------------------------------------------------
+
 def check_ping():
     pingstring = ("Pinging DiMe server at location: " +
                   config['server_url'] + " : ")
@@ -136,6 +151,13 @@ def check_ping():
 
     print pingstring + "FAILED"
     return False
+
+# -----------------------------------------------------------------------
+
+## This should support timezones:
+def convert_date(sd):
+    return (u'20'+sd[6:8]+u'-'+sd[3:5]+u'-'+sd[0:2]+
+            u'T'+sd[9:11]+u':'+sd[12:14]+u':00+03:00')
 
 # -----------------------------------------------------------------------
 
@@ -182,7 +204,8 @@ if __name__ == '__main__':
 
     conf.configure(False)
 
-    (debug, statusmode) = (False, False)
+    (debug, statusmode, showjsonmode) = (False, False, False)
+    jsonmode_app = None
     forced_id = None
     if len(sys.argv)>1:
         if sys.argv[-1] == 'debug':
@@ -191,6 +214,11 @@ if __name__ == '__main__':
             debug = True
         elif sys.argv[-1] == 'status':
             statusmode = True
+        elif sys.argv[-1] == 'showjson':
+            showjsonmode = True
+        elif sys.argv[-1].startswith('showjson='):
+            showjsonmode = True
+            jsonmode_app = sys.argv[-1][9:]
         else:
             forced_id = sys.argv[-1]
             print "Forced ID [%s] specified" % forced_id
@@ -203,10 +231,6 @@ if __name__ == '__main__':
     if statusmode:
         print_status()
         sys.exit()
-
-    if not check_ping():
-        print "Ping failed, exiting"
-        exit(False, "ping failed")
 
     if not run_applescript():
         exit(False, "running AppleScript failed")
@@ -221,12 +245,21 @@ if __name__ == '__main__':
     timing_id = common.str_to_sha1(timing_data_txt)
     timing_data_json = common.json_loads(timing_data_txt)
 
+    if showjsonmode:
+        print_json(timing_data_json, jsonmode_app)
+        sys.exit()
+
+    if not check_ping():
+        print "Ping failed, exiting"
+        exit(False, "ping failed")
+
     if data.has_key('timingfile_id') and timing_id == data['timingfile_id']:
         print "Timing data file not changed (id=[%s]), exiting" % timing_id
         exit(True, "timing data not changed")
     data['timingfile_id'] = timing_id
 
-    i = 0; j = 0
+    (i, j) = (0, 0)
+    unlogged = set()
     print "Processing %d items from %s" % (len(timing_data_json), config['timingfile'])
     for timing_item in timing_data_json:
 
@@ -254,13 +287,14 @@ if __name__ == '__main__':
         recognized_app = False
         if (item_appl in config['modify_apps_timing']):
             recognized_app = True
-            event_type = config['nuao_modificationevent']
+            event_type = common.o('nuao_modificationevent')
         elif (item_appl in config['usage_apps_timing']):
             recognized_app = True
-            event_type = config['nuao_usageevent']
+            event_type = common.o('nuao_usageevent')
 
         if not recognized_app:
-            print "Application [%s] is not recognized, skipping" % item_appl
+            print "Application [%s] is not currently logged, skipping" % item_appl
+            unlogged.add(item_appl)
             continue
 
         document_type = common.o('nfo_document')
@@ -317,9 +351,8 @@ if __name__ == '__main__':
             text = common.uri_to_text(item_path)
 
         print "Submitting: %s [%s]" % (timing_item, item_id)
-        sd = timing_item[u'startDate']
-        item_datetime = u'20'+sd[6:8]+u'-'+sd[3:5]+u'-'+sd[0:2]+u'T'+sd[9:11]+u':'+sd[12:14]+u':00+03:00'
-        #print "[%s] => [%s]" % (sd, item_datetime)
+
+        item_datetime = convert_date(timing_item[u'startDate'])
 
         payload = {'origin': config['hostname'],
                    'actor':  item_appl,
@@ -363,6 +396,11 @@ if __name__ == '__main__':
             break
 
     print "Processed %d entries, submitted %s entries" % (j, i)
+    print "Found %d unlogged applications:" % len(unlogged)
+    if len(unlogged):
+        for app in unlogged:
+            sys.stdout.write(' ['+app+']')
+        print
     print "Finishing the timing2dime.py logger on " + time.strftime("%c")
 
     exit(True, "all ok") 
