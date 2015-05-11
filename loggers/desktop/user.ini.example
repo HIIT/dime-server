@@ -46,10 +46,12 @@ icon: %(dimepath)s/loggers/desktop/ReKnow_logo_rgb_icon.png
 
 [Timing]
 applescript_file: %(dimepath)s/loggers/desktop/timing.scpt
-datafile: %(dimepath)s/loggers/desktop/Data.json
-timingfile: %(dimepath)s/loggers/desktop/Timing.json
-usage_apps: Skim; Preview; Adobe Reader; Google Chrome
-modify_apps: Aquamacs; Word; Evernote; Excel; AppleScript Editor
+datafile:         %(dimepath)s/loggers/desktop/Data.json
+timingfile: /tmp/Timing.json
+usage_apps:  Preview; Adobe Reader; Skim;
+	     Safari; Google Chrome
+modify_apps: Aquamacs; Emacs; Word; Excel; Evernote;
+	     AppleScript Editor
 blacklist: localhost; chrome://; passwords.txt
  
 ###
