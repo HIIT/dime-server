@@ -263,8 +263,14 @@ if __name__ == '__main__':
     print "Processing %d items from %s" % (len(timing_data_json), config['timingfile'])
     for timing_item in timing_data_json:
 
+        print ""
+        print "---###---###---###---###---###---###---###---###---###---###---"
+        print ""
+
         j=j+1
         item_id = common.to_json_sha1(timing_item)
+
+        #print "Processing: %s [%s]" % (timing_item, item_id)
 
         if forced_id is not None:
             if item_id == forced_id:
@@ -301,6 +307,8 @@ if __name__ == '__main__':
         document_isa  = common.o('nfo_localfiledataobject')
 
         item_path = timing_item[u'path']
+        item_path = item_path.encode('ascii','ignore')
+
         if common.blacklisted(item_path, 'blacklist_timing'):
             continue
         if (len(item_path)<=0 or item_path.startswith('*') or
@@ -312,6 +320,7 @@ if __name__ == '__main__':
             path_end = item_path.find(' (')
         if path_end>0:
             item_path = item_path[0:path_end]
+        print "Item_path [%s] looks ok" % item_path
 
         mimetype = 'unknown'
         uri_prefix = 'file://'
@@ -385,8 +394,6 @@ if __name__ == '__main__':
         r = common.post_json(json_payload)
         if not common.check_response(r):
             break
-        print "---###---###---###---###---###---###---###---###---###---###---"
-        print ""
 
         data_item = {'id': item_id,
                      'item' : timing_item,
@@ -398,6 +405,10 @@ if __name__ == '__main__':
                          
         if debug:
             break
+
+    print ""
+    print "---###---###---###---###---###---###---###---###---###---###---"
+    print ""
 
     print "Processed %d entries, submitted %s entries" % (j, i)
     print "Found %d unlogged applications:" % len(unlogged)
