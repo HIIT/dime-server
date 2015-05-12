@@ -33,11 +33,16 @@ def post_item(item, endpoint):
     item['origin'] = socket.gethostbyaddr(socket.gethostname())[0]
     item['type']   = 'http://www.hiit.fi/ontologies/dime/#GoogleSearchEvent'
 
-    requests.post(server_url + endpoint,
-                  data=json.dumps(item),
-                  headers={'content-type': 'application/json'},
-                  auth=(server_username, server_password),
-                  timeout=10)
+    r = requests.post(server_url + endpoint,
+                      data=json.dumps(item),
+                      headers={'content-type': 'application/json'},
+                      auth=(server_username, server_password),
+                      timeout=10)
+
+    if r.status_code != requests.codes.ok:
+        print ("\nERROR: Post to DiMe failed: "
+               "error={}, message={}\n".format(r.json()['error'],
+                                               r.json()['message']))
 
 #------------------------------------------------------------------------------
 
