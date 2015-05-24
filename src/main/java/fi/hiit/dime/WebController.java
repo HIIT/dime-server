@@ -98,6 +98,7 @@ public class WebController extends WebMvcConfigurerAdapter {
     public String log(Authentication authentication, Model model) {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
         model.addAttribute("events", eventDAO.eventsForUser(userId));
+	model.addAttribute("count", eventDAO.count(userId));
         return "log";
     }
 
