@@ -20,7 +20,7 @@ function parseResponse(answer) {
 	    if (name == null)
 		name = hist[i]["origin"];
 	    if (name == null) {
-		url = hist[i]["subject"]["uri"];
+		url = hist[i]["targettedResource"]["uri"];
 		if (url != null) {
 		    name = url.replace(/^.*[\\\/]/, '');
 		    if (name == "")

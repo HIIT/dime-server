@@ -20,13 +20,12 @@ package manager if possible, e.g. for Ubuntu or Debian:
 
     sudo apt-get install mongodb openjdk-7-jdk
 
-on OS X, use either Homebrew or Macports:
+on Mac OS X, use either Homebrew or Macports:
 
     brew install mongod
     sudo port install mongodb
 
-
-Remember to start mongod if it is not running, e.g.
+On Mac OS X you also need to remember to start mongod, e.g.
 
     mkdir ~/mongodata
     mongod --dbpath ~/mongodata/

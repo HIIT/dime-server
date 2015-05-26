@@ -101,14 +101,22 @@ public class EventDAO extends BaseDAO<Event> {
     	return operations.findById(id, Event.class, collectionName());
     }
 
-    //------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
 
     public List<Event> eventsForUser(String id) {
 	ensureIndex("start");
 
 	return operations.find(query(where("user._id").is(new ObjectId(id))).
-				     with(new Sort(Sort.Direction.DESC, "start")),
+			       with(new Sort(Sort.Direction.DESC, "start")).
+			       limit(100),
 			       Event.class, collectionName());
+    }
+
+    //--------------------------------------------------------------------------
+
+    public long count(String id) {
+	return operations.count(query(where("user._id").is(new ObjectId(id))),
+				Event.class, collectionName());
     }
     
 }
