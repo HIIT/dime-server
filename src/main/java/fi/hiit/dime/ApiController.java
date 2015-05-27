@@ -26,15 +26,23 @@ package fi.hiit.dime;
 
 //------------------------------------------------------------------------------
 
+import fi.hiit.dime.authentication.CurrentUser;
+import fi.hiit.dime.data.*;
+import fi.hiit.dime.database.*;
+import java.util.List;
+import javax.servlet.ServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import javax.servlet.ServletRequest;
 
 //------------------------------------------------------------------------------
 
@@ -44,7 +52,22 @@ public class ApiController {
     private static final Logger LOG = 
 	LoggerFactory.getLogger(ApiController.class);
 
+    // Mongodb repositories
+    private final EventDAO eventDAO;
+    private final InformationElementDAO infoElemDAO;
 
+    @Autowired
+    ApiController(EventDAO eventDAO,
+		  InformationElementDAO infoElemDAO) {
+	this.eventDAO = eventDAO;
+	this.infoElemDAO = infoElemDAO;
+    }
+
+    //--------------------------------------------------------------------------
+
+    /** 
+	Class for "dummy" API responses which just return a simple message string.
+    */
     public class ApiMessage {
 	public String message;
 
@@ -52,6 +75,8 @@ public class ApiController {
 	    this.message = message;
 	}
     }
+
+    //--------------------------------------------------------------------------
 
     @RequestMapping("/ping")
     public ResponseEntity<ApiMessage> ping(ServletRequest req) {
@@ -62,4 +87,29 @@ public class ApiController {
 	return new ResponseEntity<ApiMessage>(new ApiMessage("pong"),
 					      headers, HttpStatus.OK);
     }
+
+    //--------------------------------------------------------------------------
+
+    protected User getUser(Authentication auth) {
+	CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
+	return currentUser.getUser();
+    }
+
+    //--------------------------------------------------------------------------
+
+    @RequestMapping(value="/search", method = RequestMethod.GET)
+    public ResponseEntity<List<InformationElement>>
+	search(Authentication auth, 
+	       @RequestParam String query,
+	       @RequestParam(defaultValue="100") int limit) {
+
+	User user = getUser(auth);
+
+	List<InformationElement> results = infoElemDAO.textSearch(query, user.id);
+	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
+			       query, limit, results.size()));
+
+	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
+    }
+
 }

@@ -30,9 +30,7 @@ import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
-import fi.hiit.dime.data.User;
-import fi.hiit.dime.data.Event;
-import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -142,7 +140,8 @@ public class WebController extends WebMvcConfigurerAdapter {
 
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
-	    List<InformationElement> results = infoElemDAO.textSearch(query, userId);
+	    List<InformationElement> results =
+		infoElemDAO.textSearch(query, userId);
 	    model.addAttribute("results", results);
 	}
 

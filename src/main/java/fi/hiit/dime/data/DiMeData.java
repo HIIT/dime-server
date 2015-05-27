@@ -29,6 +29,7 @@ package fi.hiit.dime.data;
 import org.springframework.data.annotation.Id;
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 //------------------------------------------------------------------------------
 
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
    Base class for all DiMe data objects, i.e. data items uploaded to be stored.
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
+@Document
 public class DiMeData {
 
     /** Unique identifier in the database */

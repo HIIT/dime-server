@@ -30,7 +30,7 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.DBObject;
-import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -80,13 +80,17 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	// For mongodb versions >= 2.6, we can use the new TextQuery
 	// interface
 	if (version[0] >= 3 || (version[0] >= 2 && version[1] >= 6)) {
-	    System.out.println("Using new text query");
 	    Query dbQuery = TextQuery.queryText(new TextCriteria()
 						.matchingPhrase(query))
 		.sortByScore()
 		.addCriteria(filterCriteria); 
 	    return operations.find(dbQuery, InformationElement.class);
+
+	    // try this for limiting:   .with(new PageRequest(0, 5));
+
 	} else if (version[0] == 2 && version[1] >= 4) {
+	    LOG.warn("Using deprecated mongodb 2.4 interface for text query.");
+
 	   // For version 2.4 we use the raw mongodb command, e.g.
 	   // db.zgSubject.runCommand( "text", { search: "SEARCH QUERY" } )
 	   // http://docs.mongodb.org/v2.4/reference/command/text/#dbcmd.text
@@ -102,7 +106,8 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 
 	    // Construct List<InformationElements> to return out of the
 	    // CommandResult
-	    List<InformationElement> results = new ArrayList<InformationElement>();
+	    List<InformationElement> results =
+		new ArrayList<InformationElement>();
 
 	    BasicDBList resultList = (BasicDBList)commandResult.get("results");
 	    if (resultList == null) // return empty list if there are no results
@@ -113,7 +118,8 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 		BasicDBObject resultContainer = (BasicDBObject)it.next();
 		BasicDBObject resultObject = (BasicDBObject)resultContainer.get("obj");
 		
-		InformationElement sub = operations.getConverter().read(InformationElement.class, resultObject);
+		InformationElement sub = operations.getConverter().
+		    read(InformationElement.class, resultObject);
 		
 		results.add(sub);
 	    }

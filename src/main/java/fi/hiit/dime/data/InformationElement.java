@@ -27,6 +27,7 @@ package fi.hiit.dime.data;
 //------------------------------------------------------------------------------
 
 import org.springframework.data.mongodb.core.index.TextIndexed;
+import org.springframework.data.mongodb.core.mapping.TextScore;
 
 //------------------------------------------------------------------------------
 
@@ -35,6 +36,8 @@ public class InformationElement extends DiMeData {
     @TextIndexed public String plainTextContent;
     public String isStoredAs;
     public String type;
+
+    @TextScore public Float score;
 
     public boolean isStub() {
 	return uri == null || uri.isEmpty();
