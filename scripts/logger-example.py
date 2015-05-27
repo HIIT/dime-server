@@ -32,8 +32,10 @@ payload = {
 
 payload['query'] = "dummy search"
 
-requests.post(server_url + '/data/searchevent',
-                         data=json.dumps(payload),
-                         headers={'content-type': 'application/json'},
-                         auth=(server_username, server_password),
-                         timeout=10)
+r = requests.post(server_url + '/data/searchevent',
+                  data=json.dumps(payload),
+                  headers={'content-type': 'application/json'},
+                  auth=(server_username, server_password),
+                  timeout=10)
+
+print('DiMe returns:', json.dumps(r.json(), indent=2))
