@@ -28,12 +28,15 @@ package fi.hiit.dime.data;
 
 import org.springframework.data.annotation.Id;
 import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 //------------------------------------------------------------------------------
 
 /**
    Class for storing users and associated information for this DiMe.
 */
+@JsonInclude(value=JsonInclude.Include.NON_NULL)
 public class User {
 
     /** Unique identifier in the database */
@@ -44,7 +47,7 @@ public class User {
     public String username;
     
     /** Hash of password (never store the actual password!) */
-    public String passwordHash;
+    @JsonIgnore public String passwordHash;
     
     /** Email */
     public String email;       
