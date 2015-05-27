@@ -9,7 +9,7 @@
 	<h1>Search your DiMe</h1>
 
 	<form class="form-inline" th:object="${search}" th:action="@{/search}"
-	      method="post">
+	      method="get">
 	  <div class="form-group col-xs-4">
 	    <label class="sr-only" for="query">Text query</label>
 	    <input style="width: 100%" type="text" class="form-control"
@@ -25,7 +25,8 @@
 	    <hr/>
 	    <p>
 	      [<span th:text="${iterStat.index}"></span>] 
-	      <b>ID:</b> <span th:text="${targettedResource.id}"></span>
+	      <b>ID:</b> <a th:href="@{/infoelem(id=${targettedResource.id})}"
+			    th:text="${targettedResource.id}"></a>
 	      <b>URI:</b> <a th:href="${targettedResource.uri}" 
 			     th:text="${targettedResource.uri}"></a><br/>
 	      <span th:if="${targettedResource.type}">
