@@ -49,7 +49,7 @@ import java.util.Date;
  * <code>SearchEvent</code> the REST endpoint is
  * <code>/data/searchevent</code>.
  *
- * @author Mats Sjöberg <mats.sjoberg@helsinki.fi>
+ * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
 @RestController
 @RequestMapping("/api/data")
@@ -77,6 +77,36 @@ public class DataController extends AuthorizedController {
     protected void eventLog(String eventName, User user, Event input) {
 	LOG.info("{} for user {} from {} at {}, with actor {}",
 		 eventName, user.username, input.origin, new Date(), input.actor);
+    }
+
+    /**
+     * Helper method to expand stub InformationElement objects.
+     *
+     * Stub objects are those which only include the id with the
+     * assumption that the original full object already exists in the
+     * database.
+     *
+     * @param elem InformationElement to expand
+     * @param user current authenticated user
+     * @return The expanded InformationElement
+     */
+    protected InformationElement
+	expandInformationElement(InformationElement elem, User user) {
+	if (elem != null) {
+	    if (!elem.isStub()) {
+		elem.user = user;
+		infoElemDAO.save(elem);
+	    } else { // expand if only a stub elem was included
+		InformationElement expandedElem = infoElemDAO.findById(elem.id);
+		if (expandedElem != null) {
+		    LOG.info("Expanded InformationElement for " + expandedElem.uri);
+		    // don't copy the text, takes too much space
+		    expandedElem.plainTextContent = null; 
+		    elem = expandedElem;
+		}
+	    }
+	} 
+	return elem;
     }
 
     /**
@@ -114,32 +144,41 @@ public class DataController extends AuthorizedController {
      * 
      */
     @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
-    public ResponseEntity<DesktopEvent> documentEvent(Authentication auth, 
-						      @RequestBody DesktopEvent input) {
+    public ResponseEntity<DesktopEvent> 
+	documentEvent(Authentication auth, @RequestBody DesktopEvent input) {
 	User user = getUser(auth);
 	input.user = user;
-
-	InformationElement res = input.targettedResource;
-
-	// FIXME this should probably be generalised into its own function
-	if (res != null) {
-	    if (!res.isStub()) {
-		res.user = user;
-		infoElemDAO.save(res);
-	    } else { // expand from if only a stub res was included
-		InformationElement expandedRes = infoElemDAO.findById(res.id);
-		if (expandedRes != null) {
-		    LOG.info("Expanded resouce for " + expandedRes.uri);
-		    // don't copy the text, takes too much space
-		    expandedRes.plainTextContent = null; 
-		    input.targettedResource = expandedRes;
-		}
-	    }
-	} 
+	input.targettedResource = 
+	    expandInformationElement(input.targettedResource, user);
 
 	eventDAO.save(input);
 	
 	eventLog("DesktopEvent", user, input);
 	return new ResponseEntity<DesktopEvent>(input, HttpStatus.OK);
+    }
+
+    /**
+     * @api {post} /data/feedbackevent Upload FeedbackEvent
+     * @apiName PostFeedbackEvent
+     * @apiGroup Data
+     * 
+     * @apiParam {Object} - <code>FeedbackEvent</code> object to upload
+
+     * @apiSuccess {Object} - Returns the added object, possibly with
+     *     some additional fields filled in such as the unique id.
+     * 
+     */
+    @RequestMapping(value="/feedbackevent", method = RequestMethod.POST)
+    public ResponseEntity<FeedbackEvent> 
+	documentEvent(Authentication auth, @RequestBody FeedbackEvent input) {
+	User user = getUser(auth);
+	input.user = user;
+	input.targettedResource = 
+	    expandInformationElement(input.targettedResource, user);
+
+	eventDAO.save(input);
+	
+	eventLog("FeedbackEvent", user, input);
+	return new ResponseEntity<FeedbackEvent>(input, HttpStatus.OK);
     }
 }
