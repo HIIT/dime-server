@@ -1,5 +1,6 @@
-GRADLE    = ./gradlew -q
+GRADLE   = ./gradlew -q
 TARGET   = build/libs/dime-server-0.1.0.jar
+APIDOC   = apidoc
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 
 all:	build
@@ -14,7 +15,7 @@ run:    $(TARGET)
 
 test:
 	$(GRADLE) test
-	xdg-open build/reports/tests/index.html
+	@echo Now open ./build/reports/tests/index.html
 
 clean:
 	$(GRADLE) clean
@@ -23,3 +24,7 @@ doc: $(SOURCES)
 	$(GRADLE) javadoc
 	@echo
 	@echo Now open ./build/docs/javadoc/index.html
+
+apidoc: $(SOURCES)
+	$(APIDOC) -i src/main -o build/apidoc/
+	@echo Now open ./build/apidoc/index.html

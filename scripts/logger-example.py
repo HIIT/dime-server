@@ -20,6 +20,7 @@ if r.status_code != requests.codes.ok:
     print('No connection to DiMe server!')
     sys.exit(1)
 
+print('DiMe returns:', json.dumps(r.json(), indent=2))
 
 # Set all the standard event fields
 payload = {
