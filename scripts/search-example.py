@@ -24,7 +24,7 @@ if r.status_code != requests.codes.ok:
 # make search query
 query = "dime"
 
-r = requests.get(server_url + '/search/?query={}'.format(query),
+r = requests.get(server_url + '/search?query={}&limit=10'.format(query),
                  headers={'content-type': 'application/json'},
                  auth=(server_username, server_password),
                  timeout=10)

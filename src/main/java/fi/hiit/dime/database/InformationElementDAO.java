@@ -38,11 +38,9 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.TextCriteria;
-import org.springframework.data.mongodb.core.query.TextQuery;
+import org.springframework.data.mongodb.core.query.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -69,7 +67,10 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 
     //--------------------------------------------------------------------------
 
-    public List<InformationElement> textSearch(String query, String userId) {
+    /**
+       Perform a text search.
+    */
+    public List<InformationElement> textSearch(String query, int limit, String userId) {
 	ensureTextIndex("plainTextContent");
 
 	int[] version = getMongoVersion();
@@ -83,10 +84,13 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	    Query dbQuery = TextQuery.queryText(new TextCriteria()
 						.matchingPhrase(query))
 		.sortByScore()
-		.addCriteria(filterCriteria); 
+		.addCriteria(filterCriteria);
+	    
+	    if (limit != -1)
+		dbQuery = dbQuery.with(new PageRequest(0, limit));
+
 	    return operations.find(dbQuery, InformationElement.class);
 
-	    // try this for limiting:   .with(new PageRequest(0, 5));
 
 	} else if (version[0] == 2 && version[1] >= 4) {
 	    LOG.warn("Using deprecated mongodb 2.4 interface for text query.");

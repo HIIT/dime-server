@@ -101,11 +101,11 @@ public class ApiController {
     public ResponseEntity<List<InformationElement>>
 	search(Authentication auth, 
 	       @RequestParam String query,
-	       @RequestParam(defaultValue="100") int limit) {
+	       @RequestParam(defaultValue="-1") int limit) {
 
 	User user = getUser(auth);
 
-	List<InformationElement> results = infoElemDAO.textSearch(query, user.id);
+	List<InformationElement> results = infoElemDAO.textSearch(query, limit, user.id);
 	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
 			       query, limit, results.size()));
 

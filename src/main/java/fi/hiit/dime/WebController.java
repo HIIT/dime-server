@@ -141,7 +141,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
 	    List<InformationElement> results =
-		infoElemDAO.textSearch(query, userId);
+		infoElemDAO.textSearch(query, -1, userId);
 	    model.addAttribute("results", results);
 	}
 
