@@ -24,12 +24,10 @@
 
 package fi.hiit.dime;
 
-//------------------------------------------------------------------------------
-
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
-import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,41 +39,57 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-//------------------------------------------------------------------------------
+import java.util.Date;
 
+/**
+ * Controller for /data REST API, for writing and reading data objects. 
+ *
+ * Each new object type needs its own endpoint here. The convention is
+ * to name the endpoint as the class but in lower case, e.g. for
+ * <code>SearchEvent</code> the REST endpoint is
+ * <code>/data/searchevent</code>.
+ *
+ * @author Mats Sjöberg <mats.sjoberg@helsinki.fi>
+ */
 @RestController
 @RequestMapping("/api/data")
-public class DataController {
+public class DataController extends AuthorizedController {
     private static final Logger LOG = 
 	LoggerFactory.getLogger(DataController.class);
 
-    // Mongodb repositories
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
 
     @Autowired
     DataController(EventDAO eventDAO,
-		   InformationElementDAO infoElemDAO) {
-	this.eventDAO = eventDAO;
-	this.infoElemDAO = infoElemDAO;
+    		   InformationElementDAO infoElemDAO) {
+    	this.eventDAO = eventDAO;
+    	this.infoElemDAO = infoElemDAO;
     }
 
-    //--------------------------------------------------------------------------
-
+    /**
+     * Helper method to log each event uploaded.
+     *
+     * @param eventName Name of event class
+     * @param user      User object
+     * @param input     The event object that was uploaded
+     */
     protected void eventLog(String eventName, User user, Event input) {
 	LOG.info("{} for user {} from {} at {}, with actor {}",
 		 eventName, user.username, input.origin, new Date(), input.actor);
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     * @api {post} /data/searchevent Upload SearchEvent
+     * @apiName PostSearchEvent
+     * @apiGroup Data
+     * 
+     * @apiParam {Object} - <code>SearchEvent</code> object to upload
 
-    protected User getUser(Authentication auth) {
-	CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
-	return currentUser.getUser();
-    }
-
-    //--------------------------------------------------------------------------
-
+     * @apiSuccess {Object} - Returns the added object, possibly with
+     *     some additional fields filled in such as the unique id.
+     * 
+     */
     @RequestMapping(value="/searchevent", method = RequestMethod.POST)
     public ResponseEntity<SearchEvent> searchEvent(Authentication auth, 
 						   @RequestBody SearchEvent input) {
@@ -88,8 +102,17 @@ public class DataController {
 	return new ResponseEntity<SearchEvent>(input, HttpStatus.OK);
     }
 
-    //--------------------------------------------------------------------------
+    /**
+     * @api {post} /data/desktopevent Upload DesktopEvent
+     * @apiName PostDesktopEvent
+     * @apiGroup Data
+     * 
+     * @apiParam {Object} - <code>DesktopEvent</code> object to upload
 
+     * @apiSuccess {Object} - Returns the added object, possibly with
+     *     some additional fields filled in such as the unique id.
+     * 
+     */
     @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
     public ResponseEntity<DesktopEvent> documentEvent(Authentication auth, 
 						      @RequestBody DesktopEvent input) {

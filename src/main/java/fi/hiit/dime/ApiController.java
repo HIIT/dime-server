@@ -24,13 +24,10 @@
 
 package fi.hiit.dime;
 
-//------------------------------------------------------------------------------
-
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
-import java.util.List;
-import javax.servlet.ServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,15 +41,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-//------------------------------------------------------------------------------
+import java.util.List;
+import javax.servlet.ServletRequest;
 
+/**
+ * General API controller, for things that go directly under the /api
+ * REST endpoint.
+ *
+ * @author Mats Sjöberg <mats.sjoberg@helsinki.fi>
+ */
 @RestController
 @RequestMapping("/api")
-public class ApiController {
+public class ApiController extends AuthorizedController {
     private static final Logger LOG = 
 	LoggerFactory.getLogger(ApiController.class);
 
-    // Mongodb repositories
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
 
@@ -63,10 +66,9 @@ public class ApiController {
 	this.infoElemDAO = infoElemDAO;
     }
 
-    //--------------------------------------------------------------------------
-
     /** 
-	Class for "dummy" API responses which just return a simple message string.
+	Class for "dummy" API responses which just return a simple
+	message string.
     */
     public class ApiMessage {
 	public String message;
@@ -75,15 +77,6 @@ public class ApiController {
 	    this.message = message;
 	}
     }
-
-    //--------------------------------------------------------------------------
-
-    protected User getUser(Authentication auth) {
-	CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
-	return currentUser.getUser();
-    }
-
-    //--------------------------------------------------------------------------
 
     /**
      * @api {get} /ping Ping server to check availability
@@ -108,15 +101,13 @@ public class ApiController {
 					      headers, HttpStatus.OK);
     }
 
-    //--------------------------------------------------------------------------
-
     /**
      * @api {get} /search Text search
      * @apiName GetSearch
-     * @apiGroup Read
+     * @apiGroup General
      * 
      * @apiParam {String} query Query text to search for
-     * @apiParam {Number} limit Maximum number of results returned
+     * @apiParam {Number} [limit=-1] Maximum number of results returned
      *
      * @apiSuccess {Object[]} - Array of InformationElement objects
      * @apiSuccessExample Success-Response:
