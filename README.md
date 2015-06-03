@@ -20,6 +20,9 @@ package manager if possible, e.g. for Ubuntu or Debian:
 
     sudo apt-get install mongodb openjdk-7-jdk
 
+On Ubuntu 14.04, it might be a good idea to update mongodb to a 
+more recent version with [these instructions][8].
+
 on Mac OS X, use either Homebrew or Macports:
 
     brew install mongod
@@ -90,3 +93,4 @@ This repository currently includes the following loggers:
 [5]: https://github.com/HIIT/dime-server/wiki/Mac-desktop
 [6]: http://brew.sh/
 [7]: https://www.macports.org/
+[8]: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
