@@ -24,8 +24,6 @@
 
 package fi.hiit.dime.authentication;
 
-import fi.hiit.dime.data.User;
-import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.database.UserDAO;
 import fi.hiit.dime.util.RandomPassword;
 

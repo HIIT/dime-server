@@ -24,9 +24,6 @@
 
 package fi.hiit.dime.authentication;
 
-import fi.hiit.dime.data.User;
-import fi.hiit.dime.authentication.Role;
-
 import org.springframework.security.core.authority.AuthorityUtils;
 
 public class CurrentUser extends 

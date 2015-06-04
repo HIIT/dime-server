@@ -22,9 +22,7 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
-
-import fi.hiit.dime.authentication.Role;
+package fi.hiit.dime.authentication;
 
 import org.springframework.data.annotation.Id;
 import com.fasterxml.jackson.annotation.JsonIgnore;

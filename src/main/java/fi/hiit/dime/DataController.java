@@ -24,6 +24,7 @@
 
 package fi.hiit.dime;
 
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;

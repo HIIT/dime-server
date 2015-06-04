@@ -24,43 +24,45 @@
 
 package fi.hiit.dime.database;
 
-//------------------------------------------------------------------------------
 
-import fi.hiit.dime.data.User;
-import java.util.List;
+import fi.hiit.dime.authentication.User;
+
 import org.springframework.stereotype.Repository;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
-//------------------------------------------------------------------------------
+import java.util.List;
 
+/**
+ * Data access object for managing User objects.
+ *
+ * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
+ */
 @Repository
 public class UserDAO extends BaseDAO<User> {
-
-    //--------------------------------------------------------------------------
 
     @Override
     public String collectionName() { 
 	return "user";
     }
 
-    //--------------------------------------------------------------------------
-
     public User findById(String id) {
     	return operations.findById(id, User.class, collectionName());
     }
 
-
-    //--------------------------------------------------------------------------
-
     public User findByUsername(String username) {
-    	return operations.findOne(query(where("username").is(username)), User.class, collectionName());
+    	return operations.findOne(query(where("username").is(username)),
+				  User.class, collectionName());
     }
-
-    //------------------------------------------------------------------------------
 
     public List<User> findAll() {
     	return operations.findAll(User.class, collectionName());
     }
 
+    public boolean remove(String id) {
+	operations.remove(query(where("id").is(id)),
+			  User.class, collectionName());
+	// FIXME: should check if successful
+	return true;
+    }
 }
