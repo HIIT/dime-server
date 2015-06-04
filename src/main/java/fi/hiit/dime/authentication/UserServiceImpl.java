@@ -24,15 +24,11 @@
 
 package fi.hiit.dime.authentication;
 
-//------------------------------------------------------------------------------
-
 import fi.hiit.dime.data.User;
-import fi.hiit.dime.data.Role;
+import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.database.UserDAO;
 import fi.hiit.dime.util.RandomPassword;
-import java.security.SecureRandom;
-import java.util.Collection;
-import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +36,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-//------------------------------------------------------------------------------
+import java.security.SecureRandom;
+import java.util.Collection;
+import javax.annotation.PostConstruct;
 
 /**
    Service that gives us a general interface to fetch and create users

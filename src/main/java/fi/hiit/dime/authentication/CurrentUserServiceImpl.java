@@ -24,12 +24,9 @@
 
 package fi.hiit.dime.authentication;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.authentication.Role;
 
-import fi.hiit.dime.data.Role;
 import org.springframework.stereotype.Service;
-
-//------------------------------------------------------------------------------
 
 @Service
 public class CurrentUserServiceImpl implements CurrentUserService {
