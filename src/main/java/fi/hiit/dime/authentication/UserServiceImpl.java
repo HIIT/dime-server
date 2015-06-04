@@ -103,4 +103,10 @@ public class UserServiceImpl implements UserService {
 	userDAO.save(user);
 	return user;
     }
+    
+    @Override
+    public boolean remove(String id) {
+	return userDAO.remove(id);
+    }
+
 }
