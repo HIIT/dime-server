@@ -70,8 +70,10 @@ public class ApiController extends AuthorizedController {
 	Class for "dummy" API responses which just return a simple
 	message string.
     */
-    public class ApiMessage {
+    public static class ApiMessage {
 	public String message;
+
+	public ApiMessage() {}
 
 	public ApiMessage(String message) {
 	    this.message = message;
