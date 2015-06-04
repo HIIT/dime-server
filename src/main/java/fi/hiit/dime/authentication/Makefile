@@ -1,5 +1,4 @@
-all:
-	@make -C ../
+all: build
 
-run:
-	@make run -C ../
+%::
+	@make $@ -C ../
