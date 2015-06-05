@@ -2,18 +2,23 @@ import imaplib
 import email
 emails = []
 conn = imaplib.IMAP4_SSL("imap.gmail.com", 993)
-EMAIL = '<gmail-id>'
+EMAIL = '<email-id>'
 PASSWORD = '<password>'
 conn.login(EMAIL, PASSWORD)
-for folder in ['[Gmail]/Sent Mail','INBOX']:
-    conn.select(folder, readonly=True)
+folders = conn.list()
+n = len(folders[1])
+for  i in range(1, n):
+    folder = folders[1][i].split("\"")[3] # getting the names of the folders which are separated by quotes
+    status = conn.select(folder, readonly=True)
+    if(status[0]=='NO'):
+        continue
     result, data = conn.search(None, "ALL")
     ids = data[0] # data is a list.
-    id_list = ids.split() # ids is a space separated string
-    latest_email_id = id_list[-1] # get the latest
-    for i in range(1,int(latest_email_id)):
+    id_list = ids.split() # ids are a space separated string
+    print len(id_list)
+    for i in range(1,len(id_list)):
         print i
-	new =  []
+        new =  []
         typ, msg_data = conn.fetch(str(i), '(RFC822)')
         for response_part in msg_data:
             if isinstance(response_part, tuple):
@@ -26,3 +31,4 @@ for folder in ['[Gmail]/Sent Mail','INBOX']:
 import pickle
 pickle.dump(emails, open( "save.p", "wb" ) )
 emails = pickle.load( open( "save.p", "rb" ) )
+
