@@ -26,8 +26,6 @@ package fi.hiit.dime.authentication;
 
 //------------------------------------------------------------------------------
 
-import fi.hiit.dime.data.User;
-import fi.hiit.dime.data.Role;
 import javax.validation.constraints.NotNull;
 
 //------------------------------------------------------------------------------

@@ -22,16 +22,13 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
-
-//------------------------------------------------------------------------------
+package fi.hiit.dime.authentication;
 
 import org.springframework.data.annotation.Id;
-import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-//------------------------------------------------------------------------------
+import java.util.Date;
 
 /**
    Class for storing users and associated information for this DiMe.

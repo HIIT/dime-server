@@ -22,31 +22,45 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.authentication;
+package fi.hiit.dime;
 
+import fi.hiit.dime.data.*;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.*;
 
-@Service
-public class CurrentUserDetailsService implements UserDetailsService {
-    private final UserService userService;
+/**
+ * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+public class DataControllerTest extends RestTest {
+    private static final double DELTA = 1e-10;
 
-    @Autowired
-    public CurrentUserDetailsService(UserService userService) {
-	this.userService = userService;
-    }
-    
-    @Override
-    public CurrentUser loadUserByUsername(String username)
-	throws UsernameNotFoundException {
-	String notFoundError = String.format("User with username=%s was not found",
-					     username);
+    @Test
+    public void testDocumentEvent() throws Exception {
+	Document doc = new Document();
+	doc.uri = "http://www.example.com/hello.txt";
+	doc.plainTextContent = "Hello, world";
 
-	User user = userService.getUserByUsername(username);
-	if (user == null)
-	    throw new UsernameNotFoundException(notFoundError);
-	return new CurrentUser(user);
+	FeedbackEvent event = new FeedbackEvent();
+	event.value = 0.42;
+	event.targettedResource = doc;
+
+	ResponseEntity<FeedbackEvent> res = 
+	    getRest().postForEntity(apiUrl("/data/feedbackevent"), event,
+				    FeedbackEvent.class);
+	
+	assertSuccessful(res);
+
+	FeedbackEvent outEvent = res.getBody();
+	assertEquals(event.value, outEvent.value, DELTA);
+
+	InformationElement outDoc = outEvent.targettedResource;
+	assertEquals(doc.uri, outDoc.uri);
+	assertEquals(doc.plainTextContent, outDoc.plainTextContent);
     }
 }

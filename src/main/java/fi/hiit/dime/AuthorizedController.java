@@ -25,7 +25,7 @@
 package fi.hiit.dime;
 
 import fi.hiit.dime.authentication.CurrentUser;
-import fi.hiit.dime.data.User;
+import fi.hiit.dime.authentication.User;
 
 import org.springframework.security.core.Authentication;
 

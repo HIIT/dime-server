@@ -24,12 +24,9 @@
 
 package fi.hiit.dime.authentication;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.authentication.User;
 
-import fi.hiit.dime.data.User;
 import java.util.Collection;
-
-//------------------------------------------------------------------------------
 
 public interface UserService {
     User getUserById(String id);
@@ -39,4 +36,6 @@ public interface UserService {
     Collection<User> getAllUsers();
 
     User create(UserCreateForm form);
+
+    boolean remove(String id);
 }

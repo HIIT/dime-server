@@ -24,6 +24,7 @@
 
 package fi.hiit.dime;
 
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
@@ -70,8 +71,10 @@ public class ApiController extends AuthorizedController {
 	Class for "dummy" API responses which just return a simple
 	message string.
     */
-    public class ApiMessage {
+    public static class ApiMessage {
 	public String message;
+
+	public ApiMessage() {}
 
 	public ApiMessage(String message) {
 	    this.message = message;

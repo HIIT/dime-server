@@ -22,12 +22,30 @@
   SOFTWARE.
 */
 
-//------------------------------------------------------------------------------
+package fi.hiit.dime;
 
-package fi.hiit.dime.authentication;
+import fi.hiit.dime.data.*;
+import fi.hiit.dime.database.*;
+import fi.hiit.dime.ApiController.ApiMessage;
 
-//------------------------------------------------------------------------------
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.*;
 
-public enum Role {
-    USER, ADMIN
+/**
+ * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+public class ApiControllerTest extends RestTest {
+    @Test
+    public void testPing() throws Exception {
+	ResponseEntity<ApiMessage> res = 
+	    getRest().getForEntity(apiUrl("/ping"), ApiMessage.class);
+
+	assertSuccessful(res);
+	assertEquals(res.getBody().message, "pong");
+	System.out.println(res.getBody());
+    }
 }

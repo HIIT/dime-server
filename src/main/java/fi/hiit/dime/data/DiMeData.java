@@ -24,14 +24,13 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.authentication.User;
 
-import org.springframework.data.annotation.Id;
-import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-//------------------------------------------------------------------------------
+import java.util.Date;
 
 /**
    Base class for all DiMe data objects, i.e. data items uploaded to be stored.
