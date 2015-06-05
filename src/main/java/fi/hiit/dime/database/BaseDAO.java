@@ -48,6 +48,10 @@ abstract class BaseDAO<T extends Object> {
 
     private static int[] version = null;
 
+    public <T> T findById(String id, Class<T> entityClass) {
+    	return operations.findById(id, entityClass, collectionName());
+    }
+
     //--------------------------------------------------------------------------
 
     public void save(T obj) {

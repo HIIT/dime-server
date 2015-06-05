@@ -91,14 +91,14 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The expanded InformationElement
      */
-    protected InformationElement
+    protected InformationElement 
 	expandInformationElement(InformationElement elem, User user) {
 	if (elem != null) {
 	    if (!elem.isStub()) {
 		elem.user = user;
 		infoElemDAO.save(elem);
 	    } else { // expand if only a stub elem was included
-		InformationElement expandedElem = infoElemDAO.findById(elem.id);
+		InformationElement expandedElem = infoElemDAO.findById(elem.id);	
 		if (expandedElem != null) {
 		    LOG.info("Expanded InformationElement for " + expandedElem.uri);
 		    // don't copy the text, takes too much space
@@ -119,7 +119,6 @@ public class DataController extends AuthorizedController {
 
      * @apiSuccess {Object} - Returns the added object, possibly with
      *     some additional fields filled in such as the unique id.
-     * 
      */
     @RequestMapping(value="/searchevent", method = RequestMethod.POST)
     public ResponseEntity<SearchEvent> searchEvent(Authentication auth, 
@@ -142,7 +141,6 @@ public class DataController extends AuthorizedController {
 
      * @apiSuccess {Object} - Returns the added object, possibly with
      *     some additional fields filled in such as the unique id.
-     * 
      */
     @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
     public ResponseEntity<DesktopEvent> 
@@ -167,7 +165,6 @@ public class DataController extends AuthorizedController {
 
      * @apiSuccess {Object} - Returns the added object, possibly with
      *     some additional fields filled in such as the unique id.
-     * 
      */
     @RequestMapping(value="/feedbackevent", method = RequestMethod.POST)
     public ResponseEntity<FeedbackEvent> 
@@ -181,5 +178,29 @@ public class DataController extends AuthorizedController {
 	
 	eventLog("FeedbackEvent", user, input);
 	return new ResponseEntity<FeedbackEvent>(input, HttpStatus.OK);
+    }
+
+    /**
+     * @api {post} /data/messageevent Upload MessageEvent
+     * @apiName PostMessageEvent
+     * @apiGroup Data
+     * 
+     * @apiParam {Object} - <code>MessageEvent</code> object to upload
+
+     * @apiSuccess {Object} - Returns the added object, possibly with
+     *     some additional fields filled in such as the unique id.
+     */
+    @RequestMapping(value="/messageevent", method = RequestMethod.POST)
+    public ResponseEntity<MessageEvent> 
+	messageEvent(Authentication auth, @RequestBody MessageEvent input) {
+	User user = getUser(auth);
+	input.user = user;
+	input.targettedResource = 
+	    expandInformationElement(input.targettedResource, user);
+
+	eventDAO.save(input);
+	
+	eventLog("MessageEvent", user, input);
+	return new ResponseEntity<MessageEvent>(input, HttpStatus.OK);
     }
 }
