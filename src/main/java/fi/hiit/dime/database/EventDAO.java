@@ -24,11 +24,8 @@
 
 package fi.hiit.dime.database;
 
-//------------------------------------------------------------------------------
-
 import fi.hiit.dime.data.Event;
-import java.util.Date;
-import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +41,10 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
-//------------------------------------------------------------------------------
+import com.mongodb.WriteResult;
+
+import java.util.Date;
+import java.util.List;
 
 @Repository
 public class EventDAO extends BaseDAO<Event> {
@@ -56,22 +56,23 @@ public class EventDAO extends BaseDAO<Event> {
 	return "event";
     }
 
-    //--------------------------------------------------------------------------
-
     public List<EventCount> eventHist(String groupBy, Date fromDate, Date toDate,
 				      boolean percentage) {
-	// db.zgEvent.aggregate([
-	//     { $match : { 
-	// 	timestamp : { 
-	// 	    $gte : ISODate("2015-04-22T00:00:00.000Z"), 
-	// 	    $lt : ISODate("2015-04-23T00:00:00.000Z") 
-	// 	} 
-	//     } },
-	//     { $group: { 
-	// 	_id: "$actor", 
-	// 	nevents: { $sum: 1 } 
-	//     } }
-	// ])
+	/* This should do the same as the following mongodb code:
+
+	db.zgEvent.aggregate([
+	    { $match : { 
+		timestamp : { 
+		    $gte : ISODate("2015-04-22T00:00:00.000Z"), 
+		    $lt : ISODate("2015-04-23T00:00:00.000Z") 
+		} 
+	    } },
+	    { $group: { 
+		_id: "$actor", 
+		nevents: { $sum: 1 } 
+	    } }
+	])
+	*/
 
 	Aggregation agg =
 	    newAggregation(match(where("start").gte(fromDate).lt(toDate)),
@@ -95,13 +96,9 @@ public class EventDAO extends BaseDAO<Event> {
 	return eventCounts;
     }
 
-    //--------------------------------------------------------------------------
-
     public Event findById(String id) {
     	return operations.findById(id, Event.class, collectionName());
     }
-
-    //-------------------------------------------------------------------------
 
     public List<Event> eventsForUser(String id) {
 	ensureIndex("start");
@@ -112,11 +109,14 @@ public class EventDAO extends BaseDAO<Event> {
 			       Event.class, collectionName());
     }
 
-    //--------------------------------------------------------------------------
-
     public long count(String id) {
 	return operations.count(query(where("user._id").is(new ObjectId(id))),
 				Event.class, collectionName());
+    }
+
+    public int removeForUser(String id) {
+	return operations.remove(query(where("user._id").is(new ObjectId(id))),
+				 Event.class, collectionName()).getN();
     }
     
 }

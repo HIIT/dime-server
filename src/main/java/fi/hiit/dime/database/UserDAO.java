@@ -59,10 +59,8 @@ public class UserDAO extends BaseDAO<User> {
     	return operations.findAll(User.class, collectionName());
     }
 
-    public boolean remove(String id) {
-	operations.remove(query(where("id").is(id)),
-			  User.class, collectionName());
-	// FIXME: should check if successful
-	return true;
+    public int remove(String id) {
+	return operations.remove(query(where("id").is(id)),
+				 User.class, collectionName()).getN();
     }
 }

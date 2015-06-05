@@ -28,14 +28,44 @@ import fi.hiit.dime.authentication.User;
 
 import java.util.Collection;
 
+/**
+ * Higher-level interface to accessing users.
+ */
 public interface UserService {
+    /**
+     * Return user by user id.
+     *
+     * @param id User id
+     * @return User with the given id
+     */
     User getUserById(String id);
 
+    /**
+     * Return user by username.
+     *
+     * @param username The username
+     * @return User with the given username
+     */
     User getUserByUsername(String username);
-    
+
+    /**
+     * Return a list of all users.
+     */    
     Collection<User> getAllUsers();
 
+    /**
+     * Create a new user based on a filled in form.
+     *
+     * @param form The filled in form
+     * @return The created user
+     */
     User create(UserCreateForm form);
 
-    boolean remove(String id);
+    /**
+     * Remove user and all related events and informationelements
+     * 
+     * @param id User id of the user to be removed
+     * @return True if a user was successfully removed
+     */
+    boolean removeAllForUserId(String id);
 }

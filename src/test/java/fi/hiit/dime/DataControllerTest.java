@@ -42,25 +42,61 @@ public class DataControllerTest extends RestTest {
 
     @Test
     public void testDocumentEvent() throws Exception {
+	// Create a document
 	Document doc = new Document();
 	doc.uri = "http://www.example.com/hello.txt";
 	doc.plainTextContent = "Hello, world";
 
-	FeedbackEvent event = new FeedbackEvent();
-	event.value = 0.42;
-	event.targettedResource = doc;
+	// Create feedback, with document embedded
+	FeedbackEvent event1 = new FeedbackEvent();
+	event1.value = 0.42;
+	event1.targettedResource = doc;
 
-	ResponseEntity<FeedbackEvent> res = 
-	    getRest().postForEntity(apiUrl("/data/feedbackevent"), event,
+	// Upload to DiMe
+	ResponseEntity<FeedbackEvent> res1 = 
+	    getRest().postForEntity(apiUrl("/data/feedbackevent"), event1,
 				    FeedbackEvent.class);
 	
-	assertSuccessful(res);
+	// Check that HTTP was successful
+	assertSuccessful(res1);
 
-	FeedbackEvent outEvent = res.getBody();
-	assertEquals(event.value, outEvent.value, DELTA);
+	// Checks to ensure returned object is the same as uploaded
+	FeedbackEvent outEvent1 = res1.getBody();
+	assertEquals(event1.value, outEvent1.value, DELTA);
 
-	InformationElement outDoc = outEvent.targettedResource;
-	assertEquals(doc.uri, outDoc.uri);
-	assertEquals(doc.plainTextContent, outDoc.plainTextContent);
+	InformationElement outDoc1 = outEvent1.targettedResource;
+	assertEquals(doc.uri, outDoc1.uri);
+	assertEquals(doc.plainTextContent, outDoc1.plainTextContent);
+
+	// Create a "stub" document, i.e. that refers to the
+	// previously uploaded one
+	Document stubDoc = new Document();
+	stubDoc.id = outDoc1.id;
+
+	// Create feedback with the stub document
+	FeedbackEvent event2 = new FeedbackEvent();
+	event2.value = 0.89;
+	event2.targettedResource = stubDoc;
+	
+	ResponseEntity<FeedbackEvent> res2 = 
+	    getRest().postForEntity(apiUrl("/data/feedbackevent"), event2,
+				    FeedbackEvent.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(res2);
+
+	// Checks to ensure returned object is the same as uploaded
+	FeedbackEvent outEvent2 = res2.getBody();
+	assertEquals(event2.value, outEvent2.value, DELTA);
+
+	// This checks that the stub has been "filled in" with the
+	// missing info
+	InformationElement outDoc2 = outEvent2.targettedResource;
+	assertEquals(outDoc1.id, outDoc2.id);
+	assertEquals(doc.uri, outDoc2.uri);
+
+	/* This is not returned at the moment, since we don't want to
+	   duplicate the huge plainTextContent field... */
+	//assertEquals(doc.plainTextContent, outDoc2.plainTextContent);
     }
 }

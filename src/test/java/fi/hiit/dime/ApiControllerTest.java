@@ -46,6 +46,5 @@ public class ApiControllerTest extends RestTest {
 
 	assertSuccessful(res);
 	assertEquals(res.getBody().message, "pong");
-	System.out.println(res.getBody());
     }
 }

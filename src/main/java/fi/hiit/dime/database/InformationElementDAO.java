@@ -24,16 +24,12 @@
 
 package fi.hiit.dime.database;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.data.*;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.DBObject;
-import fi.hiit.dime.data.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,26 +42,22 @@ import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
-//------------------------------------------------------------------------------
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 @Repository
 public class InformationElementDAO extends BaseDAO<InformationElement> {
     private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
-
-    //--------------------------------------------------------------------------
 
     @Override
     public String collectionName() { 
 	return "informationElement";
     }
 
-    //--------------------------------------------------------------------------
-
     public InformationElement findById(String id) {
     	return operations.findById(id, InformationElement.class, collectionName());
     }
-
-    //--------------------------------------------------------------------------
 
     /**
        Perform a text search.
@@ -132,6 +124,11 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	} else {
 	    return new ArrayList<InformationElement>();
 	}
+    }
+
+    public int removeForUser(String id) {
+	return operations.remove(query(where("user._id").is(new ObjectId(id))),
+				 InformationElement.class, collectionName()).getN();
     }
 }
 

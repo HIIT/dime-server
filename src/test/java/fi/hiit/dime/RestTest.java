@@ -79,7 +79,7 @@ public class RestTest {
 
     @After
     public void shutdown() {
-	userService.remove(testUser.id);
+	userService.removeAllForUserId(testUser.id);
     }
 
     /**

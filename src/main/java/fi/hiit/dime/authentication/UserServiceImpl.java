@@ -24,7 +24,7 @@
 
 package fi.hiit.dime.authentication;
 
-import fi.hiit.dime.database.UserDAO;
+import fi.hiit.dime.database.*;
 import fi.hiit.dime.util.RandomPassword;
 
 import org.slf4j.Logger;
@@ -46,13 +46,18 @@ import javax.annotation.PostConstruct;
 public class UserServiceImpl implements UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserDAO userDAO;
+    private final EventDAO eventDAO;
+    private final InformationElementDAO infoElemDAO;
     private final static String ADMIN_USERNAME = "admin";
     private final static String ADMIN_PASSWORD = ""; // empty means random
     private RandomPassword pw;
 
     @Autowired
-    UserServiceImpl(UserDAO userDAO) {
+    UserServiceImpl(UserDAO userDAO, EventDAO eventDAO,
+		    InformationElementDAO infoElemDAO) {
 	this.userDAO = userDAO;
+	this.eventDAO = eventDAO;
+	this.infoElemDAO = infoElemDAO;
 	this.pw = new RandomPassword();
     }
 
@@ -105,8 +110,11 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public boolean remove(String id) {
-	return userDAO.remove(id);
+    public boolean removeAllForUserId(String id) {
+	int ud = userDAO.remove(id);
+	eventDAO.removeForUser(id);
+	infoElemDAO.removeForUser(id);
+	return ud>0;
     }
 
 }
