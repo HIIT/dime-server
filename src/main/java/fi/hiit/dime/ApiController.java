@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.ArrayList;
 import javax.servlet.ServletRequest;
 
 /**
@@ -158,13 +159,15 @@ public class ApiController extends AuthorizedController {
 	search(Authentication auth, 
 	       @RequestParam String query,
 	       @RequestParam(defaultValue="-1") int limit) {
-
 	User user = getUser(auth);
 
-	List<InformationElement> results = infoElemDAO.textSearch(query, limit, user.id);
+	List<InformationElement> results = new ArrayList<InformationElement>();
+
+	if (query.length() > 0)
+	    results = infoElemDAO.textSearch(query, limit, user.id);
+
 	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
 			       query, limit, results.size()));
-
 	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
     }
 

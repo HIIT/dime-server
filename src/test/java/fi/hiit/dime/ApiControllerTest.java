@@ -47,4 +47,14 @@ public class ApiControllerTest extends RestTest {
 	assertSuccessful(res);
 	assertEquals(res.getBody().message, "pong");
     }
+
+    @Test
+    public void testEmptySearch() throws Exception {
+	ResponseEntity<String> res = 
+	    getRest().getForEntity(apiUrl("/search?query="), String.class);
+
+	assertSuccessful(res);
+
+	// FIXME: should also check that the returned JSON is an empty list
+    }
 }
