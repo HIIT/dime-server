@@ -26,29 +26,104 @@ import webbrowser
 #For GUI
 from PyQt4 import QtCore, QtGui, uic
 
+import ExtendedQLabel
 
-form_class = uic.loadUiType("guikeylog3.ui")[0]
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 
-class WindowClass(QtGui.QMainWindow, form_class):
-    def __init__(self, parent=None):
-      QtGui.QMainWindow.__init__(self, parent)
 
-      self.setupUi(self)
+#form_class = uic.loadUiType("guikeylog3.ui")[0]
 
+class WindowClass(QtGui.QMainWindow):
+#class WindowClass(QtGui.QWidget):
+    
+    def __init__(self):
+      super(WindowClass, self).__init__()
+      #QtGui.QWidget.__init__(self)
+
+      #Set the window title
+      self.setWindowTitle('Keylogger')
+        
       #Create menubar
       menubar = self.menuBar()
       filemenu = menubar.addMenu('&File')
       filemenu.addAction('Quit', self.quitting)
 
       #Bind the event handlers to the button
-      self.openlink.clicked.connect(self.open_url)
+      self.quitbutton = QtGui.QPushButton("Quit",self)
+      self.quitbutton.resize(40,20)
       self.quitbutton.clicked.connect(self.quitting)
+      self.quitbutton.move(270,7)
+      #self.quitbutton.move(50,5)
 
-      #Set the window title
-      self.setWindowTitle('Keylogger')
 
-      #Initialize pathlabel
-      self.pathlabel.setText("")
+      #Set color of labels
+      palette = QtGui.QPalette()
+      palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkGreen)
+
+      #Make clickable labels
+      self.pathlabel = ExtendedQLabel.ExtendedQLabel()
+      self.connect(self.pathlabel, SIGNAL('clicked()'), self.pathlabel.open_url)
+      self.pathlabel.resize(200,20)
+      self.pathlabel.move(30,40)
+      self.pathlabel.setPalette(palette)
+
+      self.pathlabel_2 = ExtendedQLabel.ExtendedQLabel("",self)
+      self.connect(self.pathlabel_2, SIGNAL('clicked()'), self.pathlabel_2.open_url)
+      self.pathlabel_2.resize(200,20)
+      self.pathlabel_2.move(30,70)
+      self.pathlabel_2.setPalette(palette)
+
+      self.pathlabel_3 = ExtendedQLabel.ExtendedQLabel("",self)
+      self.connect(self.pathlabel_3, SIGNAL('clicked()'), self.pathlabel_3.open_url)
+      self.pathlabel_3.resize(200,20)
+      self.pathlabel_3.move(30,90)
+      self.pathlabel_3.setPalette(palette)
+
+      self.pathlabel_4 = ExtendedQLabel.ExtendedQLabel("",self)
+      self.connect(self.pathlabel_4, SIGNAL('clicked()'), self.pathlabel_4.open_url)      
+      self.pathlabel_4.resize(200,20)
+      self.pathlabel_4.move(30,110)
+      self.pathlabel_4.setPalette(palette)
+
+      self.pathlabel_5 = ExtendedQLabel.ExtendedQLabel("",self)
+      self.connect(self.pathlabel_5, SIGNAL('clicked()'), self.pathlabel_5.open_url)
+      self.pathlabel_5.resize(200,20)
+      self.pathlabel_5.move(30,130)
+      self.pathlabel_5.setPalette(palette)
+
+      #Create labellist
+      self.labellist = []
+      self.labellist.append(self.pathlabel)
+      self.labellist.append(self.pathlabel_2)
+      self.labellist.append(self.pathlabel_3)
+      self.labellist.append(self.pathlabel_4)
+      self.labellist.append(self.pathlabel_5)
+      
+      #Create QGroupbox
+      self.mygroupbox = QtGui.QGroupBox("Links to suggested resources:",self)
+      self.myform = QtGui.QFormLayout()
+      #Add rows into Layout
+      self.myform.addRow(self.labellist[0])
+      self.myform.addRow(self.labellist[1])
+      self.myform.addRow(self.labellist[2])
+      self.myform.addRow(self.labellist[3])
+      self.myform.addRow(self.labellist[4])
+      #Add self.myform to self.mygroupbox
+      self.mygroupbox.setLayout(self.myform)
+
+      #Create scrollbar area
+      self.scrollArea = QtGui.QScrollArea(self)
+      self.scrollArea.setWidget(self.mygroupbox)
+      self.scrollArea.setWidgetResizable(True)
+      self.scrollArea.setFixedHeight(100)
+      self.scrollArea.setFixedWidth(300)
+      self.scrollArea.move(10,30)
+      
+      #
+      #self.setGeometry(300, 600, 400, 200)
+      self.setGeometry(0, 0, 320, 140)
+
       #Get the current path
       self.pathstr = os.path.dirname(os.path.realpath(sys.argv[0]))
 
@@ -61,12 +136,12 @@ class WindowClass(QtGui.QMainWindow, form_class):
       self.sleep_interval = 1.005
 
     def startlog(self):
-      threading.Thread(target = log2, args = () ).start()
+      threading.Thread(target = log3, args = () ).start()
 
     def show_link(self):
       threading.Thread(target = update_visible_link, args = (self,)).start()
 
-    def open_url(self, widget, data = None):
+    def open_url(self):
       global urlstr
       webbrowser.open(urlstr)
 
@@ -183,9 +258,12 @@ key_mapping = {
         0b00000001: ("b", "B"),
         0b00000010: ("n", "N"),
         0b00000100: ("m", "M"),
-        0b00001000: (",", "<"),
-        0b00010000: (".", ">"),
-        0b00100000: ("/", "?"),
+        #0b00001000: (",", "<"),
+        0b00001000: (",", ";"),
+        #0b00010000: (".", ">"),
+        0b00010000: (".", ":"),
+        #0b00100000: ("/", "?"),
+        0b00100000: ("-", "_"),
         #0b01000000: "<right shift>",
     },
     8: {
@@ -258,11 +336,9 @@ def fetch_keys():
 ###
 def log2():	
 
-      sleep_interval = 0.005
-
       global urlstr
-      urlstr = ""
 
+      sleep_interval = 0.005
       flag = 0
       flag2= 0
       dumstr = ''
@@ -303,14 +379,13 @@ def log2():
 
 			#Make query from DiMe
 			urlstr = search_dime(dumstr)
-			
-			#Add the suggested url into a history file
-			f2 = open("suggested_pages.txt","a")
-			f2.write(cdate + ' ' + ctime + ' ' + urlstr + '\n')
-			f2.close()
-
-			#
 			print urlstr
+
+			#Add the suggested url into a history file
+			if urlstr != None:
+				f2 = open("suggested_pages.txt","a")
+				f2.write(cdate + ' ' + ctime + ' ' + str(urlstr.json()[0]) + '\n')
+				f2.close()
 
 			#Clear the dummy string
 			dumstr = ''
@@ -327,26 +402,122 @@ def log2():
       f.close()
 
 
+
+###
+def log3():
+
+      global urlstr
+
+      countspaces = 0
+      sleep_interval = 0.005
+      timeinterval = 10
+
+      #starttime = datetime.datetime.now().time().second
+      now = time()
+      flag = 0
+      flag2= 0
+      dumstr = ''
+
+      #Show the links of suggested resources in the window
+      #update_kurllabel2(self)
+
+      f = open('typedwords.txt', 'a')
+      while var:
+
+        strdum = ''
+        sleep(sleep_interval)
+        changed, modifiers, keys = fetch_keys()
+        keys  = str(keys)
+
+
+        #Take current time
+        cdate = datetime.datetime.now().date()
+        ctime = datetime.datetime.now().time()
+
+	cmachtime = time()
+        var2 = cmachtime > now + timeinterval
+
+        if keys == 'None':
+                keys = ''
+        
+	elif keys == '<backspace>':
+                keys = ''
+                #Convert current string into list of characters
+                duml = list(dumstr)
+                if len(duml) > 0:
+                        #Delete the last character from the list
+                        del( duml[len(duml)-1] )
+                        #Convert back to string
+                        dumstr = "".join(duml)
+	
+	elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>'," "]:
+		keys = ' '
+		dumstr = dumstr + keys
+		countspaces = countspaces + 1
+        else:
+                cdate = datetime.datetime.now().date()
+                ctime = datetime.datetime.now().time()
+                dumstr = dumstr + keys
+        
+	if var2 or countspaces == 5:
+                f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr + '\n')
+
+                #Make query from DiMe
+                urlstr = search_dime(dumstr)
+		print "foo"
+		print countspaces
+                print urlstr
+
+                #Add the suggested url into a history file
+                if urlstr != None:
+	                f2 = open("suggested_pages.txt","a")
+                	f2.write(str(cdate) + ' ' + str(ctime) + ' ' + str(urlstr.json()[0]["uri"]) + '\n')
+                        f2.close()
+
+                #Clear the dummy string
+                dumstr = ''
+		countspaces = 0
+
+                flag = 1
+                flag2= 0
+
+		now = time()
+
+
+
+      f.close()
+
+
+
 def update_visible_link(self):
+      i = 0
       global urlstr
       global var
-      #print urlstr
+
       while var:
-      #self.kurllabel.setText(urlstr)    
         sleep(2.0)
-        self.pathlabel.setText(urlstr)
-
-
+        #for i in len(r.json())
+	if urlstr != None:
+		for i in range( len(urlstr.json()) ):
+			if i == 0:
+				self.pathlabel.setText(str(urlstr.json()[i]["uri"]))
+			elif i == 1:
+				self.pathlabel_2.setText(str(urlstr.json()[i]["uri"]))
+			elif i == 2:
+				self.pathlabel_3.setText(str(urlstr.json()[i]["uri"]))
+			elif i == 3:
+				self.pathlabel_4.setText(str(urlstr.json()[i]["uri"]))
+			elif i == 4:
+				self.pathlabel_5.setText(str(urlstr.json()[i]["uri"]))
 
 
 def search_dime(query):
+#def search_dime(server_username, server_password, query)
 	#------------------------------------------------------------------------------
 
 	server_url = 'http://localhost:8080/api'
-
-        # Local DiMe server
-	server_username = 'usrname'
-	server_password = 'passwd'
+	server_username = 'petrihiit'
+	server_password = 'p3tr1h11t'
 
 	#------------------------------------------------------------------------------
 
@@ -362,7 +533,7 @@ def search_dime(query):
 	#query = "python"
 	print query
 
-	r = requests.get(server_url + '/search?query={}&limit=1'.format(query),
+	r = requests.get(server_url + '/search?query={}&limit=5'.format(query),
         	         headers={'content-type': 'application/json'},
                 	 auth=(server_username, server_password),
 	                 timeout=10)
@@ -371,23 +542,20 @@ def search_dime(query):
 
 	if len(r.json()) > 0:
 		if r.status_code != requests.codes.ok:
-		    print('ErrorNo connection to DiMe server!')
-		    sys.exit(1)
+		    #print('ErrorNo connection to DiMe server!')
+		    r = None
+		    #sys.exit(1)
 
-		urlstr = r.json()[0]["uri"]
-	else:
-		urlstr = ''
-		#print urlstr
-	
-	return urlstr
-
+		return r
 
 
 if __name__ == "__main__":
 
   #Important global variables!
   global urlstr
-  urlstr = ''
+  #Initialize urlstr
+  urlstr = search_dime("python")
+
   global var
   var = True
 
@@ -402,19 +570,21 @@ if __name__ == "__main__":
   sh = screen.height()
 
   #Make a WindowClass object
-  newwindow = WindowClass(None)
+  newwindow = WindowClass()
   newwindow.show()
 
   #Move the window into the right corner
-  newwindow.move(sl-250,0)
+  newwindow.move(sl-350,0)
+
 
   #Start the url updating 
-  newwindow.show_link()
+  newwindow.show_link()  
+
   #Start keylogger
   newwindow.startlog()
-  
 
   #Start
   app.exec_()
 
-  
+  #
+  sys.exit(app.exec_())
