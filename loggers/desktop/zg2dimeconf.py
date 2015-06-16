@@ -160,6 +160,7 @@ def process_config(config_file, v=True):
     
     # [DiMe]:
 
+    process_config_path(parser,   'DiMe', 'path', 'dimepath', v)
     process_config_string(parser, 'DiMe', 'server_url', 'server_url', v)
     process_config_int(parser,    'DiMe', 'server_timeout', 'server_timeout', v)
     process_config_string(parser, 'DiMe', 'username', 'username', v)
@@ -209,6 +210,8 @@ def process_config(config_file, v=True):
     process_config_path(parser, 'Timing', 'timingfile', 'timingfile', v)
     process_config_boolean(parser, 'Timing', 'pdftotext', 'pdftotext_timing', v)
     process_config_int(parser,     'Timing', 'maxtextlength', 'maxtextlength_timing', v)
+    process_config_int(parser,     'Timing', 'logger_interval', 'logger_interval', v)
+    process_config_int(parser,     'Timing', 'status_interval', 'status_interval', v)
     
     process_timing_applist(parser, 'usage_apps', v)
     process_timing_applist(parser, 'modify_apps', v)

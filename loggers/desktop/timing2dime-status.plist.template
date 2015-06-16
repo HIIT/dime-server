@@ -3,13 +3,16 @@
 <plist version="1.0">
 	<dict>
 		<key>Label</key>
-		<string>fi.hiit.dime.timing2dime</string>
-		<key>Program</key>
-		<string>/FULL/PATH/TO/DIME/loggers/desktop/timing2dime.py</string>
+		<string>fi.hiit.dime.timing2dime-status</string>
+		<key>ProgramArguments</key>
+		<array>
+		  <string>%(dimepath)s/loggers/desktop/timing2dime.py</string>
+		  <string>status</string>
+		</array>
                 <key>WorkingDirectory</key>
-                <string>/FULL/PATH/TO/DIME/loggers/desktop</string>
+                <string>%(dimepath)s/loggers/desktop</string>
                 <key>StartInterval</key>
-                <integer>300</integer>
+                <integer>%(status_interval)s</integer>
                 <key>StandardInPath</key>
                 <string>/tmp/fi.hiit.dime.timing2dime.stdin</string>
                 <key>StandardOutPath</key>
