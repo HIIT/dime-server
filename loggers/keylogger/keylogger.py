@@ -43,7 +43,10 @@ class WindowClass(QtGui.QMainWindow):
 
       #Set the window title
       self.setWindowTitle('Keylogger')
-        
+
+      #Always on top
+      self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
       #Create menubar
       menubar = self.menuBar()
       filemenu = menubar.addMenu('&File')
@@ -116,13 +119,13 @@ class WindowClass(QtGui.QMainWindow):
       self.scrollArea = QtGui.QScrollArea(self)
       self.scrollArea.setWidget(self.mygroupbox)
       self.scrollArea.setWidgetResizable(True)
-      self.scrollArea.setFixedHeight(100)
+      self.scrollArea.setFixedHeight(200)
       self.scrollArea.setFixedWidth(300)
       self.scrollArea.move(10,30)
       
       #
       #self.setGeometry(300, 600, 400, 200)
-      self.setGeometry(0, 0, 320, 140)
+      self.setGeometry(0, 0, 320, 240)
 
       #Get the current path
       self.pathstr = os.path.dirname(os.path.realpath(sys.argv[0]))
