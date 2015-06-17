@@ -35,7 +35,6 @@ from PyQt4.QtCore import *
 #
 import re
 
-#form_class = uic.loadUiType("guikeylog3.ui")[0]
 
 class WindowClass(QtGui.QMainWindow):
 #class WindowClass(QtGui.QWidget):
@@ -66,13 +65,6 @@ class WindowClass(QtGui.QMainWindow):
       palette = QtGui.QPalette()
       palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkGreen)
 
-      #Make clickable labels
-      #self.pathlabel = ExtendedQLabel.ExtendedQLabel()
-
-      #self.pathlabel.setTextFormat(Qt.RichText)
-      #self.pathlabel = QtGui.QLabel("",self)
-      #self.pathlabel.openExternalLinks = True
-
       #Create QGroupbox
       self.mygroupbox = QtGui.QGroupBox("Links to suggested resources:",self)
       #Create layout
@@ -102,7 +94,6 @@ class WindowClass(QtGui.QMainWindow):
       self.scrollArea.move(10,30)
       
       #
-      #self.setGeometry(300, 600, 400, 200)
       self.setGeometry(0, 0, 320, 240)
 
       #Get the current path
@@ -117,7 +108,7 @@ class WindowClass(QtGui.QMainWindow):
       self.sleep_interval = 1.005
 
     def startlog(self):
-        threading.Thread(target = log3, args = (self,) ).start()
+        threading.Thread(target = log, args = (self,) ).start()
 
     def show_link(self):
 	threading.Thread(target = update_visible_link, args = (self,)).start()
@@ -131,11 +122,8 @@ class WindowClass(QtGui.QMainWindow):
                 for i in range( len(urlstr.json()) ):
                                 linkstr = str( urlstr.json()[i]["uri"] )
                                 self.labellist[i].setText(linkstr)
-                                #self.pathlabel.setText('<i>hello</i>')
-                                #self.pathlabel.setText('<a href="{0}">{0}</a>'.format(linkstr))
                                 plaintext    = urlstr.json()[i]["plainTextContent"]
                                 tooltipstr   = re.sub("[^\w]", " ", plaintext)
-                                #print tooltipstr1[0:120]
                                 self.labellist[i].setToolTip(tooltipstr[0:120])
 
 
@@ -330,78 +318,8 @@ def fetch_keys():
     return state_changed, modifier_state, pressed
 
 
-
 ###
-def log2():	
-
-      global urlstr
-
-      sleep_interval = 0.005
-      flag = 0
-      flag2= 0
-      dumstr = ''
-
-      #Show the links of suggested resources in the window
-      #update_kurllabel2(self)
-	
-      f = open('typedwords.txt', 'a')
-      while var:
-		
-        strdum = ''
-        sleep(sleep_interval)
-        changed, modifiers, keys = fetch_keys()
-        keys  = str(keys)
-
-
-        #Take current time
-        cdate = str(datetime.datetime.now().date())
-        ctime = str(datetime.datetime.now().time())
-
-        if keys == 'None':
-                keys = ''
-        elif keys == '<backspace>':
-                keys = ''
-		#Convert current string into list of characters
-		duml = list(dumstr)
-		if len(duml) > 0:
-			#Delete the last character from the list
-			del( duml[len(duml)-1] )
-			#Convert back to string
-			dumstr = "".join(duml)
-
-        elif keys == ' ' or keys == '<tab>' or keys == '<enter>' or keys == '<left ctrl>' or keys == '<right ctrl>':
-
-                f.write(cdate + ' ' + ctime + ' ' + dumstr + '\n')
-
-		if flag2 == 1:
-
-			#Make query from DiMe
-			urlstr = search_dime(dumstr)
-
-			#Add the suggested url into a history file
-			if urlstr != None:
-				f2 = open("suggested_pages.txt","a")
-				f2.write(cdate + ' ' + ctime + ' ' + str(urlstr.json()[0]) + '\n')
-				f2.close()
-
-			#Clear the dummy string
-			dumstr = ''
-
-		flag = 1
-		flag2= 0
-        else:
-	        cdate = str(datetime.datetime.now().date())
-                ctime = str(datetime.datetime.now().time())
-		dumstr = dumstr + keys
-		flag2= 1
-
-
-      f.close()
-
-
-
-###
-def log3(win):
+def log(win):
 
       global urlstr
 
