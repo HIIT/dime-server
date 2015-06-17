@@ -26,11 +26,14 @@ import webbrowser
 #For GUI
 from PyQt4 import QtCore, QtGui, uic
 
+#Includes the definition of clickable label
 import ExtendedQLabel
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
+#
+import re
 
 #form_class = uic.loadUiType("guikeylog3.ui")[0]
 
@@ -39,7 +42,6 @@ class WindowClass(QtGui.QMainWindow):
     
     def __init__(self):
       super(WindowClass, self).__init__()
-      #QtGui.QWidget.__init__(self)
 
       #Set the window title
       self.setWindowTitle('Keylogger')
@@ -65,53 +67,29 @@ class WindowClass(QtGui.QMainWindow):
       palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkGreen)
 
       #Make clickable labels
-      self.pathlabel = ExtendedQLabel.ExtendedQLabel()
-      self.connect(self.pathlabel, SIGNAL('clicked()'), self.pathlabel.open_url)
-      self.pathlabel.resize(200,20)
-      self.pathlabel.move(30,40)
-      self.pathlabel.setPalette(palette)
+      #self.pathlabel = ExtendedQLabel.ExtendedQLabel()
 
-      self.pathlabel_2 = ExtendedQLabel.ExtendedQLabel("",self)
-      self.connect(self.pathlabel_2, SIGNAL('clicked()'), self.pathlabel_2.open_url)
-      self.pathlabel_2.resize(200,20)
-      self.pathlabel_2.move(30,70)
-      self.pathlabel_2.setPalette(palette)
+      #self.pathlabel.setTextFormat(Qt.RichText)
+      #self.pathlabel = QtGui.QLabel("",self)
+      #self.pathlabel.openExternalLinks = True
 
-      self.pathlabel_3 = ExtendedQLabel.ExtendedQLabel("",self)
-      self.connect(self.pathlabel_3, SIGNAL('clicked()'), self.pathlabel_3.open_url)
-      self.pathlabel_3.resize(200,20)
-      self.pathlabel_3.move(30,90)
-      self.pathlabel_3.setPalette(palette)
-
-      self.pathlabel_4 = ExtendedQLabel.ExtendedQLabel("",self)
-      self.connect(self.pathlabel_4, SIGNAL('clicked()'), self.pathlabel_4.open_url)      
-      self.pathlabel_4.resize(200,20)
-      self.pathlabel_4.move(30,110)
-      self.pathlabel_4.setPalette(palette)
-
-      self.pathlabel_5 = ExtendedQLabel.ExtendedQLabel("",self)
-      self.connect(self.pathlabel_5, SIGNAL('clicked()'), self.pathlabel_5.open_url)
-      self.pathlabel_5.resize(200,20)
-      self.pathlabel_5.move(30,130)
-      self.pathlabel_5.setPalette(palette)
-
-      #Create labellist
-      self.labellist = []
-      self.labellist.append(self.pathlabel)
-      self.labellist.append(self.pathlabel_2)
-      self.labellist.append(self.pathlabel_3)
-      self.labellist.append(self.pathlabel_4)
-      self.labellist.append(self.pathlabel_5)
-      
       #Create QGroupbox
       self.mygroupbox = QtGui.QGroupBox("Links to suggested resources:",self)
+      #Create layout
       self.myform = QtGui.QFormLayout()
-      #Add rows into Layout
-      self.myform.addRow(self.labellist[0])
-      self.myform.addRow(self.labellist[1])
-      self.myform.addRow(self.labellist[2])
-      self.myform.addRow(self.labellist[3])
-      self.myform.addRow(self.labellist[4])
+
+      #Make clickable labels
+      self.labellist = []
+      for i in range(5):
+        #
+        dumlabel = ExtendedQLabel.ExtendedQLabel("", self)
+	dumlabel.connect(dumlabel, SIGNAL('clicked()'), dumlabel.open_url)
+	dumlabel.setPalette(palette)
+	#Add to label list
+	self.labellist.append(dumlabel) 
+	#
+	self.myform.addRow(self.labellist[i])
+
       #Add self.myform to self.mygroupbox
       self.mygroupbox.setLayout(self.myform)
 
@@ -139,10 +117,27 @@ class WindowClass(QtGui.QMainWindow):
       self.sleep_interval = 1.005
 
     def startlog(self):
-      threading.Thread(target = log3, args = () ).start()
+        threading.Thread(target = log3, args = (self,) ).start()
 
     def show_link(self):
-      threading.Thread(target = update_visible_link, args = (self,)).start()
+	threading.Thread(target = update_visible_link, args = (self,)).start()
+
+    def update_links(self, urlstr):
+        #pass
+        i = 0
+        sleep(2.0)
+        #for i in len(r.json())
+        if urlstr != None:
+                for i in range( len(urlstr.json()) ):
+                                linkstr = str( urlstr.json()[i]["uri"] )
+                                self.labellist[i].setText(linkstr)
+                                #self.pathlabel.setText('<i>hello</i>')
+                                #self.pathlabel.setText('<a href="{0}">{0}</a>'.format(linkstr))
+                                plaintext    = urlstr.json()[i]["plainTextContent"]
+                                tooltipstr   = re.sub("[^\w]", " ", plaintext)
+                                #print tooltipstr1[0:120]
+                                self.labellist[i].setToolTip(tooltipstr[0:120])
+
 
     def open_url(self):
       global urlstr
@@ -382,7 +377,6 @@ def log2():
 
 			#Make query from DiMe
 			urlstr = search_dime(dumstr)
-			print urlstr
 
 			#Add the suggested url into a history file
 			if urlstr != None:
@@ -407,7 +401,7 @@ def log2():
 
 
 ###
-def log3():
+def log3(win):
 
       global urlstr
 
@@ -465,11 +459,15 @@ def log3():
 	if var2 or countspaces == 5:
                 f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr + '\n')
 
-                #Make query from DiMe
+                #Make query to DiMe
                 urlstr = search_dime(dumstr)
-		print "foo"
-		print countspaces
-                print urlstr
+		#Update visible links
+		win.update_links(urlstr)
+	
+		#Updates 
+		#print "foo"
+		#print countspaces
+                #print urlstr
 
                 #Add the suggested url into a history file
                 if urlstr != None:
@@ -492,7 +490,7 @@ def log3():
 
 
 
-def update_visible_link(self):
+def update_visible_link(win):
       i = 0
       global urlstr
       global var
@@ -502,16 +500,14 @@ def update_visible_link(self):
         #for i in len(r.json())
 	if urlstr != None:
 		for i in range( len(urlstr.json()) ):
-			if i == 0:
-				self.pathlabel.setText(str(urlstr.json()[i]["uri"]))
-			elif i == 1:
-				self.pathlabel_2.setText(str(urlstr.json()[i]["uri"]))
-			elif i == 2:
-				self.pathlabel_3.setText(str(urlstr.json()[i]["uri"]))
-			elif i == 3:
-				self.pathlabel_4.setText(str(urlstr.json()[i]["uri"]))
-			elif i == 4:
-				self.pathlabel_5.setText(str(urlstr.json()[i]["uri"]))
+				linkstr = str( urlstr.json()[i]["uri"] )
+				win.labellist[i].setText(linkstr)
+				#self.pathlabel.setText('<i>hello</i>')
+				#self.pathlabel.setText('<a href="{0}">{0}</a>'.format(linkstr))
+				plaintext    = urlstr.json()[i]["plainTextContent"]
+				tooltipstr   = re.sub("[^\w]", " ", plaintext)
+				#print tooltipstr1[0:120]
+				win.labellist[i].setToolTip(tooltipstr[0:120])
 
 
 def search_dime(query):
@@ -579,9 +575,8 @@ if __name__ == "__main__":
   #Move the window into the right corner
   newwindow.move(sl-350,0)
 
-
   #Start the url updating 
-  newwindow.show_link()  
+  #newwindow.show_link()  
 
   #Start keylogger
   newwindow.startlog()
