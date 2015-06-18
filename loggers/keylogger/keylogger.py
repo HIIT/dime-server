@@ -107,6 +107,9 @@ class WindowClass(QtGui.QMainWindow):
       #
       self.sleep_interval = 1.005
 
+    def closeEvent(self, event):
+        self.quitting()
+
     def startlog(self):
         threading.Thread(target = log, args = (self,) ).start()
 
@@ -433,8 +436,10 @@ def search_dime(query):
 	#------------------------------------------------------------------------------
 
 	server_url = 'http://localhost:8080/api'
-	server_username = 'petrihiit'
-	server_password = 'p3tr1h11t'
+	server_username = 'jmakoske'
+	server_password = '0yI6QrnYI63ZvBLde1y4'
+#	server_username = 'petrihiit'
+#	server_password = 'p3tr1h11t'
 
 	#------------------------------------------------------------------------------
 
@@ -503,4 +508,4 @@ if __name__ == "__main__":
   app.exec_()
 
   #
-  sys.exit(app.exec_())
+  #sys.exit(app.exec_())
