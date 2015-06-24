@@ -125,7 +125,7 @@ def process_browser(parser, section, suffix, v=True):
     process_config_string(parser, section, 'actor', 'actor_'+suffix, v)
     process_config_int(parser, section, 'interval', 'interval_'+suffix, v)
     process_config_path(parser, section, 'history_file', 'history_file_'+suffix, v)
-    process_config_string(parser, section, 'tmpfile', 'tmpfile_'+suffix, v)
+    process_config_path(parser, section, 'tmpfile', 'tmpfile_'+suffix, v)
     process_config_int(parser, section, 'nevents', 'nevents_'+suffix, v)
     process_blacklist(parser, section, suffix, v)
                 
