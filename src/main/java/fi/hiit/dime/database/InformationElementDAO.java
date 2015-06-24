@@ -81,7 +81,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	    if (limit != -1)
 		dbQuery = dbQuery.with(new PageRequest(0, limit));
 
-	    return operations.find(dbQuery, InformationElement.class);
+	    return operations.find(dbQuery, InformationElement.class, collectionName());
 
 
 	} else if (version[0] == 2 && version[1] >= 4) {
@@ -124,6 +124,13 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	} else {
 	    return new ArrayList<InformationElement>();
 	}
+    }
+
+    /**
+       Return all InformationElement objects in database.
+    */
+    public List<InformationElement> findAll() {
+	return operations.findAll(InformationElement.class, collectionName());
     }
 
     public int removeForUser(String id) {
