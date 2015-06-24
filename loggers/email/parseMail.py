@@ -49,6 +49,27 @@ class Attachment:
             if self.content_id.startswith('<') and self.content_id.endswith('>'):
                 self.content_id=self.content_id[1:-1]
 
+def remove_reply_text(email_text):
+    #Notes on regex
+    #Search for classic prefix from GMail and other mail clients "On May 16, 2011, Dave wrote:"
+    #Search for prefix from outlook clients From: Some Person [some.person@domain.tld]
+    #Search for prefix from outlook clients when used for sending to recipients in the same domain From: Some Person\nSent: 16/05/2011 22:42\nTo: Some Other Person
+    #Search for prefix when message has been forwarded
+    #Search for From: <email@domain.tld>\nTo: <email@domain.tld>\nDate:<email@domain.tld
+    #Search for From:, To:, Sent:
+    #Some clients use -*Original Message-*
+    pattern = "On ([a-zA-Z0-9, :/<>@\.\"\[\]]* wrote:.*)|" + \
+        "From: [\w@ \.]* \[mailto:[\w\.]*@[\w\.]*\].*|" + \
+        "From: [\w@ \.]*(\n|\r\n)+Sent: [\*\w@ \.,:/]*(\n|\r\n)+To:.*(\n|\r\n)+.*|" + \
+        "[- ]*Forwarded by [\w@ \.,:/]*.*|" + \
+        "From: [\w@ \.<>\-]*(\n|\r\n)To: [\w@ \.<>\-]*(\n|\r\n)Date: [\w@ \.<>\-:,]*\n.*|" + \
+        "From: [\w@ \.<>\-]*(\n|\r\n)To: [\w@ \.<>\-]*(\n|\r\n)Sent: [\*\w@ \.,:/]*(\n|\r\n).*|" + \
+        "From: [\w@ \.<>\-]*(\n|\r\n)To: [\w@ \.<>\-]*(\n|\r\n)Subject:.*|" + \
+        "(-| )*Original Message(-| )*.*)"
+    email_body = re.sub(pattern,'', email_text)
+    return email_body
+    
+
 def getmailheader(header_text, default="ascii"):
     """Decode header_text if needed"""
     try:
