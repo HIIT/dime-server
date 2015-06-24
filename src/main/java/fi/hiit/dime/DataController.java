@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Controller for /data REST API, for writing and reading data objects. 
@@ -203,4 +204,22 @@ public class DataController extends AuthorizedController {
 	eventLog("MessageEvent", user, input);
 	return new ResponseEntity<MessageEvent>(input, HttpStatus.OK);
     }
+
+    /**
+     * @api {get} /data/informationelement Get InformationElements
+     * @apiName GetInformationElement
+     * @apiGroup Read
+     * 
+     * @apiSuccess {Object[]} - Array of InformationElement objects
+     */
+    @RequestMapping(value="/informationelement", method = RequestMethod.GET)
+    public ResponseEntity<List<InformationElement>> 
+	informationElement(Authentication auth) {
+	User user = getUser(auth);
+
+	List<InformationElement> results = infoElemDAO.findAll();
+
+	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
+    }
+    
 }
