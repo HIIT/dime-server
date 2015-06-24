@@ -30,9 +30,16 @@ import java.util.List;
 public class Message extends InformationElement {
     public Date date;
     public String subject;
+    //
+    public String fromString;
     public Person from;
+    //
+    public String toString;
     public List<Person> to;
+    //
+    public String ccString;
     public List<Person> cc;
-    public List<String> attachments;
+    //
+    public List<InformationElement> attachments;
     public String rawMessage;
 }

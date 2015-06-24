@@ -24,21 +24,22 @@
 
 package fi.hiit.dime.database;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.AppConfig;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
-import fi.hiit.dime.AppConfig;
-import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 
-//------------------------------------------------------------------------------
+import java.util.Iterator;
 
 abstract class BaseDAO<T extends Object> {
+    private static final Logger LOG = LoggerFactory.getLogger(BaseDAO.class);
 
     @Autowired
     protected MongoOperations operations;
@@ -52,41 +53,27 @@ abstract class BaseDAO<T extends Object> {
     	return operations.findById(id, entityClass, collectionName());
     }
 
-    //--------------------------------------------------------------------------
-
     public void save(T obj) {
 	operations.save(obj, collectionName());
     }
 
-    //--------------------------------------------------------------------------
-
     abstract public String collectionName();
-
-    //--------------------------------------------------------------------------
 
     public DBCollection getCollection() {
 	return operations.getCollection(collectionName());
     }
 
-    //--------------------------------------------------------------------------
-
     public void ensureIndex(String fieldName, Object value) {
 	getCollection().createIndex(new BasicDBObject(fieldName, value));
     }
-
-    //--------------------------------------------------------------------------
 
     public void ensureIndex(String fieldName) {
 	getCollection().createIndex(new BasicDBObject(fieldName, 1));
     }
 
-    //--------------------------------------------------------------------------
-
     public void ensureTextIndex(String fieldName) {
 	getCollection().createIndex(new BasicDBObject(fieldName, "text"));
     }
-
-    //--------------------------------------------------------------------------
 
     /**
      * Get mongodb server version as an array of ints, e.g. {2, 4, 9}

@@ -25,5 +25,5 @@
 package fi.hiit.dime.data;
 
 public class MessageEvent extends Event {
-    public InformationElement targettedResource;
+    public Message targettedResource;
 }

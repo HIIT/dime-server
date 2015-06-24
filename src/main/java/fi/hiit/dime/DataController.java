@@ -112,6 +112,47 @@ public class DataController extends AuthorizedController {
     }
 
     /**
+     * Helper method to expand stub Message objects.
+     *
+     * Stub objects are those which only include the id with the
+     * assumption that the original full object already exists in the
+     * database.
+     *
+     * @param msg Message to expand
+     * @param user current authenticated user
+     * @return The expanded Message
+     */
+    protected Message expandMessage(Message msg, User user) {
+	if (msg != null) {
+	    if (!msg.isStub()) {
+		msg.user = user;
+		if (msg.subject.length() > 0)
+		    msg.plainTextContent = msg.subject + "\n\n" + msg.plainTextContent;
+		infoElemDAO.save(msg);
+
+		// infoElemDAO.save(msg.from);
+
+		// for (Person to : msg.to)
+		//     infoElemDAO.save(to);
+
+		// for (Person cc : msg.cc)
+		//     infoElemDAO.save(cc);
+
+	    } else { // expand if only a stub msg was included
+		Message expandedMsg = (Message)infoElemDAO.findById(msg.id);	
+		if (expandedMsg != null) {
+		    LOG.info("Expanded Message for " + expandedMsg.uri);
+		    // don't copy the text, takes too much space
+		    expandedMsg.plainTextContent = null; 
+		    msg = expandedMsg;
+		}
+	    }
+	} 
+
+	return msg;
+    }
+
+    /**
      * @api {post} /data/searchevent Upload SearchEvent
      * @apiName PostSearchEvent
      * @apiGroup Data
@@ -196,8 +237,8 @@ public class DataController extends AuthorizedController {
 	messageEvent(Authentication auth, @RequestBody MessageEvent input) {
 	User user = getUser(auth);
 	input.user = user;
-	input.targettedResource = 
-	    expandInformationElement(input.targettedResource, user);
+
+	input.targettedResource = expandMessage(input.targettedResource, user);
 
 	eventDAO.save(input);
 	
@@ -217,7 +258,7 @@ public class DataController extends AuthorizedController {
 	informationElement(Authentication auth) {
 	User user = getUser(auth);
 
-	List<InformationElement> results = infoElemDAO.findAll();
+	List<InformationElement> results = infoElemDAO.elementsForUser(user.id);
 
 	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
     }

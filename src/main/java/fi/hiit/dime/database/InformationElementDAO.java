@@ -129,8 +129,9 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
     /**
        Return all InformationElement objects in database.
     */
-    public List<InformationElement> findAll() {
-	return operations.findAll(InformationElement.class, collectionName());
+    public List<InformationElement> elementsForUser(String id) {
+	return operations.find(query(where("user._id").is(new ObjectId(id))),
+			       InformationElement.class, collectionName());
     }
 
     public int removeForUser(String id) {
