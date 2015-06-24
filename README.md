@@ -108,6 +108,11 @@ This repository currently includes the following loggers:
 
 - [Installation instructions][5]
 
+### Cross-platform browser history logger
+
+- [Installation instructions][10]
+
+
 [1]: http://docs.mongodb.org/v2.4/tutorial/enable-text-search/
 [2]: http://www.mongodb.org/
 [3]: https://github.com/HIIT/dime-server/wiki/Linux-desktop
@@ -117,3 +122,4 @@ This repository currently includes the following loggers:
 [7]: https://www.macports.org/
 [8]: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
 [9]: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-windows/
+[10]: https://github.com/HIIT/dime-server/wiki/Browser-logger
