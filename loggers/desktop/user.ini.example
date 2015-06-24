@@ -19,12 +19,20 @@ other_actors: acroread.desktop->Adobe Reader;
 	      kde4-okular.desktop->Okular
 #blacklist: secret.org; passwords.txt
 
+### BROWSERS: ###
+
 [Chrome]
 use: no
 interval: 60
 nevents: 10
-history_file: ~/.config/google-chrome/Default/History
 blacklist: localhost; iltalehti.fi
+# Linux:
+history_file: ~/.config/google-chrome/Default/History
+# OS X:
+#history_file: ~/Library/Application Support/Google/Chrome/Default/History
+# Windows:
+#history_file: ~\AppData\Local\Google\Chrome\User Data\Default\History
+#tmpfile: ~\Browserlogger_Chrome_History
 
 [Chromium]
 use: no
