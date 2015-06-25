@@ -12,8 +12,12 @@ from nltk.corpus import stopwords
 import imaplib
 import email
 import keyring
-
+from textUtils import *
 from parseMail import *
+from textblob import TextBlob as tb
+import html2text
+import quotequail
+ 
 #conn = imaplib.IMAP4_SSL("imap.gmail.com", 993)
 # Log In
 conn = imaplib.IMAP4_SSL("imap.aalto.fi", 993)
@@ -24,11 +28,12 @@ PASSWORD = keyring.get_password('my_Gmail',USERNAME)
 conn.login(USERNAME, PASSWORD)
 folders = conn.list()
 n = len(folders[1])
-
+h = html2text.HTML2Text()
+h.ignore_links = True
 # Regex patterns to remove to escape sequences and other characters from the email-id
 regex = re.compile(r'[ \n\r\t\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff]')
 regex_1 = re.compile(r'[\n\r\t\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\xff]')
-re_fw_pattern =re.compile( '([\[\(] *)?(RE?S?|FWD?) *([-:;)\]][ :;\])-]*|$)|\]+ *$', re.IGNORECASE)
+re_fw_pattern =re.compile( '([\[\(] *)?(RE|FWD?) *([-:;)\]][ :;\])-]*|$)|\]+ *$', re.IGNORECASE)
 
 # Class User to analyse the person whose emails are to be analysed
 # peer_list is the list of peers the user has interacted with
@@ -37,11 +42,10 @@ class user(object):
         self.email=email
         self.peer_list = []
 
-# Class peer is used to represent a person with whom the user has interacted with through emails.
-# Thread List is the list of threads the user has interacted with the peer.
 class peer(object):
     def __init__(self, email):
         self.email = email
+        self.document = "document"
         self.thread_list=[]
 
 def byThreadNo(inter):
@@ -83,19 +87,7 @@ class Email(object):
     def __hash__(self):
         return hash(self.__repr__())
 
-
-def preProcessText(text):
-    text = regex_1.sub(' ',text)
-    text = removePuncts(text)
-    #text = removeStopWords(text)
-    return text
-
-stop = stopwords.words('english')
-def removeStopWords(text):
-    return ' '.join([i for i in text.split() if i not in stop])
-
-def removePuncts(text):
-    return "".join(l for l in text if l not in string.punctuation)
+		
 
 # This function reads the raw email message and creates a structured email class
 def readEmail(msg):
@@ -109,14 +101,22 @@ def readEmail(msg):
     for attach in attachments:
         # for filename collision, to before to save :
         if attach.is_body=='text/plain':
-            payload, used_charset=decode_text(attach.payload, attach.charset, 'auto') 
+            payload, used_charset=decode_text(attach.payload, attach.charset, 'auto')
             te = payload
-    te = preProcessText(te)
-    te = removeStopWords(te)
+        if attach.is_body=='text/html':
+            payload, used_charset=decode_text(attach.payload, attach.charset, 'auto')
+            te = payload
+            te = h.handle(te) # To get the text from the HTML file
+    z = quotequail.unwrap(te) # To remove the reply text
+    if z is not None:
+        if 'text_top' in z:
+            te = z["text_top"]
+    #print te
+    te = regex_1.sub(' ',te)
+    #pre processing subject
     #pre processing subject
     subject = getmailheader(msg.get('Subject', ''))
     subject = re_fw_pattern.sub('', subject)
-    subject = preProcessText(subject)
     cc = getmailaddresses(msg, 'Cc')
     if cc is not None:
         to_list = to_list + cc
@@ -135,15 +135,14 @@ for  i in range(1,n):
     ids = data[0] # data is a list.
     id_list = ids.split() # ids are a space separated string
     # iterates over all the mails
-    for i in range(1,len(id_list)):
+    for j in range(1,len(id_list)):
         new =  []
-        typ, msg_data = conn.fetch(str(i), '(RFC822)')
+        typ, msg_data = conn.fetch(str(j), '(RFC822)')
         for response_part in msg_data:
             if isinstance(response_part, tuple):
                 msg = email.message_from_string(response_part[1])
                 e = readEmail(msg)
                 emails.add(e)
-
 
 
 emails = list(emails)
@@ -169,14 +168,14 @@ for email in emails:
         emails_list.append(e)
     i=i+1
 
-
 # identifies unique people interacted with
 unique_peeps = OrderedDict.fromkeys(people).keys()
 unique_peeps.remove(em_id)
 # creates a Pandas Dataframe object
-df = pandas.DataFrame(emails_list, columns=['idd','_From', '_To', 'Subject', 'Date'])	
+df = pandas.DataFrame(emails_list, columns=['idd','_From', '_To', 'Subject', 'Date'])
 current_user = user(em_id)
 print(current_user.email)
+
 # For each person identify the unique subjects and store the list of email ids associated with the same subject
 for person in unique_peeps:
     no = 0
@@ -188,6 +187,7 @@ for person in unique_peeps:
     if unique_subjects.empty:
         continue
     inter = peer(person)
+    peer_doc = []
     for i in range(0, len(unique_subjects.index)):
         sub = unique_subjects.ix[i].Subject
         thd = thread(sub)
@@ -198,18 +198,19 @@ for person in unique_peeps:
         mail_list = []
         for j in range(0, len(ids.index)):
             id_list.append(ids.ix[j].idd.astype(int))
-            mail_list.append(emails[ids.ix[j].idd.astype(int)]._body)
-        no = no + len(mail_list)
+            mail_list.append(preProcess(emails[ids.ix[j].idd.astype(int)]._body))
         thd.document = ' '.join(mail_list)
+        peer_doc.append(thd.document)
         thd.email_list = list(id_list)
         inter.thread_list.append(thd)
         #print sqldf(q_1, globals())
+    inter.document = ' '.join(peer_doc)
     current_user.peer_list.append(inter)
 
 #Prints the No. of Emails Exchanged and the subject of the thread which has maximum emails associated with each peer
 print(len(current_user.peer_list))
 for inter in current_user.peer_list:
-    print inter.email 
+    print inter.email
     print "No of Threads:", len(inter.thread_list)
     print "No of Emails Exchanged",  getTotalEmails(inter)
     m =  max(inter.thread_list, key = byEmailNo)
@@ -217,3 +218,25 @@ for inter in current_user.peer_list:
     print "length:", len(m.email_list)
     print '\n'
 
+print "Top Words"
+def getTopWords(level):
+    if (level =='peer'):
+        doc_list = []
+        for inter in current_user.peer_list:
+            doc_list.append(tb(inter.document))
+        for inter in current_user.peer_list:
+            print inter.email
+            print getTopWordsTFIDF(tb(inter.document),doc_list,3)
+            print '\n'
+    elif (level =='thread'):
+        for inter in current_user.peer_list:
+            print inter.email
+            doc_list = []
+            for thread in inter.thread_list:
+                doc_list.append(tb(thread.document))
+            for thread in inter.thread_list:
+                print thread.subject
+                print getTopWordsTFIDF(tb(thread.document),doc_list,5)
+                print '\n'
+
+getTopWords('thread')
