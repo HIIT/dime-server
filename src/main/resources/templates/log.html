@@ -59,6 +59,7 @@
 		<b>Stored as:</b> <a th:href="${event.targettedResource.isStoredAs}" 
 				      th:text="${#strings.substringAfter(event.targettedResource.isStoredAs,'#')}"></a><br/>
 	      </span>
+	      <b>Date:</b> <span th:text="${event.targettedResource.date}"></span><br/>
 	      <b>Subject:</b> <span th:text="${event.targettedResource.subject}"></span><br/>
 	      <b>From:</b> <span th:text="${event.targettedResource.fromString}"></span><br/>
 	      <b>To:</b> <span th:text="${event.targettedResource.toString}"></span><br/>
