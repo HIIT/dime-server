@@ -25,8 +25,14 @@
 	    <hr/>
 	    <p>
 	      [<span th:text="${iterStat.index}"></span>] 
-	      <b>ID:</b> <a th:href="@{/infoelem(id=${targettedResource.id})}"
-			    th:text="${targettedResource.id}"></a>
+	      <span th:unless="${targettedResource instanceof T(fi.hiit.dime.data.Message)}">
+		<b>ID:</b> <a th:href="@{/infoelem(id=${targettedResource.id})}"
+			      th:text="${targettedResource.id}"></a>
+	      </span>
+	      <span th:if="${targettedResource instanceof T(fi.hiit.dime.data.Message)}">
+		<b>ID:</b> <a th:href="@{/message(id=${targettedResource.id})}"
+			      th:text="${targettedResource.id}"></a>
+	      </span>
 	      <b>URI:</b> <a th:href="${targettedResource.uri}" 
 			     th:text="${targettedResource.uri}"></a><br/>
 	      <span th:if="${targettedResource.type}">
@@ -38,6 +44,12 @@
 		<b>IsStoredAs:</b> 
 		<a th:href="${targettedResource.isStoredAs}"
 		   th:text="${#strings.substringAfter(targettedResource.isStoredAs,'#')}"></a><br/>
+	      </span>
+	      <span th:if="${targettedResource instanceof T(fi.hiit.dime.data.Message)}">
+		<b>Subject:</b> <span th:text="${targettedResource.subject}"></span><br/>
+		<b>From:</b> <span th:text="${targettedResource.fromString}"></span><br/>
+		<b>To:</b> <span th:text="${targettedResource.toString}"></span><br/>
+		<b>Cc:</b> <span th:text="${targettedResource.ccString}"></span><br/>
 	      </span>
 	      <!-- <b>Mimetype:</b> <span th:text="${targettedResource.mimeType}"></span> -->
 	      <b>Text:</b> <pre th:text="${#strings.abbreviate(targettedResource.plainTextContent,500)}"></pre><br/>
