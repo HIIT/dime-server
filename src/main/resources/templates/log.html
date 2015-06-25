@@ -48,7 +48,7 @@
 	    <span th:if="${event instanceof T(fi.hiit.dime.data.MessageEvent)}">
 	    <div th:if="${event.targettedResource}">
 	      <b>Message:</b><br/>
-	      <b>ID:</b> <a th:href="@{/infoelem(id=${event.targettedResource.id})}" th:text="${event.targettedResource.id}"></a>
+	      <b>ID:</b> <a th:href="@{/message(id=${event.targettedResource.id})}" th:text="${event.targettedResource.id}"></a>
 	      <b>URI:</b> <a th:href="${event.targettedResource.uri}" 
 			     th:text="${event.targettedResource.uri}"></a><br/>
 	      <span th:if="${event.targettedResource.type}">

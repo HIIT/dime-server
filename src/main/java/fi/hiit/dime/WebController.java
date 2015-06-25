@@ -131,6 +131,20 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     //--------------------------------------------------------------------------
 
+    /** Show a specific message object */
+    @RequestMapping("/message")
+    public String message(Authentication authentication, Model model,
+			  @RequestParam(value="id") String elemId) {
+	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	Message elem = (Message)infoElemDAO.findById(elemId);
+
+	if (elem.user.id.equals(userId))
+	    model.addAttribute("elem", elem);
+        return "message";
+    }
+
+    //--------------------------------------------------------------------------
+
     /** Search page */
     @RequestMapping("/search")
     public String search(@ModelAttribute SearchQuery search,
