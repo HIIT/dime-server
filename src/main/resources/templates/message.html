@@ -19,8 +19,9 @@
 	      </span>
 	      <span th:if="${elem.isStoredAs}">
 		<b>Stored as:</b> <a th:href="${elem.isStoredAs}" 
-				      th:text="${#strings.substringAfter(elem.isStoredAs,'#')}"></a><br/>
+				      th:text="${#strings.substringAfter(elem.isStoredAs,'#')}"></a>
 	      </span>
+	      <b>Date:</b> <span th:text="${elem.date}"></span><br/>
 	      <!-- <b>Mimetype:</b> <span th:text="${elem.mimeType}"></span> -->
 	      <b>Subject:</b> <span th:text="${elem.subject}"></span><br/>
 	      <b>From:</b> <span th:text="${elem.fromString}"></span><br/>
