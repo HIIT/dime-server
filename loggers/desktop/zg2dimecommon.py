@@ -61,10 +61,10 @@ def payload_to_json(payload, alt_text=None):
 
 # -----------------------------------------------------------------------
 
-def json_dumps(obj):
+def json_dumps(obj, **keywords):
     """Convert (serialize) to JSON."""
     try:
-        return json.dumps(obj)
+        return json.dumps(obj, **keywords)
     except UnicodeDecodeError:
         return ''
 
@@ -108,11 +108,11 @@ def ping_server(verbose=False):
 
 # -----------------------------------------------------------------------
 
-def post_json(payload):
+def post_json(payload, event="desktopevent"):
     """HTTP POST JSON-format payload to DiMe."""
     headers = {'content-type': 'application/json'}
     try:
-        return requests.post(config['server_url']+"/data/desktopevent",
+        return requests.post(config['server_url']+"/data/"+event,
                              data=payload,
                              headers=headers,
                              auth=(config['username'],
@@ -123,18 +123,18 @@ def post_json(payload):
 
 # -----------------------------------------------------------------------
 
-def post_payload(payload):
+def post_payload(payload, event="desktopevent"):
     """Send payload to DiMe and check response.
 
     Use this if DiMe response is not needed for anything else.
     """
-    res = _post_payload(payload)
+    res = _post_payload(payload, event)
     print "---###---###---###---###---###---###---###---###---###---###---"
     print ""
     return res
 
-def _post_payload(payload):
-    r = post_json(payload)
+def _post_payload(payload, event="desktopevent"):
+    r = post_json(payload, event)
     return check_response(r)
 
 # -----------------------------------------------------------------------
