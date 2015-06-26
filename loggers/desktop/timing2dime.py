@@ -354,7 +354,7 @@ if __name__ == '__main__':
         elif item_appl == u'Evernote':
             uri_prefix = 'evernote://'
 
-        elif item_appl == u'Google Chrome' or item_appl == u'Safari':
+        elif item_appl == u'Google Chrome' or item_appl == u'Chrome' or item_appl == u'Safari':
             document_isa  = common.o('nfo_remotefiledataobject')
             uri_prefix = ''
             text = common.uri_to_text(item_path)
