@@ -9,6 +9,8 @@ dimepath: ~/java/dime-server
 server_url: http://localhost:8080/api
 username: foo
 password: bar
+# this should be left as is:
+path: %(dimepath)s
 
 ### LINUX-SPECIFIC: ###
 
