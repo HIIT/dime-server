@@ -45,8 +45,24 @@ class user(object):
 class peer(object):
     def __init__(self, email):
         self.email = email
-        self.document = "document"
         self.thread_list=[]
+    def getDocument(self, p):
+        if(p == 'user'):
+            lis = []
+            for thd in self.thread_list:
+                lis.append(thd.document_user)
+            return  ' '.join(lis)
+        elif(p=='peer'):
+            lis = []
+            for thd in self.thread_list:
+                lis.append(thd.document_peer)
+            return  ' '.join(lis)
+        else:
+            lis = []
+            for thd in self.thread_list:
+                lis.append(thd.document_user)
+                lis.append(thd.document_peer)
+            return  ' '.join(lis)
 
 def byThreadNo(inter):
     return len(inter.thread_list)
@@ -65,8 +81,16 @@ def getTotalEmails(inter):
 class thread(object):
     def __init__(self, subject):
         self.subject = subject
-        self.document = "document"
+        self.document_user = "document"
+        self.document_peer = "document"
         self.email_list=[]
+    def getDocument(self,p):
+        if(p == 'user'):
+            return self.document_user
+        elif(p=='peer'):
+            return self.document_peer
+        else:
+            return self.document_user+ ' ' + self.document_peer
 
 #Emails class stores all the info regarding emails
 # __repr__, __eq__ and __hash__ are over ridden to implement the set data structure
@@ -107,16 +131,15 @@ def readEmail(msg):
             payload, used_charset=decode_text(attach.payload, attach.charset, 'auto')
             te = payload
             te = h.handle(te) # To get the text from the HTML file
+    te = re.sub(r'\* \* \*', "________________________________", te)    
+    subject = getmailheader(msg.get('Subject', ''))
+    subject = re_fw_pattern.sub('', subject)
     z = quotequail.unwrap(te) # To remove the reply text
     if z is not None:
         if 'text_top' in z:
             te = z["text_top"]
-    #print te
     te = regex_1.sub(' ',te)
     #pre processing subject
-    #pre processing subject
-    subject = getmailheader(msg.get('Subject', ''))
-    subject = re_fw_pattern.sub('', subject)
     cc = getmailaddresses(msg, 'Cc')
     if cc is not None:
         to_list = to_list + cc
@@ -149,6 +172,7 @@ emails = list(emails)
 emails_list = []
 i=0
 people = []
+
 # unlists the "to_list" and creates a one-to-one relation between from member and to member
 for email in emails:
     for _to in email.to_list:
@@ -192,51 +216,57 @@ for person in unique_peeps:
         sub = unique_subjects.ix[i].Subject
         thd = thread(sub)
         id_list=[]
-        q_1  = """SELECT idd FROM df where (_From='%s' OR _TO = '%s') AND (_From='%s' OR _TO = '%s') AND Subject = "%s";"""%(person,person,em_id,em_id,str(sub.encode('ascii', 'ignore')))
+        q_1  = """SELECT idd,_from,_to FROM df where (_From='%s' OR _TO = '%s') AND (_From='%s' OR _TO = '%s') AND Subject = "%s";"""%(person,person,em_id,em_id,str(sub.encode('ascii', 'ignore')))
         ids =  sqldf(q_1, globals())
         #ids = df[((df._From == person) | (df._To == person)) & ((df._From == em_id) | (df._To == em_id)) & (df.Subject == str(sub))  ]
-        mail_list = []
+        mail_list_peer = []
+        mail_list_user = []
         for j in range(0, len(ids.index)):
             id_list.append(ids.ix[j].idd.astype(int))
-            mail_list.append(preProcess(emails[ids.ix[j].idd.astype(int)]._body))
-        thd.document = ' '.join(mail_list)
-        peer_doc.append(thd.document)
-        thd.email_list = list(id_list)
+            if(ids.ix[j]._From == em_id):
+                mail_list_user.append(preProcess(emails[ids.ix[j].idd.astype(int)]._body))
+            else:
+                mail_list_peer.append(preProcess(emails[ids.ix[j].idd.astype(int)]._body))
+            thd.document_user = ' '.join(mail_list_user)
+            thd.document_peer = ' '.join(mail_list_peer)
+            peer_doc.append(thd.document_user+ ' ' + thd.document_peer)
+            thd.email_list = list(id_list)
         inter.thread_list.append(thd)
-        #print sqldf(q_1, globals())
-    inter.document = ' '.join(peer_doc)
     current_user.peer_list.append(inter)
-
-#Prints the No. of Emails Exchanged and the subject of the thread which has maximum emails associated with each peer
-print(len(current_user.peer_list))
-for inter in current_user.peer_list:
-    print inter.email
-    print "No of Threads:", len(inter.thread_list)
-    print "No of Emails Exchanged",  getTotalEmails(inter)
-    m =  max(inter.thread_list, key = byEmailNo)
-    print "Thread with maximum emails:", m.subject
-    print "length:", len(m.email_list)
-    print '\n'
+#
+##Prints the No. of Emails Exchanged and the subject of the thread which has maximum emails associated with each peer
+#print(len(current_user.peer_list))
+#for inter in current_user.peer_list:
+#    print inter.email
+#    print "No of Threads:", len(inter.thread_list)
+#    print "No of Emails Exchanged",  getTotalEmails(inter)
+#    m =  max(inter.thread_list, key = byEmailNo)
+#    print "Thread with maximum emails:", m.subject
+#    print "length:", len(m.email_list)
+#    print '\n'
 
 print "Top Words"
-def getTopWords(level):
+def getTopWords(level, p, doc_list_flag):
+    # 
     if (level =='peer'):
         doc_list = []
         for inter in current_user.peer_list:
-            doc_list.append(tb(inter.document))
+            doc_list.append(tb(inter.getDocument(p)))
         for inter in current_user.peer_list:
             print inter.email
-            print getTopWordsTFIDF(tb(inter.document),doc_list,3)
+            print getTopWordsTFIDF(tb(inter.getDocument(p)),doc_list,5)
             print '\n'
     elif (level =='thread'):
+        doc_list = [] 
         for inter in current_user.peer_list:
             print inter.email
-            doc_list = []
+            if(not doc_list_flag):
+                doc_list = []
             for thread in inter.thread_list:
-                doc_list.append(tb(thread.document))
+                doc_list.append(tb(thread.getDocument(p)))
             for thread in inter.thread_list:
-                print thread.subject
-                print getTopWordsTFIDF(tb(thread.document),doc_list,5)
+                print thread.subject, len(thread.email_list)
+                print getTopWordsTFIDF(tb(thread.getDocument(p)),doc_list,5)
                 print '\n'
 
-getTopWords('thread')
+getTopWords('thread', 'peer', False)
