@@ -23,8 +23,9 @@ class ExtendedQLabel(QLabel):
         self.palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkGreen)
 
 	self.setMouseTracking(True)
+
 	#Set tooltip functionality
-	self.QToolTip.showText("hello2")	
+	self.setToolTip("Abstract2")	
 	#self.setToolTip('')
 	#self.
 
