@@ -1,0 +1,23 @@
+Required packages:
+email 
+os
+sys
+numpy
+re
+collections
+pandas
+pandasql 
+string
+nltk
+imaplib 
+scikit-learn
+textblob :https://pypi.python.org/pypi/textblob/0.9.1
+html2text : https://pypi.python.org/pypi/html2text
+quotequail : https://pypi.python.org/pypi/quotequail/0.1.1
+
+
+Execution in the commandline:
+
+python email_mining_main.py '<username>' '<email_id>' '<password>' '<List of interesting peers>'  > email_mining_sample_output.txt
+eg:
+python email_mining_main.py 'mallend1' 'darshan.mallenahallishankaralingappa@aalto.fi' '<password>' 'aristides.gionis@aalto.fi' 'petteri.kaski@aalto.fi' > email_mining_sample_output.txt

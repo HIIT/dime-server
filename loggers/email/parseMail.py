@@ -87,6 +87,27 @@ def getmailheader(header_text, default="ascii"):
                 # if the charset is unknown, force default 
                 headers[i]=unicode(text, default, errors='replace')
         return u"".join(headers)
+        
+def getNames(msg, name):
+    """retrieve From:, To: and Cc: addresses"""
+    addrs=email.utils.getaddresses(msg.get_all(name, []))
+    for i, (name, addr) in enumerate(addrs):
+        if not name and addr:
+            # only one string! Is it the address or is it the name ?
+            # use the same for both and see later
+            name=addr
+            
+        try:
+            # address must be ascii only
+            addr=addr.encode('ascii')
+        except UnicodeError:
+            addr=''
+        else:
+            # address must match adress regex
+            if not email_address_re.match(addr):
+                addr=''
+        addrs[i]=(getmailheader(name).lower())
+    return ' | '.join(addrs)
 
 def getmailaddresses(msg, name):
     """retrieve addresses from header, 'name' supposed to be from, to,  ..."""
