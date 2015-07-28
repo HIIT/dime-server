@@ -12,22 +12,26 @@ import webbrowser
 class ExtendedQLabel(QLabel):
 #class ExtendedQLabel(QtGui.QLabel):
 
-    #def __init__(self):
-    def __init(self, parent):
+    def __init__(self):
+    #def __init(self, parent):
 	#super(ExtendedQLabel, self).__init__()
-        QLabel.__init__(self, parent)
-
+        #QLabel.__init__(self, parent)
+        #Initialize ExtendedQLabel as a QLabel object
+        QLabel.__init__(self, 'Test')
         #Set color of labels
         self.palette = QtGui.QPalette()
-	self.setPalette(self.palette)
-        self.palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkGreen)
+        self.setPalette(self.palette)
+        self.palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkBlue)
 
-	self.setMouseTracking(True)
+        #print self.text()
+    	self.uristr = str(self.text())
+    	self.setMouseTracking(True)
 
-	#Set tooltip functionality
-	self.setToolTip("Abstract2")	
-	#self.setToolTip('')
-	#self.
+    	#Set tooltip functionality
+    	#self.setToolTip("Abstract2")	
+
+		#self.setToolTip('')
+		#self.
 
     def mouseReleaseEvent(self, ev):
         self.emit(SIGNAL('clicked()'))
@@ -36,5 +40,6 @@ class ExtendedQLabel(QLabel):
 #	self.emit(SIGNAL('Mouse_over()'))
 
     def open_url(self):
-	dumstr = str(self.text())
-	webbrowser.open(dumstr)
+		dumstr = str(self.uristr)    	
+		#dumstr = str(self.text())
+		webbrowser.open(dumstr)

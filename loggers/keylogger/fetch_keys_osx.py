@@ -9,17 +9,22 @@ from Foundation import NSObject, NSLog
 from Cocoa import NSEvent, NSKeyDownMask, NSApplication, NSApp
 from PyObjCTools import AppHelper
 
+import os
+
 class AppDelegate(NSObject):
     def applicationDidFinishLaunching_(self, notification):
         mask = NSKeyDownMask
         NSEvent.addGlobalMonitorForEventsMatchingMask_handler_(mask, handler)
 
 def handler(event):
-
-    f = open('typedwords.txt','r+')
-    dstr = f.read()
-    dstrl= list(dstr)
-    f.close()
+    if os.path.isfile('typedwords.txt'):
+        f = open('typedwords.txt','r+')
+        dstr = f.read()
+        dstrl= list(dstr)
+        f.close()
+    else:
+    	f = open('typedwords.txt','w')
+    	f.close()
     #print dstrl
 
     try:
