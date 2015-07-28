@@ -79,8 +79,9 @@ def update_dictionary():
 	print ndocuments
 	documentlist = []
 	for i in range(ndocuments):
-		documentlist.append(data[i]['plainTextContent'])
-
+		#Check that data object (that is now in python dict-form) has key 'plainTextContent'
+		if data[i].has_key('plainTextContent'):
+			documentlist.append(data[i]['plainTextContent'])
 
 
 	#####################

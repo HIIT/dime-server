@@ -307,12 +307,28 @@ class Window(QtGui.QWidget):
                                         #t = lxml.html.parse(linkstr)
                                         #title = t.find(".//title").text
                                         #if linkstr.split('//')[0] == 'http:' or linkstr.split('//')[0] == 'https:':
+                                      title = None
                                       try:
                                         dumt = urllib2.urlopen(linkstr)
                                         soup = BeautifulSoup(dumt)
-                                        title = soup.title.string
-                                      except urllib2.HTTPError:
+                                        try: 
+                                          if soup.title is not None:
+                                            title = soup.title.string
+                                        except AttributeError:  
+                                          #print 'attr. error'
+                                          pass
+                                      except urllib2.HTTPError or urllib2.URLError:
+                                        pass
+
+                                      if title is None:
                                         title = linkstrshort
+
+                                      # try:
+                                      #   dumt = urllib2.urlopen(linkstr)
+                                      #   soup = BeautifulSoup(dumt)
+                                      #   title = soup.title.string
+                                      # except urllib2.HTTPError:
+                                      #   title = linkstrshort
 
                                       self.labellist[i].setText(title)
                                       self.labellist[i].uristr = linkstr
