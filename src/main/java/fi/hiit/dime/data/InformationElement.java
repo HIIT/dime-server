@@ -43,6 +43,7 @@ public abstract class InformationElement extends DiMeData {
 
     @JsonIgnore
     public boolean isStub() {
-	return uri == null || uri.isEmpty();
+	return (uri == null || uri.isEmpty()) &&
+	    (plainTextContent == null || plainTextContent.isEmpty());
     }
 }

@@ -35,6 +35,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -58,8 +60,13 @@ public class DataControllerTest extends RestTest {
 	}
     }
 
+    /**
+       Tests uploading event
+       - checks that stubs work (if second upload gets expanded)
+       - checks that specifying @type works
+    */
     @Test
-    public void testFeedbackEvent() throws Exception {
+    public void testEventUpload() throws Exception {
 	// Create a document
 	Document doc = new Document();
 	doc.uri = "http://www.example.com/hello.txt";
@@ -71,12 +78,13 @@ public class DataControllerTest extends RestTest {
 	event1.value = 0.42;
 	event1.targettedResource = doc;
 
-	String api1 = apiUrl("/data/event");
-	dumpData("Event to be uploaded to " + api1, event1);
+	String apiEndpoint = apiUrl("/data/event");
+	dumpData("Event to be uploaded to " + apiEndpoint, event1);
 
 	// Upload to DiMe
-	ResponseEntity<FeedbackEvent> res1 = getRest().postForEntity(api1, event1,
-								     FeedbackEvent.class);
+	ResponseEntity<FeedbackEvent> res1 = 
+	    getRest().postForEntity(apiEndpoint, event1,
+				    FeedbackEvent.class);
 
 	// Check that HTTP was successful
 	assertSuccessful(res1);
@@ -103,11 +111,11 @@ public class DataControllerTest extends RestTest {
 	event2.value = 0.89;
 	event2.targettedResource = stubDoc;
 
-	String api2 = apiUrl("/data/event");
-	dumpData("Event with stub to be uploaded to " + api2, event2);
+	dumpData("Event with stub to be uploaded to " + apiEndpoint, event2);
 	
-	ResponseEntity<FeedbackEvent> res2 = getRest().postForEntity(api2, event2,
-								     FeedbackEvent.class);
+	ResponseEntity<FeedbackEvent> res2 = 
+	    getRest().postForEntity(apiEndpoint, event2,
+				    FeedbackEvent.class);
 
 	// Check that HTTP was successful
 	assertSuccessful(res2);
@@ -128,6 +136,63 @@ public class DataControllerTest extends RestTest {
 	/* This is not returned at the moment, since we don't want to
 	   duplicate the huge plainTextContent field... */
 	//assertEquals(doc.plainTextContent, outDoc2.plainTextContent);
+    }
+
+    /**
+       Test uploading MessageEvent
+     */
+    @Test
+    public void testMessageEvent() throws Exception {
+	// Create a message
+	Message msg = new Message();
+	msg.date = new Date(); // current date
+	msg.subject = "Hello DiMe";
+	msg.fromString = "Mats Sjöberg <mats.sjoberg@helsinki.fi>";
+	msg.toString = "Mats Sjöberg <mats.sjoberg@hiit.fi>";
+	msg.ccString = "Mats Sjöberg <mats.sjoberg@cs.helsinki.fi>";
+	msg.plainTextContent = "Hello, world";
+
+	SimpleDateFormat format =
+	    new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+
+	msg.rawMessage = 
+	    "From: " + msg.fromString + "\n" +
+	    "To: " + msg.toString + "\n" +
+	    "Cc: " + msg.ccString + "\n" + 
+	    "Subject: " + msg.subject + "\n" +
+	    "Date: " + format.format(msg.date) +
+	    "Message-ID: <43254843985749@helsinki.fi>\n" + 
+	    "\n\n" + msg.plainTextContent;
+
+	// Create a message event
+	MessageEvent event1 = new MessageEvent();
+	event1.targettedResource = msg;
+
+	String apiEndpoint = apiUrl("/data/event");
+	dumpData("Event to be uploaded to " + apiEndpoint, event1);
+
+	// Upload to DiMe
+	ResponseEntity<MessageEvent> res1 = 
+	    getRest().postForEntity(apiEndpoint, event1,
+				    MessageEvent.class);
+	
+	// Check that HTTP was successful
+	assertSuccessful(res1);
+
+	// Checks to ensure returned object is the same as uploaded
+	MessageEvent outEvent1 = res1.getBody();
+	dumpData("Event received back from server:", outEvent1);
+
+	Message outMsg1 = (Message)outEvent1.targettedResource;
+	assertEquals(msg.date, outMsg1.date);
+	assertEquals(msg.subject, outMsg1.subject);
+	assertEquals(msg.fromString, outMsg1.fromString); 
+	assertEquals(msg.toString, outMsg1.toString);
+	assertEquals(msg.ccString, outMsg1.ccString);
+
+	String textContent = msg.subject + "\n\n" + msg.plainTextContent;
+	assertEquals(textContent, outMsg1.plainTextContent); 
+	assertEquals(msg.rawMessage, outMsg1.rawMessage); 
     }
 
 }

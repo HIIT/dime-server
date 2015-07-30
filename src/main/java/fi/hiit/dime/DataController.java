@@ -141,7 +141,8 @@ public class DataController extends AuthorizedController {
 	    if (!msg.isStub()) {
 		msg.user = user;
 		if (msg.subject.length() > 0)
-		    msg.plainTextContent = msg.subject + "\n\n" + msg.plainTextContent;
+		    msg.plainTextContent = 
+			msg.subject + "\n\n" + msg.plainTextContent;
 		infoElemDAO.save(msg);
 
 		// infoElemDAO.save(msg.from);
