@@ -268,12 +268,12 @@ class Window(QtGui.QWidget):
         if nsuggestedlinks <= nlinks:
                     #for i in range( len(self.labellist) ):
                     for i in range( len(urlstrs) ):
-                                    linkstr  = str( urlstrs[i]["uri"] )
+                                    linkstr  = self.unicode_to_str( urlstrs[i]["uri"] )
                                     ctime    = str(urlstrs[i]["timeCreated"])
                                     typestr  = str(urlstrs[i]["type"])
                                     storedas = str(urlstrs[i]["isStoredAs"])
                                     storedasl = storedas.split('#')[1]
-                                    content  = urlstrs[i]["plainTextContent"]
+                                    content  = self.safe_get_value(urlstrs[i], "plainTextContent")
                                     keywords = rake_object.run(content)
                                     #print ctime
                                     timeint = int(ctime) / 1000
@@ -314,10 +314,10 @@ class Window(QtGui.QWidget):
                                         try: 
                                           if soup.title is not None:
                                             title = soup.title.string
-                                        except AttributeError:  
+                                        except (AttributeError, ValueError):
                                           #print 'attr. error'
                                           pass
-                                      except urllib2.HTTPError or urllib2.URLError:
+                                      except (urllib2.HTTPError, urllib2.URLError, ValueError):
                                         pass
 
                                       if title is None:
@@ -364,6 +364,19 @@ class Window(QtGui.QWidget):
                         updateinterval = float(dum_string)                        
 
         return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
+
+    def unicode_to_str(self, ustr):
+        """Converts unicode strings to 8-bit strings."""
+        try:
+            return ustr.encode('utf-8')
+        except UnicodeEncodeError:
+            print "UnicodeEncodeError"
+        return ""
+
+    def safe_get_value(self, dicti, key):
+        if dicti.has_key(key):
+            return dicti[key]
+        return ''
 
     #
     def open_url(self):
@@ -426,6 +439,7 @@ def log(win):
       update_data(win.srvurl, win.username, win.password)
       update_dictionary()
       update_doctm()
+      update_doc_tfidf_list()
       #spielberg 
       # if os.path.isfile('/tmp/tmpldamodel'):
       #   update_topic_model_and_doctid()
@@ -433,7 +447,7 @@ def log(win):
       #   create_topic_model_and_doctid(numoftopics)
       #update_topic_keywords()
       update_docsim_model()
-      update_X()
+      #update_X()
       update_Xt_and_docindlist([0])
 
       print "Ready for logging"
@@ -454,6 +468,7 @@ def log(win):
 
           cmachtime = time()
           var2 = cmachtime > now + float(win.time_interval)
+          var3 = cmachtime > now + float(win.updateinterval)
 
           if keys == 'None':
                   keys = ''
@@ -477,6 +492,14 @@ def log(win):
                   dumstr = ''
 
                   if var2:
+                          if var3: 
+                            #Update stuff
+                            update_data(win.srvurl, win.username, win.password)
+                            update_dictionary()
+                            update_doctm()
+                            update_docsim_model()
+                            #update_X()
+                            update_Xt_and_docindlist([0])                           
                           #
                           dumstr2 = ''
                           for i in range( len(wordlist) ):
@@ -503,6 +526,7 @@ def log(win):
                           if len(urlstr) > 0:
                             win.update_links3(urlstr)
 
+                          print 'Ready for logging!'
                           #Add the suggested url into a history file
                           #if urlstr != None:
                           if len(urlstr) > 0:

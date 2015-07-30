@@ -30,22 +30,7 @@ from update_dict_lda_and_Am import *
 #####
 #Some additional functions that are used in search_dime function
 
-#Make full array from sparse representation
-def make_tfidf_array(tfidf_vec, dictionary):
 
-    #Number of words in dictionary
-    nwords = len(dictionary)
-
-    #Initialize tfidf-vector (numpy-array)
-    tfidf_array = np.zeros(nwords)
-
-    for wi in range(len(tfidf_vec)):
-        wid, score = tfidf_vec[wi]
-        #print "word id " + str(wid) + " word: " + str(dictionary[wid]) + " score:  " + str(score)
-        tfidf_array[wid] = score
-
-    return tfidf_array
-#######
 
 
 
@@ -321,153 +306,6 @@ def search_dime_lda(query):
     return jsons[0:5]
 
 
-def search_dime_linrel(query):
-
-    #Import data
-    json_data = open('json_data.txt')
-    data = json.load(json_data)    
-
-    #Import dictionary
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-    
-    #Import lda model
-    #ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
-    
-    #Import A matrix needed in LinRel
-    A = np.load('A.npy')
-    print 'A shape:', A.shape
-
-    #Import Xt
-    if os.path.isfile('Xt.npy'):
-        Xt = np.load('Xt.npy')
-    else:
-        Xt = np.array([[]])
-    #Xt  = Xt.transpose()
-    nr, nc = Xt.shape
-    print 'Xt shape:', Xt.shape
-
-    #Import document term matrix in full form
-    X  = np.load('X.npy')
-    
-    #Import doctm
-    f = open('doctm.data','r')
-    doctm = pickle.load(f)
-
-    #Learn tfidf model from the document term matrix
-    tfidf = models.TfidfModel(doctm)
-
-    # Read list of forbidden words #
-    s1 = open('stop-words/stop-words_english_1_en.txt','r')
-    s2 = open('stop-words/stop-words_english_2_en.txt','r')
-    s3 = open('stop-words/stop-words_english_3_en.txt','r')
-    s4 = open('stop-words/stop-words_finnish_1_fi.txt','r')
-    s5 = open('stop-words/stop-words_finnish_2_fi.txt','r')
-    sstr1=s1.read()
-    sstr2=s2.read()
-    sstr3=s3.read()
-    sstr4=s4.read()
-    sstr5=s5.read()
-    #
-    sstr  = sstr1 + sstr2 + sstr3 + sstr4 + sstr5
-    #Create list of forbidden words
-    stoplist = set(sstr.split())
-
-    #Number of documents
-    ndocuments = len(doctm)
-    #Number of words
-    nwords = len(dictionary)
-
-    #print 'Number of documents ' + str(ndocuments)
-
-    #Make wordlist from the query string
-    test_wordlist = query.lower().split()
-    #Remove unwanted words from query
-    test_wordlist = remove_unwanted_words(test_wordlist, stoplist)
-
-    #Convert the words into nearest dictionary word
-    for nword, word in enumerate(test_wordlist):
-        correctedword = difflib.get_close_matches(word, dictionary.values())
-        if len(correctedword):
-            test_wordlist[nword] = correctedword[0]
-        else:
-            test_wordlist[nword] = ' '
-    print "Closest dictionary words: ", test_wordlist
-    test_vec = dictionary.doc2bow(test_wordlist)
-    #Convert to sparse tfidf vec
-    test_vec = tfidf[test_vec]
-
-    #Compute relevance scores 
-    nr, nc = Xt.shape
-    if nc == 0:
-        jsons, docinds = search_dime_docsim(query)
-        Xt = update_Xt_and_docindlist(docinds)
-        y  = compute_relevance_scores(test_vec, Xt)
-    else:        
-        y = compute_relevance_scores(test_vec, Xt)
-    #Normalize y vector
-    ysum = y.sum()
-    if ysum > 0:
-        y = y/ysum
-    #print y
-    #print y.sum()
-    #print 'y:', y.shape
-
-    #Open docindlist (the list of indices of suggested documents)
-    f = open('docindlist.list','r')
-    docindl = pickle.load(f)
-    A = update_A(X, Xt, y)
-    print 'A: ', A.shape
-    y_hat = np.dot(A,y)
-    
-    if os.path.isfile('y_hat_prev.npy'):
-        y_hat_prev = np.load('y_hat_prev.npy')
-        print 'size', y_hat_prev.shape
-        vals = y_hat_prev[docindl]
-        print 'size', vals.shape
-        vals = vals.tolist()
-        np.put(y_hat, docindl, vals)
-    else:
-        np.save('y_hat_prev.npy', y_hat)
-
-    print 'y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
-    #Compute upper bound on the deviation of the relevance estimate using matrix A
-    #The effect of upper bound
-    c  = 1.05
-    sigma_hat = np.array([np.linalg.norm(A, axis = 1)])
-    sigma_hat = sigma_hat.transpose()
-    sigma_hat = (c/2)*sigma_hat
-    #print 'sigma_hat:', sigma_hat
-    print 'sigma_hat max:', sigma_hat.max(), ', sigma_hat argmax: ', sigma_hat.argmax()
-
-
-    #Compute doc. indices
-    if sigma_hat.max() == 0:
-        jsons, docinds = search_dime_docsim(query)
-        print 'Doc inds:', docinds
-    else:
-        #
-        e = y_hat + (c/2)*sigma_hat
-        print 'e max:', e.max(), 'e argmax:', e.argmax()
-        #print e.shape
-
-        #Take indices corresponding to ten
-        #largest values of vector e
-        #docinds= np.argpartition(e[:,0], -4)[-10:]
-        docinds= np.argsort(e[:,0])
-        docinds= docinds[-10:]
-        docinds= docinds.tolist()
-
-    update_Xt_and_docindlist(docinds)
-
-    print docinds
-    #update_A()
-    jsons = []
-    for i in range(len(docinds)):
-        #print docinds[i]
-        jsons.append(data[docinds[i]])
-
-    return jsons[-5:]
-
 
 
 def search_dime_linrel_summing_previous_estimates(query):
@@ -478,14 +316,6 @@ def search_dime_linrel_summing_previous_estimates(query):
 
     #Import dictionary
     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-    
-    #Import lda model
-    #ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
-    
-    #Import A matrix needed in LinRel
-
-    #A = np.load('A.npy')
-    #print 'A shape:', A.shape
 
     #Import Xt
     if os.path.isfile('Xt.npy'):
@@ -497,7 +327,7 @@ def search_dime_linrel_summing_previous_estimates(query):
     print 'Xt shape:', Xt.shape
 
     #Import document term matrix in full form
-    X  = np.load('X.npy')
+    #X  = np.load('X.npy')
     
     #Import doctm
     f = open('doctm.data','r')
@@ -558,17 +388,22 @@ def search_dime_linrel_summing_previous_estimates(query):
     ysum = y.sum()
     if ysum > 0:
         y = y/ysum
+
+    sy = sparse.csc_matrix(y)
     #print y
     #print y.sum()
     #print 'y:', y.shape
 
     #Open docindlist (the list of indices of suggested documents)
     f = open('docindlist.list','r')
-    docindl = pickle.load(f)
+    docinds = pickle.load(f)
     #
-    A = update_A(X, Xt, y)
-    print 'A: ', A.shape
-    y_hat = np.dot(A,y)
+    sA = update_A(Xt, y)
+    #A = sA.toarray()
+    print 'sA: ', sA.shape, 'type: ,', type(sA)
+    #y_hat = np.dot(A,y)
+    sy_hat = sA*sy
+    y_hat  = sy_hat.toarray()
     
     if os.path.isfile('y_hat_prev.npy'):
         print "updating y_hat" 
@@ -591,12 +426,15 @@ def search_dime_linrel_summing_previous_estimates(query):
 
     print 'y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
     #Compute upper bound on the deviation of the relevance estimate using matrix A
-    #The effect of upper bound
-    c  = 1.5
-    #print 'X sum, ', np.sum(X,axis = 1)
-    sigma_hat = np.array([np.linalg.norm(A, axis = 1)])
-    sigma_hat = sigma_hat.transpose()
-    sigma_hat = (c/2)*sigma_hat
+    #The effect of upper bound films 
+    c  = 1.5 
+    sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
+    sigma_hat = np.array(sigma_hat)
+
+    # sigma_hat = np.array([np.linalg.norm(A, axis = 1)])
+    # sigma_hat = sigma_hat.transpose()
+    #sigma_hat = sigma_hat.transpose()
+    print 'sigma_hat shape,', sigma_hat.shape
     #print 'sigma_hat:', sigma_hat
     print 'sigma_hat max:', sigma_hat.max(), ', sigma_hat argmax: ', sigma_hat.argmax()
 
@@ -607,24 +445,41 @@ def search_dime_linrel_summing_previous_estimates(query):
     #p2  = plt.plot(ind, sigma_hat, color = 'r') 
     #plt.show()
 
+    #f = open('docindlist.list','r')
+    #docinds = pickle.load('docindlist.list')
+
+    # e = np.array(y_hat + (c/2)*sigma_hat)
+    # print e
+    # print 'e shape,', e.shape
+    # print 'e max:', e.max(), 'e argmax:', e.argmax()
+    # #print e.shape
+
+    # docinds= np.argsort(e[:,0])
+    # docinds= docinds[-10:]
+    # docinds= docinds.tolist()
+
+
     #Compute doc. indices
     if sigma_hat.max() == 0:
-        jsons, docinds = search_dime_docsim(query)
-        print 'Nothing suggested by LinRel, search using DocSim' 
-        #print docinds
-    else:
+        print "LinRel don't suggest anything, use DocSim"
+        docs, docinds = search_dime_docsim(query)
+        pass
+    else: 
         #
-        e = y_hat + (c/2)*sigma_hat
+        print 'shape y_hat,', y_hat.shape, 'type: ', type(y_hat)
+        print 'shape sigma_hat,', sigma_hat.shape, 'type: ', type(sigma_hat)
+        e = np.array(y_hat + (c/2)*sigma_hat)
+        print e
+        print 'e shape,', e.shape
         print 'e max:', e.max(), 'e argmax:', e.argmax()
         #print e.shape
 
-        #Take indices corresponding to ten
-        #largest values of vector e
-        #docinds= np.argpartition(e[:,0], -4)[-10:]
         docinds= np.argsort(e[:,0])
         docinds= docinds[-10:]
         docinds= docinds.tolist()
-
+        #print docinds
+    print type(docinds)
+    print docinds
     update_Xt_and_docindlist(docinds)
 
     #print docinds
@@ -638,7 +493,8 @@ def search_dime_linrel_summing_previous_estimates(query):
 
 
 
-
+#Computes cosine similarity between input vec. (test_vec) and previously
+#suggested documents and returns vector of these similarities
 def compute_relevance_scores(test_vec, Xt):
     #suggested_docs in the form of full document term matrix 
 
@@ -661,6 +517,157 @@ def compute_relevance_scores(test_vec, Xt):
     nr, nc = y.shape
 
     return y
+
+
+
+# def search_dime_linrel(query):
+
+#     #Import data
+#     json_data = open('json_data.txt')
+#     data = json.load(json_data)    
+
+#     #Import dictionary
+#     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+    
+#     #Import lda model
+#     #ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
+    
+#     #Import A matrix needed in LinRel
+#     A = np.load('A.npy')
+#     print 'A shape:', A.shape
+
+#     #Import Xt
+#     if os.path.isfile('Xt.npy'):
+#         Xt = np.load('Xt.npy')
+#     else:
+#         Xt = np.array([[]])
+#     #Xt  = Xt.transpose()
+#     nr, nc = Xt.shape
+#     print 'Xt shape:', Xt.shape
+
+#     #Import document term matrix in full form
+#     X  = np.load('X.npy')
+    
+#     #Import doctm
+#     f = open('doctm.data','r')
+#     doctm = pickle.load(f)
+
+#     #Learn tfidf model from the document term matrix
+#     tfidf = models.TfidfModel(doctm)
+
+#     # Read list of forbidden words #
+#     s1 = open('stop-words/stop-words_english_1_en.txt','r')
+#     s2 = open('stop-words/stop-words_english_2_en.txt','r')
+#     s3 = open('stop-words/stop-words_english_3_en.txt','r')
+#     s4 = open('stop-words/stop-words_finnish_1_fi.txt','r')
+#     s5 = open('stop-words/stop-words_finnish_2_fi.txt','r')
+#     sstr1=s1.read()
+#     sstr2=s2.read()
+#     sstr3=s3.read()
+#     sstr4=s4.read()
+#     sstr5=s5.read()
+#     #
+#     sstr  = sstr1 + sstr2 + sstr3 + sstr4 + sstr5
+#     #Create list of forbidden words
+#     stoplist = set(sstr.split())
+
+#     #Number of documents
+#     ndocuments = len(doctm)
+#     #Number of words
+#     nwords = len(dictionary)
+
+#     #print 'Number of documents ' + str(ndocuments)
+
+#     #Make wordlist from the query string
+#     test_wordlist = query.lower().split()
+#     #Remove unwanted words from query
+#     test_wordlist = remove_unwanted_words(test_wordlist, stoplist)
+
+#     #Convert the words into nearest dictionary word
+#     for nword, word in enumerate(test_wordlist):
+#         correctedword = difflib.get_close_matches(word, dictionary.values())
+#         if len(correctedword):
+#             test_wordlist[nword] = correctedword[0]
+#         else:
+#             test_wordlist[nword] = ' '
+#     print "Closest dictionary words: ", test_wordlist
+#     test_vec = dictionary.doc2bow(test_wordlist)
+#     #Convert to sparse tfidf vec
+#     test_vec = tfidf[test_vec]
+
+#     #Compute relevance scores 
+#     nr, nc = Xt.shape
+#     if nc == 0:
+#         jsons, docinds = search_dime_docsim(query)
+#         Xt = update_Xt_and_docindlist(docinds)
+#         y  = compute_relevance_scores(test_vec, Xt)
+#     else:        
+#         y = compute_relevance_scores(test_vec, Xt)
+#     #Normalize y vector
+#     ysum = y.sum()
+#     if ysum > 0:
+#         y = y/ysum
+#     #print y
+#     #print y.sum()
+#     #print 'y:', y.shape
+
+#     #Open docindlist (the list of indices of suggested documents)
+#     f = open('docindlist.list','r')
+#     docindl = pickle.load(f)
+#     A = update_A(X, Xt, y)
+#     print 'A: ', A.shape
+#     y_hat = np.dot(A,y)
+    
+#     if os.path.isfile('y_hat_prev.npy'):
+#         y_hat_prev = np.load('y_hat_prev.npy')
+#         print 'size', y_hat_prev.shape
+#         vals = y_hat_prev[docindl]
+#         print 'size', vals.shape
+#         vals = vals.tolist()
+#         np.put(y_hat, docindl, vals)
+#     else:
+#         np.save('y_hat_prev.npy', y_hat)
+
+#     print 'y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
+#     #Compute upper bound on the deviation of the relevance estimate using matrix A
+#     #The effect of upper bound
+#     c  = 1.05
+#     sigma_hat = np.array([np.linalg.norm(A, axis = 1)])
+#     sigma_hat = sigma_hat.transpose()
+#     sigma_hat = (c/2)*sigma_hat
+#     #print 'sigma_hat:', sigma_hat
+#     print 'sigma_hat max:', sigma_hat.max(), ', sigma_hat argmax: ', sigma_hat.argmax()
+
+
+#     #Compute doc. indices
+#     if sigma_hat.max() == 0:
+#         jsons, docinds = search_dime_docsim(query)
+#         print 'Doc inds:', docinds
+#     else:
+#         #
+#         e = y_hat + (c/2)*sigma_hat
+#         print 'e max:', e.max(), 'e argmax:', e.argmax()
+#         #print e.shape
+
+#         #Take indices corresponding to ten
+#         #largest values of vector e
+#         #docinds= np.argpartition(e[:,0], -4)[-10:]
+#         docinds= np.argsort(e[:,0])
+#         docinds= docinds[-10:]
+#         docinds= docinds.tolist()
+
+#     update_Xt_and_docindlist(docinds)
+
+#     print docinds
+#     #update_A()
+#     jsons = []
+#     for i in range(len(docinds)):
+#         #print docinds[i]
+#         jsons.append(data[docinds[i]])
+
+#     return jsons[-5:]
+
+
 
 
 # def search_dime_lda2(data, doctm, ldamodel, dictionary, query):
