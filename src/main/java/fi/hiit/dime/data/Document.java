@@ -30,4 +30,5 @@ package fi.hiit.dime.data;
 
 public class Document extends InformationElement {
     public String mimeType;
+    public String title;
 }

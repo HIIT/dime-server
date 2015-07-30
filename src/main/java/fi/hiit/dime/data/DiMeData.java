@@ -26,7 +26,7 @@ package fi.hiit.dime.data;
 
 import fi.hiit.dime.authentication.User;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -36,6 +36,30 @@ import java.util.Date;
    Base class for all DiMe data objects, i.e. data items uploaded to be stored.
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
+/*
+ * NOTE: all concrete (non-abstract) subclasses need to be declared
+ * here below in order for Jackson's Polymorphic Type Handling to
+ * work. This is the feature that interprets and outputs the "@type"
+ * property in the JSON representing a Java class, e.g. "@type":
+ * "FeedbackEvent".
+ *
+ * See:
+ * http://wiki.fasterxml.com/JacksonPolymorphicDeserialization
+ */
+@JsonSubTypes({
+	    // Events
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.FeedbackEvent.class, name="FeedbackEvent"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.DesktopEvent.class, name="DesktopEvent"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.MessageEvent.class, name="MessageEvent"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.PhysicalEvent.class, name="PhysicalEvent"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.SearchEvent.class, name="SearchEvent"),
+	    // InformationElements
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Message.class, name="Message"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Person.class, name="Person")
+})
 @Document
 public class DiMeData {
 
