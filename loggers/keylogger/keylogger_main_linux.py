@@ -268,12 +268,12 @@ class Window(QtGui.QWidget):
         if nsuggestedlinks <= nlinks:
                     #for i in range( len(self.labellist) ):
                     for i in range( len(urlstrs) ):
-                                    linkstr  = str( urlstrs[i]["uri"] )
+                                    linkstr  = self.unicode_to_str( urlstrs[i]["uri"] )
                                     ctime    = str(urlstrs[i]["timeCreated"])
                                     typestr  = str(urlstrs[i]["type"])
                                     storedas = str(urlstrs[i]["isStoredAs"])
                                     storedasl = storedas.split('#')[1]
-                                    content  = urlstrs[i]["plainTextContent"]
+                                    content  = self.safe_get_value(urlstrs[i], "plainTextContent")
                                     keywords = rake_object.run(content)
                                     #print ctime
                                     timeint = int(ctime) / 1000
@@ -314,10 +314,10 @@ class Window(QtGui.QWidget):
                                         try: 
                                           if soup.title is not None:
                                             title = soup.title.string
-                                        except AttributeError or ValueError:  
+                                        except (AttributeError, ValueError):
                                           #print 'attr. error'
                                           pass
-                                      except urllib2.HTTPError or urllib2.URLError or ValueError:
+                                      except (urllib2.HTTPError, urllib2.URLError, ValueError):
                                         pass
 
                                       if title is None:
@@ -364,6 +364,19 @@ class Window(QtGui.QWidget):
                         updateinterval = float(dum_string)                        
 
         return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
+
+    def unicode_to_str(self, ustr):
+        """Converts unicode strings to 8-bit strings."""
+        try:
+            return ustr.encode('utf-8')
+        except UnicodeEncodeError:
+            print "UnicodeEncodeError"
+        return ""
+
+    def safe_get_value(self, dicti, key):
+        if dicti.has_key(key):
+            return dicti[key]
+        return ''
 
     #
     def open_url(self):
