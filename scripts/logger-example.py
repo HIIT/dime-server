@@ -24,6 +24,7 @@ print('DiMe returns:', json.dumps(r.json(), indent=2))
 
 # Set all the standard event fields
 payload = {
+    '@type':    'SearchEvent',
     'actor':    'logger-example.py',
     'origin':   socket.gethostbyaddr(socket.gethostname())[0],
     'type':     'http://www.hiit.fi/ontologies/dime/#ExampleSearchEvent',
@@ -33,7 +34,7 @@ payload = {
 
 payload['query'] = "dummy search"
 
-r = requests.post(server_url + '/data/searchevent',
+r = requests.post(server_url + '/data/event',
                   data=json.dumps(payload),
                   headers={'content-type': 'application/json'},
                   auth=(server_username, server_password),
