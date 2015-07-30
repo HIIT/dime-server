@@ -36,7 +36,7 @@ class Window(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
 
         #Read user.ini file
-        self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nw, self.updateinterval = self.read_user_ini()
+        self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval = self.read_user_ini()
 
         # mygroupbox.setLayout(myform)
         urlstrs = ''
@@ -294,7 +294,7 @@ class Window(QtGui.QWidget):
                                       #self.labellist[i].setText(keywords[0][0])
 
                                     #if typestr in ['http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#PaginatedTextDocument', 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document']:
-                                    print storedasl
+                                    #print storedasl
                                     if storedasl in ["LocalFileDataObject" ]:
                                         self.labellist3[j].setText(linkstrshort)
                                         self.labellist3[j].uristr = linkstr
@@ -435,20 +435,52 @@ def log(win):
       dumstr = ''
       wordlist = []
 
+      
+
       #Before searching, update data
-      update_data(win.srvurl, win.username, win.password)
-      update_dictionary()
-      update_doctm()
-      update_doc_tfidf_list()
+      if os.path.isfile('json_data.txt'):
+        pass
+      else:
+        update_data(win.srvurl, win.username, win.password)
+        update_dictionary()
+    
+      if os.path.isfile('doctm.data'):
+        pass
+      else:
+        update_doctm()
+        update_doc_tfidf_list()
+        update_docsim_model()
+        update_tfidf_model()
       #spielberg 
       # if os.path.isfile('/tmp/tmpldamodel'):
       #   update_topic_model_and_doctid()
       # else:
       #   create_topic_model_and_doctid(numoftopics)
       #update_topic_keywords()
-      update_docsim_model()
+      
       #update_X()
-      update_Xt_and_docindlist([0])
+      if os.path.isfile('docindlist.list'):
+        pass
+      else:
+        update_Xt_and_docindlist([0])
+
+      #Create stopwordlist
+      create_stopwordlist()
+
+      # #Before searching, update data
+      # update_data(win.srvurl, win.username, win.password)
+      # update_dictionary()
+      # update_doctm()
+      # update_doc_tfidf_list()
+      # #spielberg 
+      # # if os.path.isfile('/tmp/tmpldamodel'):
+      # #   update_topic_model_and_doctid()
+      # # else:
+      # #   create_topic_model_and_doctid(numoftopics)
+      # #update_topic_keywords()
+      # update_docsim_model()
+      # #update_X()
+      # update_Xt_and_docindlist([0])
 
       print "Ready for logging"
 
@@ -478,7 +510,7 @@ def log(win):
                   #Convert current string into list of characters
                   duml = list(dumstr)
                   if len(duml) > 0:
-                          #Delete the last character from the list
+                          #Delete the last character from the string list
                           del( duml[len(duml)-1] )
                           #Convert back to string
                           dumstr = "".join(duml)
@@ -487,9 +519,22 @@ def log(win):
 
                   #keys = ' '
                   wordlist.append(dumstr)
+                  print wordlist
+                  print wordlist[-win.nwords:]
                   #dumstr = dumstr + keys
                   countspaces = countspaces + 1
                   dumstr = ''
+                  dumstr2 = ''
+                  for i in range( len(wordlist) ):
+                      dumstr2 = dumstr2 + wordlist[i] + ' '
+
+                  urlstr = search_dime_linrel_summing_previous_estimates(dumstr2)
+                  #win.update_groupbox(iconfile)
+
+
+                  if len(urlstr) > 0:
+                    win.update_links3(urlstr)
+                  print 'Ready for logging!'
 
                   if var2:
                           if var3: 
@@ -503,7 +548,7 @@ def log(win):
                           #
                           dumstr2 = ''
                           for i in range( len(wordlist) ):
-                                 dumstr2 = dumstr2 + wordlist[i] + ' '
+                                 dumstr2 = dumstr2 + wordlist[i] + ' ' 
 
                           #
                           f = open("typedwords.txt","a")
