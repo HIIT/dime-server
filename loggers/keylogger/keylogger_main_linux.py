@@ -438,25 +438,19 @@ def log(win):
       
 
       #Before searching, update data
-      if os.path.isfile('json_data.txt'):
+      if os.path.isfile('json_data.txt') and os.path.isfile('/tmp/tmpdict.dict'):
         pass
       else:
         update_data(win.srvurl, win.username, win.password)
         update_dictionary()
     
-      if os.path.isfile('doctm.data'):
+      if os.path.isfile('doctm.data') and os.path.isfile('varlist.list'):
         pass
       else:
         update_doctm()
         update_doc_tfidf_list()
         update_docsim_model()
         update_tfidf_model()
-      #spielberg 
-      # if os.path.isfile('/tmp/tmpldamodel'):
-      #   update_topic_model_and_doctid()
-      # else:
-      #   create_topic_model_and_doctid(numoftopics)
-      #update_topic_keywords()
       
       #update_X()
       if os.path.isfile('docindlist.list'):
@@ -466,21 +460,6 @@ def log(win):
 
       #Create stopwordlist
       create_stopwordlist()
-
-      # #Before searching, update data
-      # update_data(win.srvurl, win.username, win.password)
-      # update_dictionary()
-      # update_doctm()
-      # update_doc_tfidf_list()
-      # #spielberg 
-      # # if os.path.isfile('/tmp/tmpldamodel'):
-      # #   update_topic_model_and_doctid()
-      # # else:
-      # #   create_topic_model_and_doctid(numoftopics)
-      # #update_topic_keywords()
-      # update_docsim_model()
-      # #update_X()
-      # update_Xt_and_docindlist([0])
 
       print "Ready for logging"
 
@@ -544,7 +523,7 @@ def log(win):
                             update_doctm()
                             update_docsim_model()
                             #update_X()
-                            update_Xt_and_docindlist([0])                           
+                            update_Xt_and_docindlist()                           
                           #
                           dumstr2 = ''
                           for i in range( len(wordlist) ):

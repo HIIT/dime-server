@@ -109,35 +109,20 @@ def search_dime_docsim(query):
     #Import dictionary
     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 
-    #Import Xt
-    if os.path.isfile('Xt.npy'):
-        Xt = np.load('Xt.npy')
-    else:
-        Xt = np.load('X.npy') 
+    #
+    f = open('varlist.list','r')
+    varlist = pickle.load(f)
+    nword = varlist[0]
+    ndocuments = varlist[1]
 
-    #X  = np.load('X.npy')
-    #Xt  = Xt.transpose()
-    nr, nc = Xt.shape
-    #print 'Xt shape:', Xt.shape
-
-    #print Xt
+    #
+    f = open('docindlist.list','r')
+    docinds = pickle.load(f)
     
-    #Convert Xt to corpus form
-    Xtlist = []
-    for i in range(nr):
-        Xtlist.append(gensim.matutils.full2sparse(Xt[i][:]) )
-        #print len(Xtlist[i])
-    #print 'Xt len:', len(Xtlist)
-
-    #print 'Xt: ', Xt
-
     #Import document term matrix
     f = open('doctm.data','r')
     doctm = pickle.load(f)
 
-    #Number of documents
-    ndocuments = len(doctm)
-    
     #Make wordlist from the query string
     test_wordlist = query.lower().split()
     #print test_wordlist
@@ -160,33 +145,18 @@ def search_dime_docsim(query):
     #Find the most similar documents
     doclist = index[test_vec]
 
-    #Compute relevance scores
-    y = []
-    for i in range(nr):
-        y.append(gensim.matutils.cossim(test_vec,Xtlist[i]))
-        #print y[i]
-    y = np.asarray([y])
-    y = y.transpose()
-    nr, nc = y.shape
-    #for i in range(nr):
-    #    print y[i]
-    #print y.shape
-    #print doclist
-
     #Take indices of similar documents
     docinds = []
     for i, d in enumerate(doclist):
         docinds.append(doclist[i][0])
 
-    #Return the json objects that are in the same
-    #cluster
+    #
     jsons = []
     for i in range(len(docinds)):
         #print docinds[i]
         jsons.append(data[docinds[i]])
     
-    # print len(jsons)
-    
+    # print len(jsons)   
     return jsons[0:5], docinds[0:5]
 
 
@@ -297,22 +267,11 @@ def search_dime_linrel_summing_previous_estimates(query):
     f = open('docindlist.list','r')
     docinds = pickle.load(f)
 
-    #Import Xt (i.e. matrix of tfidf vecs of previously suggested documents )
-    # if os.path.isfile('Xt.npy'):
-    #     Xt = np.load('Xt.npy')
-    # else:
-    #     Xt = np.array([[]])
-    #Xt  = Xt.transpose()
-    #nr, nc = Xt.shape
-
     #
     f = open('varlist.list', 'r')
     varlist = pickle.load(f)
     nwords = varlist[0]
     ndocuments = varlist[1]
-
-    #Import document term matrix in full form
-    #X  = np.load('X.npy')
 
     #Import tfidf model by which the relevance scores are computed 
     tfidf = models.TfidfModel.load('tfidfmodel.model')
@@ -350,25 +309,15 @@ def search_dime_linrel_summing_previous_estimates(query):
         y = y/ysum
 
     sy = sparse.csc_matrix(y)
-    #print y
-    #print y.sum()
-    #print 'y:', y.shape
-
 
     #
     sA = update_A(docinds, y)
-    #A = sA.toarray()
-    #print 'sA: ', sA.shape, 'type: ,', type(sA)
-    #y_hat = np.dot(A,y)
     sy_hat = sA*sy
     y_hat  = sy_hat.toarray()
     
     if os.path.isfile('y_hat_prev.npy'):
         print "updating y_hat" 
         y_hat_prev = np.load('y_hat_prev.npy')
-        #print 'size', y_hat_prev.shape
-        #y_hat_prev = np.zeros([len(y_hat),1])
-        #y_hat_prev = np.put(y_hat, docindl, prevvals)
         if len(y_hat) == len(y_hat_prev):
             y_hat = y_hat + y_hat_prev
     else:
@@ -383,38 +332,14 @@ def search_dime_linrel_summing_previous_estimates(query):
     np.save('y_hat_prev.npy', y_hat)
 
     print 'y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
+
     #Compute upper bound on the deviation of the relevance estimate using matrix A
     #The effect of upper bound films 
-
     sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
     sigma_hat = np.array(sigma_hat)
 
-    # sigma_hat = np.array([np.linalg.norm(A, axis = 1)])
-    # sigma_hat = sigma_hat.transpose()
-    #sigma_hat = sigma_hat.transpose()
-    #print 'sigma_hat shape,', sigma_hat.shape
-    #print 'sigma_hat:', sigma_hat
     print 'sigma_hat max:', sigma_hat.max(), ', sigma_hat argmax: ', sigma_hat.argmax()
 
-
-    #Plot values of y_hat and sigma_hat
-    #ind = np.arange(y_hat.shape[0])
-    #p1  = plt.plot(ind, y_hat)
-    #p2  = plt.plot(ind, sigma_hat, color = 'r') 
-    #plt.show()
-
-    #f = open('docindlist.list','r')
-    #docinds = pickle.load('docindlist.list')
-
-    # e = np.array(y_hat + (c/2)*sigma_hat)
-    # print e
-    # print 'e shape,', e.shape
-    # print 'e max:', e.max(), 'e argmax:', e.argmax()
-    # #print e.shape
-
-    # docinds= np.argsort(e[:,0])
-    # docinds= docinds[-10:]
-    # docinds= docinds.tolist()
 
     #Coefficient determining the importance of deviation of the relevance vector
     #in search
@@ -467,9 +392,12 @@ def compute_relevance_scores(docinds, test_vec):
     #Xt = np.load('Xt.npy')
     #Compute estimation of weight vector 
     print 'Create Xt '
+    print 'X shape, ', sX.shape
     sXcsr = sX.tocsr()
     sXtcsr= sXcsr[docinds,:]
-    Xt    = sXtcsr.toarray()
+    sXtcsc= sXtcsr.tocsc()
+    Xt    = sXtcsc.toarray()
+    print 'Xt shape, ', Xt.shape
 
     #Convert Xt to corpus form
     nr, nc = Xt.shape
