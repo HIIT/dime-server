@@ -314,10 +314,10 @@ class Window(QtGui.QWidget):
                                         try: 
                                           if soup.title is not None:
                                             title = soup.title.string
-                                        except AttributeError:  
+                                        except AttributeError or ValueError:  
                                           #print 'attr. error'
                                           pass
-                                      except urllib2.HTTPError or urllib2.URLError:
+                                      except urllib2.HTTPError or urllib2.URLError or ValueError:
                                         pass
 
                                       if title is None:
@@ -426,6 +426,7 @@ def log(win):
       update_data(win.srvurl, win.username, win.password)
       update_dictionary()
       update_doctm()
+      update_doc_tfidf_list()
       #spielberg 
       # if os.path.isfile('/tmp/tmpldamodel'):
       #   update_topic_model_and_doctid()
@@ -433,7 +434,7 @@ def log(win):
       #   create_topic_model_and_doctid(numoftopics)
       #update_topic_keywords()
       update_docsim_model()
-      update_X()
+      #update_X()
       update_Xt_and_docindlist([0])
 
       print "Ready for logging"
@@ -454,6 +455,7 @@ def log(win):
 
           cmachtime = time()
           var2 = cmachtime > now + float(win.time_interval)
+          var3 = cmachtime > now + float(win.updateinterval)
 
           if keys == 'None':
                   keys = ''
@@ -477,6 +479,14 @@ def log(win):
                   dumstr = ''
 
                   if var2:
+                          if var3: 
+                            #Update stuff
+                            update_data(win.srvurl, win.username, win.password)
+                            update_dictionary()
+                            update_doctm()
+                            update_docsim_model()
+                            #update_X()
+                            update_Xt_and_docindlist([0])                           
                           #
                           dumstr2 = ''
                           for i in range( len(wordlist) ):
@@ -503,6 +513,7 @@ def log(win):
                           if len(urlstr) > 0:
                             win.update_links3(urlstr)
 
+                          print 'Ready for logging!'
                           #Add the suggested url into a history file
                           #if urlstr != None:
                           if len(urlstr) > 0:
