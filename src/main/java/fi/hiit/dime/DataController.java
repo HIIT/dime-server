@@ -87,23 +87,13 @@ public class DataController extends AuthorizedController {
 		 eventName, user.username, input.origin, new Date(), input.actor);
 	if (dumpJson) {
 	    try {
-		LOG.info("JSON",
+		LOG.info("JSON: " +
 			 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
 	    } catch (IOException e) {
 	    }
 	}
     }
 
-    /**
-     * Helper method to log each event uploaded.
-     *
-     * @param eventName Name of event class
-     * @param user      User object
-     * @param input     The event object that was uploaded
-     */
-    protected void eventLog(String eventName, User user, Event input) {
-	eventLog(eventName, user, input, false);
-    }
 
     /**
      * Helper method to expand stub InformationElement objects.
