@@ -103,7 +103,7 @@ public class DataControllerTest extends RestTest {
 	event2.value = 0.89;
 	event2.targettedResource = stubDoc;
 
-	String api2 = apiUrl("/data/feedbackevent");
+	String api2 = apiUrl("/data/event");
 	dumpData("Event with stub to be uploaded to " + api2, event2);
 	
 	ResponseEntity<FeedbackEvent> res2 = getRest().postForEntity(api2, event2,
