@@ -75,7 +75,7 @@ if __name__ == "__main__":
 
     print "Starting the mbox2dime.py logger on " + time.strftime("%c")
 
-    parser = argparse.ArgumentParser(description='Sends meeting slides to DiMe.')
+    parser = argparse.ArgumentParser(description='Sends emails in mbox format to DiMe.')
 
     parser.add_argument('mboxfile', metavar='FILE',
                         help='email file in mbox format to be processed')
