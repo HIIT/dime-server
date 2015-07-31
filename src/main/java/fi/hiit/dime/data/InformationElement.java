@@ -24,22 +24,26 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.TextScore;
 
-//------------------------------------------------------------------------------
-
-public class InformationElement extends DiMeData {
+/**
+   Base class for all information elements, e.g. documents, messages
+   etc that are involved in events.
+*/
+public abstract class InformationElement extends DiMeData {
     public String uri;
     @TextIndexed public String plainTextContent;
     public String isStoredAs;
     public String type;
 
-    @TextScore public Float score;
+    @TextScore 
+    public Float score;
 
+    @JsonIgnore
     public boolean isStub() {
-	return uri == null || uri.isEmpty();
+	return (uri == null || uri.isEmpty()) &&
+	    (plainTextContent == null || plainTextContent.isEmpty());
     }
 }

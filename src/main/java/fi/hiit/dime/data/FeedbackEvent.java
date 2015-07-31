@@ -24,11 +24,8 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
-public class FeedbackEvent extends Event {
+public class FeedbackEvent extends ResourcedEvent {
     public Event relatedEvent;
-    public InformationElement targettedResource;
 
     public double value;
 }

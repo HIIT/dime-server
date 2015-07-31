@@ -30,7 +30,7 @@ import java.util.Date;
 
 //------------------------------------------------------------------------------
 
-public class Event extends DiMeData {
+public abstract class Event extends DiMeData {
     public String actor;
     public String origin;
     public String type;

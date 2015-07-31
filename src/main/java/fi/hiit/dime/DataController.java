@@ -29,6 +29,7 @@ import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.List;
+import java.io.IOException;
 
 /**
  * Controller for /data REST API, for writing and reading data objects. 
@@ -62,6 +64,9 @@ public class DataController extends AuthorizedController {
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
 
+    @Autowired 
+    private ObjectMapper objectMapper;
+
     @Autowired
     DataController(EventDAO eventDAO,
     		   InformationElementDAO infoElemDAO) {
@@ -75,11 +80,20 @@ public class DataController extends AuthorizedController {
      * @param eventName Name of event class
      * @param user      User object
      * @param input     The event object that was uploaded
+     * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String eventName, User user, Event input) {
+    protected void eventLog(String eventName, User user, Event input, Boolean dumpJson) {
 	LOG.info("{} for user {} from {} at {}, with actor {}",
 		 eventName, user.username, input.origin, new Date(), input.actor);
+	if (dumpJson) {
+	    try {
+		LOG.info("JSON: " +
+			 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
+	    } catch (IOException e) {
+	    }
+	}
     }
+
 
     /**
      * Helper method to expand stub InformationElement objects.
@@ -127,7 +141,8 @@ public class DataController extends AuthorizedController {
 	    if (!msg.isStub()) {
 		msg.user = user;
 		if (msg.subject.length() > 0)
-		    msg.plainTextContent = msg.subject + "\n\n" + msg.plainTextContent;
+		    msg.plainTextContent = 
+			msg.subject + "\n\n" + msg.plainTextContent;
 		infoElemDAO.save(msg);
 
 		// infoElemDAO.save(msg.from);
@@ -153,98 +168,39 @@ public class DataController extends AuthorizedController {
     }
 
     /**
-     * @api {post} /data/searchevent Upload SearchEvent
-     * @apiName PostSearchEvent
+     * @api {get} /data/event Generic event upload
+     * @apiName PostEvent
      * @apiGroup Data
      * 
-     * @apiParam {Object} - <code>SearchEvent</code> object to upload
+     * @apiParam {Object} - <code>Event</code> object to upload
 
      * @apiSuccess {Object} - Returns the added object, possibly with
      *     some additional fields filled in such as the unique id.
      */
-    @RequestMapping(value="/searchevent", method = RequestMethod.POST)
-    public ResponseEntity<SearchEvent> searchEvent(Authentication auth, 
-						   @RequestBody SearchEvent input) {
+    @RequestMapping(value="/event", method = RequestMethod.POST)
+    public ResponseEntity<Event>
+	event(Authentication auth, @RequestBody Event input) {
 	User user = getUser(auth);
 	input.user = user;
 
+	if (input instanceof ResourcedEvent) {
+	    ResourcedEvent revent = (ResourcedEvent)input;
+	    InformationElement elem = revent.targettedResource;
+
+	    if (elem instanceof Message)
+		elem = expandMessage((Message)elem, user);
+	    else
+		elem = expandInformationElement(elem, user);
+
+	    revent.targettedResource = elem;
+	}
 	eventDAO.save(input);
 
-	eventLog("SearchEvent", user, input);
-	return new ResponseEntity<SearchEvent>(input, HttpStatus.OK);
-    }
+	eventLog("Event", user, input, true);
 
-    /**
-     * @api {post} /data/desktopevent Upload DesktopEvent
-     * @apiName PostDesktopEvent
-     * @apiGroup Data
-     * 
-     * @apiParam {Object} - <code>DesktopEvent</code> object to upload
+	return new ResponseEntity<Event>(input, HttpStatus.OK);
+    }	
 
-     * @apiSuccess {Object} - Returns the added object, possibly with
-     *     some additional fields filled in such as the unique id.
-     */
-    @RequestMapping(value="/desktopevent", method = RequestMethod.POST)
-    public ResponseEntity<DesktopEvent> 
-	documentEvent(Authentication auth, @RequestBody DesktopEvent input) {
-	User user = getUser(auth);
-	input.user = user;
-	input.targettedResource = 
-	    expandInformationElement(input.targettedResource, user);
-
-	eventDAO.save(input);
-	
-	eventLog("DesktopEvent", user, input);
-	return new ResponseEntity<DesktopEvent>(input, HttpStatus.OK);
-    }
-
-    /**
-     * @api {post} /data/feedbackevent Upload FeedbackEvent
-     * @apiName PostFeedbackEvent
-     * @apiGroup Data
-     * 
-     * @apiParam {Object} - <code>FeedbackEvent</code> object to upload
-
-     * @apiSuccess {Object} - Returns the added object, possibly with
-     *     some additional fields filled in such as the unique id.
-     */
-    @RequestMapping(value="/feedbackevent", method = RequestMethod.POST)
-    public ResponseEntity<FeedbackEvent> 
-	documentEvent(Authentication auth, @RequestBody FeedbackEvent input) {
-	User user = getUser(auth);
-	input.user = user;
-	input.targettedResource = 
-	    expandInformationElement(input.targettedResource, user);
-
-	eventDAO.save(input);
-	
-	eventLog("FeedbackEvent", user, input);
-	return new ResponseEntity<FeedbackEvent>(input, HttpStatus.OK);
-    }
-
-    /**
-     * @api {post} /data/messageevent Upload MessageEvent
-     * @apiName PostMessageEvent
-     * @apiGroup Data
-     * 
-     * @apiParam {Object} - <code>MessageEvent</code> object to upload
-
-     * @apiSuccess {Object} - Returns the added object, possibly with
-     *     some additional fields filled in such as the unique id.
-     */
-    @RequestMapping(value="/messageevent", method = RequestMethod.POST)
-    public ResponseEntity<MessageEvent> 
-	messageEvent(Authentication auth, @RequestBody MessageEvent input) {
-	User user = getUser(auth);
-	input.user = user;
-
-	input.targettedResource = expandMessage(input.targettedResource, user);
-
-	eventDAO.save(input);
-	
-	eventLog("MessageEvent", user, input);
-	return new ResponseEntity<MessageEvent>(input, HttpStatus.OK);
-    }
 
     /**
      * @api {get} /data/informationelement Get InformationElements
@@ -262,5 +218,4 @@ public class DataController extends AuthorizedController {
 
 	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
     }
-    
 }

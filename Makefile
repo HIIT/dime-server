@@ -1,7 +1,7 @@
 GRADLE   = ./gradlew -q
 TARGET   = build/libs/dime-server-0.1.0.jar
 APIDOC   = apidoc
-APIDOC_WEB = /home/mvsjober/mnt/reknow/public_html/apidoc/dime-server/
+APIDOC_WEB = shell.hiit.fi:/group/reknow/public_html/apidoc/dime-server/
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 
 all:	build
@@ -28,7 +28,5 @@ doc: $(SOURCES)
 
 apidoc: $(SOURCES)
 	$(APIDOC) -i src/main -o build/apidoc/
-	test -d $(APIDOC_WEB) && \
-		rsync -vr build/apidoc/ $(APIDOC_WEB) && \
-		chmod -R a+r $(APIDOC_WEB)
+	rsync -vr build/apidoc/ $(APIDOC_WEB)
 	@echo Now open ./build/apidoc/index.html

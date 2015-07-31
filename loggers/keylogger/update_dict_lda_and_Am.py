@@ -59,7 +59,12 @@ def update_data(srvurl, username, password):
 	                 auth=(server_username, server_password),
 	                 timeout=10)
 	 
-	data = r.json()
+	dumdata = r.json()
+	#
+	data = []
+	for i in range(len(dumdata)):
+		if dumdata[i].has_key('plainTextContent'):
+			data.append(dumdata[i])
 	
 	#
 	f = open('json_data.txt','w')	
@@ -122,7 +127,27 @@ def update_dictionary():
 	dictionary.save('/tmp/tmpdict.dict')
 	#dictionaryvalues = dictionary.values()
 
+def create_stopwordlist():
+	print 'Create stop word list'
 
+	# Read list of forbidden words #
+	s1 = open('stop-words/stop-words_english_1_en.txt','r')
+	s2 = open('stop-words/stop-words_english_2_en.txt','r')
+	s3 = open('stop-words/stop-words_english_3_en.txt','r')
+	s4 = open('stop-words/stop-words_finnish_1_fi.txt','r')
+	s5 = open('stop-words/stop-words_finnish_2_fi.txt','r')
+	sstr1=s1.read()
+	sstr2=s2.read()
+	sstr3=s3.read()
+	sstr4=s4.read()
+	sstr5=s5.read()
+	#
+	sstr  = sstr1 + sstr2 + sstr3 + sstr4 + sstr5
+	#Create list of forbidden words
+	stoplist = set(sstr.split())
+
+	f = open('stopwordlist.list','w')
+	pickle.dump(stoplist, f)
 
 #Update list of bag of word vectors of documents, denoted by 'doctm'
 def update_doctm():
@@ -131,6 +156,7 @@ def update_doctm():
 
 	#Import dictionary
 	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	nwords = len(dictionary)
 
 	#Import data
 	f = open('json_data.txt','r')
@@ -150,10 +176,26 @@ def update_doctm():
 		doctm.append(test_vec_dum)
 		#print test_vec_dum
 
+	#Store number of docs
+	ndocs = len(doctm)
+	varlist = [nwords, ndocs]
+	f = open('varlist.list', 'w')
+	pickle.dump(varlist, f)
+	f.close()
 
 	#Store the data of doctm
 	f = open('doctm.data','w')
 	pickle.dump(doctm, f)
+
+
+def update_tfidf_model():
+	#Import doctm
+	f = open('doctm.data','r')
+	doctm = pickle.load(f)
+
+	#Learn tfidf model from the document term matrix
+	tfidf = models.TfidfModel(doctm)
+	tfidf.save('tfidfmodel.model')
 
 
 #Updates the tfidf version of doctm (denoted by 'doc_tfidf_list')
@@ -239,34 +281,34 @@ def update_Xt_and_docindlist(docindlist):
 		f = open('omittedindlist.npy','w')
 		pickle.dump(omittedindlist,f)
 
-	if os.path.isfile('Xt.npy'):
-		print "Updating Xt tfidf matrix!"
-		#Xt = np.load('Xt.npy')
+	# if os.path.isfile('Xt.npy'):
+	# 	print "Updating Xt tfidf matrix!"
+	# 	#Xt = np.load('Xt.npy')
 
-		#print 'docindlist:', docindlist
-		di = 0
-		for i in range(sX.shape[0]): 
-			if i in docindlist:
-				#print i
-				drow= sX[i][:].toarray()
-				if di == 0:
-					Xt = drow
-				else:
-					Xt  = np.vstack([Xt, sX[i][:].toarray()])
-				di = di + 1
-		#X = sX.toarray()
-		#Xt = X[docindlist][:]
+	# 	#print 'docindlist:', docindlist
+	# 	di = 0
+	# 	for i in range(sX.shape[0]): 
+	# 		if i in docindlist:
+	# 			#print i
+	# 			drow= sX[i][:].toarray()
+	# 			if di == 0:
+	# 				Xt = drow
+	# 			else:
+	# 				Xt  = np.vstack([Xt, sX[i][:].toarray()])
+	# 			di = di + 1
+	# 	#X = sX.toarray()
+	# 	#Xt = X[docindlist][:]
 
-		#newrows = X[docindlist][:] 
-		#Xt = np.vstack([Xt, newrows])
-	else:
-		print "Initializing Xt"
-		Xt = sX[0][:].toarray()
+	# 	#newrows = X[docindlist][:] 
+	# 	#Xt = np.vstack([Xt, newrows])
+	# else:
+	# 	print "Initializing Xt"
+	# 	Xt = sX[0][:].toarray()
 
-	#Save Xt matrix into a binary NumPy file for further use
-	np.save('Xt.npy',Xt)
+	# #Save Xt matrix into a binary NumPy file for further use
+	# np.save('Xt.npy',Xt)
 
-	return Xt
+	#return Xt
 
 #Converts doc_tfidf_list to scipy sparse matrix format (as csc_matrix)
 def doc_tfidf_list_to_sparsemat(tuplelist):
@@ -447,7 +489,7 @@ def update_topic_model_and_doctid():
 
 
 #Updates LinRel matrix, denoted by A 
-def update_A(Xt, y):
+def update_A(docinds, y):
 
 	#Load sparse tfidf matrix
 	#sX = np.load('sX.npy')
@@ -458,6 +500,13 @@ def update_A(Xt, y):
 	#X  = np.load('X.npy')
 	#Xt = np.load('Xt.npy')
 	#Compute estimation of weight vector 
+	print 'Create Xt '
+	sXcsr = sX.tocsr()
+	sXtcsr= sXcsr[docinds,:]
+	Xt    = sXtcsr.toarray()
+	print 'Xt shape ', Xt.shape
+	print 'y shape', y.shape
+
 	w = estimate_w(Xt,y)
 	w = np.array([w])
 	w = w.transpose()
@@ -471,12 +520,11 @@ def update_A(Xt, y):
 	Atilde = w*yT
 	print 'Max val of Atilde: ', Atilde.max()
 	sAtilde= sparse.csc_matrix(Atilde)
-	print 'type sX, ', type(sX), 'shape, ', sX.shape
-	print 'type sAtilde,', type(sAtilde), 'shape, ', sAtilde.shape
+	#print 'type sX, ', type(sX), 'shape, ', sX.shape
+	#print 'type sAtilde,', type(sAtilde), 'shape, ', sAtilde.shape
 	sA = sX*sAtilde
 	#A     = np.dot(X,Atilde)
 
-	np.save('sA.npy', sA)
 	#np.save('A.npy', A)
 	#update_Xt_and_docindlist(docinds)
 

@@ -26,5 +26,6 @@ package fi.hiit.dime.data;
 
 //------------------------------------------------------------------------------
 
-public class DesktopEvent extends ResourcedEvent {
+public abstract class ResourcedEvent extends Event {
+    public InformationElement targettedResource;
 }
