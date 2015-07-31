@@ -432,7 +432,7 @@ class SearchThread(QtCore.QThread):
      #self.emit( QtCore.SIGNAL('update(QString)'), content)
      self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), jsons)
 
-     self.oldquery = self.query
+    self.oldquery = self.query
 
 
 #
