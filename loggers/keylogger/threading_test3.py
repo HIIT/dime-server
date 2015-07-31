@@ -55,6 +55,7 @@ class MyApp(QtGui.QWidget):
  
  def test_pressed(self):
   print 'Main: Test'
+  self.testButton.setDisabled(True)
   self.listwidget.clear()
   # adding entries just from main application: locks ui
   #self.addBatch("_non_thread",iters=6,delay=0.3)
