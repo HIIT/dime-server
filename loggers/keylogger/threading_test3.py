@@ -61,31 +61,40 @@ class MyApp(QtGui.QWidget):
   # adding by emitting signal in different thread
   self.WorkThreadObj  = LoggerThread()
   self.SearchThreadObj = SearchThread()
-  self.connect(self.WorkThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.search)
+  self.connect(self.WorkThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
   self.connect( self.SearchThreadObj, QtCore.SIGNAL("update(QString)"), self.add )
   #self.connect( self.SearchThreadObj, QtCore.SIGNAL("update(str)"), self.add )
   #self.connect( self.workThread, QtCore.SIGNAL("update(QString)"), self.add )
   self.WorkThreadObj.start()
+  self.SearchThreadObj.start()
 
 #
 class SearchThread(QtCore.QThread):
+
  def __init__(self):
   QtCore.QThread.__init__(self)
+  self.query = None
+  self.oldquery = None
 
  def __del__(self):
    self.wait()
 
- def run(self):
-   self.search(self,query)
+ def get_new_word(self, newquery):
+  print "SearchThread: got new query:", newquery
+  self.query = newquery
 
- def search(self, query):
-  #for i in range(6):
+ def run(self):
+   self.search()
+
+ def search(self):
+  while True:
    sleep(0.3) # artificial time delay
+   if self.query is not None and self.query != self.oldquery:
    #dumstr = 'hello'
    #dstr = query.toUtf8()
    #dstr = dstr.__str__()
-   dstr = str(query)
-   print 'SearchThread:', dstr 
+    dstr = str(self.query)
+    print 'SearchThread:', dstr 
    
    #jsons = search_dime_linrel_summing_previous_estimates(dstr)
    #print 'len ', len(jsons)
@@ -94,10 +103,10 @@ class SearchThread(QtCore.QThread):
     #self.emit( QtCore.SIGNAL('update(QString)'), "from work thread " + str(i) )
 
    # self.emit( QtCore.SIGNAL('update(QString)'), content)
-   content = 'hello'
-   self.emit( QtCore.SIGNAL('update(QString)'), content)
+    content = 'hello'
+    self.emit( QtCore.SIGNAL('update(QString)'), content)
+    self.oldquery = self.query
    #self.emit( QtCore.SIGNAL('update(str)'), content)
-   return
 
   #self.terminate()
 
@@ -172,7 +181,7 @@ class LoggerThread(QtCore.QThread):
         #f = open('typedwords.txt', 'a')
         while True:
 
-          sleep(0.10)
+          sleep(0.005)
           changed, modifiers, keys = fetch_keys()
 
           #print modifiers
