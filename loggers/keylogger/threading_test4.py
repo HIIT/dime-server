@@ -235,6 +235,7 @@ class MyApp(QtGui.QWidget):
  def update_links(self, urlstrs):
     i = 0
     j = 0
+    k = 0
 
     #Initialize rake object
     rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
@@ -252,6 +253,7 @@ class MyApp(QtGui.QWidget):
                                 typestr  = str(urlstrs[i]["type"])
                                 storedas = str(urlstrs[i]["isStoredAs"])
                                 storedasl = storedas.split('#')[1]
+                                print 'Main storedasl: ', storedasl
                                 content  = self.safe_get_value(urlstrs[i], "plainTextContent")
                                 keywords = rake_object.run(content)
                                 #print ctime
@@ -272,9 +274,8 @@ class MyApp(QtGui.QWidget):
                                   keywordstr = 'Keywords: '
                                   #self.labellist[i].setText(keywords[0][0])
 
-                                #if typestr in ['http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#PaginatedTextDocument', 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document']:
-                                #print storedasl
                                 if storedasl in ["LocalFileDataObject" ]:
+                                    print 'Main: doc', linkstr
                                     self.labellist3[j].setText(linkstrshort)
                                     self.labellist3[j].uristr = linkstr
                                     self.labellist3[j].setToolTip(keywordstr)
@@ -282,10 +283,17 @@ class MyApp(QtGui.QWidget):
                                     #self.labellist3[j].setAlignment(Qt.AlignLeft)
 
                                     j = j + 1
+                                elif storedasl in ["MailboxDataObject"]:
+                                    print 'Main: mail ', storedasl
+                                    self.labellist2[k].setText(linkstrshort)
+                                    self.labellist2[k].uristr = linkstr
+                                    self.labellist2[k].setToolTip(keywordstr)
+                                    self.datelist2[k].setText(datestr)
+                                    #self.labellist3[j].setAlignment(Qt.AlignLeft)
+
+                                    k = k + 1                                  
                                 else:
-                                    #t = lxml.html.parse(linkstr)
-                                    #title = t.find(".//title").text
-                                    #if linkstr.split('//')[0] == 'http:' or linkstr.split('//')[0] == 'https:':
+                                  print 'Main: web ', linkstr
                                   title = None
                                   try:
                                     dumt = urllib2.urlopen(linkstr)
@@ -301,13 +309,6 @@ class MyApp(QtGui.QWidget):
 
                                   if title is None:
                                     title = linkstrshort
-
-                                  # try:
-                                  #   dumt = urllib2.urlopen(linkstr)
-                                  #   soup = BeautifulSoup(dumt)
-                                  #   title = soup.title.string
-                                  # except urllib2.HTTPError:
-                                  #   title = linkstrshort
 
                                   self.labellist[i].setText(title)
                                   self.labellist[i].uristr = linkstr
