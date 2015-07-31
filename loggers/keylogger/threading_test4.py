@@ -252,6 +252,7 @@ class MyApp(QtGui.QWidget):
                                 ctime    = str(urlstrs[i]["timeCreated"])
                                 typestr  = str(urlstrs[i]["type"])
                                 storedas = str(urlstrs[i]["isStoredAs"])
+                                dataid   = str(urlstrs[i]["id"])
                                 storedasl = storedas.split('#')[1]
                                 print 'Main storedasl: ', storedasl
                                 content  = self.safe_get_value(urlstrs[i], "plainTextContent")
@@ -276,7 +277,7 @@ class MyApp(QtGui.QWidget):
 
                                 if storedasl in ["LocalFileDataObject" ]:
                                     print 'Main: doc', linkstr
-                                    self.labellist3[j].setText(linkstrshort)
+                                    self.labellist3[j].setText(linkstrshort) 
                                     self.labellist3[j].uristr = linkstr
                                     self.labellist3[j].setToolTip(keywordstr)
                                     self.datelist3[j].setText(datestr)
@@ -285,6 +286,9 @@ class MyApp(QtGui.QWidget):
                                     j = j + 1
                                 elif storedasl in ["MailboxDataObject"]:
                                     print 'Main: mail ', storedasl
+                                    dumlink = self.srvurl.split('/')[2]
+                                    linkstr = 'http://' + dumlink + '/message?id=' + dataid
+                                    print 'linkstr ', linkstr
                                     self.labellist2[k].setText(linkstrshort)
                                     self.labellist2[k].uristr = linkstr
                                     self.labellist2[k].setToolTip(keywordstr)
