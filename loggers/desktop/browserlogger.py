@@ -123,9 +123,9 @@ class Browserlogger:
 
                 if ('text/' in mimetype and config.has_key('fulltext')
                     and config['fulltext']):
-                    document['plainTextContent'] = common.uri_to_text(uri, row[2])
+                    document['plainTextContent'], document['title'] = common.uri_to_text(uri, row[2])
                 else:
-                    document['plainTextContent'] = row[2]
+                    document['title'] = document['plainTextContent'] = row[2]
 
                 payload['targettedResource'] = document.copy()
 
