@@ -382,6 +382,7 @@ if __name__ == '__main__':
         document['id'] = common.to_json_sha1(document)
         payload['targettedResource'] = {}
         payload['targettedResource']['id'] = document['id']
+        payload['targettedResource']['@type'] = document['@type']
         payload['id'] = common.to_json_sha1(payload)
         document['plainTextContent'] = text
         payload['targettedResource'] = document.copy()

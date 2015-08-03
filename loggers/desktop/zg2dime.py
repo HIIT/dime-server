@@ -103,6 +103,7 @@ def send_event(event):
     document['id'] = common.to_json_sha1(document)
     payload['targettedResource'] = {}
     payload['targettedResource']['id'] = document['id']
+    payload['targettedResource']['@type'] = document['@type']
     payload['id'] = common.to_json_sha1(payload)
 
     full_data = False
