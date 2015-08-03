@@ -49,12 +49,14 @@ def create_payload(epoch, uri, fn):
     elif tz == "EEST":
         tz = "+0300"
 
-    payload = {'origin': config['hostname'],
+    payload = {'@type':  'DesktopEvent',
+               'origin': config['hostname'],
                'actor':  'meeting2dime.py',
                'type':   common.o('event_type_meeting'),
                'start':  datetime+tz}
     
-    document = {'uri':        uri,
+    document = {'@type':      'Document',
+                'uri':        uri,
                 'type':       common.o('document_type_meeting'),
                 'isStoredAs': common.o('document_isa_meeting'),
                 'mimeType':   'unknown'}

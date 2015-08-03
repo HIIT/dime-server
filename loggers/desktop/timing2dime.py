@@ -367,12 +367,14 @@ if __name__ == '__main__':
 
         item_datetime = convert_date(timing_item[u'startDate'])
 
-        payload = {'origin': config['hostname'],
+        payload = {'@type': 'DesktopEvent',
+                   'origin': config['hostname'],
                    'actor':  item_appl,
                    'type':   event_type,
                    'start':  item_datetime}
             
-        document = {'uri':        uri_prefix + item_path,
+        document = {'@type':      'Document',
+                    'uri':        uri_prefix + item_path,
                     'type':       document_type,
                     'isStoredAs': document_isa,
                     'mimeType':   mimetype}
