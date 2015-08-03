@@ -3,7 +3,7 @@ import os.path
 import socket
 from ConfigParser import SafeConfigParser
 
-from zg2dimeglobals import config
+from dlog_globals import config
 
 # -----------------------------------------------------------------------
 

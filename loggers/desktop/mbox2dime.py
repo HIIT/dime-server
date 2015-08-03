@@ -7,9 +7,9 @@ import argparse
 import time
 import rfc822
 
-from zg2dimeglobals import config
-import zg2dimeconf as conf
-import zg2dimecommon as common
+from dlog_globals import config
+import dlog_conf as conf
+import dlog_common as common
 
 #------------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@ def create_payload(message, i):
     dt = 1000*int(rfc822.mktime_tz(rfc822.parsedate_tz(message['date'])))
     
     payload = {
+        '@type':  'MessageEvent',
         'actor':    'mbox2dime.py',
         'origin':   config['hostname'],
         'type':     'http://www.hiit.fi/ontologies/dime/#EmailEvent',
@@ -38,6 +39,7 @@ def create_payload(message, i):
         'duration': 0}
     
     targettedResource = {
+        '@type':      'Message',
         'uri': 'Message-ID:558A8F73.20602@cs.helsinki.fi',
         'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#Email',
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#MailboxDataObject',

@@ -6,9 +6,9 @@ import socket
 import subprocess
 import time
 
-from zg2dimeglobals import config
-import zg2dimeconf as conf
-import zg2dimecommon as common
+from dlog_globals import config
+import dlog_conf as conf
+import dlog_common as common
 
 # -----------------------------------------------------------------------
 
@@ -367,12 +367,14 @@ if __name__ == '__main__':
 
         item_datetime = convert_date(timing_item[u'startDate'])
 
-        payload = {'origin': config['hostname'],
+        payload = {'@type': 'DesktopEvent',
+                   'origin': config['hostname'],
                    'actor':  item_appl,
                    'type':   event_type,
                    'start':  item_datetime}
             
-        document = {'uri':        uri_prefix + item_path,
+        document = {'@type':      'Document',
+                    'uri':        uri_prefix + item_path,
                     'type':       document_type,
                     'isStoredAs': document_isa,
                     'mimeType':   mimetype}
@@ -380,6 +382,7 @@ if __name__ == '__main__':
         document['id'] = common.to_json_sha1(document)
         payload['targettedResource'] = {}
         payload['targettedResource']['id'] = document['id']
+        payload['targettedResource']['@type'] = document['@type']
         payload['id'] = common.to_json_sha1(payload)
         document['plainTextContent'] = text
         payload['targettedResource'] = document.copy()

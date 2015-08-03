@@ -9,8 +9,8 @@ try:
 except:  
     from gi.repository import AppIndicator
 
-from zg2dimeglobals import config
-import zg2dimecommon as common
+from dlog_globals import config
+import dlog_common as common
 
 # -----------------------------------------------------------------------
 

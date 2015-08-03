@@ -12,10 +12,10 @@ from gi.repository import GLib
 from zeitgeist.client import ZeitgeistClient
 from zeitgeist.datamodel import *
 
-from zg2dimeglobals import config
-import zg2dimeconf as conf
-import zg2dimecommon as common
-import chrome2dime
+from dlog_globals import config
+import dlog_conf as conf
+import dlog_common as common
+import browserlogger as blog
 import zg2dimeind
 
 # -----------------------------------------------------------------------
@@ -87,12 +87,14 @@ def send_event(event):
                                               'nfo_filedataobject',
                                               'nfo_localfiledataobject')
 
-    payload = {'origin': config['hostname'],
+    payload = {'@type':  'DesktopEvent',
+               'origin': config['hostname'],
                'actor':  map_actor(event.actor), 
                'type':   map_zg(event.interpretation),
                'start':  event.timestamp}
 
-    document = {'uri':              event.subjects[0].uri,
+    document = {'@type':            'Document',
+                'uri':              event.subjects[0].uri,
                 'type':             event.subjects[0].interpretation,
                 'isStoredAs':       document_isa,
                 'mimeType':         event.subjects[0].mimetype,
@@ -101,6 +103,7 @@ def send_event(event):
     document['id'] = common.to_json_sha1(document)
     payload['targettedResource'] = {}
     payload['targettedResource']['id'] = document['id']
+    payload['targettedResource']['@type'] = document['@type']
     payload['id'] = common.to_json_sha1(payload)
 
     full_data = False
@@ -253,15 +256,15 @@ if __name__ == '__main__':
             GLib.timeout_add(config['interval_indicator']*1000, update_ind)
 
         if config['use_chrome']:
-            chromelogger = chrome2dime.Browserlogger('chrome')
+            chromelogger = blog.Browserlogger('chrome')
             GLib.timeout_add(config['interval_chrome']*1000, chromelogger.run)
 
         if config['use_chromium']:
-            chromiumlogger = chrome2dime.Browserlogger('chromium')
+            chromiumlogger = blog.Browserlogger('chromium')
             GLib.timeout_add(config['interval_chromium']*1000, chromiumlogger.run)
 
         if config['use_firefox']:
-            firefoxlogger = chrome2dime.Browserlogger('firefox')
+            firefoxlogger = blog.Browserlogger('firefox')
             GLib.timeout_add(config['interval_firefox']*1000, firefoxlogger.run)
 
         GLib.MainLoop().run()

@@ -5,7 +5,7 @@ import hashlib
 import requests
 import subprocess
 
-from zg2dimeglobals import config
+from dlog_globals import config
 
 # -----------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ def post_json(payload, event="desktopevent"):
     """HTTP POST JSON-format payload to DiMe."""
     headers = {'content-type': 'application/json'}
     try:
-        return requests.post(config['server_url']+"/data/"+event,
+        return requests.post(config['server_url']+"/data/event",
                              data=payload,
                              headers=headers,
                              auth=(config['username'],

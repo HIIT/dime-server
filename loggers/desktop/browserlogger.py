@@ -10,9 +10,9 @@ import hashlib
 import sqlite3
 import time
 
-from zg2dimeglobals import config
-import zg2dimecommon as common
-import zg2dimeconf as conf
+from dlog_globals import config
+import dlog_common as common
+import dlog_conf as conf
 
 # -----------------------------------------------------------------------
 
@@ -93,19 +93,22 @@ class Browserlogger:
 
             storage, mimetype = common.uri_info(uri)
 
-            payload = {'origin': config['hostname'],
+            payload = {'@type':  'DesktopEvent',
+                       'origin': config['hostname'],
                        'actor':  config['actor_'+self.name],
                        'type':   common.o('event_type_browser'),
                        'start':  datetime}
 
-            document = {'uri':       uri,
-                       'type':       common.o('document_type_browser'),
-                       'isStoredAs': common.o('document_isa_browser'),
-                       'mimeType':   mimetype}
+            document = {'@type':      'Document',
+                        'uri':        uri,
+                        'type':       common.o('document_type_browser'),
+                        'isStoredAs': common.o('document_isa_browser'),
+                        'mimeType':   mimetype}
 
             document['id'] = common.to_json_sha1(document)
             payload['targettedResource'] = {}
             payload['targettedResource']['id'] = document['id']
+            payload['targettedResource']['@type'] = document['@type']
             payload['id'] = common.to_json_sha1(payload)
 
             if payload['id'] in self.events:
