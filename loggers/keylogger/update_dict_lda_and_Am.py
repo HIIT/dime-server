@@ -33,6 +33,94 @@ import difflib
 #
 import os
 
+def read_user_ini():
+
+    f          = open('user.ini','r')
+    dumstr     = f.read()
+    stringlist = dumstr.split()
+
+    for i in range( len(stringlist) ):
+            if stringlist[i] == "server_url:":
+                    srvurl = stringlist[i+1]
+            if stringlist[i] == "usrname:":
+                    usrname = stringlist[i+1]
+            if stringlist[i] == "password:":
+                    password = stringlist[i+1]
+            if stringlist[i] == "time_interval:":
+                    time_interval_string = stringlist[i+1]
+                    time_interval = float(time_interval_string)
+            if stringlist[i] == "nspaces:":
+                    nspaces_string = stringlist[i+1]
+                    nspaces = int(nspaces_string)
+            if stringlist[i] == "numwords:":
+                    dum_string = stringlist[i+1]
+                    numwords = int(dum_string)                      
+            if stringlist[i] == "updating_interval:":
+                    dum_string = stringlist[i+1]
+                    updateinterval = float(dum_string)  
+
+    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
+
+
+
+
+#Check whether to update data files
+def check_update():
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
+	#Get current path
+	cpath  = os.getcwd()
+	cpathd = cpath + '/' + 'data'
+	#print 'check_update: ', os.getcwd()
+	#Check whether 
+
+	if os.path.exists(cpathd):
+		print 'Search thread: check_update: data/ folder EXISTS!'
+		os.chdir(cpathd)
+		#print 'check_update: ', cpath
+		if not os.path.isfile('json_data.txt'):
+			update_data(srvurl, username, password)
+
+		if not os.path.isfile('/tmp/dictionary.dict'):
+			update_dictionary()			
+
+		if not os.path.isfile('doctm.data'):
+			update_doctm()
+			update_doc_tfidf_list()
+
+		if not os.path.isfile('/tmp/docsim.model'):
+			update_docsim_model()
+
+		if not os.path.isfile('docindlist.list'):
+			update_Xt_and_docindlist([0])
+
+		if not os.path.isfile('tfidfmodel.model'):
+			update_tfidf_model()
+
+		if not os.path.isfile('stopwordlist.list'):
+			create_stopwordlist()
+		#Go back in directory
+		os.chdir('../')
+		#print 'check_update: ', os.getcwd()
+	else: 
+		print 'Search thread: check_update: data/ DOES NOT EXISTS! CREATE ONE!'
+		#Create data folder into the current path
+		os.makedirs(cpathd)
+		os.chdir(cpathd)
+		#print 'Path: ', os.getcwd()
+		#
+		update_data(srvurl, username, password)
+		update_dictionary()
+		update_doctm()
+		update_doc_tfidf_list()
+		update_docsim_model()
+		update_Xt_and_docindlist([0])
+		update_tfidf_model()
+		create_stopwordlist()
+		os.chdir('../')
+
+	#print 'Search thread: check_update: ', os.getcwd()	
+
+
 
 #Update data
 def update_data(srvurl, username, password):
@@ -75,13 +163,15 @@ def update_data(srvurl, username, password):
 # Update dictionary
 def update_dictionary():
 
-	print "Updating dictionary!"
+	print 'Search thread: update_dictionary: current path:', os.getcwd()
+
+	print "Search thread: Updating dictionary!"
 	f = open('json_data.txt','r')
 	data = json.load(f)
 
 	#Create list of documents
 	ndocuments = len(data)
-	print ndocuments
+	print 'Search thread: num. of docs: ', ndocuments
 	documentlist = []
 	for i in range(ndocuments):
 		#Check that data object (that is now in python dict-form) has key 'plainTextContent'
@@ -94,11 +184,11 @@ def update_dictionary():
 	#####################
 
 	# Read list of forbidden words #
-	s1 = open('stop-words/stop-words_english_1_en.txt','r')
-	s2 = open('stop-words/stop-words_english_2_en.txt','r')
-	s3 = open('stop-words/stop-words_english_3_en.txt','r')
-	s4 = open('stop-words/stop-words_finnish_1_fi.txt','r')
-	s5 = open('stop-words/stop-words_finnish_2_fi.txt','r')
+	s1 = open('../stop-words/stop-words_english_1_en.txt','r')
+	s2 = open('../stop-words/stop-words_english_2_en.txt','r')
+	s3 = open('../stop-words/stop-words_english_3_en.txt','r')
+	s4 = open('../stop-words/stop-words_finnish_1_fi.txt','r')
+	s5 = open('../stop-words/stop-words_finnish_2_fi.txt','r')
 
 	sstr1=s1.read()
 	sstr2=s2.read()
@@ -131,11 +221,11 @@ def create_stopwordlist():
 	print 'Search thread: Create stop word list'
 
 	# Read list of forbidden words #
-	s1 = open('stop-words/stop-words_english_1_en.txt','r')
-	s2 = open('stop-words/stop-words_english_2_en.txt','r')
-	s3 = open('stop-words/stop-words_english_3_en.txt','r')
-	s4 = open('stop-words/stop-words_finnish_1_fi.txt','r')
-	s5 = open('stop-words/stop-words_finnish_2_fi.txt','r')
+	s1 = open('../stop-words/stop-words_english_1_en.txt','r')
+	s2 = open('../stop-words/stop-words_english_2_en.txt','r')
+	s3 = open('../stop-words/stop-words_english_3_en.txt','r')
+	s4 = open('../stop-words/stop-words_finnish_1_fi.txt','r')
+	s5 = open('../stop-words/stop-words_finnish_2_fi.txt','r')
 	sstr1=s1.read()
 	sstr2=s2.read()
 	sstr3=s3.read()
@@ -339,16 +429,16 @@ def update_docsim_model():
 	doctm = pickle.load(f)
 
 	#Build index
-	index = similarities.docsim.Similarity('/tmp/similarityvec',doctm, num_features = len(dictionary), num_best = 7)
+	index = similarities.docsim.Similarity('/tmp/similarityvec',doctm, num_features = len(dictionary), num_best = 20)
+	index.num_best = 20
 	index.save('/tmp/similarityvec')
-
 
 #Updates LinRel matrix, denoted by A 
 def update_A(docinds, y):
 
 	#Load sparse tfidf matrix
 	#sX = np.load('sX.npy')
-	sX = load_sparse_csc('sX.sparsemat.npz')	
+	sX = load_sparse_csc('data/sX.sparsemat.npz')	
 
 	print "Search thread: Updating A"
 

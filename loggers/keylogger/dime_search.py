@@ -37,7 +37,9 @@ from update_dict_lda_and_Am import *
 #Remove unwanted words
 def remove_unwanted_words(testlist):
     #Load stopwordlist
-    f = open('stopwordlist.list','r')
+    cpath = os.getcwd()
+    cpathd= cpath + '/' + 'data/' + 'stopwordlist.list'
+    f = open(cpathd,'r')
     stoplist = pickle.load(f)
 
     chgd = True
@@ -99,6 +101,11 @@ def search_dime(srvurl, username, password, query):
 #
 def search_dime_docsim(query):
 
+    #Get current path
+    cpath  = os.getcwd()
+    cpathd = cpath + '/' + 'data'
+    os.chdir(cpathd)
+
     #Import data
     json_data = open('json_data.txt')
     data = json.load(json_data)
@@ -123,6 +130,9 @@ def search_dime_docsim(query):
     f = open('doctm.data','r')
     doctm = pickle.load(f)
 
+    #
+    os.chdir('../')
+
     #Make wordlist from the query string
     test_wordlist = query.lower().split()
     #print test_wordlist
@@ -142,8 +152,9 @@ def search_dime_docsim(query):
     # Convert the wordlist into bag of words (bow) representation
     test_vec = dictionary.doc2bow(test_wordlist)
 
-    #Find the most similar documents
+    #Find the indices of most similar documents
     doclist = index[test_vec]
+    print 'Search thread: docinds of DocSim: ', doclist
 
     #Take indices of similar documents
     docinds = []
@@ -157,7 +168,7 @@ def search_dime_docsim(query):
         jsons.append(data[docinds[i]])
     
     # print len(jsons)   
-    return jsons[0:5], docinds[0:5]
+    return jsons[0:20], docinds[0:20]
 
 
 #
@@ -253,29 +264,35 @@ def search_dime_lda(query):
 
 #
 def search_dime_linrel_summing_previous_estimates(query):
+    
+    #Get current path
+    cpath  = os.getcwd()
+    print 'LinRel: ', cpath
+    #cpathd = cpath + '/' + 'data'
+    #os.chdir(cpathd)
 
     #Import data
-    json_data = open('json_data.txt')
+    json_data = open('data/json_data.txt', 'r')
     data = json.load(json_data)    
 
     #Import dictionary
     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 
-    #Open docindlist (the list of indices of suggested documents)
-    f = open('docindlist.list','r')
+    #Open docindlist (the list of indices of suggested documents
+    f = open(cpath + '/data/docindlist.list','r')
     docinds = pickle.load(f)
     #Sort from smallest to largest index value
-    docinds.sort()
+    #docinds.sort() 
     print 'Search thread: Old docindlist: ', docinds
 
     #
-    f = open('varlist.list', 'r')
+    f = open('data/varlist.list', 'r')
     varlist = pickle.load(f)
     nwords = varlist[0]
     ndocuments = varlist[1]
 
     #Import tfidf model by which the relevance scores are computed 
-    tfidf = models.TfidfModel.load('tfidfmodel.model')
+    tfidf = models.TfidfModel.load('data/tfidfmodel.model')
 
     #Make wordlist from the query string
     test_wordlist = query.lower().split()
@@ -299,11 +316,18 @@ def search_dime_linrel_summing_previous_estimates(query):
     nc = len(docinds)
     if nc == 0:
         jsons, docinds = search_dime_docsim(query)
+        docindsunsorted = docinds
         docinds.sort()
+        print 'DocSim suggested inds: ', docinds
+        #docinds.sort()
+        cpath = os.getcwd()
+        cpath = cpath + '/' + 'data'
+        os.chdir(cpath)
         update_Xt_and_docindlist(docinds)
-        y  = compute_relevance_scores(docinds, test_vec)
+        os.chdir('../')
+        y = compute_relevance_scores(docinds, test_vec)
     else:        
-        docinds.sort()
+        #docinds.sort()
         y = compute_relevance_scores(docinds, test_vec)
 
     #
@@ -322,10 +346,13 @@ def search_dime_linrel_summing_previous_estimates(query):
     sA = update_A(docinds, y)
     sy_hat = sA*sy
     y_hat  = sy_hat.toarray()
-    
-    if os.path.isfile('y_hat_prev.npy'):
+    #print 'shape of y_hat', y_hat.shape
+
+    cpath = os.getcwd()
+    cpath = cpath + '/data'
+    if os.path.isfile(cpath):
         print "Search thread: updating y_hat" 
-        y_hat_prev = np.load('y_hat_prev.npy')
+        y_hat_prev = np.load('data/y_hat_prev.npy')
         if len(y_hat) == len(y_hat_prev):
             print 'Search thread: update y_hat (by y_hat = y_hat + y_hat_prev)'
             y_hat = y_hat + y_hat_prev
@@ -333,14 +360,20 @@ def search_dime_linrel_summing_previous_estimates(query):
         y_hat_sum = y_hat.sum()
         if y_hat_sum > 0:
             y_hat = y_hat/y_hat_sum
-        np.save('y_hat_prev.npy', y_hat)
+        #
+        os.chdir(cpath)
+        np.save(cpath + '/y_hat_prev.npy', y_hat)
+        os.chdir('../')
     else:
         #Normalize y_hat
         y_hat_sum = y_hat.sum()
         if y_hat_sum > 0:
             y_hat = y_hat/y_hat_sum        
         print "Search thread: Saving y_hat first time"
-        np.save('y_hat_prev.npy', y_hat)
+        os.chdir(cpath)
+        np.save(cpath + '/y_hat_prev.npy', y_hat)
+        os.chdir('../')        
+        #np.save(cpathd + '/y_hat_prev.npy', y_hat)
 
     #
     print 'Search thread: y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
@@ -354,13 +387,13 @@ def search_dime_linrel_summing_previous_estimates(query):
 
     #Coefficient determining the importance of deviation of the relevance vector
     #in search
-    c = 1.5
+    c = 0.0
 
     #Compute doc. indices
     if sigma_hat.max() == 0:
         print "Search thread: LinRel don't suggest anything, use DocSim"
         docs, docinds = search_dime_docsim(query)
-        docinds.sort()
+        #docinds.sort()
         #pass
     else: 
         #
@@ -378,15 +411,21 @@ def search_dime_linrel_summing_previous_estimates(query):
         #print docinds
     #print type(docinds)
     #print docinds
-    docinds.sort()
+    #docinds.sort()
     #print 'Search thread: New docindlist: ', docinds
-    update_Xt_and_docindlist(docinds)
 
-    #print docinds
+
+    #Get jsons
     jsons = []
     for i in range(len(docinds)):
         #print docinds[i]
         jsons.append(data[docinds[i]])
+
+    docinds.sort()
+    cpath = os.getcwd()
+    os.chdir(cpath + '/data')
+    update_Xt_and_docindlist(docinds)
+    os.chdir('../')
 
     return jsons[-20:]
 
@@ -440,7 +479,9 @@ def search_dime_linrel_without_summing_previous_estimates(query):
     if nc == 0:
         jsons, docinds = search_dime_docsim(query)
         docinds.sort()
+        os.chdir(cpath + '/data')
         update_Xt_and_docindlist(docinds)
+        os.chdir('../')
         y  = compute_relevance_scores(docinds, test_vec)
     else:        
         docinds.sort()
@@ -520,7 +561,9 @@ def search_dime_linrel_without_summing_previous_estimates(query):
     #print docinds
     docinds.sort()
     #print 'Search thread: New docindlist: ', docinds
+    os.chdir(cpath + '/data')
     update_Xt_and_docindlist(docinds)
+    os.chdir('../')
 
     #print docinds
     jsons = []
@@ -538,7 +581,7 @@ def search_dime_linrel_without_summing_previous_estimates(query):
 def compute_relevance_scores(docinds, test_vec):
     #suggested_docs in the form of full document term matrix 
 
-    sX = load_sparse_csc('sX.sparsemat.npz')    
+    sX = load_sparse_csc('data/sX.sparsemat.npz')    
 
     print "Search thread: Updating A"
     #F
