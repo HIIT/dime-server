@@ -87,12 +87,14 @@ def send_event(event):
                                               'nfo_filedataobject',
                                               'nfo_localfiledataobject')
 
-    payload = {'origin': config['hostname'],
+    payload = {'@type':  'DesktopEvent',
+               'origin': config['hostname'],
                'actor':  map_actor(event.actor), 
                'type':   map_zg(event.interpretation),
                'start':  event.timestamp}
 
-    document = {'uri':              event.subjects[0].uri,
+    document = {'@type':            'Document',
+                'uri':              event.subjects[0].uri,
                 'type':             event.subjects[0].interpretation,
                 'isStoredAs':       document_isa,
                 'mimeType':         event.subjects[0].mimetype,
