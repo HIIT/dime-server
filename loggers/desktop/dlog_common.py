@@ -5,7 +5,7 @@ import hashlib
 import requests
 import subprocess
 
-from zg2dimeglobals import config
+from dlog_globals import config
 
 # -----------------------------------------------------------------------
 

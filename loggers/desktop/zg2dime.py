@@ -12,9 +12,9 @@ from gi.repository import GLib
 from zeitgeist.client import ZeitgeistClient
 from zeitgeist.datamodel import *
 
-from zg2dimeglobals import config
-import zg2dimeconf as conf
-import zg2dimecommon as common
+from dlog_globals import config
+import dlog_conf as conf
+import dlog_common as common
 import browserlogger as blog
 import zg2dimeind
 

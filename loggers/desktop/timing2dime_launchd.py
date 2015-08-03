@@ -4,9 +4,9 @@ import os
 import sys
 import subprocess
 
-from zg2dimeglobals import config
-import zg2dimeconf as conf
-import zg2dimecommon as common
+from dlog_globals import config
+import dlog_conf as conf
+import dlog_common as common
 
 plistfilenames = ('timing2dime.plist.template',
                   'timing2dime-status.plist.template')

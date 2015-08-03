@@ -10,9 +10,9 @@ import hashlib
 import sqlite3
 import time
 
-from zg2dimeglobals import config
-import zg2dimecommon as common
-import zg2dimeconf as conf
+from dlog_globals import config
+import dlog_common as common
+import dlog_conf as conf
 
 # -----------------------------------------------------------------------
 
