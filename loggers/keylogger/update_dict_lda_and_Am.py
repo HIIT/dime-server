@@ -128,7 +128,7 @@ def update_dictionary():
 	#dictionaryvalues = dictionary.values()
 
 def create_stopwordlist():
-	print 'Create stop word list'
+	print 'Search thread: Create stop word list'
 
 	# Read list of forbidden words #
 	s1 = open('stop-words/stop-words_english_1_en.txt','r')
@@ -224,13 +224,28 @@ def update_doc_tfidf_list():
 	f = open('doc_tfidf_list.data','w')
 	pickle.dump(doc_tfidf_list,f)
 
-	#Make sparse matrix version of doc_tfidf_list
+	#Make sparse matrix representation of doc_tfidf_list
 	sparsemat = doc_tfidf_list_to_sparsemat(doc_tfidf_list)
-	print 'sparsemat shape, ', sparsemat.shape
+	print 'Search thread: sparsemat shape, ', sparsemat.shape
 	save_sparse_csc('sX.sparsemat',sparsemat)
 
 
+#Converts doc_tfidf_list to scipy sparse matrix format (as csc_matrix)
+def doc_tfidf_list_to_sparsemat(doc_tfidf_list):
+	#Import dictionary
+	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	nwords = len(dictionary)
 
+	nrow = len(doc_tfidf_list)
+	sparsemat = sparse.lil_matrix((nrow, nwords))
+	row = 0
+	for d in doc_tfidf_list:
+		for c in d:
+			sparsemat[row,c[0]] = c[1]
+		row = row + 1
+	sparsemat = sparsemat.tocsc()
+
+	return sparsemat
 
 
 #Saves the scipy sparse matrix of form csc_matrix
@@ -251,8 +266,11 @@ def update_Xt_and_docindlist(docindlist):
 	#print docindlist 
 	#Import X matrix needed in LinRel
 	#X = np.load('X.npy')
-	sX = load_sparse_csc('sX.sparsemat.npz')
-
+	if os.path.isfile('sX.sparsemat.npz'):
+		sX = load_sparse_csc('sX.sparsemat.npz')
+	else:
+		update_doc_tfidf_list()
+		sX = load_sparse_csc('sX.sparsemat.npz')
 
 	#Save docindlist 
 	if os.path.isfile('docindlist.list'):
@@ -260,11 +278,15 @@ def update_Xt_and_docindlist(docindlist):
 		docindlistprev = pickle.load(f)
 		#Merge new and old list of indices
 		docindlist = list(set(docindlist + docindlistprev))
+		docindlist.sort()
 		f = open('docindlist.list','w')
+		print 'Search thread: Updated docindlist: ', docindlist
 		pickle.dump(docindlist,f)
 	else:
 		#Save docindlist (the list of indices of suggested documents)		
 		f = open('docindlist.list','w')
+		docindlist.sort()
+		print 'Search thread: Updated docindlist first time: ', docindlist
 		pickle.dump(docindlist,f)
 
 	#Save list of indices of omitted documents 
@@ -280,52 +302,6 @@ def update_Xt_and_docindlist(docindlist):
 		#Save list of omitted docs
 		f = open('omittedindlist.npy','w')
 		pickle.dump(omittedindlist,f)
-
-	# if os.path.isfile('Xt.npy'):
-	# 	print "Updating Xt tfidf matrix!"
-	# 	#Xt = np.load('Xt.npy')
-
-	# 	#print 'docindlist:', docindlist
-	# 	di = 0
-	# 	for i in range(sX.shape[0]): 
-	# 		if i in docindlist:
-	# 			#print i
-	# 			drow= sX[i][:].toarray()
-	# 			if di == 0:
-	# 				Xt = drow
-	# 			else:
-	# 				Xt  = np.vstack([Xt, sX[i][:].toarray()])
-	# 			di = di + 1
-	# 	#X = sX.toarray()
-	# 	#Xt = X[docindlist][:]
-
-	# 	#newrows = X[docindlist][:] 
-	# 	#Xt = np.vstack([Xt, newrows])
-	# else:
-	# 	print "Initializing Xt"
-	# 	Xt = sX[0][:].toarray()
-
-	# #Save Xt matrix into a binary NumPy file for further use
-	# np.save('Xt.npy',Xt)
-
-	#return Xt
-
-#Converts doc_tfidf_list to scipy sparse matrix format (as csc_matrix)
-def doc_tfidf_list_to_sparsemat(tuplelist):
-	#Import dictionary
-	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-	nwords = len(dictionary)
-
-	nrow = len(tuplelist)
-	sparsemat = sparse.lil_matrix((nrow, nwords))
-	row = 0
-	for d in tuplelist:
-		for c in d:
-			sparsemat[row,c[0]] = c[1]
-		row = row + 1
-	sparsemat = sparsemat.tocsc()
-
-	return sparsemat
 
 
 def doc_tfidf_list_to_array(tfidf_list, nwords):
@@ -365,6 +341,78 @@ def update_docsim_model():
 	#Build index
 	index = similarities.docsim.Similarity('/tmp/similarityvec',doctm, num_features = len(dictionary), num_best = 7)
 	index.save('/tmp/similarityvec')
+
+
+#Updates LinRel matrix, denoted by A 
+def update_A(docinds, y):
+
+	#Load sparse tfidf matrix
+	#sX = np.load('sX.npy')
+	sX = load_sparse_csc('sX.sparsemat.npz')	
+
+	print "Search thread: Updating A"
+
+	#Compute estimation of weight vector (i.e. user model)
+	print 'Search thread: Create Xt '
+	sXcsr = sX.tocsr()
+	print 'Search thread: Type of sXcsr: ', type(sXcsr)
+	sXtcsr= sXcsr[docinds,:]
+	Xt    = sXtcsr.toarray()
+	print 'Search thread: Xt shape: ', Xt.shape
+	print 'Search thread: y shape: ', y.shape
+
+	#
+	w = estimate_w(Xt,y)
+	w = np.array([w])
+	w = w.transpose()
+
+	#
+	yT    = y.transpose()
+	norm_y= np.linalg.norm(yT)
+	if norm_y > 0.0:
+		yT  = yT/(norm_y*norm_y)
+
+	#Update A
+	Atilde = w*yT
+	print 'Search thread: Shape of Atilde: ', Atilde.shape
+	print 'Search thread: Max val of Atilde: ', Atilde.max()
+	sAtilde= sparse.csc_matrix(Atilde)
+	#print 'type sX, ', type(sX), 'shape, ', sX.shape
+	#print 'type sAtilde,', type(sAtilde), 'shape, ', sAtilde.shape
+	sA = sX*sAtilde
+	#A     = np.dot(X,Atilde)
+
+	#np.save('A.npy', A)
+	#update_Xt_and_docindlist(docinds)
+
+	return sA
+
+ 
+#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
+#I.e. compute estimation of user model
+def estimate_w(Xt,y):
+	#
+	mu = 1.5
+	w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
+	return w
+
+
+#Make full array from tfidf_vec (= is a list of 2-tuples i.e. (location, tfidf_value) ) 
+def make_tfidf_array(tfidf_vec, dictionary):
+
+    #Number of words in dictionary
+    nwords = len(dictionary)
+
+    #Initialize tfidf-vector (numpy-array)
+    tfidf_array = np.zeros(nwords)
+
+    for wi in range(len(tfidf_vec)):
+        wid, score = tfidf_vec[wi]
+        #print "word id " + str(wid) + " word: " + str(dictionary[wid]) + " score:  " + str(score)
+        tfidf_array[wid] = score
+
+    return tfidf_array
+
 
 #
 def create_topic_model_and_doctid(numoftopics):
@@ -485,76 +533,6 @@ def update_topic_model_and_doctid():
 
 
 
-
-
-
-#Updates LinRel matrix, denoted by A 
-def update_A(docinds, y):
-
-	#Load sparse tfidf matrix
-	#sX = np.load('sX.npy')
-	sX = load_sparse_csc('sX.sparsemat.npz')	
-
-	print "Updating A"
-	#F
-	#X  = np.load('X.npy')
-	#Xt = np.load('Xt.npy')
-	#Compute estimation of weight vector 
-	print 'Create Xt '
-	sXcsr = sX.tocsr()
-	sXtcsr= sXcsr[docinds,:]
-	Xt    = sXtcsr.toarray()
-	print 'Xt shape ', Xt.shape
-	print 'y shape', y.shape
-
-	w = estimate_w(Xt,y)
-	w = np.array([w])
-	w = w.transpose()
-
-	yT    = y.transpose()
-	norm_y= np.linalg.norm(yT)
-	if norm_y > 0.0:
-		yT  = yT/(norm_y*norm_y)
-
-	#Update A
-	Atilde = w*yT
-	print 'Max val of Atilde: ', Atilde.max()
-	sAtilde= sparse.csc_matrix(Atilde)
-	#print 'type sX, ', type(sX), 'shape, ', sX.shape
-	#print 'type sAtilde,', type(sAtilde), 'shape, ', sAtilde.shape
-	sA = sX*sAtilde
-	#A     = np.dot(X,Atilde)
-
-	#np.save('A.npy', A)
-	#update_Xt_and_docindlist(docinds)
-
-	return sA
-
- 
-#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
-#I.e. compute estimation of user model
-def estimate_w(Xt,y):
-	#
-	mu = 1.5
-	w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
-	return w
-
-
-#Make full array from tfidf_vec (that is basically a list of 2-tuples i.e. (location, tfidf_value) ) 
-def make_tfidf_array(tfidf_vec, dictionary):
-
-    #Number of words in dictionary
-    nwords = len(dictionary)
-
-    #Initialize tfidf-vector (numpy-array)
-    tfidf_array = np.zeros(nwords)
-
-    for wi in range(len(tfidf_vec)):
-        wid, score = tfidf_vec[wi]
-        #print "word id " + str(wid) + " word: " + str(dictionary[wid]) + " score:  " + str(score)
-        tfidf_array[wid] = score
-
-    return tfidf_array
 #######
 
 

@@ -46,217 +46,127 @@ class MyApp(QtGui.QWidget):
  
   self.testButton = QtGui.QPushButton("Start")
   self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
+  self.gbtitle4   = QtGui.QLabel('')
   #self.listwidget = QtGui.QListWidget(self)
  
   # self.layout.addWidget(self.testButton)
   # self.layout.addWidget(self.listwidget)
 
-
   #QtGui.QWidget.__init__(self)
-
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval = self.read_user_ini()
 
-  # mygroupbox.setLayout(myform)
+  #Create visible stuff
   val = 5
-  urlstrs = ''
   iconfile = 'web.png'
-  self.gbtitle = 'Web sites'
-  self.labellist, self.datelist = self.create_labellist(val, urlstrs)
-  self.scrollarea = self.create_groupbox(self.gbtitle, self.labellist, self.datelist, iconfile)
+  self.gbtitle = QtGui.QLabel('Web sites')
+  self.listWidget1 = self.create_QListWidget(20, iconfile)
+
   iconfile = 'mail.png'
-  self.gbtitle2= 'E-mails'
-  self.labellist2, self.datelist2 = self.create_labellist(val, urlstrs)
-  self.scrollarea2 = self.create_groupbox(self.gbtitle2, self.labellist2, self.datelist2, iconfile)
+  self.gbtitle2 = QtGui.QLabel('E-Mails')
+  self.listWidget2 = self.create_QListWidget(20, iconfile)
+
   iconfile = 'doc.png'
-  self.gbtitle3= 'Docs'
-  self.labellist3, self.datelist3 = self.create_labellist(val, urlstrs)
-  self.scrollarea3 = self.create_groupbox(self.gbtitle3, self.labellist3, self.datelist3, iconfile)
+  self.gbtitle3 = QtGui.QLabel('Docs')
+  self.listWidget3 = self.create_QListWidget(20, iconfile)
 
-  layout = QtGui.QHBoxLayout(self)
-  layout.addWidget(self.scrollarea)
-  layout.addWidget(self.scrollarea2)
-  layout.addWidget(self.scrollarea3)
-  layout.addWidget(self.testButton)
+  #Add to layout
+  self.hlayout1 = QtGui.QHBoxLayout()
+  self.hlayout1.addWidget(self.listWidget1)
+  self.hlayout1.addWidget(self.listWidget2)
+  self.hlayout1.addWidget(self.listWidget3)
+  self.hlayout1.addWidget(self.testButton)
 
-  self.setWindowTitle("ProActive Search")  
+  self.hlayout2 = QtGui.QHBoxLayout()
+  self.hlayout2.addWidget(self.gbtitle)
+  self.hlayout2.addWidget(self.gbtitle2)
+  self.hlayout2.addWidget(self.gbtitle3)
+  #self.hlayout2.addWidget(self.gbtitle4)
 
- def add(self, text):
-  """ Add item to list widget """
-  print "Add: " + text[0]['plainTextContent']
-  self.listwidget.addItem(text[0]['uri'])
-  self.listwidget.sortItems()
- 
- def addBatch(self,text="test",iters=6,delay=0.3):
-  """ Add several items to list widget """
-  for i in range(iters):
-   sleep(delay) # artificial time delay
-   self.add(text+" "+str(i))
- 
+  self.vlayout = QtGui.QVBoxLayout(self)
+  self.vlayout.addLayout(self.hlayout2)
+  self.vlayout.addLayout(self.hlayout1)
+
+  #Set title
+  self.setWindowTitle("ProActive Search") 
+
+ #Runs the Keylogger and Search 
  def test_pressed(self):
   print 'Main: Test'
   self.testButton.setDisabled(True)
   #self.listwidget.clear()
 
-  self.WorkThreadObj  = LoggerThread()
+  self.LoggerThreadObj  = LoggerThread()
   self.SearchThreadObj = SearchThread()
-  self.connect(self.WorkThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
+  self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
   #self.connect( self.SearchThreadObj, QtCore.SIGNAL("update(QString)"), self.add )
   #self.connect( self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.add )
   self.connect( self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links )
 
-  self.WorkThreadObj.start()
+  self.LoggerThreadObj.start()
   self.SearchThreadObj.start()
 
- def create_labellist(self, val, urlstrs):
-        labellist = []
-        datelist = []
-        if len(urlstrs) > 0:
-          for i in range( len(urlstrs) ):
-                          linkstr = str( urlstrs[i]["uri"] )
-                          ctime   = str(urlstrs[i]["timeCreated"])
-                          typestr = str(urlstrs[i]["type"])
-                          storedas = str(urlstrs[i]["isStoredAs"])
-                          #print ctime
-                          timeint = int(ctime) / 1000
-                          #print timeint
-                          date = datetime.datetime.fromtimestamp(timeint)
-                          datestr = date.__str__()
+ def create_QListWidget(self, val, icon_file):
+    listWidget = QListWidget()
+    for i in range(val):
+        dumitem = QListWidgetItem(listWidget)
+        dstr = ''
+        dumitem.setText(dstr)
+        dumitem.setWhatsThis('')
+        dumitem.setToolTip('')
+        icon = QIcon(icon_file)
+        dumitem.setIcon(icon)
+        dumitem.setHidden(True)
 
-                          labellist[i].setText(linkstr)
-                          datelist[i].setText(datestr)
-                          storedasl = storedas.split('#')[1]
-                          #if typestr in ['http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#PaginatedTextDocument', 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document']:
-                          #print storedasl
-                          if storedasl in ["LocalFileDataObject"]:
-                              labellist3[j].setText(linkstr)
-                              j = j + 1
-        else:
-          for i in range(val):
-              #dumlabel = ExtendedQLabel('Hello')
-              dumlabel = ExtendedQLabel()
-              dumlabel.setAlignment(Qt.AlignLeft)
-              dumlabel.connect(dumlabel, SIGNAL('clicked()'), dumlabel.open_url)
-              #labellist.append(QtGui.QLabel('mylabel'))
-              labellist.append(dumlabel)
+    listWidget.connect(listWidget,SIGNAL("itemClicked(QListWidgetItem*)"),
+              self.open_url)
 
-              datelist.append(QtGui.QLabel('date'))
+    return listWidget
 
-        return labellist, datelist
+ def update_QListWidget(self, listWidget, data):
+    nrows = listWidget.count()
+    njsons= len(data)
+    for i in range(nrows):
+        listitem = listWidget.item(i)
+        listitem.setText('No heippa!')
+        listitem.setWhatsThis('https://www.gmail.com')
 
 
- def create_groupbox(self, gbtitle, labellist, datelist, iconfile):
-    mygroupbox = QtGui.QGroupBox(gbtitle)
-    #myform = QtGui.QFormLayout()
-    myform = QtGui.QVBoxLayout()
-    combolist = []
+ def safe_get_value(self, dicti, key):
+  if dicti.has_key(key):
+   return dicti[key]
+  return ''
 
-    #
-    for i in range(len(labellist)):
-        #dumlabel = ExtendedQLabel('Hello', self)
-        #dumlabel.connect(dumlabel, SIGNAL('clicked()'), dumlabel.open_url)
-        #self.labellist.append(dumlabel)
-
-        datelist.append(QtGui.QLabel('date'))
-
-        #
-        image = QtGui.QImage(iconfile)
-        icon = QtGui.QPixmap.fromImage(image)
-        icon = icon.scaledToHeight(20)
-        
-        label1 = QtGui.QLabel('Hello')
-
-        label1.setPixmap(icon)
-        label2 = QtGui.QLabel('test_urls')
-        #label2.setPicture(picture)
-        
-        boxl = QtGui.QHBoxLayout()
-        boxl.setSpacing(10)
-        boxl.addWidget(label1, Qt.AlignLeft)
-        boxl.addWidget(labellist[i], Qt.AlignLeft)
-        boxl.addWidget(datelist[i], Qt.AlignLeft)
-        boxl.addStretch(10)
-        myform.addItem(boxl)
-        # #grid = QtGui.QGridLayout()
-        # grid.setSpacing(2)
-        # grid.addWidget(label1,1,0, Qt.AlignLeft)
-        # #grid.setHorizontalSpacing(1)
-        # grid.addWidget(labellist[i],1,1,Qt.AlignLeft)
-        # #grid.addWidget(datelist[i],1,2, Qt.AlignRight)
-        # myform.addItem(grid)
-        # #myform.addRow(labellist[i])
-    
-    mygroupbox.setLayout(myform)
-
-    scrollarea = QtGui.QScrollArea()
-    scrollarea.setWidget(mygroupbox)
-    scrollarea.setWidgetResizable(True)
-    
-    return scrollarea
-    #return mygroupbox 
-
-
- def update_groupbox(self, iconfile):
-    mygroupbox = QtGui.QGroupBox(self.gbtitle)
-    myform = QtGui.QFormLayout()
-    #self.labellist = []
-    #self.datelist = []
-    combolist = []
-
-    #
-    for i in range(len(self.labellist)):
-        #self.datelist[i] = '20.09.2015'
-
-        #
-        image = QtGui.QImage(iconfile)
-        icon = QtGui.QPixmap.fromImage(image)
-        icon = icon.scaledToHeight(20)
-        label1 = QtGui.QLabel('')
-        label1.setPixmap(icon)
-
-        #label2.setPicture(picture)
-        grid = QtGui.QGridLayout()
-        grid.setSpacing(10)
-        grid.addWidget(label1,1,0)
-        grid.addWidget(self.labellist[i],1,1)
-        grid.addWidget(QtGui.QLabel('Date'),1,2)
-        myform.addItem(grid)
-        #myform.addRow(labellist[i])
-    
-    mygroupbox.setLayout(myform)
-
-    scrollarea = QtGui.QScrollArea()
-    scrollarea.setWidget(mygroupbox)
-    scrollarea.setWidgetResizable(True)
-    
-    self.scrollarea = scrollarea
-
-
+ #
  def update_links(self, urlstrs):
     i = 0
     j = 0
     k = 0
 
-    #Initialize rake object
-    rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
+    for dj in range(self.listWidget1.count()):
+      self.listWidget1.item(dj).setHidden(True)    
+    for dj in range(self.listWidget2.count()):
+      self.listWidget2.item(dj).setHidden(True)
+    for dj in range(self.listWidget3.count()):
+      self.listWidget3.item(dj).setHidden(True)      
 
-    if urlstrs != None:
-         nsuggestedlinks = len(urlstrs)
-         nlinks = len(self.labellist)
-    nlinks = len(self.labellist)
+    #Initialize rake object
+    #rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
+
+    nlinks = 15
     nsuggestedlinks = 5
-    if nsuggestedlinks <= nlinks:
-                #for i in range( len(self.labellist) ):
-                for i in range( len(urlstrs) ):
-                                linkstr  = self.unicode_to_str( urlstrs[i]["uri"] )
-                                ctime    = str(urlstrs[i]["timeCreated"])
-                                typestr  = str(urlstrs[i]["type"])
-                                storedas = str(urlstrs[i]["isStoredAs"])
-                                dataid   = str(urlstrs[i]["id"])
+    for ijson in range( len(urlstrs) ):
+                                linkstr  = self.unicode_to_str( urlstrs[ijson]["uri"] )
+                                ctime    = str(urlstrs[ijson]["timeCreated"])
+                                typestr  = str(urlstrs[ijson]["type"])
+                                storedas = str(urlstrs[ijson]["isStoredAs"])
+                                dataid   = str(urlstrs[ijson]["id"])
                                 storedasl = storedas.split('#')[1]
-                                print 'Main storedasl: ', storedasl
-                                content  = self.safe_get_value(urlstrs[i], "plainTextContent")
-                                keywords = rake_object.run(content)
+                                print 'Main: storedasl: ', storedasl
+                                #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
+                                content = ''
+                                #keywords = rake_object.run(content)
+                                keywords = ''
                                 #print ctime
                                 timeint = int(ctime) / 1000
                                 #print timeint
@@ -270,29 +180,31 @@ class MyApp(QtGui.QWidget):
                                 if len(keywords) > 0:
                                   tooltipstr = re.sub("[^\w]", " ", content)
                                   #self.labellist[i].setToolTip(tooltipstr)
-                                  keywordstr = "Keywords: " + keywords[0][0]
+                                  tooltipstr = "Keywords: " + keywords[0][0]
                                 else:
-                                  keywordstr = 'Keywords: '
+                                  tooltipstr = 'Keywords: '
                                   #self.labellist[i].setText(keywords[0][0])
 
                                 if storedasl in ["LocalFileDataObject" ]:
                                     print 'Main: doc', linkstr
-                                    self.labellist3[j].setText(linkstrshort) 
-                                    self.labellist3[j].uristr = linkstr
-                                    self.labellist3[j].setToolTip(keywordstr)
-                                    self.datelist3[j].setText(datestr)
+                                    visiblestr = linkstrshort + '  ' + datestr
+                                    self.listWidget3.item(j).setText(visiblestr) 
+                                    self.listWidget3.item(j).setWhatsThis(linkstr)
+                                    self.listWidget3.item(j).setToolTip(tooltipstr)
+                                    self.listWidget3.item(j).setHidden(False)
+                                    #self.datelist3[j].setText(datestr)
                                     #self.labellist3[j].setAlignment(Qt.AlignLeft)
-
                                     j = j + 1
                                 elif storedasl in ["MailboxDataObject"]:
                                     print 'Main: mail ', storedasl
                                     dumlink = self.srvurl.split('/')[2]
                                     linkstr = 'http://' + dumlink + '/message?id=' + dataid
-                                    print 'linkstr ', linkstr
-                                    self.labellist2[k].setText(linkstrshort)
-                                    self.labellist2[k].uristr = linkstr
-                                    self.labellist2[k].setToolTip(keywordstr)
-                                    self.datelist2[k].setText(datestr)
+                                    print 'Main: linkstr ', linkstr
+                                    visiblestr = linkstrshort + '  ' + datestr
+                                    self.listWidget2.item(k).setText(visiblestr) 
+                                    self.listWidget2.item(k).setWhatsThis(linkstr)
+                                    self.listWidget2.item(k).setToolTip(tooltipstr)
+                                    self.listWidget2.item(j).setHidden(False)
                                     #self.labellist3[j].setAlignment(Qt.AlignLeft)
 
                                     k = k + 1                                  
@@ -300,11 +212,14 @@ class MyApp(QtGui.QWidget):
                                   print 'Main: web ', linkstr
                                   title = None
                                   try:
+                                    #print 'Finding Web page title:'
                                     dumt = urllib2.urlopen(linkstr)
                                     soup = BeautifulSoup(dumt)
+                                    #print 'Soup title: ', soup.title.string
                                     try: 
-                                      if soup.title is not None:
+                                      if soup.title.string is not None:                                        
                                         title = soup.title.string
+                                        #print 'Soup title2 :', title
                                     except (AttributeError, ValueError):
                                       #print 'attr. error'
                                       pass
@@ -312,14 +227,16 @@ class MyApp(QtGui.QWidget):
                                     pass
 
                                   if title is None:
+                                    print 'Main: Web page title is: ', title
                                     title = linkstrshort
 
-                                  self.labellist[i].setText(title)
-                                  self.labellist[i].uristr = linkstr
-                                  self.labellist[i].setToolTip(keywordstr)
-                                  self.datelist[i].setText(datestr)
-                                    
-
+                                  visiblestr = title + '  ' + datestr
+                                  self.listWidget1.item(i).setText(visiblestr) 
+                                  self.listWidget1.item(i).setWhatsThis(linkstr)
+                                  self.listWidget1.item(i).setToolTip(tooltipstr)
+                                  self.listWidget1.item(i).setHidden(False)
+                                  i = i + 1  
+ #
  def read_user_ini(self):
 
     f          = open('user.ini','r')
@@ -349,24 +266,22 @@ class MyApp(QtGui.QWidget):
     return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
 
+ #
  def unicode_to_str(self, ustr):
     """Converts unicode strings to 8-bit strings."""
     try:
         return ustr.encode('utf-8')
     except UnicodeEncodeError:
-        print "UnicodeEncodeError"
+        print "Main: UnicodeEncodeError"
     return ""
 
 
- def safe_get_value(self, dicti, key):
-    if dicti.has_key(key):
-        return dicti[key]
-    return ''
-
  #
- def open_url(self):
-  global urlstr
-  webbrowser.open(urlstr)
+ def open_url(self, listWidgetitem):
+  #global urlstr
+  #webbrowser.open(urlstr)
+  webbrowser.open(str(listWidgetitem.whatsThis()))
+
 
  #
  def stopstart(self):
@@ -397,6 +312,8 @@ class MyApp(QtGui.QWidget):
 
 
 
+
+
 #--------------------------------------------------------
 
 #
@@ -411,7 +328,7 @@ class SearchThread(QtCore.QThread):
    self.wait()
 
  def get_new_word(self, newquery):
-  print "SearchThread: got new query:", newquery
+  print "Search thread: got new query:", newquery
   self.query = newquery
 
  def run(self):
@@ -422,17 +339,15 @@ class SearchThread(QtCore.QThread):
    sleep(0.3) # artificial time delay
    if self.query is not None and self.query != self.oldquery:
     dstr = str(self.query)
-    print 'SearchThread:', dstr 
+    print 'Search thread:', dstr 
    
     jsons = search_dime_linrel_summing_previous_estimates(dstr)
-    print 'len jsons', len(jsons)
+    print 'Search thread: len jsons ', len(jsons)
     if len(jsons) > 0:
-     #content = str(jsons[0]['uri'])
-     #print jsons[0]
-     #self.emit( QtCore.SIGNAL('update(QString)'), content)
+     #Return jsons
      self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), jsons)
 
-     self.oldquery = self.query
+    self.oldquery = self.query
 
 
 #
@@ -443,7 +358,7 @@ class LoggerThread(QtCore.QThread):
 
   #Keylogger
   def run(self):
-        print 'Run Run'
+        print 'Logger thread: Run Run'
         #Read user.ini
         srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
 
@@ -465,12 +380,16 @@ class LoggerThread(QtCore.QThread):
         wordlist = []
 
         #Before searching, update data
-        if os.path.isfile('json_data.txt') and os.path.isfile('/tmp/tmpdict.dict'):
+        if os.path.isfile('json_data.txt') and os.path.isfile('/tmp/dictionary.dict'):
           pass
         else:
           update_data(srvurl, username, password)
           update_dictionary()
-      
+          update_doctm()
+          update_doc_tfidf_list()
+          update_docsim_model()
+          update_tfidf_model()
+
         if os.path.isfile('doctm.data') and os.path.isfile('varlist.list'):
           pass
         else:
@@ -479,7 +398,8 @@ class LoggerThread(QtCore.QThread):
           update_docsim_model()
           update_tfidf_model()
         
-        if os.path.isfile('/tmp/similarityvec'):
+        if os.path.isfile('/tmp/docsim.model'):
+
           pass
         else:
           update_docsim_model()
@@ -493,7 +413,7 @@ class LoggerThread(QtCore.QThread):
         #Create stopwordlist
         create_stopwordlist()
 
-        print "Ready for logging"
+        print "Logger thread: Ready for logging"
 
         #f = open('typedwords.txt', 'a')
         while True:
@@ -530,20 +450,25 @@ class LoggerThread(QtCore.QThread):
                             dumstr = "".join(duml)
 
             elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
-                    print 'keys: ', keys
-                    print 'changed: ', changed[0]
+                    print 'Logger thread: keys: ', keys
+                    print 'Logger thread: changed: ', changed[0]
                     #keys = ' '
                     wordlist.append(dumstr)
-                    print wordlist
+                    #print wordlist
                     print wordlist[-nwords:]
+                    dwordlist = wordlist[-nwords:]
                     #dumstr = dumstr + keys
                     countspaces = countspaces + 1
                     dumstr = ''
                     dumstr2 = ''
-                    for i in range( len(wordlist) ):
-                        dumstr2 = dumstr2 + wordlist[i] + ' '
+                    for i in range( len(dwordlist) ):
+                        dumstr2 = dumstr2 + dwordlist[i] + ' '
 
                     self.emit( QtCore.SIGNAL('update(QString)'), dumstr2)
+
+                    if var2:
+                      #Empty the dumstr2 after time_interval period of time
+                      dumstr2 = ''
 
             else:
                     cdate = datetime.datetime.now().date()
@@ -581,9 +506,8 @@ def read_user_ini():
 
 
 # run
-app = QtGui.QApplication(sys.argv)
+app  = QtGui.QApplication(sys.argv)
 test = MyApp()
-#test.test()
 test.show()
 app.exec_()
 

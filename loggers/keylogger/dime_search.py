@@ -83,7 +83,7 @@ def search_dime(srvurl, username, password, query):
                 	 auth=(server_username, server_password),
                      timeout=10)
 
-    print query
+    #print query
 
     if r.status_code != requests.codes.ok:
         print('No results from DiMe database!')
@@ -91,7 +91,7 @@ def search_dime(srvurl, username, password, query):
     else:
         if len(r.json()) > 0:
             r = r.json()
-            print len(r)
+            print 'Search thread: number of data objects: ', len(r)
             return r
 
 
@@ -137,7 +137,7 @@ def search_dime_docsim(query):
             test_wordlist[nword] = correctedword[0]
         else:
             test_wordlist[nword] = ' '
-    print "DocSim: Closest dictionary words: ", test_wordlist
+    print "Search thread: Closest dictionary words: ", test_wordlist
 
     # Convert the wordlist into bag of words (bow) representation
     test_vec = dictionary.doc2bow(test_wordlist)
@@ -251,9 +251,7 @@ def search_dime_lda(query):
     
     return jsons[0:5]
 
-
-
-
+#
 def search_dime_linrel_summing_previous_estimates(query):
 
     #Import data
@@ -266,6 +264,9 @@ def search_dime_linrel_summing_previous_estimates(query):
     #Open docindlist (the list of indices of suggested documents)
     f = open('docindlist.list','r')
     docinds = pickle.load(f)
+    #Sort from smallest to largest index value
+    docinds.sort()
+    print 'Search thread: Old docindlist: ', docinds
 
     #
     f = open('varlist.list', 'r')
@@ -288,9 +289,9 @@ def search_dime_linrel_summing_previous_estimates(query):
             test_wordlist[nword] = correctedword[0]
         else:
             test_wordlist[nword] = ' '
-    print "Closest dictionary words: ", test_wordlist
+    print "Search thread: Closest dictionary words: ", test_wordlist
     test_vec = dictionary.doc2bow(test_wordlist)
-    #Convert to sparse tfidf vec
+    #Convert to tfidf vec (list of 2-tuples, (word id, tfidf value))
     test_vec = tfidf[test_vec] 
 
     #Compute relevance scores 
@@ -298,16 +299,23 @@ def search_dime_linrel_summing_previous_estimates(query):
     nc = len(docinds)
     if nc == 0:
         jsons, docinds = search_dime_docsim(query)
+        docinds.sort()
         update_Xt_and_docindlist(docinds)
         y  = compute_relevance_scores(docinds, test_vec)
     else:        
+        docinds.sort()
         y = compute_relevance_scores(docinds, test_vec)
+
+    #
+    print 'Search thread: length of relevance score vec (y): ', y.shape
+    print 'Search thread: Relevance scores: ', y
 
     #Normalize y vector
     ysum = y.sum()
     if ysum > 0:
         y = y/ysum
 
+    #
     sy = sparse.csc_matrix(y)
 
     #
@@ -316,29 +324,32 @@ def search_dime_linrel_summing_previous_estimates(query):
     y_hat  = sy_hat.toarray()
     
     if os.path.isfile('y_hat_prev.npy'):
-        print "updating y_hat" 
+        print "Search thread: updating y_hat" 
         y_hat_prev = np.load('y_hat_prev.npy')
         if len(y_hat) == len(y_hat_prev):
+            print 'Search thread: update y_hat (by y_hat = y_hat + y_hat_prev)'
             y_hat = y_hat + y_hat_prev
-    else:
-        print "Initializing y_hat"
+        #Normalize y_hat
+        y_hat_sum = y_hat.sum()
+        if y_hat_sum > 0:
+            y_hat = y_hat/y_hat_sum
         np.save('y_hat_prev.npy', y_hat)
-    #Normalize y_hat
-    y_hat_sum = y_hat.sum()
-    if y_hat_sum > 0:
-        y_hat = y_hat/y_hat_sum
+    else:
+        #Normalize y_hat
+        y_hat_sum = y_hat.sum()
+        if y_hat_sum > 0:
+            y_hat = y_hat/y_hat_sum        
+        print "Search thread: Saving y_hat first time"
+        np.save('y_hat_prev.npy', y_hat)
 
     #
-    np.save('y_hat_prev.npy', y_hat)
-
-    print 'y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
+    print 'Search thread: y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
 
     #Compute upper bound on the deviation of the relevance estimate using matrix A
-    #The effect of upper bound films 
     sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
     sigma_hat = np.array(sigma_hat)
 
-    print 'sigma_hat max:', sigma_hat.max(), ', sigma_hat argmax: ', sigma_hat.argmax()
+    print 'Search thread: sigma_hat max:', sigma_hat.max(), ', sigma_hat argmax: ', sigma_hat.argmax()
 
 
     #Coefficient determining the importance of deviation of the relevance vector
@@ -347,9 +358,10 @@ def search_dime_linrel_summing_previous_estimates(query):
 
     #Compute doc. indices
     if sigma_hat.max() == 0:
-        print "LinRel don't suggest anything, use DocSim"
+        print "Search thread: LinRel don't suggest anything, use DocSim"
         docs, docinds = search_dime_docsim(query)
-        pass
+        docinds.sort()
+        #pass
     else: 
         #
         #print 'shape y_hat,', y_hat.shape, 'type: ', type(y_hat)
@@ -357,25 +369,167 @@ def search_dime_linrel_summing_previous_estimates(query):
         e = np.array(y_hat + (c/2)*sigma_hat)
         #print e
         #print 'e shape,', e.shape
-        print 'e max:', e.max(), 'e argmax:', e.argmax()
+        print 'Search thread: e max:', e.max(), 'e argmax:', e.argmax()
         #print e.shape
 
         docinds= np.argsort(e[:,0])
-        docinds= docinds[-10:]
+        docinds= docinds[-20:]
         docinds= docinds.tolist()
         #print docinds
     #print type(docinds)
     #print docinds
+    docinds.sort()
+    #print 'Search thread: New docindlist: ', docinds
     update_Xt_and_docindlist(docinds)
 
     #print docinds
-    #update_A()
     jsons = []
     for i in range(len(docinds)):
         #print docinds[i]
         jsons.append(data[docinds[i]])
 
-    return jsons[-5:]
+    return jsons[-20:]
+
+
+#
+def search_dime_linrel_without_summing_previous_estimates(query):
+
+    #Import data
+    json_data = open('json_data.txt')
+    data = json.load(json_data)    
+
+    #Import dictionary
+    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
+    #Open docindlist (the list of indices of suggested documents)
+    f = open('docindlist.list','r')
+    docinds = pickle.load(f)
+    #Sort from smallest to largest index value
+    docinds.sort()
+    print 'Search thread: Old docindlist: ', docinds
+
+    #
+    f = open('varlist.list', 'r')
+    varlist = pickle.load(f)
+    nwords = varlist[0]
+    ndocuments = varlist[1]
+
+    #Import tfidf model by which the relevance scores are computed 
+    tfidf = models.TfidfModel.load('tfidfmodel.model')
+
+    #Make wordlist from the query string
+    test_wordlist = query.lower().split()
+    #Remove unwanted words from query
+    test_wordlist = remove_unwanted_words(test_wordlist)
+
+    #Convert the words into nearest dictionary word
+    for nword, word in enumerate(test_wordlist):
+        correctedword = difflib.get_close_matches(word, dictionary.values())
+        if len(correctedword):
+            test_wordlist[nword] = correctedword[0]
+        else:
+            test_wordlist[nword] = ' '
+    print "Search thread: Closest dictionary words: ", test_wordlist
+    test_vec = dictionary.doc2bow(test_wordlist)
+    #Convert to tfidf vec (list of 2-tuples, (word id, tfidf value))
+    test_vec = tfidf[test_vec] 
+
+    #Compute relevance scores 
+    #nr, nc = Xt.shape
+    nc = len(docinds)
+    if nc == 0:
+        jsons, docinds = search_dime_docsim(query)
+        docinds.sort()
+        update_Xt_and_docindlist(docinds)
+        y  = compute_relevance_scores(docinds, test_vec)
+    else:        
+        docinds.sort()
+        y = compute_relevance_scores(docinds, test_vec)
+
+    #
+    print 'Search thread: length of relevance score vec (y): ', y.shape
+    print 'Search thread: Relevance scores: ', y
+
+    #Normalize y vector
+    ysum = y.sum()
+    if ysum > 0:
+        y = y/ysum
+
+    #
+    sy = sparse.csc_matrix(y)
+
+    #
+    sA = update_A(docinds, y)
+    sy_hat = sA*sy
+    y_hat  = sy_hat.toarray()
+    
+    if os.path.isfile('y_hat_prev.npy'):
+        print "Search thread: updating y_hat" 
+        y_hat_prev = np.load('y_hat_prev.npy')
+        if len(y_hat) == len(y_hat_prev):
+            print 'Search thread: update y_hat (by y_hat = y_hat + y_hat_prev)'
+            y_hat = y_hat + y_hat_prev
+        #Normalize y_hat
+        y_hat_sum = y_hat.sum()
+        if y_hat_sum > 0:
+            y_hat = y_hat/y_hat_sum
+        np.save('y_hat_prev.npy', y_hat)
+    else:
+        #Normalize y_hat
+        y_hat_sum = y_hat.sum()
+        if y_hat_sum > 0:
+            y_hat = y_hat/y_hat_sum        
+        print "Search thread: Saving y_hat first time"
+        np.save('y_hat_prev.npy', y_hat)
+
+    #
+    print 'Search thread: y_hat max:', y_hat.max(), 'y_hat argmax:', y_hat.argmax()
+
+    #Compute upper bound on the deviation of the relevance estimate using matrix A
+    sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
+    sigma_hat = np.array(sigma_hat)
+
+    print 'Search thread: sigma_hat max:', sigma_hat.max(), ', sigma_hat argmax: ', sigma_hat.argmax()
+
+
+    #Coefficient determining the importance of deviation of the relevance vector
+    #in search
+    c = 1.5
+
+    #Compute doc. indices
+    if sigma_hat.max() == 0:
+        print "Search thread: LinRel don't suggest anything, use DocSim"
+        docs, docinds = search_dime_docsim(query)
+        docinds.sort()
+        #pass
+    else: 
+        #
+        #print 'shape y_hat,', y_hat.shape, 'type: ', type(y_hat)
+        #print 'shape sigma_hat,', sigma_hat.shape, 'type: ', type(sigma_hat)
+        e = np.array(y_hat + (c/2)*sigma_hat)
+        #print e
+        #print 'e shape,', e.shape
+        print 'Search thread: e max:', e.max(), 'e argmax:', e.argmax()
+        #print e.shape
+
+        docinds= np.argsort(e[:,0])
+        docinds= docinds[-20:]
+        docinds= docinds.tolist()
+        #print docinds
+    #print type(docinds)
+    #print docinds
+    docinds.sort()
+    #print 'Search thread: New docindlist: ', docinds
+    update_Xt_and_docindlist(docinds)
+
+    #print docinds
+    jsons = []
+    for i in range(len(docinds)):
+        #print docinds[i]
+        jsons.append(data[docinds[i]])
+
+    return jsons[-20:]
+
 
 
 
@@ -386,18 +540,18 @@ def compute_relevance_scores(docinds, test_vec):
 
     sX = load_sparse_csc('sX.sparsemat.npz')    
 
-    print "Updating A"
+    print "Search thread: Updating A"
     #F
     #X  = np.load('X.npy')
     #Xt = np.load('Xt.npy')
     #Compute estimation of weight vector 
-    print 'Create Xt '
-    print 'X shape, ', sX.shape
+    print 'Search thread: Create Xt '
+    print 'Search thread: X shape, ', sX.shape
     sXcsr = sX.tocsr()
     sXtcsr= sXcsr[docinds,:]
     sXtcsc= sXtcsr.tocsc()
     Xt    = sXtcsc.toarray()
-    print 'Xt shape, ', Xt.shape
+    print 'Search thread: Xt shape, ', Xt.shape
 
     #Convert Xt to corpus form
     nr, nc = Xt.shape
