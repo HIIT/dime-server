@@ -6,7 +6,7 @@ import time
 from zg2dimeglobals import config
 import zg2dimeconf as conf
 import zg2dimecommon as common
-import chrome2dime
+import browserlogger as blog
 
 # -----------------------------------------------------------------------
 
@@ -34,11 +34,11 @@ if __name__ == '__main__':
     actors = config['actors'].copy()
 
     if config['use_chrome']:
-        chromelogger = chrome2dime.Browserlogger('chrome')
+        chromelogger = blog.Browserlogger('chrome')
     if config['use_chromium']:
-        chromiumlogger = chrome2dime.Browserlogger('chromium')
+        chromiumlogger = blog.Browserlogger('chromium')
     if config['use_firefox']:
-        firefoxlogger = chrome2dime.Browserlogger('firefox')
+        firefoxlogger = blog.Browserlogger('firefox')
 
     nextrun_chrome, nextrun_chromium, nextrun_firefox = 0, 0, 0
 

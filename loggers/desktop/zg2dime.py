@@ -15,7 +15,7 @@ from zeitgeist.datamodel import *
 from zg2dimeglobals import config
 import zg2dimeconf as conf
 import zg2dimecommon as common
-import chrome2dime
+import browserlogger as blog
 import zg2dimeind
 
 # -----------------------------------------------------------------------
@@ -255,15 +255,15 @@ if __name__ == '__main__':
             GLib.timeout_add(config['interval_indicator']*1000, update_ind)
 
         if config['use_chrome']:
-            chromelogger = chrome2dime.Browserlogger('chrome')
+            chromelogger = blog.Browserlogger('chrome')
             GLib.timeout_add(config['interval_chrome']*1000, chromelogger.run)
 
         if config['use_chromium']:
-            chromiumlogger = chrome2dime.Browserlogger('chromium')
+            chromiumlogger = blog.Browserlogger('chromium')
             GLib.timeout_add(config['interval_chromium']*1000, chromiumlogger.run)
 
         if config['use_firefox']:
-            firefoxlogger = chrome2dime.Browserlogger('firefox')
+            firefoxlogger = blog.Browserlogger('firefox')
             GLib.timeout_add(config['interval_firefox']*1000, firefoxlogger.run)
 
         GLib.MainLoop().run()
