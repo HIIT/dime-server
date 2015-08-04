@@ -61,6 +61,8 @@ class MyApp(QtGui.QWidget):
   #Start button
   self.testButton  = QtGui.QPushButton("Start")
   self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
+
+
   #Radio buttons for choosing search function
   self.radiobutton1= QtGui.QRadioButton("DocSim")
   #self.radiobutton1.emit(QtCore.SIGNAL('released()'))
@@ -70,25 +72,35 @@ class MyApp(QtGui.QWidget):
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton2, QtCore.SIGNAL("released()"), self.choose_search_function2)
 
+  self.radiobutton3= QtGui.QRadioButton("LinRel (omitting history)")
+  #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
+  self.connect(self.radiobutton3, QtCore.SIGNAL("released()"), self.choose_search_function3)
 
   #Add to layout
   self.vlayout1 = QtGui.QVBoxLayout()
   self.vlayout1.addWidget(self.gbtitle)
   self.vlayout1.addWidget(self.listWidget1)
-  
+  #
   self.vlayout2 = QtGui.QVBoxLayout()
   self.vlayout2.addWidget(self.gbtitle2)
   self.vlayout2.addWidget(self.listWidget2)
-  
+  #  
   self.vlayout3 = QtGui.QVBoxLayout()
   self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
-  
   #
   self.vlayout4 = QtGui.QVBoxLayout()
+  #self.vlayout4.addWidget(QtGui.QLabel(' '))
   self.vlayout4.addWidget(self.testButton)
-  self.vlayout4.addWidget(self.radiobutton1)
-  self.vlayout4.addWidget(self.radiobutton2)
+  #vlayout5 is a sub layout for vlayout4
+  self.vlayout5 = QtGui.QVBoxLayout()
+  self.vlayout5.addWidget(self.radiobutton1)
+  self.vlayout5.addWidget(self.radiobutton2)
+  self.vlayout5.addWidget(self.radiobutton3)
+  #Groupbox for radiobuttons
+  self.mygroupbox = QtGui.QGroupBox('Search Method')
+  self.mygroupbox.setLayout(self.vlayout5)
+  self.vlayout4.addWidget(self.mygroupbox)
 
   #Add layouts
   self.hlayout = QtGui.QHBoxLayout(self)
@@ -114,8 +126,6 @@ class MyApp(QtGui.QWidget):
   self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
   self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links)
   self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
-  self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
-
   
   #Start thread processes
   self.LoggerThreadObj.start()
@@ -136,6 +146,12 @@ class MyApp(QtGui.QWidget):
   #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
 
+ def choose_search_function3(self):
+  #if searchfuncid == 0:
+    print 'Main: Search function is LinRel'
+    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 2)
+  #elif searchfuncid == 1:
+  #  print 'Main: Search function is LinRel'
 
 
  def create_QListWidget(self, val, icon_file):
@@ -207,6 +223,8 @@ class MyApp(QtGui.QWidget):
 
                                 if len(linkstr) > 20:
                                   linkstrshort = linkstr[0:40]
+                                else:
+                                  linkstrshort = linkstr
                                 
 
                                 if len(keywords) > 0:
@@ -244,20 +262,20 @@ class MyApp(QtGui.QWidget):
                                 else:
                                   #print 'Main: web ', linkstr
                                   title = None
-                                  try:
-                                    #print 'Finding Web page title:'
-                                    dumt = urllib2.urlopen(linkstr)
-                                    soup = BeautifulSoup(dumt)
-                                    #print 'Soup title: ', soup.title.string
-                                    try: 
-                                      if soup.title.string is not None:                                        
-                                        title = soup.title.string
-                                        #print 'Soup title2 :', title
-                                    except (AttributeError, ValueError):
-                                      #print 'attr. error'
-                                      pass
-                                  except (urllib2.HTTPError, urllib2.URLError, ValueError):
-                                    pass
+                                  # try:
+                                  #   #print 'Finding Web page title:'
+                                  #   dumt = urllib2.urlopen(linkstr)
+                                  #   soup = BeautifulSoup(dumt)
+                                  #   #print 'Soup title: ', soup.title.string
+                                  #   try: 
+                                  #     if soup.title.string is not None:                                        
+                                  #       title = soup.title.string
+                                  #       #print 'Soup title2 :', title
+                                  #   except (AttributeError, ValueError):
+                                  #     #print 'attr. error'
+                                  #     pass
+                                  # except (urllib2.HTTPError, urllib2.URLError, ValueError):
+                                  #   pass
 
                                   if title is None:
                                     #print 'Main: Web page title is: ', title
@@ -364,7 +382,7 @@ class SearchThread(QtCore.QThread):
  def change_search_function(self, searchfuncid):
   self.searchfuncid = searchfuncid
   print 'Search thread: search function changed to', str(searchfuncid)
-  if searchfuncid == 1:
+  if searchfuncid == 1 or searchfuncid == 2:
     #Update LinRel data files
     print 'Search thread: Updating Linrel data files!!!'
     check_update()
@@ -391,11 +409,22 @@ class SearchThread(QtCore.QThread):
       #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
       jsons = search_dime_linrel_summing_previous_estimates(dstr)
       print 'Search thread: Ready for new search!'
+    elif self.searchfuncid == 2:
+      #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+      jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
+      print 'Search thread: Ready for new search!'      
 
     print 'Search thread: len jsons ', len(jsons)
     if len(jsons) > 0:
      #Return jsons
      self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), jsons)
+
+     #Write first url's appearing in jsons list to a 'suggested_pages.txt'
+     cdate = datetime.datetime.now().date()
+     ctime = datetime.datetime.now().time()
+     f = open("suggested_pages.txt","a")
+     f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
+     f.close()
 
     self.oldquery = self.query
 
@@ -432,7 +461,6 @@ class LoggerThread(QtCore.QThread):
 
         print "Logger thread: Ready for logging"
 
-        #f = open('typedwords.txt', 'a')
         while True:
 
           sleep(0.005)
@@ -481,6 +509,11 @@ class LoggerThread(QtCore.QThread):
                     for i in range( len(dwordlist) ):
                         dumstr2 = dumstr2 + dwordlist[i] + ' '
 
+                    #Print the typed words to a file 'typedwords.txt'
+                    f = open('typedwords.txt', 'a')
+                    f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr2 + '\n')
+
+                    #Emit the typed words to a search thread
                     self.emit( QtCore.SIGNAL('update(QString)'), dumstr2)
 
                     if var2:

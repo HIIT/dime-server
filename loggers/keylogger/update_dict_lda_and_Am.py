@@ -31,6 +31,9 @@ import rake
 import difflib
 
 #
+#import matplotlib.pyplot as plt
+
+#
 import os
 
 def read_user_ini():
@@ -455,6 +458,9 @@ def update_A(docinds, y):
 	w = estimate_w(Xt,y)
 	w = np.array([w])
 	w = w.transpose()
+	#test_vec_full = twotuplelist2fulllist(test_vec, nwords)
+	#plt.plot(range(len(w)), w)
+	#plt.show()
 
 	#
 	yT    = y.transpose()
