@@ -13,63 +13,7 @@
 
 	<span th:each="event,iterStat : ${events}">
 	  <hr/>
-	  <p>
-	    [<span th:text="${iterStat.index}"></span>] <b>ID:</b> 
-	    <a th:href="@{/event(id=${event.id})}" th:text="${event.id}"></a>
-	    <b>Origin:</b> <span th:text="${event.origin}"></span>
-	    <b>Actor:</b> <span th:text="${event.actor}"></span><br/>
-	    <b>Type:</b> <a th:href="${event.type}" 
-			    th:text="${#strings.substringAfter(event.type,'#')}"></a>
-	    <b>Time:</b> <span th:text="${event.start}"></span><br/><br/>
-
-	    <span th:if="${event instanceof T(fi.hiit.dime.data.SearchEvent)}">
-	      <b>Query:</b> <span th:text="${event.query}"></span><br/><br/>
-	    </span>
-
-	    <span th:if="${event instanceof T(fi.hiit.dime.data.DesktopEvent)}">
-	    <div th:if="${event.targettedResource}">
-	      <b>Document:</b><br/>
-	      <b>ID:</b> <a th:href="@{/infoelem(id=${event.targettedResource.id})}" th:text="${event.targettedResource.id}"></a>
-	      <b>URI:</b> <a th:href="${event.targettedResource.uri}" 
-			     th:text="${event.targettedResource.uri}"></a><br/>
-	      <span th:if="${event.targettedResource.type}">
-		<b>Type:</b> <a th:href="${event.targettedResource.type}" 
-				th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></a>
-	      </span>
-	      <span th:if="${event.targettedResource.isStoredAs}">
-		<b>Stored as:</b> <a th:href="${event.targettedResource.isStoredAs}" 
-				      th:text="${#strings.substringAfter(event.targettedResource.isStoredAs,'#')}"></a><br/>
-	      </span>
-	      <!-- <b>Mimetype:</b> <span th:text="${event.targettedResource.mimeType}"></span> -->
-	      <b>Text content:</b> <pre th:text="${#strings.abbreviate(event.targettedResource.plainTextContent,500)}"></pre><br/>
-	    </div>
-	    </span>
-
-	    <span th:if="${event instanceof T(fi.hiit.dime.data.MessageEvent)}">
-	    <div th:if="${event.targettedResource}">
-	      <b>Message:</b><br/>
-	      <b>ID:</b> <a th:href="@{/message(id=${event.targettedResource.id})}" th:text="${event.targettedResource.id}"></a>
-	      <b>URI:</b> <a th:href="${event.targettedResource.uri}" 
-			     th:text="${event.targettedResource.uri}"></a><br/>
-	      <span th:if="${event.targettedResource.type}">
-		<b>Type:</b> <a th:href="${event.targettedResource.type}" 
-				th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></a>
-	      </span>
-	      <span th:if="${event.targettedResource.isStoredAs}">
-		<b>Stored as:</b> <a th:href="${event.targettedResource.isStoredAs}" 
-				      th:text="${#strings.substringAfter(event.targettedResource.isStoredAs,'#')}"></a><br/>
-	      </span>
-	      <b>Date:</b> <span th:text="${event.targettedResource.date}"></span><br/>
-	      <b>Subject:</b> <span th:text="${event.targettedResource.subject}"></span><br/>
-	      <b>From:</b> <span th:text="${event.targettedResource.fromString}"></span><br/>
-	      <b>To:</b> <span th:text="${event.targettedResource.toString}"></span><br/>
-	      <b>Cc:</b> <span th:text="${event.targettedResource.ccString}"></span><br/>
-	      <!-- <b>Mimetype:</b> <span th:text="${event.targettedResource.mimeType}"></span> -->
-	      <b>Text content:</b> <pre th:text="${#strings.abbreviate(event.targettedResource.plainTextContent,500)}"></pre><br/>
-	    </div>
-	    </span>
-
-	  </p>
+	  <p th:replace="event :: eventview (${event})"></p>
 	</span>
       </div>
     </div>

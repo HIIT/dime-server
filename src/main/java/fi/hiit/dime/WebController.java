@@ -124,8 +124,11 @@ public class WebController extends WebMvcConfigurerAdapter {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	InformationElement elem = infoElemDAO.findById(elemId);
 
-	if (elem.user.id.equals(userId))
+	if (elem.user.id.equals(userId)) {
 	    model.addAttribute("elem", elem);
+	    model.addAttribute("long", true);
+	}
+
         return "infoelem";
     }
 
