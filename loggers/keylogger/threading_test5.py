@@ -238,9 +238,13 @@ class MyApp(QtGui.QWidget):
                                 if storedasl in ["LocalFileDataObject" ]:
                                     #print 'Main: doc', linkstr
 
+                                    #Create link to DiMe server
+                                    dumlink = self.srvurl.split('/')[2]
+                                    linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
+
                                     visiblestr = linkstrshort + '  ' + datestr
                                     self.listWidget3.item(j).setText(visiblestr) 
-                                    self.listWidget3.item(j).setWhatsThis(linkstr)
+                                    self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
                                     self.listWidget3.item(j).setToolTip(tooltipstr)
                                     self.listWidget3.item(j).setHidden(False)
                                     #self.datelist3[j].setText(datestr)
@@ -248,12 +252,14 @@ class MyApp(QtGui.QWidget):
                                     j = j + 1
                                 elif storedasl in ["MailboxDataObject"]:
                                     #print 'Main: mail ', storedasl
+
+                                    #Create link to DiMe server
                                     dumlink = self.srvurl.split('/')[2]
                                     linkstr = 'http://' + dumlink + '/message?id=' + dataid
                                     #print 'Main: linkstr ', linkstr
                                     visiblestr = linkstrshort + '  ' + datestr
                                     self.listWidget2.item(k).setText(visiblestr) 
-                                    self.listWidget2.item(k).setWhatsThis(linkstr)
+                                    self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
                                     self.listWidget2.item(k).setToolTip(tooltipstr)
                                     self.listWidget2.item(j).setHidden(False)
                                     #self.labellist3[j].setAlignment(Qt.AlignLeft)
@@ -281,9 +287,13 @@ class MyApp(QtGui.QWidget):
                                     #print 'Main: Web page title is: ', title
                                     title = linkstrshort
 
+                                  #Create link to DiMe server
+                                  dumlink = self.srvurl.split('/')[2]
+                                  linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid                                    
+
                                   visiblestr = title + '  ' + datestr
                                   self.listWidget1.item(i).setText(visiblestr) 
-                                  self.listWidget1.item(i).setWhatsThis(linkstr)
+                                  self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
                                   self.listWidget1.item(i).setToolTip(tooltipstr)
                                   self.listWidget1.item(i).setHidden(False)
                                   i = i + 1  
@@ -316,7 +326,7 @@ class MyApp(QtGui.QWidget):
 
     return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
-
+ #films 
  #
  def unicode_to_str(self, ustr):
     """Converts unicode strings to 8-bit strings."""
@@ -331,7 +341,11 @@ class MyApp(QtGui.QWidget):
  def open_url(self, listWidgetitem):
   #global urlstr
   #webbrowser.open(urlstr)
-  webbrowser.open(str(listWidgetitem.whatsThis()))
+  webpagel = listWidgetitem.whatsThis().split('*')[0]
+  dimelink = listWidgetitem.whatsThis().split('*')[1]
+  #webbrowser.open(str(listWidgetitem.whatsThis()))
+  #webbrowser.open(webpagel)
+  webbrowser.open(dimelink)
 
 
  #
