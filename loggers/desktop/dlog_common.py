@@ -4,6 +4,9 @@ import json
 import hashlib
 import requests
 import subprocess
+import urllib
+import tempfile
+from BeautifulSoup import BeautifulSoup
 
 from dlog_globals import config
 
@@ -202,17 +205,29 @@ def pdf_to_text(fn):
 # -----------------------------------------------------------------------
 
 def uri_to_text(uri, alt_text=''):
-    lynx_command = config['fulltext_command'] % uri
+
+    temp = tempfile.NamedTemporaryFile()
+
+    urllib.urlretrieve(uri, temp.name)
+
+    soup = BeautifulSoup(temp)
+    title = soup.title.string
+    #print 'Page title: ', title
+
+    lynx_command = config['fulltext_command'] % temp.name
     try:
         text = subprocess.check_output(lynx_command, shell=True)
     except subprocess.CalledProcessError:
         print ("WARNING: uri_to_text(): CalledProcessError for: "+
                lynx_command)
         text = alt_text
+    temp.close()
+
     if (config['maxtextlength_web']>0 and
         len(text)>config['maxtextlength_web']):
         text = text[0:config['maxtextlength_web']]
-    return text
+
+    return text, title
 
 # -----------------------------------------------------------------------
 
