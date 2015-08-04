@@ -482,7 +482,8 @@ def update_A(docinds, y):
 #I.e. compute estimation of user model
 def estimate_w(Xt,y):
 	#
-	mu = 1.5
+	#mu = 1.5
+	mu = 0.0
 	w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
 	return w
 

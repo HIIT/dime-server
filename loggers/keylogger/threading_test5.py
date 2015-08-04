@@ -38,21 +38,7 @@ assert("linux" in sys.platform)
 class MyApp(QtGui.QWidget):
  def __init__(self, parent=None):
   QtGui.QWidget.__init__(self, parent)
- 
-  # self.setGeometry(300, 300, 280, 600)
-  # self.setWindowTitle('threads')
- 
-  # self.layout = QtGui.QVBoxLayout(self)
- 
-  self.testButton = QtGui.QPushButton("Start")
-  self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
-  self.gbtitle4   = QtGui.QLabel('')
-  #self.listwidget = QtGui.QListWidget(self)
- 
-  # self.layout.addWidget(self.testButton)
-  # self.layout.addWidget(self.listwidget)
 
-  #QtGui.QWidget.__init__(self)
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval = self.read_user_ini()
 
@@ -70,22 +56,46 @@ class MyApp(QtGui.QWidget):
   self.gbtitle3 = QtGui.QLabel('Docs')
   self.listWidget3 = self.create_QListWidget(20, iconfile)
 
+
+  #Buttons
+  #Start button
+  self.testButton  = QtGui.QPushButton("Start")
+  self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
+  #Radio buttons for choosing search function
+  self.radiobutton1= QtGui.QRadioButton("DocSim")
+  #self.radiobutton1.emit(QtCore.SIGNAL('released()'))
+  self.connect(self.radiobutton1, QtCore.SIGNAL("released()"), self.choose_search_function1)
+
+  self.radiobutton2= QtGui.QRadioButton("LinRel")
+  #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
+  self.connect(self.radiobutton2, QtCore.SIGNAL("released()"), self.choose_search_function2)
+
+
   #Add to layout
-  self.hlayout1 = QtGui.QHBoxLayout()
-  self.hlayout1.addWidget(self.listWidget1)
-  self.hlayout1.addWidget(self.listWidget2)
-  self.hlayout1.addWidget(self.listWidget3)
-  self.hlayout1.addWidget(self.testButton)
+  self.vlayout1 = QtGui.QVBoxLayout()
+  self.vlayout1.addWidget(self.gbtitle)
+  self.vlayout1.addWidget(self.listWidget1)
+  
+  self.vlayout2 = QtGui.QVBoxLayout()
+  self.vlayout2.addWidget(self.gbtitle2)
+  self.vlayout2.addWidget(self.listWidget2)
+  
+  self.vlayout3 = QtGui.QVBoxLayout()
+  self.vlayout3.addWidget(self.gbtitle3)
+  self.vlayout3.addWidget(self.listWidget3)
+  
+  #
+  self.vlayout4 = QtGui.QVBoxLayout()
+  self.vlayout4.addWidget(self.testButton)
+  self.vlayout4.addWidget(self.radiobutton1)
+  self.vlayout4.addWidget(self.radiobutton2)
 
-  self.hlayout2 = QtGui.QHBoxLayout()
-  self.hlayout2.addWidget(self.gbtitle)
-  self.hlayout2.addWidget(self.gbtitle2)
-  self.hlayout2.addWidget(self.gbtitle3)
-  #self.hlayout2.addWidget(self.gbtitle4)
-
-  self.vlayout = QtGui.QVBoxLayout(self)
-  self.vlayout.addLayout(self.hlayout2)
-  self.vlayout.addLayout(self.hlayout1)
+  #Add layouts
+  self.hlayout = QtGui.QHBoxLayout(self)
+  self.hlayout.addLayout(self.vlayout1)
+  self.hlayout.addLayout(self.vlayout2)
+  self.hlayout.addLayout(self.vlayout3)
+  self.hlayout.addLayout(self.vlayout4)
 
   #Set title
   self.setWindowTitle("ProActive Search") 
@@ -96,15 +106,37 @@ class MyApp(QtGui.QWidget):
   self.testButton.setDisabled(True)
   #self.listwidget.clear()
 
+  #Create thread objects
   self.LoggerThreadObj  = LoggerThread()
   self.SearchThreadObj = SearchThread()
-  self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
-  #self.connect( self.SearchThreadObj, QtCore.SIGNAL("update(QString)"), self.add )
-  #self.connect( self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.add )
-  self.connect( self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links )
 
+  #Connect the signals and receivers between threads
+  self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links)
+  self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
+  self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
+
+  
+  #Start thread processes
   self.LoggerThreadObj.start()
   self.SearchThreadObj.start()
+
+
+ def choose_search_function1(self):
+  #if searchfuncid == 0:
+    print 'Main: Search function is DocSim'
+    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 0)
+  # elif searchfuncid == 1:
+  #   print 'Main: Search function is LinRel'
+
+ def choose_search_function2(self):
+  #if searchfuncid == 0:
+    print 'Main: Search function is LinRel'
+    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 1)
+  #elif searchfuncid == 1:
+  #  print 'Main: Search function is LinRel'
+
+
 
  def create_QListWidget(self, val, icon_file):
     listWidget = QListWidget()
@@ -167,7 +199,7 @@ class MyApp(QtGui.QWidget):
                                 content = ''
                                 #keywords = rake_object.run(content)
                                 keywords = ''
-                                #print ctime
+                                #print ctime 
                                 timeint = int(ctime) / 1000
                                 #print timeint
                                 date = datetime.datetime.fromtimestamp(timeint)
@@ -187,6 +219,7 @@ class MyApp(QtGui.QWidget):
 
                                 if storedasl in ["LocalFileDataObject" ]:
                                     #print 'Main: doc', linkstr
+
                                     visiblestr = linkstrshort + '  ' + datestr
                                     self.listWidget3.item(j).setText(visiblestr) 
                                     self.listWidget3.item(j).setWhatsThis(linkstr)
@@ -323,9 +356,19 @@ class SearchThread(QtCore.QThread):
   QtCore.QThread.__init__(self)
   self.query = None
   self.oldquery = None
+  self.searchfuncid = 0
 
  def __del__(self):
    self.wait()
+
+ def change_search_function(self, searchfuncid):
+  self.searchfuncid = searchfuncid
+  print 'Search thread: search function changed to', str(searchfuncid)
+  if searchfuncid == 1:
+    #Update LinRel data files
+    print 'Search thread: Updating Linrel data files!!!'
+    check_update()
+
 
  def get_new_word(self, newquery):
   print "Search thread: got new query:", newquery
@@ -340,8 +383,15 @@ class SearchThread(QtCore.QThread):
    if self.query is not None and self.query != self.oldquery:
     dstr = str(self.query)
     print 'Search thread:', dstr 
-   
-    jsons = search_dime_linrel_summing_previous_estimates(dstr)
+    
+    if self.searchfuncid == 0:
+      jsons, docinds = search_dime_docsim(dstr)      
+      print 'Search thread: Ready for new search!'
+    elif self.searchfuncid == 1:
+      #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+      jsons = search_dime_linrel_summing_previous_estimates(dstr)
+      print 'Search thread: Ready for new search!'
+
     print 'Search thread: len jsons ', len(jsons)
     if len(jsons) > 0:
      #Return jsons
@@ -379,9 +429,6 @@ class LoggerThread(QtCore.QThread):
         now = time()
         dumstr = ''
         wordlist = []
-
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path
-        check_update()
 
         print "Logger thread: Ready for logging"
 
