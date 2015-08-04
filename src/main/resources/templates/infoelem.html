@@ -8,8 +8,8 @@
 
       <div class="starter-template">
 
-	  <p>
-	      <b>Information element:</b><br/>
+	  <p th:fragment="infoelemview (elem)">
+	      <b th:text="${elem.class}"></b><br/>
 	      <b>ID:</b> <a th:href="@{/infoelem(id=${elem.id})}" th:text="${elem.id}"></a>
 	      <b>URI:</b> <a th:href="${elem.uri}" 
 			     th:text="${elem.uri}"></a><br/>
@@ -19,10 +19,28 @@
 	      </span>
 	      <span th:if="${elem.isStoredAs}">
 		<b>Stored as:</b> <a th:href="${elem.isStoredAs}" 
-				      th:text="${#strings.substringAfter(elem.isStoredAs,'#')}"></a><br/>
+				     th:text="${#strings.substringAfter(elem.isStoredAs,'#')}"></a><br/>
 	      </span>
-	      <!-- <b>Mimetype:</b> <span th:text="${elem.mimeType}"></span> -->
-	      <b>Text content:</b> <pre th:text="${elem.plainTextContent}"></pre><br/>
+
+	      <span th:if="${elem instanceof T(fi.hiit.dime.data.Document)}">
+		<b>Title:</b> <span th:text="${elem.title}"></span><br/>
+		<b>Mimetype:</b> <span th:text="${elem.mimeType}"></span><br/>
+	      </span>
+
+	      <span th:if="${elem instanceof T(fi.hiit.dime.data.Message)}">
+		<b>Date:</b> <span th:text="${elem.date}"></span><br/>
+		<b>Subject:</b> <span th:text="${elem.subject}"></span><br/>
+		<b>From:</b> <span th:text="${elem.fromString}"></span><br/>
+		<b>To:</b> <span th:text="${elem.toString}"></span><br/>
+		<b>Cc:</b> <span th:text="${elem.ccString}"></span><br/>
+	      </span>
+	      
+	      <span th:if="${long}">
+		 <b>Text content:</b> <pre th:text="${elem.plainTextContent}"></pre><br/>
+	      </span>
+	      <span th:unless="${long}">
+		<b>Text content:</b> <pre th:text="${#strings.abbreviate(elem.plainTextContent,500)}"></pre><br/>
+	      </span>
 	  </p>
       </div>
     </div>
