@@ -483,6 +483,11 @@ def update_A(docinds, y):
 
 	return sA
 
+
+
+
+
+
  
 #Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
 #I.e. compute estimation of user model

@@ -62,7 +62,6 @@ class MyApp(QtGui.QWidget):
   self.testButton  = QtGui.QPushButton("Start")
   self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
 
-
   #Radio buttons for choosing search function
   self.radiobutton1= QtGui.QRadioButton("DocSim")
   #self.radiobutton1.emit(QtCore.SIGNAL('released()'))
@@ -255,7 +254,7 @@ class MyApp(QtGui.QWidget):
 
                                     #Create link to DiMe server
                                     dumlink = self.srvurl.split('/')[2]
-                                    linkstr = 'http://' + dumlink + '/message?id=' + dataid
+                                    linkstr = 'http://' + dumlink + '/infoelem?id=' + dataid
                                     #print 'Main: linkstr ', linkstr
                                     visiblestr = linkstrshort + '  ' + datestr
                                     self.listWidget2.item(k).setText(visiblestr) 

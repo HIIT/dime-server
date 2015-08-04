@@ -307,7 +307,29 @@ def search_dime_linrel_summing_previous_estimates(query):
         else:
             test_wordlist[nword] = ' '
     print "Search thread: Closest dictionary words: ", test_wordlist
+
+    #Make bag of word vector of the input string taken from keyboard
     test_vec = dictionary.doc2bow(test_wordlist)
+
+    #Make relevance vector 'r' of keywords (i.e. vector of zeros and ones , i.e. vector answering question, 
+    #whether keyboard input contain keywords or not)
+    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
+    inds          = np.where(test_vec_full)
+    r             = np.zeros(test_vec_full.shape)
+    r[inds]       = 1.0
+    print 'Number of keywords in keyboard input: ', np.where(r>0)
+    #
+    r_hat = return_keyword_relevance_estimates(docinds, r)
+    #print 'Estimated Keyword weights: ', r_hat
+    kwinds= np.argsort(r_hat[:,0])
+    kwinds= kwinds[-20:]
+    #print 'Indices of estimated keywords: ', kwinds
+    #kwinds= docinds.tolist()
+    for i in range(len(kwinds)):
+        print 'Suggested keywords: ', dictionary.get(kwinds[i]) 
+    
+
+
     #gensim.matutils.corpus2dense(corpus, num_terms, num_docs=None, dtype=<type 'numpy.float32'>)
     #x = np.arange(0, 5, 0.1);
     #y = np.sin(x)
@@ -472,6 +494,7 @@ def search_dime_linrel_without_summing_previous_estimates(query):
 
     #Make wordlist from the query string
     test_wordlist = query.lower().split()
+
     #Remove unwanted words from query
     test_wordlist = remove_unwanted_words(test_wordlist)
 
@@ -659,8 +682,50 @@ def twotuplelist2fulllist(tuplelist, nfeatures):
         for i in range(len(tuplelist)):
             vec[tuplelist[i][0]] = tuplelist[i][1]
 
+    vec = np.array(vec)
     print 'Length of wordlist: ', len(vec)
     return vec
 
 
 
+#Updates LinRel matrix, denoted by A 
+def return_keyword_relevance_estimates(docinds, y):
+
+    #Load sparse tfidf matrix
+    #sX = np.load('sX.npy')
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+
+    print "Search thread: update_keyword_matrix: Updating A"
+
+    #Compute estimation of weight vector (i.e. user model)
+    print 'Search thread: Create Xt '
+    sXcsr = sX.tocsr()
+    print 'Search thread: Type of sXcsr: ', type(sXcsr)
+    sXtcsr= sXcsr[docinds,:]
+    Xt    = sXtcsr.toarray()
+    #TRANSPOSE!!
+    Xt    = Xt.transpose()
+
+    print 'Search thread: update_keyword_matrix: Xt shape: ', Xt.shape, ' type: ', type(Xt)
+    print 'Search thread: update_keyword_matrix: min val Xt: ', Xt.min()
+
+    print 'Search thread: update_keyword_matrix: y shape: ', y.shape
+    #
+    w_hat = estimate_w(Xt,y)
+    w_hat = np.array([w_hat])
+    w_hat = w_hat.transpose()
+
+    print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat)
+    r_hat = np.dot(Xt,w_hat)
+    print 'Search thread: update_keyword_matrix: r_hat shape: ', r_hat.shape, ' type: ', type(r_hat)
+    print 'Search thread: update_keyword_matrix: max val r_hat: ', r_hat.max()
+    return r_hat
+
+#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
+#I.e. compute estimation of user model
+def estimate_w(Xt,y):
+    #
+    #mu = 1.5
+    mu = 0.0
+    w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
+    return w
