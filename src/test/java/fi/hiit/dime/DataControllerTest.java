@@ -103,7 +103,7 @@ public class DataControllerTest extends RestTest {
 
 	// Create a "stub" document, i.e. that refers to the
 	// previously uploaded one
-	Document stubDoc = new Document();
+	InformationElement stubDoc = new InformationElement();
 	stubDoc.id = outDoc1.id;
 
 	// Create feedback with the stub document
