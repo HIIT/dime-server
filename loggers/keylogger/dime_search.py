@@ -317,8 +317,12 @@ def search_dime_linrel_summing_previous_estimates(query):
     test_vec = dictionary.doc2bow(test_wordlist)
 
     #
-    kws = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
-    
+    kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
+    #make string of keywords 
+    kwsstr = ''
+    for i in range(len(kws)):
+        kwsstr = kwsstr + ' ' + kws[i]
+    jsons, docinds = search_dime_docsim(query)
 
 
     #gensim.matutils.corpus2dense(corpus, num_terms, num_docs=None, dtype=<type 'numpy.float32'>)
@@ -448,6 +452,67 @@ def search_dime_linrel_summing_previous_estimates(query):
     os.chdir('../')
 
     return jsons[-20:], kws
+
+
+def search_dime_linrel_keyword_search(query):
+
+    #Get current path
+    cpath  = os.getcwd()
+    print 'LinRel: ', cpath
+    #cpathd = cpath + '/' + 'data'
+    #os.chdir(cpathd)
+
+    #Import data
+    json_data = open('data/json_data.txt', 'r')
+    data = json.load(json_data)    
+
+    #Import dictionary
+    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
+    #Open docindlist (the list of indices of suggested documents
+    f = open(cpath + '/data/docindlist.list','r')
+    docinds = pickle.load(f)
+    #Sort from smallest to largest index value
+    #docinds.sort() 
+    print 'Search thread: Old docindlist: ', docinds
+
+    #
+    f = open('data/varlist.list', 'r')
+    varlist = pickle.load(f)
+    nwords = varlist[0]
+    ndocuments = varlist[1]
+
+    #Import tfidf model by which the relevance scores are computed 
+    tfidf = models.TfidfModel.load('data/tfidfmodel.model')
+
+    #Make wordlist from the query string
+    test_wordlist = query.lower().split()
+    #Remove unwanted words from query
+    test_wordlist = remove_unwanted_words(test_wordlist)
+
+    #Convert the words into nearest dictionary word
+    for nword, word in enumerate(test_wordlist):
+        correctedword = difflib.get_close_matches(word, dictionary.values())
+        if len(correctedword):
+            test_wordlist[nword] = correctedword[0]
+        else:
+            test_wordlist[nword] = ' '
+    print "Search thread: Closest dictionary words: ", test_wordlist
+
+    #Make bag of word vector of the input string taken from keyboard
+    test_vec = dictionary.doc2bow(test_wordlist)
+    #
+    kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
+    #make string of keywords 
+    kwsstr = ''
+    for i in range(len(kws)):
+        kwsstr = kwsstr + ' ' + kws[i]
+    print 'Keyword query string: ', kwsstr
+    #Make
+    jsons, docinds = search_dime_docsim(kwsstr)
+
+    return jsons, kws
+
 
 
 #

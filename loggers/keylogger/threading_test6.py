@@ -47,6 +47,9 @@ class MyApp(QtGui.QWidget):
 
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval = self.read_user_ini()
+  self.data = []
+  self.keywords = ''
+
 
   #Create visible stuff
   val = 5
@@ -81,6 +84,13 @@ class MyApp(QtGui.QWidget):
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton3, QtCore.SIGNAL("released()"), self.choose_search_function3)
 
+  self.radiobutton4= QtGui.QRadioButton("LinRel Keyword Search")
+  #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
+  self.connect(self.radiobutton4, QtCore.SIGNAL("released()"), self.choose_search_function4)  
+
+  #
+  self.buttonlist = []
+
 
   #Layout for Web Pages
   self.vlayout1 = QtGui.QVBoxLayout()
@@ -103,6 +113,7 @@ class MyApp(QtGui.QWidget):
   self.vlayout5.addWidget(self.radiobutton1)
   self.vlayout5.addWidget(self.radiobutton2)
   self.vlayout5.addWidget(self.radiobutton3)
+  self.vlayout5.addWidget(self.radiobutton4)
   #Groupbox for radiobuttons
   self.mygroupbox = QtGui.QGroupBox('Search Method')
   self.mygroupbox.setLayout(self.vlayout5)
@@ -120,10 +131,36 @@ class MyApp(QtGui.QWidget):
 
   #Add self.hlayout to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout)
-  self.keywordlabel = QtGui.QLabel('Suggested keywords: ')
-  self.mastervlayout.addWidget(self.keywordlabel)
 
-  #Set title
+  #
+  self.hlayout2 = QtGui.QHBoxLayout()
+  self.keywordlabel = QtGui.QLabel('Suggested keywords: ')
+  self.keywordlabel.setStyleSheet('color: green')
+  self.hlayout2.addWidget(self.keywordlabel)
+  #
+  self.hlayout3 = QtGui.QHBoxLayout()
+  #Create buttons
+  self.buttonlist = []
+  numofkwbuttons = 10
+  for i in range(numofkwbuttons):
+                  #keywordstr = keywordstr + urlstrs[i] + ', '
+                  dumbutton = QtGui.QPushButton('button'+ str(i))
+                  self.buttonlist.append(dumbutton)
+  for i in range( len(self.buttonlist) ):
+                  self.buttonlist[i].hide()
+                  #keywordstr = keywordstr + urlstrs[i] + ', '
+                  self.hlayout3.addWidget(self.buttonlist[i])
+                  self.connect(self.buttonlist[i], QtCore.SIGNAL("clicked()"), self.emit_search_command)
+                  #Hide buttons initially
+
+
+  #
+  self.mastervlayout.addWidget(self.keywordlabel)
+  #Add self.hlayout2 to self.mastervlayout
+  self.mastervlayout.addLayout(self.hlayout2)
+  self.mastervlayout.addLayout(self.hlayout3)
+
+  #
   self.setWindowTitle("ProActive Search") 
 
  #Runs the Keylogger and Search 
@@ -138,13 +175,21 @@ class MyApp(QtGui.QWidget):
 
   #Connect the signals and receivers between threads
   self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links)
+  #self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links_and_kwbuttons)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_data_from_search_thread_and_update_visible_stuff)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_keywords_from_search_thread_and_update_visible_stuff)
   self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
+  self.connect(self, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word_from_main_thread)
   
   #Start thread processes
   self.LoggerThreadObj.start()
   self.SearchThreadObj.start()
 
+ def emit_search_command(self):
+  #if searchfuncid == 0:
+    sender = self.sender()
+    print 'Main: Sending new word from main: ',  sender.text()
+    self.emit(QtCore.SIGNAL('update(QString)'),sender.text())
 
  def choose_search_function1(self):
   #if searchfuncid == 0:
@@ -164,6 +209,13 @@ class MyApp(QtGui.QWidget):
   #if searchfuncid == 0:
     print 'Main: Search function is LinRel'
     self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 2)
+  #elif searchfuncid == 1:
+  #  print 'Main: Search function is LinRel'
+
+ def choose_search_function4(self):
+  #if searchfuncid == 0:
+    print 'Main: Search function is LinRel'
+    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 3)
   #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
 
@@ -199,8 +251,15 @@ class MyApp(QtGui.QWidget):
    return dicti[key]
   return ''
 
+ def get_data_from_search_thread_and_update_visible_stuff(self, data):
+    self.data = data
+    self.update_links_and_kwbuttons(self.data)
+ def get_keywords_from_search_thread_and_update_visible_stuff(self, keywords):    
+    self.keywords = keywords
+    self.update_links_and_kwbuttons(self.keywords)
+
  #
- def update_links(self, urlstrs):
+ def update_links_and_kwbuttons(self, urlstrs):
     i = 0
     j = 0
     k = 0
@@ -211,10 +270,19 @@ class MyApp(QtGui.QWidget):
       if type(urlstrs[0]) is types.UnicodeType:
         print 'Main: update_links: got a list of keywords!!!'
         keywordstr = 'Suggested keywords: '
-        for i in range( len(urlstrs) ):
-                        keywordstr = keywordstr + urlstrs[i] + ', '
-        self.keywordlabel.setText(keywordstr)
-        print urlstrs
+
+        ncols = self.hlayout3.count()
+        print 'Num of widgets ', ncols
+        #Remove old buttons
+        if len(self.buttonlist) > 0:
+          for i in range( ncols ):
+                          #keywordstr = keywordstr + urlstrs[i] + ', ' 
+                          #self.hlayout2.removeWidget(self.buttonlist[i])                  
+                          #self.hlayout3.itemAt(i).widget().setParent(None) 
+                          #self.hlayout3.itemAt(i).setParent(None)
+                          self.buttonlist[i].setText(str(urlstrs[i]))
+                          self.buttonlist[i].show()
+        #print urlstrs
         return
 
 
@@ -415,9 +483,10 @@ class SearchThread(QtCore.QThread):
 
  def __init__(self):
   QtCore.QThread.__init__(self)
-  self.query = None
+  self.query = 'Hello'
   self.oldquery = None
   self.searchfuncid = 0
+  self.extrasearch = False
 
  def __del__(self):
    self.wait()
@@ -425,26 +494,40 @@ class SearchThread(QtCore.QThread):
  def change_search_function(self, searchfuncid):
   self.searchfuncid = searchfuncid
   print 'Search thread: search function changed to', str(searchfuncid)
-  if searchfuncid == 1 or searchfuncid == 2:
+  if searchfuncid == 1 or searchfuncid == 2 or searchfuncid == 3:
     #Update LinRel data files
     print 'Search thread: Updating Linrel data files!!!'
     check_update()
 
-
  def get_new_word(self, newquery):
   print "Search thread: got new query:", newquery
   self.query = newquery
+
+ def get_new_word_from_main_thread(self, keywords):
+  if self.query is None:
+    self.query = ''
+  self.query = self.query + ' ' + str(keywords)
+  print "Search thread: got new query from main:", self.query
+  self.extrasearch = True
+
+
 
  def run(self):
    self.search()
 
  def search(self):
   while True:
+   if self.extrasearch:
+     print 'Search thread: got search command from main!'      
+     jsons, docinds = search_dime_docsim(dstr)      
+     self.extrasearch = False    
+
    sleep(0.3) # artificial time delay
    if self.query is not None and self.query != self.oldquery:
     dstr = str(self.query)
     print 'Search thread:', dstr 
-    
+
+
     if self.searchfuncid == 0:
       jsons, docinds = search_dime_docsim(dstr)      
       print 'Search thread: Ready for new search!'
@@ -458,7 +541,15 @@ class SearchThread(QtCore.QThread):
     elif self.searchfuncid == 2:
       #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
       jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
-      print 'Search thread: Ready for new search!'      
+      print 'Search thread: Ready for new search!'   
+    elif self.searchfuncid == 3:
+      #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+      jsons, kws = search_dime_linrel_keyword_search(dstr)   
+      if len(jsons) > 0:
+        #Return keyword list
+        self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)      
+      print 'Search thread: Ready for new search!'         
+      
 
     print 'Search thread: len jsons ', len(jsons)
     if len(jsons) > 0:
