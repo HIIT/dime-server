@@ -102,9 +102,14 @@ def search_dime(srvurl, username, password, query):
 def search_dime_docsim(query):
 
     #Get current path
+
     cpath  = os.getcwd()
     cpathd = cpath + '/' + 'data'
-    os.chdir(cpathd)
+    if os.path.exists(cpathd):
+        os.chdir(cpathd)
+    else:
+        check_update()
+        os.chdir(cpathd)
 
     #Import data
     json_data = open('json_data.txt')
@@ -311,22 +316,8 @@ def search_dime_linrel_summing_previous_estimates(query):
     #Make bag of word vector of the input string taken from keyboard
     test_vec = dictionary.doc2bow(test_wordlist)
 
-    #Make relevance vector 'r' of keywords (i.e. vector of zeros and ones , i.e. vector answering question, 
-    #whether keyboard input contain keywords or not)
-    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
-    inds          = np.where(test_vec_full)
-    r             = np.zeros(test_vec_full.shape)
-    r[inds]       = 1.0
-    print 'Number of keywords in keyboard input: ', np.where(r>0)
     #
-    r_hat = return_keyword_relevance_estimates(docinds, r)
-    #print 'Estimated Keyword weights: ', r_hat
-    kwinds= np.argsort(r_hat[:,0])
-    kwinds= kwinds[-20:]
-    #print 'Indices of estimated keywords: ', kwinds
-    #kwinds= docinds.tolist()
-    for i in range(len(kwinds)):
-        print 'Suggested keywords: ', dictionary.get(kwinds[i]) 
+    kws = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
     
 
 
@@ -456,7 +447,7 @@ def search_dime_linrel_summing_previous_estimates(query):
     update_Xt_and_docindlist(docinds)
     os.chdir('../')
 
-    return jsons[-20:]
+    return jsons[-20:], kws
 
 
 #
@@ -685,6 +676,39 @@ def twotuplelist2fulllist(tuplelist, nfeatures):
     vec = np.array(vec)
     print 'Length of wordlist: ', len(vec)
     return vec
+
+
+def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords):
+    #Make relevance vector 'r' of keywords (i.e. vector of zeros and ones , i.e. vector answering question, 
+    #whether keyboard input contain keywords or not)
+    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
+    inds          = np.where(test_vec_full)
+    r             = np.zeros(test_vec_full.shape)
+    r[inds]       = 1.0
+    print 'Number of keywords in keyboard input: ', np.where(r>0)
+    #
+    r_hat = return_keyword_relevance_estimates(docinds, r)
+    kwinds= np.argsort(r_hat[:,0])
+    #kwinds= np.argsort(r_hat)
+    print 'Estimated Keyword weights: ', r_hat
+    kwinds= kwinds[-20:]
+    #Make reverse list object
+    kwindsrev = reversed(kwinds)
+    #Reverse
+    kwindsd = []
+    for i in kwindsrev:
+        kwindsd.append(i)
+    #
+    kwinds = kwindsd
+    #Initialize list of keywords
+    kws = []
+    #print 'Indices of estimated keywords: ', kwinds
+    #kwinds= docinds.tolist()
+    for i in range(len(kwinds)):
+        print 'Suggested keywords: ', dictionary.get(kwinds[i]) 
+        kws.append(dictionary.get(kwinds[i]))
+
+    return kws
 
 
 

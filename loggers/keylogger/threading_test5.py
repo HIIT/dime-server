@@ -1,3 +1,6 @@
+#!/usr/local/lib/python2.7
+# -*- coding: utf-8 -*-
+
 #import sys, time
 from PyQt4 import QtCore, QtGui
 
@@ -29,6 +32,9 @@ from BeautifulSoup import BeautifulSoup
 
 #
 import re
+
+#For checking data types
+import types
 
 ################################################################
 
@@ -75,7 +81,8 @@ class MyApp(QtGui.QWidget):
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton3, QtCore.SIGNAL("released()"), self.choose_search_function3)
 
-  #Add to layout
+
+  #Layout for Web Pages
   self.vlayout1 = QtGui.QVBoxLayout()
   self.vlayout1.addWidget(self.gbtitle)
   self.vlayout1.addWidget(self.listWidget1)
@@ -102,11 +109,19 @@ class MyApp(QtGui.QWidget):
   self.vlayout4.addWidget(self.mygroupbox)
 
   #Add layouts
-  self.hlayout = QtGui.QHBoxLayout(self)
+  self.hlayout = QtGui.QHBoxLayout()
   self.hlayout.addLayout(self.vlayout1)
   self.hlayout.addLayout(self.vlayout2)
   self.hlayout.addLayout(self.vlayout3)
   self.hlayout.addLayout(self.vlayout4)
+
+  #Master vertical layout:
+  self.mastervlayout = QtGui.QVBoxLayout(self)
+
+  #Add self.hlayout to self.mastervlayout
+  self.mastervlayout.addLayout(self.hlayout)
+  self.keywordlabel = QtGui.QLabel('Suggested keywords: ')
+  self.mastervlayout.addWidget(self.keywordlabel)
 
   #Set title
   self.setWindowTitle("ProActive Search") 
@@ -189,7 +204,22 @@ class MyApp(QtGui.QWidget):
     i = 0
     j = 0
     k = 0
+    #print 'urlstrs ', urlstrs[10]
+    #print 'type of el.: ', type(urlstrs[10])
+    if type(urlstrs) is types.ListType:
+      #
+      if type(urlstrs[0]) is types.UnicodeType:
+        print 'Main: update_links: got a list of keywords!!!'
+        keywordstr = 'Suggested keywords: '
+        for i in range( len(urlstrs) ):
+                        keywordstr = keywordstr + urlstrs[i] + ', '
+        self.keywordlabel.setText(keywordstr)
+        print urlstrs
+        return
 
+
+
+    #Set hidden listWidgetItems that are not used
     for dj in range(self.listWidget1.count()):
       self.listWidget1.item(dj).setHidden(True)    
     for dj in range(self.listWidget2.count()):
@@ -420,8 +450,11 @@ class SearchThread(QtCore.QThread):
       print 'Search thread: Ready for new search!'
     elif self.searchfuncid == 1:
       #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-      jsons = search_dime_linrel_summing_previous_estimates(dstr)
+      jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
       print 'Search thread: Ready for new search!'
+      if len(jsons) > 0:
+        #Return keyword list
+        self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
     elif self.searchfuncid == 2:
       #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
       jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
@@ -429,6 +462,8 @@ class SearchThread(QtCore.QThread):
 
     print 'Search thread: len jsons ', len(jsons)
     if len(jsons) > 0:
+     #Return keyword list
+     #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
      #Return jsons
      self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), jsons)
 
