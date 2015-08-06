@@ -210,8 +210,10 @@ def uri_to_text(uri, alt_text=''):
 
     urllib.urlretrieve(uri, temp.name)
 
+    title = ""
     soup = BeautifulSoup(temp)
-    title = soup.title.string
+    if soup.title is not None:
+        title = soup.title.string
     #print 'Page title: ', title
 
     lynx_command = config['fulltext_command'] % temp.name
