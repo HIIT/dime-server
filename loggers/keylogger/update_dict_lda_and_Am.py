@@ -425,7 +425,15 @@ def doc_tfidf_list_to_array(tfidf_list, nwords):
 #Update similarity vector
 def update_docsim_model():
 	#Import dictionary 
-	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	if os.path.isfile('/tmp/tmpdict.dict'):
+		dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	else:
+		cpath  = os.getcwd()
+		cpathd = cpath + '/' + 'data'		
+		os.chdir(cpathd)
+		update_dictionary()
+		dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+		os.chdir('../')
 
 	#Import document term matrix
 	f = open('doctm.data','r')

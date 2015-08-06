@@ -112,7 +112,7 @@ class MyApp(QtGui.QWidget):
   self.vlayout5 = QtGui.QVBoxLayout()
   self.vlayout5.addWidget(self.radiobutton1)
   self.vlayout5.addWidget(self.radiobutton2)
-  self.vlayout5.addWidget(self.radiobutton3)
+  #self.vlayout5.addWidget(self.radiobutton3)
   self.vlayout5.addWidget(self.radiobutton4)
   #Groupbox for radiobuttons
   self.mygroupbox = QtGui.QGroupBox('Search Method')
@@ -254,146 +254,177 @@ class MyApp(QtGui.QWidget):
  def get_data_from_search_thread_and_update_visible_stuff(self, data):
     self.data = data
     self.update_links_and_kwbuttons(self.data)
+
  def get_keywords_from_search_thread_and_update_visible_stuff(self, keywords):    
     self.keywords = keywords
-    self.update_links_and_kwbuttons(self.keywords)
+    self.update_kwbuttons(self.keywords)
 
  #
  def update_links_and_kwbuttons(self, urlstrs):
     i = 0
     j = 0
     k = 0
-    #print 'urlstrs ', urlstrs[10]
-    #print 'type of el.: ', type(urlstrs[10])
+
+    # if len(urlstrs) > 0:
+    # if type(urlstrs) is types.ListType:
+    #   #
+    #   if type(urlstrs[0]) is types.UnicodeType and  :
+    #     print 'Main: update_links: got a list of keywords!!!'
+    #     keywordstr = 'Suggested keywords: '
+    #     print 'Main suggested keywords: ', urlstrs
+    #     ncols = self.hlayout3.count()
+    #     print 'Num of widgets ', ncols
+    #     #Remove old buttons
+    #     if len(self.buttonlist) > 0:
+    #       for i in range( len(urlstrs) ):
+    #                       #keywordstr = keywordstr + urlstrs[i] + ', ' 
+    #                       #self.hlayout2.removeWidget(self.buttonlist[i])                  
+    #                       #self.hlayout3.itemAt(i).widget().setParent(None) 
+    #                       #self.hlayout3.itemAt(i).setParent(None)
+    #                       if i < ncols:
+    #                         self.buttonlist[i].setText(str(urlstrs[i]))
+    #                         self.buttonlist[i].show()
+    #     #print urlstrs
+    #     return
     if type(urlstrs) is types.ListType:
-      #
-      if type(urlstrs[0]) is types.UnicodeType:
-        print 'Main: update_links: got a list of keywords!!!'
-        keywordstr = 'Suggested keywords: '
+      if len(urlstrs) > 0:
+        if type(urlstrs[0]) is types.DictType:
+          #Set hidden listWidgetItems that are not used
+          for dj in range(self.listWidget1.count()):
+            self.listWidget1.item(dj).setHidden(True)    
+          for dj in range(self.listWidget2.count()):
+            self.listWidget2.item(dj).setHidden(True)
+          for dj in range(self.listWidget3.count()):
+            self.listWidget3.item(dj).setHidden(True)      
 
-        ncols = self.hlayout3.count()
-        print 'Num of widgets ', ncols
-        #Remove old buttons
-        if len(self.buttonlist) > 0:
-          for i in range( ncols ):
-                          #keywordstr = keywordstr + urlstrs[i] + ', ' 
-                          #self.hlayout2.removeWidget(self.buttonlist[i])                  
-                          #self.hlayout3.itemAt(i).widget().setParent(None) 
-                          #self.hlayout3.itemAt(i).setParent(None)
-                          self.buttonlist[i].setText(str(urlstrs[i]))
-                          self.buttonlist[i].show()
-        #print urlstrs
-        return
+          #Initialize rake object
+          #rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
+
+          nlinks = 15
+          nsuggestedlinks = 5
+          for ijson in range( len(urlstrs) ):
+                                      linkstr  = self.unicode_to_str( urlstrs[ijson]["uri"] )
+                                      ctime    = str(urlstrs[ijson]["timeCreated"])
+                                      typestr  = str(urlstrs[ijson]["type"])
+                                      storedas = str(urlstrs[ijson]["isStoredAs"])
+                                      dataid   = str(urlstrs[ijson]["id"])
+                                      storedasl = storedas.split('#')[1]
+                                      #print 'Main: storedasl: ', storedasl
+                                      #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
+                                      content = ''
+                                      #keywords = rake_object.run(content)
+                                      keywords = ''
+                                      #print ctime 
+                                      timeint = int(ctime) / 1000
+                                      #print timeint
+                                      date = datetime.datetime.fromtimestamp(timeint)
+                                      datestr = date.__str__()
+
+                                      if len(linkstr) > 20:
+                                        linkstrshort = linkstr[0:40]
+                                      else:
+                                        linkstrshort = linkstr
+                                      
+
+                                      if len(keywords) > 0:
+                                        tooltipstr = re.sub("[^\w]", " ", content)
+                                        #self.labellist[i].setToolTip(tooltipstr)
+                                        tooltipstr = "Keywords: " + keywords[0][0]
+                                      else:
+                                        tooltipstr = 'Keywords: '
+                                        #self.labellist[i].setText(keywords[0][0])
+
+                                      if storedasl in ["LocalFileDataObject" ]:
+                                          #print 'Main: doc', linkstr
+
+                                          #Create link to DiMe server
+                                          dumlink = self.srvurl.split('/')[2]
+                                          linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
+
+                                          visiblestr = linkstrshort + '  ' + datestr
+                                          self.listWidget3.item(j).setText(visiblestr) 
+                                          self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
+                                          self.listWidget3.item(j).setToolTip(tooltipstr)
+                                          self.listWidget3.item(j).setHidden(False)
+                                          #self.datelist3[j].setText(datestr)
+                                          #self.labellist3[j].setAlignment(Qt.AlignLeft)
+                                          j = j + 1
+                                      elif storedasl in ["MailboxDataObject"]:
+                                          #print 'Main: mail ', storedasl
+
+                                          #Create link to DiMe server
+                                          dumlink = self.srvurl.split('/')[2]
+                                          linkstr = 'http://' + dumlink + '/infoelem?id=' + dataid
+                                          #print 'Main: linkstr ', linkstr
+                                          visiblestr = linkstrshort + '  ' + datestr
+                                          self.listWidget2.item(k).setText(visiblestr) 
+                                          self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
+                                          self.listWidget2.item(k).setToolTip(tooltipstr)
+                                          self.listWidget2.item(j).setHidden(False)
+                                          #self.labellist3[j].setAlignment(Qt.AlignLeft)
+
+                                          k = k + 1                                  
+                                      else:
+                                        #print 'Main: web ', linkstr
+                                        title = None
+                                        # try:
+                                        #   #print 'Finding Web page title:'
+                                        #   dumt = urllib2.urlopen(linkstr)
+                                        #   soup = BeautifulSoup(dumt)
+                                        #   #print 'Soup title: ', soup.title.string
+                                        #   try: 
+                                        #     if soup.title.string is not None:                                        
+                                        #       title = soup.title.string
+                                        #       #print 'Soup title2 :', title
+                                        #   except (AttributeError, ValueError):
+                                        #     #print 'attr. error'
+                                        #     pass
+                                        # except (urllib2.HTTPError, urllib2.URLError, ValueError):
+                                        #   pass
+
+                                        if title is None:
+                                          #print 'Main: Web page title is: ', title
+                                          title = linkstrshort
+
+                                        #Create link to DiMe server
+                                        dumlink = self.srvurl.split('/')[2]
+                                        linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid                                    
+
+                                        visiblestr = title + '  ' + datestr
+                                        self.listWidget1.item(i).setText(visiblestr) 
+                                        self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
+                                        self.listWidget1.item(i).setToolTip(tooltipstr)
+                                        self.listWidget1.item(i).setHidden(False)
+                                        i = i + 1  
 
 
+ def update_kwbuttons(self, keywordlist):
+    i = 0
+    j = 0
+    k = 0
+    #print 'Main: update_links_and_kwbuttons: urlstrs: ', urlstrs[len(urlstrs)-1]
+    #print 'type of el.: ', type(urlstrs[10])
+    if type(keywordlist) is types.ListType:
+      if len(keywordlist) > 0:
+        #
+        if type(keywordlist[0]) is types.UnicodeType:
+          print 'Main: update_links: got a list of keywords!!!'
+          keywordstr = 'Suggested keywords: '
+          print 'Main suggested keywords: ', keywordlist
+          ncols = self.hlayout3.count()
+          print 'Num of widgets ', ncols
+          #Remove old buttons
+          if len(self.buttonlist) > 0:
+            for i in range( len(keywordlist) ):
+                            #keywordstr = keywordstr + urlstrs[i] + ', ' 
+                            #self.hlayout2.removeWidget(self.buttonlist[i])                  
+                            #self.hlayout3.itemAt(i).widget().setParent(None) 
+                            #self.hlayout3.itemAt(i).setParent(None)
+                            if i < ncols:
+                              self.buttonlist[i].setText(str(keywordlist[i]))
+                              self.buttonlist[i].show()  
+    return
 
-    #Set hidden listWidgetItems that are not used
-    for dj in range(self.listWidget1.count()):
-      self.listWidget1.item(dj).setHidden(True)    
-    for dj in range(self.listWidget2.count()):
-      self.listWidget2.item(dj).setHidden(True)
-    for dj in range(self.listWidget3.count()):
-      self.listWidget3.item(dj).setHidden(True)      
-
-    #Initialize rake object
-    #rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
-
-    nlinks = 15
-    nsuggestedlinks = 5
-    for ijson in range( len(urlstrs) ):
-                                linkstr  = self.unicode_to_str( urlstrs[ijson]["uri"] )
-                                ctime    = str(urlstrs[ijson]["timeCreated"])
-                                typestr  = str(urlstrs[ijson]["type"])
-                                storedas = str(urlstrs[ijson]["isStoredAs"])
-                                dataid   = str(urlstrs[ijson]["id"])
-                                storedasl = storedas.split('#')[1]
-                                #print 'Main: storedasl: ', storedasl
-                                #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
-                                content = ''
-                                #keywords = rake_object.run(content)
-                                keywords = ''
-                                #print ctime 
-                                timeint = int(ctime) / 1000
-                                #print timeint
-                                date = datetime.datetime.fromtimestamp(timeint)
-                                datestr = date.__str__()
-
-                                if len(linkstr) > 20:
-                                  linkstrshort = linkstr[0:40]
-                                else:
-                                  linkstrshort = linkstr
-                                
-
-                                if len(keywords) > 0:
-                                  tooltipstr = re.sub("[^\w]", " ", content)
-                                  #self.labellist[i].setToolTip(tooltipstr)
-                                  tooltipstr = "Keywords: " + keywords[0][0]
-                                else:
-                                  tooltipstr = 'Keywords: '
-                                  #self.labellist[i].setText(keywords[0][0])
-
-                                if storedasl in ["LocalFileDataObject" ]:
-                                    #print 'Main: doc', linkstr
-
-                                    #Create link to DiMe server
-                                    dumlink = self.srvurl.split('/')[2]
-                                    linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
-
-                                    visiblestr = linkstrshort + '  ' + datestr
-                                    self.listWidget3.item(j).setText(visiblestr) 
-                                    self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
-                                    self.listWidget3.item(j).setToolTip(tooltipstr)
-                                    self.listWidget3.item(j).setHidden(False)
-                                    #self.datelist3[j].setText(datestr)
-                                    #self.labellist3[j].setAlignment(Qt.AlignLeft)
-                                    j = j + 1
-                                elif storedasl in ["MailboxDataObject"]:
-                                    #print 'Main: mail ', storedasl
-
-                                    #Create link to DiMe server
-                                    dumlink = self.srvurl.split('/')[2]
-                                    linkstr = 'http://' + dumlink + '/infoelem?id=' + dataid
-                                    #print 'Main: linkstr ', linkstr
-                                    visiblestr = linkstrshort + '  ' + datestr
-                                    self.listWidget2.item(k).setText(visiblestr) 
-                                    self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
-                                    self.listWidget2.item(k).setToolTip(tooltipstr)
-                                    self.listWidget2.item(j).setHidden(False)
-                                    #self.labellist3[j].setAlignment(Qt.AlignLeft)
-
-                                    k = k + 1                                  
-                                else:
-                                  #print 'Main: web ', linkstr
-                                  title = None
-                                  # try:
-                                  #   #print 'Finding Web page title:'
-                                  #   dumt = urllib2.urlopen(linkstr)
-                                  #   soup = BeautifulSoup(dumt)
-                                  #   #print 'Soup title: ', soup.title.string
-                                  #   try: 
-                                  #     if soup.title.string is not None:                                        
-                                  #       title = soup.title.string
-                                  #       #print 'Soup title2 :', title
-                                  #   except (AttributeError, ValueError):
-                                  #     #print 'attr. error'
-                                  #     pass
-                                  # except (urllib2.HTTPError, urllib2.URLError, ValueError):
-                                  #   pass
-
-                                  if title is None:
-                                    #print 'Main: Web page title is: ', title
-                                    title = linkstrshort
-
-                                  #Create link to DiMe server
-                                  dumlink = self.srvurl.split('/')[2]
-                                  linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid                                    
-
-                                  visiblestr = title + '  ' + datestr
-                                  self.listWidget1.item(i).setText(visiblestr) 
-                                  self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
-                                  self.listWidget1.item(i).setToolTip(tooltipstr)
-                                  self.listWidget1.item(i).setHidden(False)
-                                  i = i + 1  
  #
  def read_user_ini(self):
 
@@ -444,7 +475,6 @@ class MyApp(QtGui.QWidget):
   #webbrowser.open(webpagel)
   webbrowser.open(dimelink)
 
-
  #
  def stopstart(self):
   global var
@@ -483,7 +513,7 @@ class SearchThread(QtCore.QThread):
 
  def __init__(self):
   QtCore.QThread.__init__(self)
-  self.query = 'Hello'
+  self.query = 'Hello User'
   self.oldquery = None
   self.searchfuncid = 0
   self.extrasearch = False

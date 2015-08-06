@@ -111,12 +111,17 @@ def search_dime_docsim(query):
         check_update()
         os.chdir(cpathd)
 
+
+
     #Import data
     json_data = open('json_data.txt')
     data = json.load(json_data)
 
     #Load index into which the query is compared
-    index = similarities.docsim.Similarity.load('/tmp/similarityvec')
+    if os.path.isfile('/tmp/similarityvec'):
+        index = similarities.docsim.Similarity.load('/tmp/similarityvec')
+    else:
+        update_docsim_model()
 
     #Import dictionary
     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
@@ -128,8 +133,14 @@ def search_dime_docsim(query):
     ndocuments = varlist[1]
 
     #
-    f = open('docindlist.list','r')
-    docinds = pickle.load(f)
+    if os.path.isfile('docindlist.list'):
+        f = open('docindlist.list','r')
+        docinds = pickle.load(f)
+    else:
+        update_Xt_and_docindlist([0])
+        f = open('docindlist.list','r')
+        docinds = pickle.load(f)
+
     
     #Import document term matrix
     f = open('doctm.data','r')
@@ -502,6 +513,7 @@ def search_dime_linrel_keyword_search(query):
     #Make bag of word vector of the input string taken from keyboard
     test_vec = dictionary.doc2bow(test_wordlist)
     #
+    print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
     kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
     #make string of keywords 
     kwsstr = ''
@@ -509,9 +521,162 @@ def search_dime_linrel_keyword_search(query):
         kwsstr = kwsstr + ' ' + kws[i]
     print 'Keyword query string: ', kwsstr
     #Make
-    jsons, docinds = search_dime_docsim(kwsstr)
+    if len(kws) > 0:
+        jsons, docinds = search_dime_docsim(kwsstr)
+    else:
+        #print 'QUERY: ', query
+        jsons, docinds = search_dime_docsim(query)
+        kws = []
+
+    print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
+    docinds.sort()
+    cpath = os.getcwd()
+    os.chdir(cpath + '/data')
+    update_Xt_and_docindlist(docinds)
+    os.chdir('../')
 
     return jsons, kws
+
+
+#Computes cosine similarity between input vec. (test_vec) and previously
+#suggested documents and returns vector of these similarities
+def compute_relevance_scores(docinds, test_vec):
+    #suggested_docs in the form of full document term matrix 
+
+    sX = load_sparse_csc('data/sX.sparsemat.npz')    
+
+    print "Search thread: Updating A"
+    #F
+    #X  = np.load('X.npy')
+    #Xt = np.load('Xt.npy')
+    #Compute estimation of weight vector 
+    print 'Search thread: Create Xt '
+    print 'Search thread: X shape, ', sX.shape
+    sXcsr = sX.tocsr()
+    sXtcsr= sXcsr[docinds,:]
+    sXtcsc= sXtcsr.tocsc()
+    Xt    = sXtcsc.toarray()
+    print 'Search thread: Xt shape, ', Xt.shape
+
+    #Convert Xt to corpus form
+    nr, nc = Xt.shape
+    Xtlist = []
+    for i in range(nr):
+        Xtlist.append( gensim.matutils.full2sparse(Xt[i][:]) )
+        #print len(Xtlist[i])
+    #print 'Xt len:', len(Xtlist)
+
+    #Compute relevance scores
+    nr = len(Xtlist)
+    y = []
+    for i in range(nr):
+        y.append(gensim.matutils.cossim(test_vec,Xtlist[i]))
+        #print y[i]
+    y = np.asarray([y])
+    y = y.transpose()
+    nr, nc = y.shape
+
+    return y
+
+def twotuplelist2fulllist(tuplelist, nfeatures):
+    if len(tuplelist) == 0:
+        vec = [0]*nfeatures
+        #pass
+    else:
+        #
+        vec = [0]*nfeatures
+        nel = len(tuplelist[0])
+        #print 'Num. of el.:', nel
+        for i in range(len(tuplelist)):
+            vec[tuplelist[i][0]] = tuplelist[i][1]
+
+    vec = np.array(vec)
+    print 'Length of wordlist: ', len(vec)
+    return vec
+
+
+def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords):
+    #Make relevance vector 'r' of keywords (i.e. vector of zeros and ones , i.e. vector answering question, 
+    #whether keyboard input contain keywords or not)
+    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
+    print 'test_vec_full: ', test_vec_full
+    inds          = np.where(test_vec_full)
+    r             = np.zeros(test_vec_full.shape)
+    r[inds]       = 1.0
+    print 'Number of keywords in keyboard input: ', np.array(np.where(r>0))
+    #
+    r_hat = return_keyword_relevance_estimates(docinds, r)
+    kwinds= np.argsort(r_hat[:,0])
+    #kwinds= np.argsort(r_hat)
+    print 'Estimated Keyword weights: ', r_hat
+    print 'Max val of r_hat: ', r_hat.max()
+    if r_hat.max() > 0.0:
+        kwinds= kwinds[-20:]
+        #Make reverse list object
+        kwindsrev = reversed(kwinds)
+        #Reverse
+        kwindsd = []
+        for i in kwindsrev:
+            kwindsd.append(i)
+        #
+        kwinds = kwindsd
+        #Initialize list of keywords
+        kws = []
+        #print 'Indices of estimated keywords: ', kwinds
+        #kwinds= docinds.tolist()
+        for i in range(len(kwinds)):
+            print 'Suggested keywords: ', dictionary.get(kwinds[i]) 
+            kws.append(dictionary.get(kwinds[i]))
+
+        return kws
+    else:
+        return []
+
+
+
+#Updates LinRel matrix, denoted by A 
+def return_keyword_relevance_estimates(docinds, y):
+
+    #Load sparse tfidf matrix
+    #sX = np.load('sX.npy')
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+
+    print "Search thread: update_keyword_matrix: Updating A"
+
+    #Compute estimation of weight vector (i.e. user model)
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    sXcsr = sX.tocsr()
+    print 'Search thread: Type of sXcsr: ', type(sXcsr)
+    sXtcsr= sXcsr[docinds,:]
+    Xt    = sXtcsr.toarray()
+    #TRANSPOSE!!
+    Xt    = Xt.transpose()
+
+    print 'Search thread: update_keyword_matrix: Xt shape: ', Xt.shape, ' type: ', type(Xt)
+    print 'Search thread: update_keyword_matrix: min val Xt: ', Xt.min()
+
+    print 'Search thread: update_keyword_matrix: y shape: ', y.shape
+    #
+    w_hat = estimate_w(Xt,y)
+    w_hat = np.array([w_hat])
+    w_hat = w_hat.transpose()
+
+    print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat)
+    r_hat = np.dot(Xt,w_hat)
+    print 'Search thread: update_keyword_matrix: r_hat shape: ', r_hat.shape, ' type: ', type(r_hat)
+    print 'Search thread: update_keyword_matrix: max val r_hat: ', r_hat.max()
+    return r_hat
+
+#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
+#I.e. compute estimation of user model
+def estimate_w(Xt,y):
+    #
+    mu = 1.5
+    #mu = 0.0
+    w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
+    return w
+
+
 
 
 
@@ -683,138 +848,3 @@ def search_dime_linrel_without_summing_previous_estimates(query):
     os.chdir('../')
 
     return jsons[-20:]
-
-
-
-#Computes cosine similarity between input vec. (test_vec) and previously
-#suggested documents and returns vector of these similarities
-def compute_relevance_scores(docinds, test_vec):
-    #suggested_docs in the form of full document term matrix 
-
-    sX = load_sparse_csc('data/sX.sparsemat.npz')    
-
-    print "Search thread: Updating A"
-    #F
-    #X  = np.load('X.npy')
-    #Xt = np.load('Xt.npy')
-    #Compute estimation of weight vector 
-    print 'Search thread: Create Xt '
-    print 'Search thread: X shape, ', sX.shape
-    sXcsr = sX.tocsr()
-    sXtcsr= sXcsr[docinds,:]
-    sXtcsc= sXtcsr.tocsc()
-    Xt    = sXtcsc.toarray()
-    print 'Search thread: Xt shape, ', Xt.shape
-
-    #Convert Xt to corpus form
-    nr, nc = Xt.shape
-    Xtlist = []
-    for i in range(nr):
-        Xtlist.append( gensim.matutils.full2sparse(Xt[i][:]) )
-        #print len(Xtlist[i])
-    #print 'Xt len:', len(Xtlist)
-
-    #Compute relevance scores
-    nr = len(Xtlist)
-    y = []
-    for i in range(nr):
-        y.append(gensim.matutils.cossim(test_vec,Xtlist[i]))
-        #print y[i]
-    y = np.asarray([y])
-    y = y.transpose()
-    nr, nc = y.shape
-
-    return y
-
-def twotuplelist2fulllist(tuplelist, nfeatures):
-    if len(tuplelist) == 0:
-        vec = [0]*nfeatures
-        #pass
-    else:
-        #
-        vec = [0]*nfeatures
-        nel = len(tuplelist[0])
-        #print 'Num. of el.:', nel
-        for i in range(len(tuplelist)):
-            vec[tuplelist[i][0]] = tuplelist[i][1]
-
-    vec = np.array(vec)
-    print 'Length of wordlist: ', len(vec)
-    return vec
-
-
-def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords):
-    #Make relevance vector 'r' of keywords (i.e. vector of zeros and ones , i.e. vector answering question, 
-    #whether keyboard input contain keywords or not)
-    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
-    inds          = np.where(test_vec_full)
-    r             = np.zeros(test_vec_full.shape)
-    r[inds]       = 1.0
-    print 'Number of keywords in keyboard input: ', np.where(r>0)
-    #
-    r_hat = return_keyword_relevance_estimates(docinds, r)
-    kwinds= np.argsort(r_hat[:,0])
-    #kwinds= np.argsort(r_hat)
-    print 'Estimated Keyword weights: ', r_hat
-    kwinds= kwinds[-20:]
-    #Make reverse list object
-    kwindsrev = reversed(kwinds)
-    #Reverse
-    kwindsd = []
-    for i in kwindsrev:
-        kwindsd.append(i)
-    #
-    kwinds = kwindsd
-    #Initialize list of keywords
-    kws = []
-    #print 'Indices of estimated keywords: ', kwinds
-    #kwinds= docinds.tolist()
-    for i in range(len(kwinds)):
-        print 'Suggested keywords: ', dictionary.get(kwinds[i]) 
-        kws.append(dictionary.get(kwinds[i]))
-
-    return kws
-
-
-
-#Updates LinRel matrix, denoted by A 
-def return_keyword_relevance_estimates(docinds, y):
-
-    #Load sparse tfidf matrix
-    #sX = np.load('sX.npy')
-    sX = load_sparse_csc('data/sX.sparsemat.npz')
-
-    print "Search thread: update_keyword_matrix: Updating A"
-
-    #Compute estimation of weight vector (i.e. user model)
-    print 'Search thread: Create Xt '
-    sXcsr = sX.tocsr()
-    print 'Search thread: Type of sXcsr: ', type(sXcsr)
-    sXtcsr= sXcsr[docinds,:]
-    Xt    = sXtcsr.toarray()
-    #TRANSPOSE!!
-    Xt    = Xt.transpose()
-
-    print 'Search thread: update_keyword_matrix: Xt shape: ', Xt.shape, ' type: ', type(Xt)
-    print 'Search thread: update_keyword_matrix: min val Xt: ', Xt.min()
-
-    print 'Search thread: update_keyword_matrix: y shape: ', y.shape
-    #
-    w_hat = estimate_w(Xt,y)
-    w_hat = np.array([w_hat])
-    w_hat = w_hat.transpose()
-
-    print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat)
-    r_hat = np.dot(Xt,w_hat)
-    print 'Search thread: update_keyword_matrix: r_hat shape: ', r_hat.shape, ' type: ', type(r_hat)
-    print 'Search thread: update_keyword_matrix: max val r_hat: ', r_hat.max()
-    return r_hat
-
-#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
-#I.e. compute estimation of user model
-def estimate_w(Xt,y):
-    #
-    #mu = 1.5
-    mu = 0.0
-    w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
-    return w
