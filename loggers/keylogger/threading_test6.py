@@ -354,7 +354,7 @@ class MyApp(QtGui.QWidget):
 
                                           #Create link to DiMe server
                                           dumlink = self.srvurl.split('/')[2]
-                                          linkstr = 'http://' + dumlink + '/infoelem?id=' + dataid
+                                          linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
                                           #print 'Main: linkstr ', linkstr
                                           visiblestr = linkstrshort + '  ' + datestr
                                           self.listWidget2.item(k).setText(visiblestr) 
@@ -421,7 +421,7 @@ class MyApp(QtGui.QWidget):
                             #self.hlayout3.itemAt(i).widget().setParent(None) 
                             #self.hlayout3.itemAt(i).setParent(None)
                             if i < ncols:
-                              self.buttonlist[i].setText(str(keywordlist[i]))
+                              self.buttonlist[i].setText(self.unicode_to_str(keywordlist[i]))
                               self.buttonlist[i].show()  
     return
 
