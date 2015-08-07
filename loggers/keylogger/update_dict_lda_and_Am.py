@@ -317,7 +317,11 @@ def update_doc_tfidf_list():
 	f = open('doc_tfidf_list.data','w')
 	pickle.dump(doc_tfidf_list,f)
 
-	#Make sparse matrix representation of doc_tfidf_list
+	#Make also sparse matrix representation of doctm and doc_tfidf_list
+	sparsemat = doc_tfidf_list_to_sparsemat(doctm)
+	print 'Search thread: doctm sparsemat shape, ', sparsemat.shape
+	save_sparse_csc('sXdoctm.sparsemat',sparsemat)
+
 	sparsemat = doc_tfidf_list_to_sparsemat(doc_tfidf_list)
 	print 'Search thread: sparsemat shape, ', sparsemat.shape
 	save_sparse_csc('sX.sparsemat',sparsemat)
@@ -424,16 +428,17 @@ def doc_tfidf_list_to_array(tfidf_list, nwords):
 
 #Update similarity vector
 def update_docsim_model():
+
 	#Import dictionary 
 	if os.path.isfile('/tmp/tmpdict.dict'):
 		dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 	else:
-		cpath  = os.getcwd()
-		cpathd = cpath + '/' + 'data'		
-		os.chdir(cpathd)
+		#cpath  = os.getcwd()
+		#cpathd = cpath + '/' + 'data'
+		#os.chdir(cpathd)
 		update_dictionary()
 		dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-		os.chdir('../')
+		#os.chdir('../')
 
 	#Import document term matrix
 	f = open('doctm.data','r')

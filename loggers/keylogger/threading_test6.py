@@ -188,7 +188,7 @@ class MyApp(QtGui.QWidget):
  def emit_search_command(self):
   #if searchfuncid == 0:
     sender = self.sender()
-    print 'Main: Sending new word from main: ',  sender.text()
+    print 'Main: Sending new word from main: ',  sender.text().toAscii()
     self.emit(QtCore.SIGNAL('update(QString)'),sender.text())
 
  def choose_search_function1(self):
@@ -421,7 +421,8 @@ class MyApp(QtGui.QWidget):
                             #self.hlayout3.itemAt(i).widget().setParent(None) 
                             #self.hlayout3.itemAt(i).setParent(None)
                             if i < ncols:
-                              self.buttonlist[i].setText(str(keywordlist[i]))
+                              #self.unicode_to_str(keywordlist[i])
+                              self.buttonlist[i].setText(keywordlist[i])
                               self.buttonlist[i].show()  
     return
 
@@ -527,16 +528,28 @@ class SearchThread(QtCore.QThread):
   if searchfuncid == 1 or searchfuncid == 2 or searchfuncid == 3:
     #Update LinRel data files
     print 'Search thread: Updating Linrel data files!!!'
+    print 'Search thread: path: ', os.getcwd()
     check_update()
 
  def get_new_word(self, newquery):
+  #newquer is a QString, so it has to be changed to a unicode string
+  asciiquery = newquery.toAscii()
+  #Convert to Unicode
+  newquery = unicode(asciiquery, 'utf-8')
+  #newquery = unicode(newquery)
   print "Search thread: got new query:", newquery
   self.query = newquery
 
  def get_new_word_from_main_thread(self, keywords):
   if self.query is None:
     self.query = ''
-  self.query = self.query + ' ' + str(keywords)
+  #
+  utf8keyword = keywords.toUtf8()
+  print 'ASCII KEYWORD: ', utf8keyword
+  keywords = unicode(utf8keyword, 'utf-8')
+  self.query = self.query + ' ' + keywords
+
+
   print "Search thread: got new query from main:", self.query
   self.extrasearch = True
 
@@ -547,53 +560,57 @@ class SearchThread(QtCore.QThread):
 
  def search(self):
   while True:
-   if self.extrasearch:
-     print 'Search thread: got search command from main!'      
-     jsons, docinds = search_dime_docsim(dstr)      
-     self.extrasearch = False    
 
-   sleep(0.3) # artificial time delay
-   if self.query is not None and self.query != self.oldquery:
-    dstr = str(self.query)
-    print 'Search thread:', dstr 
-
-
-    if self.searchfuncid == 0:
+    if self.extrasearch:
+      print 'Search thread: got extra search command from main!'      
       jsons, docinds = search_dime_docsim(dstr)      
-      print 'Search thread: Ready for new search!'
-    elif self.searchfuncid == 1:
-      #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-      jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
-      print 'Search thread: Ready for new search!'
-      if len(jsons) > 0:
-        #Return keyword list
-        self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
-    elif self.searchfuncid == 2:
-      #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-      jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
-      print 'Search thread: Ready for new search!'   
-    elif self.searchfuncid == 3:
-      #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-      jsons, kws = search_dime_linrel_keyword_search(dstr)   
-      if len(jsons) > 0:
-        #Return keyword list
-        self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)      
-      print 'Search thread: Ready for new search!'         
-      
+      self.extrasearch = False    
 
-    print 'Search thread: len jsons ', len(jsons)
-    if len(jsons) > 0:
-     #Return keyword list
-     #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
-     #Return jsons
-     self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), jsons)
+    sleep(0.3) # artificial time delay
 
-     #Write first url's appearing in jsons list to a 'suggested_pages.txt'
-     cdate = datetime.datetime.now().date()
-     ctime = datetime.datetime.now().time()
-     f = open("suggested_pages.txt","a")
-     f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
-     f.close()
+    if self.query is not None and self.query != self.oldquery:
+      #self.query = unicode(self.query, 'utf-8')
+      dstr = self.query
+      #dstr = unicode(dstr, 'utf-8')
+      print 'Search thread:', dstr 
+
+
+      if self.searchfuncid == 0:
+        jsons, docinds = search_dime_docsim(dstr)      
+        print 'Search thread: Ready for new search!'
+      elif self.searchfuncid == 1:
+        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+        jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
+        print 'Search thread: Ready for new search!'
+        if len(jsons) > 0:
+          #Return keyword list
+          self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
+      elif self.searchfuncid == 2:
+        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+        jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
+        print 'Search thread: Ready for new search!'   
+      elif self.searchfuncid == 3:
+        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+        jsons, kws = search_dime_linrel_keyword_search(dstr)   
+        if len(jsons) > 0:
+          #Return keyword list
+          self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)      
+        print 'Search thread: Ready for new search!'         
+        
+
+      print 'Search thread: len jsons ', len(jsons)
+      if len(jsons) > 0:
+       #Return keyword list
+       #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
+       #Return jsons
+       self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), jsons)
+
+       #Write first url's appearing in jsons list to a 'suggested_pages.txt'
+       cdate = datetime.datetime.now().date()
+       ctime = datetime.datetime.now().time()
+       f = open("suggested_pages.txt","a")
+       f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
+       f.close()
 
     self.oldquery = self.query
 
@@ -722,6 +739,14 @@ def read_user_ini():
                     updateinterval = float(dum_string)  
 
     return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
+
+def unicode_to_str(ustr):
+  """Converts unicode strings to 8-bit strings."""
+  try:
+      return ustr.encode('utf-8')
+  except UnicodeEncodeError:
+      print "Main: UnicodeEncodeError"
+  return ""
 
 
 # run

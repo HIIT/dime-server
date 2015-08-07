@@ -121,7 +121,9 @@ def search_dime_docsim(query):
     if os.path.isfile('/tmp/similarityvec'):
         index = similarities.docsim.Similarity.load('/tmp/similarityvec')
     else:
+        #print 'hula!'
         update_docsim_model()
+        index = similarities.docsim.Similarity.load('/tmp/similarityvec')
 
     #Import dictionary
     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
@@ -625,7 +627,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
         #print 'Indices of estimated keywords: ', kwinds
         #kwinds= docinds.tolist()
         for i in range(len(kwinds)):
-            print 'Suggested keywords: ', dictionary.get(kwinds[i]) 
+            print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
             kws.append(dictionary.get(kwinds[i]))
 
         return kws
@@ -647,8 +649,9 @@ def return_keyword_relevance_estimates(docinds, y):
     print 'Search thread: update_keyword_matrix: Create Xt '
     sXcsr = sX.tocsr()
     print 'Search thread: Type of sXcsr: ', type(sXcsr)
-    sXtcsr= sXcsr[docinds,:]
-    Xt    = sXtcsr.toarray()
+    Xt    = sXcsr.toarray()
+    #sXtcsr= sXcsr[docinds,:]
+    #Xt    = sXtcsr.toarray()
     #TRANSPOSE!!
     Xt    = Xt.transpose()
 
