@@ -50,6 +50,7 @@ public interface UserService {
 
     /**
      * Return a list of all users.
+     * @return List of users.
      */    
     Collection<User> getAllUsers();
 

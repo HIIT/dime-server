@@ -55,12 +55,24 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	return "informationElement";
     }
 
+    /**
+       Find a single InformationElement by its unique id.
+
+       @param id Unique id of InformationElement object.
+       @return The InformationElement object found.
+    */
     public InformationElement findById(String id) {
     	return operations.findById(id, InformationElement.class, collectionName());
     }
 
     /**
        Perform a text search.
+
+       @param query Text query string
+       @param limit Limit results list to this many objects
+       @param userId Id of user to search from
+
+       @return list of InformationElement objects found in search
     */
     public List<InformationElement> textSearch(String query, int limit, String userId) {
 	ensureTextIndex("plainTextContent");
@@ -128,12 +140,21 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 
     /**
        Return all InformationElement objects in database.
+       
+       @param id User id
+       @return List of all InformationElement objects for user
     */
     public List<InformationElement> elementsForUser(String id) {
 	return operations.find(query(where("user._id").is(new ObjectId(id))),
 			       InformationElement.class, collectionName());
     }
 
+    /**
+       Removes all items for user.
+
+       @param id User id
+       @return Number of items removed.
+    */
     public int removeForUser(String id) {
 	return operations.remove(query(where("user._id").is(new ObjectId(id))),
 				 InformationElement.class, collectionName()).getN();

@@ -167,16 +167,6 @@ public class DataController extends AuthorizedController {
 	return msg;
     }
 
-    /**
-     * @api {get} /data/event Generic event upload
-     * @apiName PostEvent
-     * @apiGroup Data
-     * 
-     * @apiParam {Object} - <code>Event</code> object to upload
-
-     * @apiSuccess {Object} - Returns the added object, possibly with
-     *     some additional fields filled in such as the unique id.
-     */
     @RequestMapping(value="/event", method = RequestMethod.POST)
     public ResponseEntity<Event>
 	event(Authentication auth, @RequestBody Event input) {
@@ -202,13 +192,6 @@ public class DataController extends AuthorizedController {
     }	
 
 
-    /**
-     * @api {get} /data/informationelement Get InformationElements
-     * @apiName GetInformationElement
-     * @apiGroup Read
-     * 
-     * @apiSuccess {Object[]} - Array of InformationElement objects
-     */
     @RequestMapping(value="/informationelement", method = RequestMethod.GET)
     public ResponseEntity<List<InformationElement>> 
 	informationElement(Authentication auth) {

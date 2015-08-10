@@ -32,7 +32,7 @@ import org.springframework.security.core.Authentication;
 /**
  * Base class for controllers that need user authentication.
  *
- * @author Mats Sjöberg <mats.sjoberg@helsinki.fi>
+ * @author Mats Sjöberg, mats.sjoberg@helsinki.fi
  */
 public class AuthorizedController {
     protected User getUser(Authentication auth) {
