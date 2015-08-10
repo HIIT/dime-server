@@ -24,13 +24,6 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
-public class Range {
-    double min;
-    double max;
-}
-
 public class ReadingEvent extends DesktopEvent {
     Person person;
     Boolean multiPage;
