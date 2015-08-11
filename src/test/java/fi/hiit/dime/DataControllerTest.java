@@ -37,6 +37,8 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -56,6 +58,20 @@ public class DataControllerTest extends RestTest {
 	    System.out.println(message + "\n" +
 			       objectMapper.writerWithDefaultPrettyPrinter().
 			       writeValueAsString(data));
+	} catch (IOException e) {
+	}
+    }
+
+    /**
+     * Helper method to print out the content of an array of DiMeData objects.
+     */
+    private void dumpData(String message, DiMeData[] data) {
+	try {
+	    for (int i=0; i<data.length; i++) {
+		String dataStr = objectMapper.
+		    writerWithDefaultPrettyPrinter().writeValueAsString(data[i]);
+		System.out.println(String.format("%s [%d]: %s", message, i, dataStr));
+	    }
 	} catch (IOException e) {
 	}
     }
@@ -193,6 +209,59 @@ public class DataControllerTest extends RestTest {
 	String textContent = msg.subject + "\n\n" + msg.plainTextContent;
 	assertEquals(textContent, outMsg1.plainTextContent); 
 	assertEquals(msg.rawMessage, outMsg1.rawMessage); 
+    }
+
+    /**
+       Tests uploading multiple events in one go
+    */
+    @Test
+    public void testMultipleUpload() throws Exception {
+	// List<Document> docs = new ArrayList<Document>();
+	final int numEvents = 3;
+	FeedbackEvent[] events = new FeedbackEvent[numEvents];
+
+	for (int i=0; i<numEvents; i++) {
+	    // Create a document
+	    Document doc = new Document();
+	    doc.uri = String.format("http://www.example.com/hello%d.txt", i);
+	    doc.plainTextContent = String.format("Hello, world %d", i);
+	    doc.mimeType = "text/plain";
+
+	    // docs.add(doc);
+
+	    // Create feedback, with document embedded
+	    FeedbackEvent event = new FeedbackEvent();
+	    event.value = 0.1*i;
+	    event.targettedResource = doc;
+
+	    events[i] = event;
+	}
+	    
+	String apiEndpoint = apiUrl("/data/events");
+	dumpData("List of events to be uploaded to " + apiEndpoint, events);
+
+	// Upload to DiMe
+	ResponseEntity<FeedbackEvent[]> res = 
+	    getRest().postForEntity(apiEndpoint, events,
+				    FeedbackEvent[].class);
+
+	// Check that HTTP was successful
+	assertSuccessful(res);
+
+	// Checks to ensure returned object is the same as uploaded
+	FeedbackEvent[] outEvents = res.getBody();
+	assertEquals(events.length, outEvents.length);
+
+	for (int i=0; i<numEvents; i++) {
+	    assertEquals(events[i].value, outEvents[i].value, DELTA);
+	    Document d1 = (Document)events[i].targettedResource;
+	    Document d2 = (Document)outEvents[i].targettedResource;
+	    assertEquals(d1.uri, d2.uri);
+	    assertEquals(d1.plainTextContent, d2.plainTextContent);
+	    assertEquals(d1.mimeType, d2.mimeType);
+	    assertEquals(d1.mimeType, "text/plain");
+	}
+	dumpData("Events received back from server:", outEvents);
     }
 
 }

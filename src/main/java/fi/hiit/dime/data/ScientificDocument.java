@@ -24,12 +24,17 @@
 
 package fi.hiit.dime.data;
 
-public class ReadingEvent extends DesktopEvent {
-    //Person person;
-    Boolean multiPage;
-    int minPage;
-    int maxPage;
-    Range proportion;
+import java.util.List;
 
-    String plainTextContent;
+public class ScientificDocument extends Document {
+    public List<Person> authors;
+    public String title;
+    public String booktitle;
+    public List<String> keywords;
+    public int firstPage;
+    public int lastPage;
+    public int year;
+    public String address;
+    public String publisher;
+    public int volume;
 }

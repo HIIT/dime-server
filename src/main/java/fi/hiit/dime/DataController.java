@@ -74,6 +74,14 @@ public class DataController extends AuthorizedController {
     	this.infoElemDAO = infoElemDAO;
     }
 
+    private void dumpJson(Object input) {
+	try {
+	    LOG.info("JSON: " +
+		     objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
+	} catch (IOException e) {
+	}
+    }
+
     /**
      * Helper method to log each event uploaded.
      *
@@ -82,18 +90,29 @@ public class DataController extends AuthorizedController {
      * @param input     The event object that was uploaded
      * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String eventName, User user, Event input, Boolean dumpJson) {
+    protected void eventLog(String  eventName, User user, Event input, Boolean dumpJson) {
 	LOG.info("{} for user {} from {} at {}, with actor {}",
 		 eventName, user.username, input.origin, new Date(), input.actor);
-	if (dumpJson) {
-	    try {
-		LOG.info("JSON: " +
-			 objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
-	    } catch (IOException e) {
-	    }
-	}
+	if (dumpJson)
+	    dumpJson(input);
     }
 
+    /**
+     * Helper method to log an array of uploaded events.
+     *
+     * @param eventName Name of event class
+     * @param user      User object
+     * @param input     The array of event objects that were uploaded
+     * @param dumpJson  Whether to also print the JSON of the event object
+     */
+    protected void eventLog(String eventName, User user, Event[] input, Boolean dumpJson) {
+	if (input.length > 0) {
+	    LOG.info("{} for user {} from {} at {}, with actor {}",
+		     eventName, user.username, input[0].origin, new Date(), input[0].actor);
+	    if (dumpJson)
+		dumpJson(input);
+	}
+    }
 
     /**
      * Helper method to expand stub InformationElement objects.
@@ -167,10 +186,7 @@ public class DataController extends AuthorizedController {
 	return msg;
     }
 
-    @RequestMapping(value="/event", method = RequestMethod.POST)
-    public ResponseEntity<Event>
-	event(Authentication auth, @RequestBody Event input) {
-	User user = getUser(auth);
+    private Event storeEvent(Event input, User user) {
 	input.user = user;
 
 	if (input instanceof ResourcedEvent) {
@@ -186,11 +202,34 @@ public class DataController extends AuthorizedController {
 	}
 	eventDAO.save(input);
 
+	return input;
+    }
+
+    @RequestMapping(value="/event", method = RequestMethod.POST)
+    public ResponseEntity<Event>
+	event(Authentication auth, @RequestBody Event input) {
+	User user = getUser(auth);
+
+	input = storeEvent(input, user);
+
 	eventLog("Event", user, input, true);
 
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	
 
+    @RequestMapping(value="/events", method = RequestMethod.POST)
+    public ResponseEntity<Event[]>
+	event(Authentication auth, @RequestBody Event[] input) {
+	User user = getUser(auth);
+
+	for (int i=0; i<input.length; i++) {
+	    input[i] = storeEvent(input[i], user);
+	}
+
+	eventLog("Events", user, input, true);
+
+	return new ResponseEntity<Event[]>(input, HttpStatus.OK);
+    }	
 
     @RequestMapping(value="/informationelement", method = RequestMethod.GET)
     public ResponseEntity<List<InformationElement>> 
