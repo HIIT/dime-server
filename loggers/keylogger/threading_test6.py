@@ -169,15 +169,19 @@ class MyApp(QtGui.QWidget):
   self.testButton.setDisabled(True)
   #self.listwidget.clear()
 
-  #Create thread objects
+  #Create  thread objects
   self.LoggerThreadObj  = LoggerThread()
   self.SearchThreadObj = SearchThread()
 
-  #Connect the signals and receivers between threads
+  #Data connection from logger thread to search thread
   self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
   #self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links_and_kwbuttons)
+
+  #Data connections from search thread to main thread
   self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_data_from_search_thread_and_update_visible_stuff)
   self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_keywords_from_search_thread_and_update_visible_stuff)
+
+  #Data connections from main thread to search thread
   self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
   self.connect(self, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word_from_main_thread)
   
@@ -303,6 +307,7 @@ class MyApp(QtGui.QWidget):
           nlinks = 15
           nsuggestedlinks = 5
           for ijson in range( len(urlstrs) ):
+                                      #title    = None
                                       linkstr  = self.unicode_to_str( urlstrs[ijson]["uri"] )
                                       ctime    = str(urlstrs[ijson]["timeCreated"])
                                       typestr  = str(urlstrs[ijson]["type"])
@@ -367,6 +372,7 @@ class MyApp(QtGui.QWidget):
                                       else:
                                         #print 'Main: web ', linkstr
                                         title = None
+                                        #title = str(urlstrs[ijson]["Title"])
                                         # try:
                                         #   #print 'Finding Web page title:'
                                         #   dumt = urllib2.urlopen(linkstr)

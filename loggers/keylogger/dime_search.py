@@ -330,7 +330,7 @@ def search_dime_linrel_summing_previous_estimates(query):
     test_vec = dictionary.doc2bow(test_wordlist)
 
     #
-    kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
+    kws      = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
     #make string of keywords 
     kwsstr = ''
     for i in range(len(kws)):
@@ -600,14 +600,29 @@ def twotuplelist2fulllist(tuplelist, nfeatures):
 def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords):
     #Make relevance vector 'r' of keywords (i.e. vector of zeros and ones , i.e. vector answering question, 
     #whether keyboard input contain keywords or not)
+    # if os.path.isfile('data/winds.list'):
+    #     f = open('data/winds.list','r')
+    #     windsold = pickle.load(f)
+    # else:
+    #     windsold = []
+
     test_vec_full = twotuplelist2fulllist(test_vec, nwords)
     print 'test_vec_full: ', test_vec_full
-    inds          = np.where(test_vec_full)
-    r             = np.zeros(test_vec_full.shape)
-    r[inds]       = 1.0
-    print 'Number of keywords in keyboard input: ', np.array(np.where(r>0))
+    winds         = np.where(test_vec_full)
+    #winds         = set(winds[0] + windsold)
+    #winds         = list(winds)
+    winds         = winds[0]
+    print 'winds: ', winds
+    r             = np.zeros(test_vec_full.shape) 
+    r[winds]      = 1.0 
+    #r             = np.ones((len(winds),1))
+    # print 'Number of keywords in keyboard input: ', np.array(np.where(r>0))
+    # f = open('data/winds.list','w')
+    # pickle.dump(winds,f)
+
     #
-    r_hat = return_keyword_relevance_estimates(docinds, r)
+    r_hat = return_keyword_relevance_estimates2(docinds, winds, r)
+    #r_hat = return_keyword_relevance_estimates(docinds, r)
     kwinds= np.argsort(r_hat[:,0])
     #kwinds= np.argsort(r_hat)
     print 'Estimated Keyword weights: ', r_hat
@@ -635,6 +650,65 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
         return []
 
 
+#Updates LinRel matrix, denoted by A 
+def return_keyword_relevance_estimates2(docinds,winds, y):
+
+    #Load sparse tfidf matrix
+    #sX = np.load('sX.npy')
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+
+    print "Search thread: update_keyword_matrix: Updating A"
+
+    #Compute estimation of weight vector (i.e. user model)
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    print winds
+    sX    = sX.transpose()
+    sXcsr = sX.tocsr()
+    print type(sXcsr)
+    sXcsrt = sXcsr[winds,:]
+    print sXcsr.shape
+    print 'Search thread: Type of sXcsr: ', type(sXcsr)
+    Xt    = sXcsrt.toarray()
+    #sXtcsr= sXcsr[docinds,:]
+    #Xt    = sXtcsr.toarray()
+    #TRANSPOSE!!
+    #Xt    = Xt.transpose()
+
+    print 'Search thread: update_keyword_matrix: Xt shape: ', Xt.shape, ' type: ', type(Xt)
+    print 'Search thread: update_keyword_matrix: min val Xt: ', Xt.min()
+
+    if len(winds)>1:
+            y = np.ones([len(winds),1])
+    else:
+            y = np.zeros([len(winds),1])        
+    print 'Search thread: update_keyword_matrix: y shape: ', y.shape
+    print y
+    #
+    #sy = sparse.csr_matrix(y)
+    w_hat = estimate_w(Xt,y)
+    # if w_hat.shape[0] > 1:
+    #     w_hat = w_hat[0,:]
+    #print "w_hat: ", w_hat[0,:]
+    #print w_hat.sum(1)
+    w_hat = np.array([w_hat])
+    w_hat = w_hat.transpose()
+    sw_hat = sparse.csr_matrix(w_hat)
+
+    print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat)
+    sr_hat = sXcsr.dot(sw_hat)
+    r_hat  = sr_hat.toarray()
+    #r_hat = []
+    #for i in range(sX.shape[0]):
+        #rowX = sX[i,:].toarray()
+        #print rowX.shape, w_hat.shape
+        #print np.dot(rowX,w_hat)[0,0]
+    #    r_hat.append(np.dot(rowX,w_hat)[0,0])
+    #r_hat = np.array([r_hat])
+    #r_hat = r_hat.transpose()
+    print 'Search thread: update_keyword_matrix: r_hat shape: ', r_hat.shape, ' type: ', type(r_hat)
+    print 'Search thread: update_keyword_matrix: max val r_hat: ', r_hat.max()
+    return r_hat
+
 
 #Updates LinRel matrix, denoted by A 
 def return_keyword_relevance_estimates(docinds, y):
@@ -648,10 +722,11 @@ def return_keyword_relevance_estimates(docinds, y):
     #Compute estimation of weight vector (i.e. user model)
     print 'Search thread: update_keyword_matrix: Create Xt '
     sXcsr = sX.tocsr()
+    sXcsr = sX
     print 'Search thread: Type of sXcsr: ', type(sXcsr)
     Xt    = sXcsr.toarray()
-    #sXtcsr= sXcsr[docinds,:]
-    #Xt    = sXtcsr.toarray()
+    Xt    = sXcsr
+
     #TRANSPOSE!!
     Xt    = Xt.transpose()
 
@@ -665,7 +740,8 @@ def return_keyword_relevance_estimates(docinds, y):
     w_hat = w_hat.transpose()
 
     print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat)
-    r_hat = np.dot(Xt,w_hat)
+    #r_hat = np.dot(Xt,w_hat)
+    r_hat = Xt*w_hat
     print 'Search thread: update_keyword_matrix: r_hat shape: ', r_hat.shape, ' type: ', type(r_hat)
     print 'Search thread: update_keyword_matrix: max val r_hat: ', r_hat.max()
     return r_hat
@@ -676,7 +752,13 @@ def estimate_w(Xt,y):
     #
     mu = 1.5
     #mu = 0.0
-    w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
+    try:
+        w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
+        print w.shape
+    except ZeroDivisionError:
+        print 'Xt nrows: ', Xt.shape[1]
+        w = Xt.shape[1]*[0.0]
+        print w
     return w
 
 
