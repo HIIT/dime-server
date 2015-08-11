@@ -22,11 +22,9 @@
   SOFTWARE.
 */
 
-//------------------------------------------------------------------------------
-
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
+import java.util.List;
 
 public class ScientificDocument extends Document {
     public List<Person> authors;
