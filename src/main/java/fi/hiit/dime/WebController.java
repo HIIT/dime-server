@@ -92,7 +92,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     //--------------------------------------------------------------------------
 
-    /** Show log of all data */
+    /* Show log of all data */
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
@@ -103,7 +103,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     //--------------------------------------------------------------------------
 
-    /** Show a specific event */
+    /* Show a specific event */
     @RequestMapping("/event")
     public String event(Authentication authentication, Model model,
 		      @RequestParam(value="id") String eventId) {
@@ -117,7 +117,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     //--------------------------------------------------------------------------
 
-    /** Show a specific information element */
+    /* Show a specific information element */
     @RequestMapping("/infoelem")
     public String infoElem(Authentication authentication, Model model,
 			   @RequestParam(value="id") String elemId) {
@@ -134,7 +134,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     //--------------------------------------------------------------------------
 
-    /** Show a specific message object */
+    /* Show a specific message object */
     @RequestMapping("/message")
     public String message(Authentication authentication, Model model,
 			  @RequestParam(value="id") String elemId) {
@@ -148,7 +148,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     //--------------------------------------------------------------------------
 
-    /** Search page */
+    /* Search page */
     @RequestMapping("/search")
     public String search(@ModelAttribute SearchQuery search,
 			 Authentication authentication,
@@ -184,13 +184,13 @@ public class WebController extends WebMvcConfigurerAdapter {
         binder.addValidators(userCreateFormValidator);
     }
 
-    /** Web page for registering a new user */
+    /* Web page for registering a new user */
     @RequestMapping(value = "/user/create", method = RequestMethod.GET)
     public ModelAndView getUserCreatePage() {
         return new ModelAndView("user_create", "form", new UserCreateForm());
     }
 
-    /** Handles processing of the new user registration form */
+    /* Handles processing of the new user registration form */
     @RequestMapping(value = "/user/create", method = RequestMethod.POST)
     public String handleUserCreateForm(@Valid @ModelAttribute("form") 
 				       UserCreateForm form,
@@ -209,7 +209,7 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "redirect:/";
     }    
 
-    /** Viewing users */
+    /* Viewing users */
     @RequestMapping("/users")
     public ModelAndView getUsersPage() {
         return new ModelAndView("users", "users", userService.getAllUsers());

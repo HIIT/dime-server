@@ -22,21 +22,9 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime;
+package fi.hiit.dime.data;
 
-import fi.hiit.dime.authentication.CurrentUser;
-import fi.hiit.dime.authentication.User;
-
-import org.springframework.security.core.Authentication;
-
-/**
- * Base class for controllers that need user authentication.
- *
- * @author Mats Sjöberg, mats.sjoberg@helsinki.fi
- */
-public class AuthorizedController {
-    protected User getUser(Authentication auth) {
-	CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
-	return currentUser.getUser();
-    }
+public class Range {
+    double min;
+    double max;
 }

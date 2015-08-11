@@ -50,7 +50,7 @@ import javax.servlet.ServletRequest;
  * General API controller, for things that go directly under the /api
  * REST endpoint.
  *
- * @author Mats Sjöberg <mats.sjoberg@helsinki.fi>
+ * @author Mats Sjöberg, mats.sjoberg@helsinki.fi
  */
 @RestController
 @RequestMapping("/api")
@@ -82,19 +82,6 @@ public class ApiController extends AuthorizedController {
 	}
     }
 
-    /**
-     * @api {get} /ping Ping server to check availability
-     * @apiName GetPing
-     * @apiGroup General
-     * 
-     * @apiSuccess {String} message Dummy message
-     * 
-     * @apiSuccessExample Success-Response:
-     *     HTTP/1.1 200 OK
-     *     {
-     *       "message": "pong"
-     *     }
-     */
     @RequestMapping("/ping")
     public ResponseEntity<ApiMessage> ping(ServletRequest req) {
 	LOG.info("Received ping from " + req.getRemoteHost());
@@ -105,55 +92,6 @@ public class ApiController extends AuthorizedController {
 					      headers, HttpStatus.OK);
     }
 
-    /**
-     * @api {get} /search Text search
-     * @apiName GetSearch
-     * @apiGroup General
-     * 
-     * @apiParam {String} query Query text to search for
-     * @apiParam {Number} [limit=-1] Maximum number of results returned
-     *
-     * @apiSuccess {Object[]} - Array of InformationElement objects
-     * @apiSuccessExample Success-Response:
-     *     HTTP/1.1 200 OK
-     *     [
-     *       {
-     *         "plainTextContent": "Some text content\n",
-     *         "user": {
-     *           "id": "5524d8ede4b06e42cc0e0aca",
-     *           "role": "USER",
-     *           "username": "testuser"
-     *         },
-     *         "stub": false,
-     *         "uri": "file:///home/testuser/some_file.txt",
-     *         "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
-     *         "mimeType": "text/plain",
-     *         "timeCreated": 1430142736819,
-     *         "id": "d8b5b874e4bae5a6f6260e1042281e91c69d305e",
-     *         "timeModified": 1430142736819,
-     *         "score": 0.75627613,
-     *         "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
-     *       },
-     *       {
-     *         "plainTextContent": "Some other text content",
-     *         "user": {
-     *           "id": "5524d8ede4b06e42cc0e0aca",
-     *           "role": "USER",
-     *           "username": "testuser"
-     *         },
-     *         "stub": false,
-     *         "uri": "file:///home/testuser/another_file.txt",
-     *         "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
-     *         "mimeType": "text/plain",
-     *         "timeCreated": 1430142737246,
-     *         "id": "99db4832be27cff6b08a1f91afbf0401cad49d15",
-     *         "timeModified": 1430142737246,
-     *         "score": 0.75342464,
-     *         "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
-     *       }
-     *     ]
-     *     
-     */
     @RequestMapping(value="/search", method = RequestMethod.GET)
     public ResponseEntity<List<InformationElement>>
 	search(Authentication auth, 

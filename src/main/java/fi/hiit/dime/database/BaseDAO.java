@@ -78,6 +78,7 @@ abstract class BaseDAO<T extends Object> {
     /**
      * Get mongodb server version as an array of ints, e.g. {2, 4, 9}
      * for version 2.4.9.
+     * @return MongoDB version 
      */
     public int[] getMongoVersion() {
 	if (version == null) {

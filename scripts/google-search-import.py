@@ -47,6 +47,7 @@ def post_item(item, endpoint):
 #------------------------------------------------------------------------------
 
 def process_file(filename):
+    print("Processing", filename)
     with open(filename, 'r') as fp:
         events = json.load(fp)['event']
         for event in events:
@@ -54,13 +55,14 @@ def process_file(filename):
             timestamp = int(query['id'][0]['timestamp_usec'])
 
             item = {}
+            item['@type'] = 'SearchEvent'
             item['query'] = query['query_text']
             item['start']  = time.strftime("%Y-%m-%dT%H:%M:%S%z",
                                            time.localtime(timestamp/1000000))
 
             print('QUERY: "{}" at {}'.format(item['query'], item['start']))
 
-            post_item(item, '/data/searchevent')
+            post_item(item, '/data/event')
     
 #------------------------------------------------------------------------------
 
