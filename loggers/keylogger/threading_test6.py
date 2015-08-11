@@ -416,9 +416,9 @@ class MyApp(QtGui.QWidget):
         if type(keywordlist[0]) is types.UnicodeType:
           print 'Main: update_links: got a list of keywords!!!'
           keywordstr = 'Suggested keywords: '
-          print 'Main suggested keywords: ', keywordlist
+          print 'Main: keyword button labels keywords: ', keywordlist
           ncols = self.hlayout3.count()
-          print 'Num of widgets ', ncols
+          #print 'Num of widgets ', ncols
           #Remove old buttons
           if len(self.buttonlist) > 0:
             for i in range( len(keywordlist) ):
@@ -544,7 +544,7 @@ class SearchThread(QtCore.QThread):
   #Convert to Unicode
   newquery = unicode(asciiquery, 'utf-8')
   #newquery = unicode(newquery)
-  print "Search thread: got new query:", newquery
+  print "Search thread: got new query from logger:", newquery
   self.query = newquery
 
  def get_new_word_from_main_thread(self, keywords):
@@ -605,7 +605,7 @@ class SearchThread(QtCore.QThread):
         print 'Search thread: Ready for new search!'         
         
 
-      print 'Search thread: len jsons ', len(jsons)
+      #print 'Search thread: len jsons ', len(jsons)
       if len(jsons) > 0:
        #Return keyword list
        #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)

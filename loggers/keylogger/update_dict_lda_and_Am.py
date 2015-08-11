@@ -377,7 +377,7 @@ def update_Xt_and_docindlist(docindlist):
 		docindlist = list(set(docindlist + docindlistprev))
 		docindlist.sort()
 		f = open('docindlist.list','w')
-		print 'Search thread: Updated docindlist: ', docindlist
+		#print 'Search thread: Updated docindlist: ', docindlist
 		pickle.dump(docindlist,f)
 	else:
 		#Save docindlist (the list of indices of suggested documents)		
