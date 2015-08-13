@@ -24,19 +24,34 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
 import java.util.Date;
 
-//------------------------------------------------------------------------------
-
+/**
+   Abstract class for all events.
+*/
 public abstract class Event extends DiMeData {
+    /** The program that produced the event, e.g. "Firefox".
+     */
     public String actor;
+
+    /** Typically the host name of the computer where the event was generated.
+     */
     public String origin;
+
+    /** Detailed type of event, using the Semantic Desktop ontology, see:
+	http://www.semanticdesktop.org/ontologies/2010/01/25/nuao
+     */
     public String type;
 
+    /** Time stamp when the event was started. Format example: 2015-08-11T12:56:53Z
+     */
     public Date start;
+
+    /** Time stamp when the event ended - DiMe can fill this if duration was supplied.
+     */
     public Date end;
 
+    /** Duration of event in seconds - DiMe can fill this if end time was supplied.
+     */
     public double duration;
 }

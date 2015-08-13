@@ -26,6 +26,12 @@ package fi.hiit.dime.data;
 
 import java.util.Date;
 
+/**
+   A search event, i.e. the user doing a text query.
+*/
 public class SearchEvent extends Event {
+    /**
+       The text of the query.
+    */
     public String query;
 }

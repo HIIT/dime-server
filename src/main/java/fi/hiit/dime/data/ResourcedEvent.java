@@ -24,8 +24,13 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
+/**
+   Abstract class representing events that link to an
+   InformationElement.
+*/
 public abstract class ResourcedEvent extends Event {
+    /**
+       The InformationElement object that is targetted by this event.
+    */
     public InformationElement targettedResource;
 }

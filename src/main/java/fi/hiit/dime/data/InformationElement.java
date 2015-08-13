@@ -33,14 +33,34 @@ import org.springframework.data.mongodb.core.mapping.TextScore;
    etc that are involved in events.
 */
 public /*abstract*/ class InformationElement extends DiMeData {
+    /** URI of the information element, e.g. path on computer or web URL.
+     */
     public String uri;
+
+    /** Plain text content of the information element. This is indexed
+       for text search.
+    */
     @TextIndexed public String plainTextContent;
+
+    /** Form of storage according to the Semantic Desktop ontology:
+       http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
+     */
     public String isStoredAs;
+
+    /** Detailed data type according to the Semantic Desktop ontology: 
+	http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
+     */
     public String type;
 
+    /** Relevance to text query, filled in by DiMe when returning
+     * search results.
+     */
     @TextScore 
     public Float score;
 
+    /** True if this is a "stub" object, i.e. which contains only the
+     * id of a previously uploaded object.
+     */
     @JsonIgnore
     public boolean isStub() {
 	return (uri == null || uri.isEmpty()) &&

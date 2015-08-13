@@ -24,9 +24,18 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
+/**
+   Class representing physical events, i.e. series of physical
+   measurements.
+*/
 public class PhysicalEvent extends Event {
+    /**
+       Sample rate of the measurement in Hz (i.e. measurements per second).
+    */
     public int sampleRate;
+
+    /**
+       Array of data vectors.
+    */
     public double[][] data;
 }

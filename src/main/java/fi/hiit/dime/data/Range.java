@@ -24,7 +24,15 @@
 
 package fi.hiit.dime.data;
 
+/**
+   Class representing a range of floating point values.
+*/
 public class Range {
-    double min;
-    double max;
+    /** The minimum value.
+     */
+    public double min;
+
+    /** The maximum value.
+     */
+    public double max;
 }

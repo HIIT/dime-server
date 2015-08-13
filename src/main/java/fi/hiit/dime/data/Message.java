@@ -27,6 +27,9 @@ package fi.hiit.dime.data;
 import java.util.Date;
 import java.util.List;
 
+/**
+   Class representing an electronic message, such as an email.
+*/
 public class Message extends InformationElement {
     public Date date;
     public String subject;
