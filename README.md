@@ -27,19 +27,17 @@ more recent version with [these instructions][8].
 
 #### OS X
 
-On Mac OS X, use either Homebrew or Macports to install mongodb:
+To install mongodb on Mac OS X, use either Homebrew, Macports or
+install manually.
 
-    brew install mongod
-    sudo port install mongodb
+##### Homebrew and manual install
 
-You also need to remember to start mongodb, e.g.
+See: <http://docs.mongodb.org/manual/tutorial/install-mongodb-on-os-x/>
 
-    mkdir ~/mongodata
-    mongod --dbpath ~/mongodata/
+##### Macports
     
-With Macports, mongodb can be set to start automatically at startup:
-
-    sudo port load mongodb
+    sudo port install mongodb
+    sudo port load mongodb      # to start automatically
 
 #### Windows
 
