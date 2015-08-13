@@ -22,13 +22,17 @@
   SOFTWARE.
 */
 
-//------------------------------------------------------------------------------
-
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
+/** Class representing a document, e.g. PDF or word-processing document.
+ */
 public class Document extends InformationElement {
+    /** Mime type of the document, see:
+	https://en.wikipedia.org/wiki/MIME#Content-Type
+    */
     public String mimeType;
+
+    /** The title of the document.
+     */
     public String title;
 }

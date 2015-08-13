@@ -24,7 +24,9 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
+/**
+   A desktop event, such as opening a document in the computer
+   graphical environment.
+*/
 public class DesktopEvent extends ResourcedEvent {
 }

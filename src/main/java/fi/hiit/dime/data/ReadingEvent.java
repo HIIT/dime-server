@@ -24,12 +24,23 @@
 
 package fi.hiit.dime.data;
 
+/**
+   A detailed reading event.
+*/
 public class ReadingEvent extends DesktopEvent {
-    //Person person;
-    Boolean multiPage;
-    int minPage;
-    int maxPage;
-    Range proportion;
+    /** Boolean indicating if the event refers to multiple pages.
+    */
+    public Boolean multiPage;
 
-    String plainTextContent;
+    /** The first page referred to. */
+    public int minPage;
+    
+    /** The last page referred to. */
+    public int maxPage;
+
+    /** ? */
+    public Range proportion;
+
+    /** Plain text content of the focussed on area. */
+    public String plainTextContent;
 }

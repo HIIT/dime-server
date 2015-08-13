@@ -24,12 +24,11 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
-
 import java.util.Date;
 
-//------------------------------------------------------------------------------
-
+/**
+   Abstract class for all events.
+*/
 public abstract class Event extends DiMeData {
     /** The program that produced the event, e.g. "Firefox".
      */
