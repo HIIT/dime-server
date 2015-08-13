@@ -69,13 +69,15 @@ def read_user_ini():
 
 #Check whether to update data files
 def check_update():
+
+	#
 	srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
+
 	#Get current path
 	cpath  = os.getcwd()
 	cpathd = cpath + '/' + 'data'
-	#print 'check_update: ', os.getcwd()
-	#Check whether 
-
+	
+	#
 	if os.path.exists(cpathd):
 		print 'Search thread: check_update: data/ folder EXISTS!'
 		os.chdir(cpathd)
@@ -148,7 +150,7 @@ def update_data(srvurl, username, password):
 	r = requests.get(server_url + '/data/informationelement',
 	                 headers={'content-type': 'application/json'},
 	                 auth=(server_username, server_password),
-	                 timeout=10)
+	                 timeout=20)
 	 
 	dumdata = r.json()
 	#

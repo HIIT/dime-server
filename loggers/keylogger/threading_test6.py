@@ -198,6 +198,7 @@ class MyApp(QtGui.QWidget):
  def choose_search_function1(self):
   #if searchfuncid == 0:
     print 'Main: Search function is DocSim'
+    check_update()
     self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 0)
   # elif searchfuncid == 1:
   #   print 'Main: Search function is LinRel'
@@ -205,6 +206,7 @@ class MyApp(QtGui.QWidget):
  def choose_search_function2(self):
   #if searchfuncid == 0:
     print 'Main: Search function is LinRel'
+    check_update()
     self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 1)
   #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
@@ -212,6 +214,7 @@ class MyApp(QtGui.QWidget):
  def choose_search_function3(self):
   #if searchfuncid == 0:
     print 'Main: Search function is LinRel'
+    check_update()
     self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 2)
   #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
@@ -219,6 +222,7 @@ class MyApp(QtGui.QWidget):
  def choose_search_function4(self):
   #if searchfuncid == 0:
     print 'Main: Search function is LinRel'
+    check_update()
     self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 3)
   #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
@@ -269,27 +273,6 @@ class MyApp(QtGui.QWidget):
     j = 0
     k = 0
 
-    # if len(urlstrs) > 0:
-    # if type(urlstrs) is types.ListType:
-    #   #
-    #   if type(urlstrs[0]) is types.UnicodeType and  :
-    #     print 'Main: update_links: got a list of keywords!!!'
-    #     keywordstr = 'Suggested keywords: '
-    #     print 'Main suggested keywords: ', urlstrs
-    #     ncols = self.hlayout3.count()
-    #     print 'Num of widgets ', ncols
-    #     #Remove old buttons
-    #     if len(self.buttonlist) > 0:
-    #       for i in range( len(urlstrs) ):
-    #                       #keywordstr = keywordstr + urlstrs[i] + ', ' 
-    #                       #self.hlayout2.removeWidget(self.buttonlist[i])                  
-    #                       #self.hlayout3.itemAt(i).widget().setParent(None) 
-    #                       #self.hlayout3.itemAt(i).setParent(None)
-    #                       if i < ncols:
-    #                         self.buttonlist[i].setText(str(urlstrs[i]))
-    #                         self.buttonlist[i].show()
-    #     #print urlstrs
-    #     return
     if type(urlstrs) is types.ListType:
       if len(urlstrs) > 0:
         if type(urlstrs[0]) is types.DictType:
@@ -536,7 +519,7 @@ class SearchThread(QtCore.QThread):
     #Update LinRel data files
     print 'Search thread: Updating Linrel data files!!!'
     print 'Search thread: path: ', os.getcwd()
-    check_update()
+    #check_update()
 
  def get_new_word(self, newquery):
   #newquer is a QString, so it has to be changed to a unicode string
