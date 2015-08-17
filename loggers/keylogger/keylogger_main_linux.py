@@ -69,8 +69,6 @@ class MyApp(QtGui.QWidget):
   self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
   self.connect(self, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word_from_main_thread)
 
-
-
   #Create visible stuff
   val = 5
   iconfile = 'web.png'
@@ -89,15 +87,23 @@ class MyApp(QtGui.QWidget):
   #Buttons
   #Start button
   self.testButton  = QtGui.QPushButton("Start")
-  self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
+  #self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
+  self.connect(self.testButton, QtCore.SIGNAL("released()"), self.start_keylogger)
 
   #
   self.stopButton  = QtGui.QPushButton("Stop")
   self.connect(self.stopButton, QtCore.SIGNAL("released()"), self.stop_keylogger)
 
+  #
+  self.testButton.setDisabled(True)
+  self.stopButton.setDisabled(False)   
+  self.LoggerThreadObj.start()
+  self.SearchThreadObj.start()
+
   #Slider for exploitation/exploration slider
   self.eeslider    = QtGui.QSlider(Qt.Horizontal)
-  self.eeslider.setRange(0,1000)
+  self.eeslider.setRange(0,500)
+  self.eeslider.setTickInterval(500)
   #self.eeslider.setFocusPolicy(QtCore.Qt.NoFocus)
   #self.connect(self.eeslider, QtCore.SIGNAL("valueChanged(int)"),self.change_c)
   self.connect(self.eeslider, QtCore.SIGNAL("valueChanged(int)"),self.SearchThreadObj.recompute_keywords)
@@ -208,7 +214,8 @@ class MyApp(QtGui.QWidget):
  #Runs the Keylogger and Search 
  def test_pressed(self):
   print 'Main: Test'
-  #self.testButton.setDisabled(True)
+  self.testButton.setDisabled(True)
+  self.stopButton.setDisabled(False)  
   #self.listwidget.clear()
 
   #Start thread processes
@@ -217,15 +224,21 @@ class MyApp(QtGui.QWidget):
   self.SearchThreadObj.start()
  
  def stop_keylogger(self):
-    print 'Exit logger!'
-    self.LoggerThreadObj.exit()
+    print 'Stop logger!'
+    self.stopButton.setDisabled(True)
+    self.testButton.setDisabled(False)
+    self.LoggerThreadObj.stop_logger_loop()
+
+ def start_keylogger(self):
+    print 'Start logger!'
+    self.stopButton.setDisabled(False)
+    self.testButton.setDisabled(True)
+    self.LoggerThreadObj.start_logger_loop()    
+    self.LoggerThreadObj.start()
 
  def change_c(self,value):
     print 'Value: ', value
     #self.emit(QtCore.SIGNAL(''))
-
- def start_keylogger(self):
-    self.LoggerThreadObj.stop()
 
  def emit_search_command(self):
   #if searchfuncid == 0:
@@ -464,7 +477,7 @@ class MyApp(QtGui.QWidget):
     buttext = self.buttonlist[i].text()
     #print buttext
     if buttext in test_wordlist:
-      print 'True!!'
+      #print 'True!!'
       # buttextcol    = QtGui.QColor('red')
       # butbackgrdcol = QtGui.QColor('red')
       # redpalette = QtGui.QPalette(buttextcol, butbackgrdcol)
@@ -629,7 +642,7 @@ class SearchThread(QtCore.QThread):
     if self.query is not None and self.query != self.oldquery:
       #self.query = unicode(self.query, 'utf-8')
       dstr = self.query
-      #dstr = unicode(dstr, 'utf-8')
+      #dstr = unicode(dstr, 'utf-8') films 
       print 'Search thread:', dstr 
 
 
@@ -678,8 +691,15 @@ class LoggerThread(QtCore.QThread):
 
   def __init__(self):
     QtCore.QThread.__init__(self)
+    self.var = True
 
-  #Keylogger
+  def start_logger_loop(self):
+    self.var = True
+
+  def stop_logger_loop(self):
+    self.var = False
+
+  #Keylogger 
   def run(self):
         print 'Logger thread: Run Run'
         #Read user.ini
@@ -705,7 +725,7 @@ class LoggerThread(QtCore.QThread):
 
         print "Logger thread: Ready for logging"
 
-        while True:
+        while self.var:
 
           sleep(0.005)
           changed, modifiers, keys = fetch_keys()
