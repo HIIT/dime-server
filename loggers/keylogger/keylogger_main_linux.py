@@ -391,16 +391,16 @@ class MyApp(QtGui.QWidget):
                                           j = j + 1
                                       elif storedasl in ["MailboxDataObject"]:
                                           #print 'Main: mail ', storedasl
-
+                                          subj = self.unicode_to_str(urlstrs[ijson]["subject"])
                                           #Create link to DiMe server
                                           dumlink = self.srvurl.split('/')[2]
                                           linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
                                           #print 'Main: linkstr ', linkstr
-                                          visiblestr = linkstrshort + '  ' + datestr
+                                          visiblestr = subj + '  ' + datestr
                                           self.listWidget2.item(k).setText(visiblestr) 
                                           self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
                                           self.listWidget2.item(k).setToolTip(tooltipstr)
-                                          self.listWidget2.item(j).setHidden(False)
+                                          self.listWidget2.item(k).setHidden(False)
                                           #self.labellist3[j].setAlignment(Qt.AlignLeft)
 
                                           k = k + 1                                  
@@ -470,6 +470,8 @@ class MyApp(QtGui.QWidget):
 
 
  def color_kwbuttons(self):
+  if not self.is_non_zero_file('data/test_wordlist.list'):
+   return
   f = open('data/test_wordlist.list','r')
   test_wordlist = pickle.load(f)
   print test_wordlist
@@ -487,7 +489,9 @@ class MyApp(QtGui.QWidget):
       self.buttonlist[i].setStyleSheet("background-color: white")
   #for i in range(len(self.keywords))
 
- #
+ def is_non_zero_file(self, fpath):
+  return True if os.path.isfile(fpath) and os.path.getsize(fpath) > 0 else False
+
  def read_user_ini(self):
 
     f          = open('user.ini','r')
@@ -521,7 +525,8 @@ class MyApp(QtGui.QWidget):
  def unicode_to_str(self, ustr):
     """Converts unicode strings to 8-bit strings."""
     try:
-        return ustr.encode('utf-8')
+        str = ustr.encode('utf-8')
+        return ''.join([c for c in str if ord(c) > 31])
     except UnicodeEncodeError:
         print "Main: UnicodeEncodeError"
     return ""
@@ -818,13 +823,13 @@ def read_user_ini():
 
     return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
-def unicode_to_str(ustr):
-  """Converts unicode strings to 8-bit strings."""
-  try:
-      return ustr.encode('utf-8')
-  except UnicodeEncodeError:
-      print "Main: UnicodeEncodeError"
-  return ""
+#def unicode_to_str(ustr):
+#  """Converts unicode strings to 8-bit strings."""
+#  try:
+#      return ustr.encode('utf-8')
+#  except UnicodeEncodeError:
+#      print "Main: UnicodeEncodeError"
+#  return ""
 
 
 # run
