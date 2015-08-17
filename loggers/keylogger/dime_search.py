@@ -142,9 +142,9 @@ def search_dime_docsim(query):
         f = open('data/docindlist.list','r')
         docinds = pickle.load(f)
     else:
-        os.chdir(cpathd)
+        #os.chdir(cpathd)
         update_Xt_and_docindlist([0])
-        os.chdir('../')
+        #os.chdir('../')
         f = open('data/docindlist.list','r')
         docinds = pickle.load(f)
 
@@ -364,9 +364,9 @@ def search_dime_linrel_summing_previous_estimates(query):
         #docinds.sort()
         cpath = os.getcwd()
         cpath = cpath + '/' + 'data'
-        os.chdir(cpath)
+        #os.chdir(cpath)
         update_Xt_and_docindlist(docinds)
-        os.chdir('../')
+        #os.chdir('../')
         y = compute_relevance_scores(docinds, test_vec)
     else:        
         #docinds.sort()
@@ -403,18 +403,18 @@ def search_dime_linrel_summing_previous_estimates(query):
         if y_hat_sum > 0:
             y_hat = y_hat/y_hat_sum
         #
-        os.chdir(cpath)
+        #os.chdir(cpath)
         np.save(cpath + '/y_hat_prev.npy', y_hat)
-        os.chdir('../')
+        #os.chdir('../')
     else:
         #Normalize y_hat
         y_hat_sum = y_hat.sum()
         if y_hat_sum > 0:
             y_hat = y_hat/y_hat_sum        
         print "Search thread: Saving y_hat first time"
-        os.chdir(cpath)
+        #os.chdir(cpath)
         np.save(cpath + '/y_hat_prev.npy', y_hat)
-        os.chdir('../')        
+        #os.chdir('../')        
         #np.save(cpathd + '/y_hat_prev.npy', y_hat)
 
     #
@@ -465,14 +465,14 @@ def search_dime_linrel_summing_previous_estimates(query):
 
     docinds.sort()
     cpath = os.getcwd()
-    os.chdir(cpath + '/data')
+    #os.chdir(cpath + '/data')
     update_Xt_and_docindlist(docinds)
-    os.chdir('../')
+    #os.chdir('../')
 
     return jsons[-20:], kws
 
 
-def search_dime_linrel_keyword_search(query):
+def search_dime_linrel_keyword_search(query,c):
 
     #Get current path
     cpath  = os.getcwd()
@@ -516,12 +516,27 @@ def search_dime_linrel_keyword_search(query):
         else:
             test_wordlist[nword] = ' '
     print "Search thread: Closest dictionary words: ", test_wordlist
+    f = open('data/test_wordlist.list','w')
+    pickle.dump(test_wordlist,f)
 
     #Make bag of word vector of the input string taken from keyboard
     test_vec = dictionary.doc2bow(test_wordlist)
     #
     #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
-    kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords)
+    winds, kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c)
+    kws_vec = dictionary.doc2bow(kws)
+    #print test_vec
+    #print kws_vec
+    # kws_vec   = twotuplelist2fulllist(kws_vec, nwords)
+    # kws_vec[np.where(kws_vec)]     = 1.0
+    # test_vec2 = twotuplelist2fulllist(test_vec,nwords)
+    # test_vec2[np.where(test_vec2)] = 1.0
+    # dvec      = test_vec2 + kws_vec
+    # simwinds  = np.where(dvec == 2)
+    # print simwinds[0]
+    #np.save('data/simwinds.npy',simwinds[0])
+
+
     #make string of keywords 
     kwsstr = ''
     for i in range(len(kws)):
@@ -530,7 +545,8 @@ def search_dime_linrel_keyword_search(query):
     
     #Make
     if len(kws) > 0:
-        jsons, docinds = search_dime_docsim(kwsstr)
+        #jsons, docinds = search_dime_docsim(kwsstr)
+        jsons, docinds = search_dime_docsim(query)
     else:
         #print 'QUERY: ', query
         jsons, docinds = search_dime_docsim(query)
@@ -539,9 +555,9 @@ def search_dime_linrel_keyword_search(query):
     #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
     docinds.sort()
     cpath = os.getcwd()
-    os.chdir(cpath + '/data')
+    #os.chdir(cpath + '/data')
     update_Xt_and_docindlist(docinds)
-    os.chdir('../')
+    #os.chdir('../')
 
     return jsons, kws
 
@@ -565,7 +581,7 @@ def twotuplelist2fulllist(tuplelist, nfeatures):
     return vec
 
 
-def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords):
+def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c):
 
     test_vec_full = twotuplelist2fulllist(test_vec, nwords)
     print 'test_vec_full: ', test_vec_full.shape
@@ -576,10 +592,11 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
     #
     if os.path.isfile('data/r_old.npy'):
         r             = np.zeros([test_vec_full.shape[0],1])
-        r_old         = np.load('data/r_old.npy')
+        r_old         = np.load('data/r_old.npy')             
+        oldwinds      = np.where(r_old)
+        r[oldwinds]   = 1.0
         r             = r + r_old
         r[winds]      = 1.0
-        print 'r: ', r[np.where(r)[0],:]
         np.save('data/r_old.npy',r)
 
         #winds         = np.where(r)[0]
@@ -588,6 +605,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
                 r[i] = 1.0/r[i]
 
         print r.shape
+        print 'r: ', r[np.where(r)[0],:]
     else:
         r             = np.zeros([test_vec_full.shape[0],1])
         r[winds]      = 1.0
@@ -597,7 +615,13 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates2(winds, r)
     #Regularization paramter
     mu = 1.5
+    set(winds)
+    #print r[winds], r[oldwinds]
     r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates(r, mu)
+    #Save current r_hat and sigma_hat
+    np.save('data/r_hat.npy',r_hat)
+    np.save('data/sigma_hat.npy',sigma_hat)
+
     #Normalize
     if r_hat.max() > 0.0:
         r_hat     = r_hat/r_hat.max()
@@ -606,7 +630,8 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
 
     print sigma_hat.shape, sigma_hat.max()
     #Exploitation/Exploration coefficient
-    c = 1000.0
+    #c = 1000.0
+    print 'Search thread: value of c is:', c
     vsum     = r_hat + c*sigma_hat
     print vsum.shape
     #r_hat = return_keyword_relevance_estimates(docinds, r)
@@ -649,10 +674,64 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
             #kws.append(dictionary.get(kwinds[i]))
 
 
-        return kws
+        return vsinds, kws
     else:
-        return []
+        return [], []
 
+
+def recompute_keywords(c):
+    #Import dictionary
+    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
+    #
+    r_hat     = np.load('data/r_hat.npy')
+    sigma_hat = np.load('data/sigma_hat.npy')
+
+    #Normalize
+    if r_hat.max() > 0.0:
+        r_hat     = r_hat/r_hat.max()
+    if sigma_hat.max() > 0.0:
+        sigma_hat = sigma_hat/sigma_hat.max()
+
+    #print 'Search thread: value of c is:', c
+    vsum     = r_hat + c*sigma_hat
+    #print vsum.shape
+    #r_hat = return_keyword_relevance_estimates(docinds, r)
+    vsinds= np.argsort(vsum[:,0])
+    kwinds= np.argsort(r_hat[:,0])
+
+    if r_hat.max() > 0.0:
+        kwinds = kwinds[-20:]
+        vsinds = vsinds[-20:]
+        #Make reverse list object
+        kwindsrev = reversed(kwinds)
+        #Reverse
+        kwindsd = []
+        for i in kwindsrev:
+            kwindsd.append(i)
+        #
+        kwinds = kwindsd
+        #Initialize list of keywords
+        kws = []
+        #print 'Indices of estimated keywords: ', kwinds
+        #kwinds= docinds.tolist()
+        for i in range(len(kwinds)):
+            #print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
+            kws.append(dictionary.get(kwinds[i]))
+
+
+        #Make reverse list object
+        vsindsrev = reversed(vsinds)
+        #Reverse
+        vsinds = []
+        for i in vsindsrev:
+            vsinds.append(i)
+        kws = []
+        for i in range(len(vsinds)):
+            #print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
+            kws.append(dictionary.get(vsinds[i]))
+            #kws.append(dictionary.get(kwinds[i]))
+    return kws
 
 def return_keyword_relevance_and_variance_estimates(y, mu):
 
@@ -691,7 +770,7 @@ def return_keyword_relevance_and_variance_estimates(y, mu):
     print sdumA.shape
 
     #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
-    n=math.floor(0.95*sdumA.shape[0])
+    n=math.floor(0.99*sdumA.shape[0])
     m=int(sdumA.shape[0]-n)
     print 'm ', m
     Dvec, Q = sparse.linalg.eigsh(sdumA,k=m)
@@ -1003,9 +1082,9 @@ def search_dime_linrel_without_summing_previous_estimates(query):
         #docinds.sort()
         cpath = os.getcwd()
         cpath = cpath + '/' + 'data'
-        os.chdir(cpath)
+        #os.chdir(cpath)
         update_Xt_and_docindlist(docinds)
-        os.chdir('../')
+        #os.chdir('../')
         y = compute_relevance_scores(docinds, test_vec)
     else:        
         #docinds.sort()
@@ -1042,18 +1121,18 @@ def search_dime_linrel_without_summing_previous_estimates(query):
         if y_hat_sum > 0:
             y_hat = y_hat/y_hat_sum
         #
-        os.chdir(cpath)
+        #os.chdir(cpath)
         np.save(cpath + '/y_hat_prev.npy', y_hat)
-        os.chdir('../')
+        #os.chdir('../')
     else:
         #Normalize y_hat
         y_hat_sum = y_hat.sum()
         if y_hat_sum > 0:
             y_hat = y_hat/y_hat_sum        
         print "Search thread: Saving y_hat first time"
-        os.chdir(cpath)
+        #os.chdir(cpath)
         np.save(cpath + '/y_hat_prev.npy', y_hat)
-        os.chdir('../')        
+        #os.chdir('../')        
         #np.save(cpathd + '/y_hat_prev.npy', y_hat)
 
     #
@@ -1104,8 +1183,8 @@ def search_dime_linrel_without_summing_previous_estimates(query):
 
     docinds.sort()
     cpath = os.getcwd()
-    os.chdir(cpath + '/data')
+    #os.chdir(cpath + '/data')
     update_Xt_and_docindlist(docinds)
-    os.chdir('../')
+    #os.chdir('../')
 
     return jsons[-20:]
