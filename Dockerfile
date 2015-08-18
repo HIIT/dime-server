@@ -14,6 +14,8 @@ ENV DIME_VERSION 0.1.0
 RUN mkdir -p ${DIME_DIR}
 ADD build/libs/dime-server-${DIME_VERSION}.jar ${DIME_JAR}
 
+VOLUME ["/var/lib/mongodb"]
+
 # Run on port 8080
 EXPOSE 8080
 CMD service mongodb start && java -jar ${DIME_JAR}
