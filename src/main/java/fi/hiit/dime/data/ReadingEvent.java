@@ -21,8 +21,9 @@
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
-import java.util.List
 package fi.hiit.dime.data;
+
+import java.util.List;
 
 /**
    A detailed reading event.
