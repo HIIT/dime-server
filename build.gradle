@@ -35,6 +35,10 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.11'
 }
 
+task buildDocker(dependsOn: jar, type: Exec) {
+    commandLine 'docker', 'build', '-t', 'dime-server', '.'
+}
+
 allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
