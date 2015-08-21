@@ -4,6 +4,11 @@ The DiMe server can run in your local machine or in a server. Its task
 is to collect your personal data from different loggers into a central
 place that you control.
 
+You can install DiMe directly on your machine (instructions below), or
+[use Docker virtualisation](https://github.com/HIIT/dime-server/wiki/Docker).
+Docker support is still very experimental, but might be easier if you
+don't intend to develop much on DiMe.
+
 ## Server installation
 
 ### Requirements
@@ -49,18 +54,14 @@ Clone the git repository, e.g.:
 
     git clone https://github.com/HIIT/dime-server.git
 
-To compile on Linux or OS X, run:
+To compile run:
 
-    make
+    ./gradlew build
 
-The `Makefile` is just a wrapper around `gradle` which does all the
-work. 
+(In Linux and Mac you can also use `make`, which is just a wrapper
+around gradle.)
 
-On Windows, use:
-
-    gradlew build
-
-On the first compilation, `gradle` will download any Java dependencies 
+On the first compilation, gradle will download any Java dependencies
 automatically. Hence it may take a bit longer the first time.
 
 ### Configure
@@ -74,18 +75,14 @@ edit the file `config/application.properties` and modify the
 
 ### Run
 
-To run the server on Linux or OS X, issue the command:
+To run the server issue the command:
 
-    make run
+    ./gradlew run
 
-This will also re-compile if the source code has changed since last
-compilation. 
+(Or `make run` if you prefer on Linux/Mac.)
 
-On Windows, use:
-
-    gradlew run
-
-The DiMe server will automatically use a database named "dime" in the mongodb server. 
+The DiMe server will automatically use a database named "dime" in the
+mongodb server.
 
 Now you can access the DiMe dashboard by going to the address
 <http://localhost:8080> (if you are using the default port).

@@ -21,26 +21,33 @@
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
-
 package fi.hiit.dime.data;
+
+import java.util.List;
 
 /**
    A detailed reading event.
+   Also see https://github.com/HIIT/PeyeDF/wiki/Data-Format/.
 */
 public class ReadingEvent extends DesktopEvent {
     /** Boolean indicating if the event refers to multiple pages.
     */
     public Boolean multiPage;
 
-    /** The first page referred to. */
-    public int minPage;
+    /** A vector representing the page numbers currently being displayed (starting from 0). */
+    public int[] visiblePages;
     
-    /** The last page referred to. */
-    public int maxPage;
+    /** A list of rectangles representing where the viewport is placed for each page. 
+     * All the rects should fit within the page. Rect dimensions refer to points in a 72 dpi space where the bottom left is the origin,
+     * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points. */
+    public List<Rect> pageRects;
 
-    /** ? */
+    /** The proportion of the document currently being displayed on screen.
+     For example, 0.25, 0.50 means that we are seeing from the first quarter until half the document (if a document has 4 pages then it means we are
+     seeing page 2) although numbers wouldn't generally be so nicely rounded. 
+     */
     public Range proportion;
 
-    /** Plain text content of the focussed on area. */
+    /** Plain text content of text currently displayed on screen. */
     public String plainTextContent;
 }

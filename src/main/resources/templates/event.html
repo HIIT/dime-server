@@ -19,9 +19,9 @@
 	      <b>Query:</b> <span th:text="${event.query}"></span><br/><br/>
 	    </span>
 
-	    <div th:if="${event.targettedResource}">
+	    <span th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
 	      <p th:replace="infoelem :: infoelemview (${event.targettedResource})"></p>
-	    </div>
+	    </span>
 	  </p>
       </div>
     </div>
