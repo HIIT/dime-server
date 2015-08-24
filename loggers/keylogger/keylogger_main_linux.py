@@ -642,7 +642,7 @@ class SearchThread(QtCore.QThread):
       jsons, docinds = search_dime_docsim(dstr)      
       self.extrasearch = False    
 
-    sleep(0.3) # artificial time delay
+    #print "Query:", self.query, "Oldquery:", self.oldquery
 
     if self.query is not None and self.query != self.oldquery:
       #self.query = unicode(self.query, 'utf-8')
@@ -672,7 +672,6 @@ class SearchThread(QtCore.QThread):
           #Return keyword list
           self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)      
         print 'Search thread: Ready for new search!'         
-        
 
       #print 'Search thread: len jsons ', len(jsons)
       if len(jsons) > 0:
@@ -688,8 +687,10 @@ class SearchThread(QtCore.QThread):
        f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
        f.close()
 
-    self.oldquery = self.query
+      self.oldquery = dstr
 
+    else:
+     sleep(0.3) # artificial time delay    
 
 #
 class LoggerThread(QtCore.QThread):
