@@ -707,94 +707,102 @@ class LoggerThread(QtCore.QThread):
 
   #Keylogger 
   def run(self):
-        print 'Logger thread: Run Run'
-        #Read user.ini
-        srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
-        settingsl = [srvurl, username, password, time_interval, nspaces, nwords, updateinterval]
+    print 'Logger thread: Run Run'
 
-        #Number 
-        numoftopics = 10
+    #Read user.ini
+    srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
+    settingsl = [srvurl, username, password, time_interval, nspaces, nwords, updateinterval]
 
-        #List of urls
-        urlstr = []
+    #Number 
+    numoftopics = 10
 
-        #global urlstr
-        global var
+    #List of urls
+    urlstr = []
 
-        countspaces = 0
-        sleep_interval = 0.005
+    #global urlstr
+    global var
 
-        #starttime = datetime.datetime.now().time().second
-        now = time()
-        dumstr = ''
-        wordlist = []
+    countspaces = 0
+    sleep_interval = 0.005
+    nokeypress_interval = 4.0
 
-        print "Logger thread: Ready for logging"
+    #starttime = datetime.datetime.now().time().second
+    now = time()
+    dumstr = ''
+    wordlist = []
+    
+    string_to_send = None
+    timestamp = now
 
-        while self.var:
+    print "Logger thread: Ready for logging"
 
-          sleep(0.005)
-          changed, modifiers, keys = fetch_keys()
+    while self.var:
 
-          #print modifiers
-          #print changed, modifiers, keys
-          keys  = str(keys)
-          
+      sleep(sleep_interval)
+      changed, modifiers, keys = fetch_keys()
 
-          #Take care that ctrl is not pressed at the same time
-          if not (modifiers['left ctrl'] or modifiers['right ctrl']):
-            #Take current time
+      #print modifiers
+      #print changed, modifiers, keys
+      keys  = str(keys)
+      
+      #Take care that ctrl is not pressed at the same time
+      if not (modifiers['left ctrl'] or modifiers['right ctrl']):
+        #Take current time
+        cdate = datetime.datetime.now().date()
+        ctime = datetime.datetime.now().time()
+
+        cmachtime = time()
+        var2 = cmachtime > now + float(time_interval)
+        var3 = cmachtime > now + float(updateinterval)
+
+        if keys == 'None':
+          keys = ''
+          if cmachtime > timestamp + nokeypress_interval and string_to_send is not None:
+            self.emit( QtCore.SIGNAL('update(QString)'), string_to_send)
+            string_to_send = None
+
+        else:
+          timestamp = time()
+                                  
+          if keys == '<backspace>':
+            keys = ''
+            #Convert current string into list of characters
+            duml = list(dumstr)
+            if len(duml) > 0:
+              #Delete the last character from the string list
+              del( duml[len(duml)-1] )
+              #Convert back to string
+              dumstr = "".join(duml)
+
+          elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
+            print 'Logger thread: keys: ', keys
+            print 'Logger thread: changed: ', changed[0]
+            #keys = ' '
+            wordlist.append(dumstr)
+            #print wordlist
+            print 'Logger thread: wordlist:', wordlist[-nwords:]
+            dwordlist = wordlist[-nwords:]
+            #dumstr = dumstr + keys
+            countspaces = countspaces + 1
+            dumstr = ''
+            dumstr2 = ''
+            for i in range( len(dwordlist) ):
+              dumstr2 = dumstr2 + dwordlist[i] + ' '
+
+            #Print the typed words to a file 'typedwords.txt'
+            f = open('typedwords.txt', 'a')
+            f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr2 + '\n')
+
+            string_to_send = dumstr2
+
+            if var2:
+              #Empty the dumstr2 after time_interval period of time
+              dumstr2 = ''
+
+          else:
             cdate = datetime.datetime.now().date()
             ctime = datetime.datetime.now().time()
-
-            cmachtime = time()
-            var2 = cmachtime > now + float(time_interval)
-            var3 = cmachtime > now + float(updateinterval)
-
-            if keys == 'None':
-                    keys = ''
-
-            elif keys == '<backspace>':
-                    keys = ''
-                    #Convert current string into list of characters
-                    duml = list(dumstr)
-                    if len(duml) > 0:
-                            #Delete the last character from the string list
-                            del( duml[len(duml)-1] )
-                            #Convert back to string
-                            dumstr = "".join(duml)
-
-            elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
-                    print 'Logger thread: keys: ', keys
-                    print 'Logger thread: changed: ', changed[0]
-                    #keys = ' '
-                    wordlist.append(dumstr)
-                    #print wordlist
-                    print 'Logger thread: wordlist:', wordlist[-nwords:]
-                    dwordlist = wordlist[-nwords:]
-                    #dumstr = dumstr + keys
-                    countspaces = countspaces + 1
-                    dumstr = ''
-                    dumstr2 = ''
-                    for i in range( len(dwordlist) ):
-                        dumstr2 = dumstr2 + dwordlist[i] + ' '
-
-                    #Print the typed words to a file 'typedwords.txt'
-                    f = open('typedwords.txt', 'a')
-                    f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr2 + '\n')
-
-                    #Emit the typed words to a search thread
-                    self.emit( QtCore.SIGNAL('update(QString)'), dumstr2)
-
-                    if var2:
-                      #Empty the dumstr2 after time_interval period of time
-                      dumstr2 = ''
-
-            else:
-                    cdate = datetime.datetime.now().date()
-                    ctime = datetime.datetime.now().time()
-                    dumstr = dumstr + keys
-
+            dumstr = dumstr + keys            
 
 def read_user_ini():
 
