@@ -39,19 +39,43 @@ import math
 #For checking data types
 import types
 
+
+#Animation for processing
+from waiting_indicator import *
+from simple_animation import *
+
 ################################################################
 
 # linux only!
 assert("linux" in sys.platform)
 
 class MyApp(QtGui.QWidget):
+#class MyApp(QMainWindow):
  def __init__(self, parent=None):
   QtGui.QWidget.__init__(self, parent)
+  #QMainWindow.__init__(self, parent)
+  #widget = QWidget(self)
+  #self.setCentralWidget(widget)
 
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval = self.read_user_ini()
   self.data = []
   self.keywords = ''
+
+  #Animation objects
+  self.anim1 = MyView()
+  self.anim1.scale(0.3,0.3)
+  self.anim1.setStyleSheet("border: 0px; background-color: transparent")
+  self.anim1.show()
+  
+  # self.anim1 = Overlay(self)
+  # #self.anim1.scale(0.5,0.5)
+  # self.anim1.setStyleSheet("border: 0px; background-color: transparent")
+  # self.anim1.hide()
+
+  #self.testButton.clicked.connect(self.anim1.tl.start)
+  #self.overlay.resize(event.size())
+
 
   #Create  thread objects
   self.LoggerThreadObj  = LoggerThread()
@@ -59,11 +83,15 @@ class MyApp(QtGui.QWidget):
 
   #Data connection from logger thread to search thread
   self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
+  self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
+  self.connect(self, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
+
   #self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links_and_kwbuttons)
 
   #Data connections from search thread to main thread
   self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_data_from_search_thread_and_update_visible_stuff)
   self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_keywords_from_search_thread_and_update_visible_stuff)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.anim1.tl.stop)
 
   #Data connections from main thread to search thread
   self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
@@ -78,7 +106,7 @@ class MyApp(QtGui.QWidget):
   iconfile = 'mail.png'
   self.gbtitle2 = QtGui.QLabel('E-Mails')
   self.listWidget2 = self.create_QListWidget(20, iconfile)
-
+  #
   iconfile = 'doc.png'
   self.gbtitle3 = QtGui.QLabel('Docs')
   self.listWidget3 = self.create_QListWidget(20, iconfile)
@@ -89,10 +117,13 @@ class MyApp(QtGui.QWidget):
   self.testButton  = QtGui.QPushButton("Start")
   #self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
   self.connect(self.testButton, QtCore.SIGNAL("released()"), self.start_keylogger)
-
   #
   self.stopButton  = QtGui.QPushButton("Stop")
   self.connect(self.stopButton, QtCore.SIGNAL("released()"), self.stop_keylogger)
+
+
+
+
 
   #
   self.testButton.setDisabled(True)
@@ -127,6 +158,11 @@ class MyApp(QtGui.QWidget):
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton4, QtCore.SIGNAL("released()"), self.choose_search_function4)  
 
+  #Connect animation to logger thread and search thread
+  # self.testButton.clicked.connect(self.anim1.tl.start)
+  # self.stopButton.clicked.connect(self.anim1.tl.stop)
+
+
   #
   self.buttonlist = []
 
@@ -149,6 +185,7 @@ class MyApp(QtGui.QWidget):
   self.subhlayout= QtGui.QHBoxLayout()
   self.subhlayout.addWidget(self.testButton)
   self.subhlayout.addWidget(self.stopButton)
+  self.subhlayout.addWidget(self.anim1)
   self.vlayout4.addLayout(self.subhlayout)
 
   self.subhlayout2= QtGui.QHBoxLayout()
@@ -162,6 +199,7 @@ class MyApp(QtGui.QWidget):
   self.vlayout5.addWidget(self.radiobutton2)
   #self.vlayout5.addWidget(self.radiobutton3)
   self.vlayout5.addWidget(self.radiobutton4)
+
   #Groupbox for radiobuttons
   self.mygroupbox = QtGui.QGroupBox('Search Method')
   self.mygroupbox.setLayout(self.vlayout5)
@@ -210,6 +248,10 @@ class MyApp(QtGui.QWidget):
 
   #
   self.setWindowTitle("ProActive Search") 
+
+
+
+
 
  #Runs the Keylogger and Search 
  def test_pressed(self):
