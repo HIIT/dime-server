@@ -41,7 +41,6 @@ import types
 
 
 #Animation for processing
-#from waiting_indicator import *
 from simple_animation import *
 
 ################################################################
