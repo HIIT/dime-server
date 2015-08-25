@@ -41,7 +41,7 @@ import types
 
 
 #Animation for processing
-from waiting_indicator import *
+#from waiting_indicator import *
 from simple_animation import *
 
 ################################################################
@@ -89,9 +89,11 @@ class MyApp(QtGui.QWidget):
   #self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links_and_kwbuttons)
 
   #Data connections from search thread to main thread
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_data_from_search_thread_and_update_visible_stuff)
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.get_keywords_from_search_thread_and_update_visible_stuff)
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.anim1.tl.stop)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("send_links(PyQt_PyObject)"),
+               self.get_data_from_search_thread_and_update_visible_stuff)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("send_keywords(PyQt_PyObject)"),
+               self.get_keywords_from_search_thread_and_update_visible_stuff)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("all_done()"), self.anim1.tl.stop)
 
   #Data connections from main thread to search thread
   self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
@@ -702,7 +704,7 @@ class SearchThread(QtCore.QThread):
         print 'Search thread: Ready for new search!'
         if len(jsons) > 0:
           #Return keyword list
-          self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
+          self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
       elif self.searchfuncid == 2:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
         jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
@@ -712,7 +714,7 @@ class SearchThread(QtCore.QThread):
         jsons, kws = search_dime_linrel_keyword_search(dstr,self.c)   
         if len(jsons) > 0:
           #Return keyword list
-          self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)      
+          self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
         print 'Search thread: Ready for new search!'         
 
       #print 'Search thread: len jsons ', len(jsons)
@@ -720,7 +722,7 @@ class SearchThread(QtCore.QThread):
        #Return keyword list
        #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
        #Return jsons
-       self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), jsons)
+       self.emit( QtCore.SIGNAL('send_links(PyQt_PyObject)'), jsons)
 
        #Write first url's appearing in jsons list to a 'suggested_pages.txt'
        cdate = datetime.datetime.now().date()
@@ -730,6 +732,7 @@ class SearchThread(QtCore.QThread):
        f.close()
 
       self.oldquery = dstr
+      self.emit(QtCore.SIGNAL('all_done()'))
 
     else:
      sleep(0.3) # artificial time delay    
