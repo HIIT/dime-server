@@ -452,8 +452,8 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
     vsum     = r_hat + c*sigma_hat
     print vsum.shape
     #r_hat = return_keyword_relevance_estimates(docinds, r)
-    vsinds= np.argsort(vsum[:,0])
-    kwinds= np.argsort(r_hat[:,0])
+    vsinds = np.argsort(vsum[:,0])
+    kwinds = np.argsort(r_hat[:,0])
     #kwinds= np.argsort(r_hat)
     #print 'Estimated Keyword weights: ', r_hat
     print 'Search thread: Max(r_hat): ', r_hat.max(), ' argmax(r_hat):', r_hat.argmax()
@@ -820,6 +820,7 @@ def return_keyword_relevance_and_variance_estimates_scinet_fast(y, mu):
 
     return y_hat, sigma_hat
 
+
 def return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(y, mu):
 
     #Parameters
@@ -832,7 +833,6 @@ def return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(y, mu):
     sX = sX.transpose()
     sX = sX.tocsr()
     #X  = sX.toarray()
-
 
     #Take non-zeros from y
     inds = np.where(y)[0]
@@ -903,6 +903,7 @@ def return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(y, mu):
 
 
 def recompute_keywords(c):
+    print 'c', c
     #Import dictionary
     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 

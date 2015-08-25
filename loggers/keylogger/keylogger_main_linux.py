@@ -134,8 +134,8 @@ class MyApp(QtGui.QWidget):
 
   #Slider for exploitation/exploration slider
   self.eeslider    = QtGui.QSlider(Qt.Horizontal)
-  self.eeslider.setRange(0,500)
-  self.eeslider.setTickInterval(500)
+  self.eeslider.setRange(0,200)
+  self.eeslider.setTickInterval(200)
   #self.eeslider.setFocusPolicy(QtCore.Qt.NoFocus)
   #self.connect(self.eeslider, QtCore.SIGNAL("valueChanged(int)"),self.change_c)
   self.connect(self.eeslider, QtCore.SIGNAL("valueChanged(int)"),self.SearchThreadObj.recompute_keywords)
@@ -642,12 +642,14 @@ class SearchThread(QtCore.QThread):
     #check_update()
 
  def get_new_c(self, value):
-  print "Search thread: new c value: ", value
+  #print "Search thread: new c value: ", value
   self.c = math.log(value+1)
 
  def recompute_keywords(self,value):
+  print value
+  self.c = math.log(value+1)
   kws = recompute_keywords(math.log(value+1))
-  self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
+  self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
     
 
 
@@ -768,7 +770,7 @@ class LoggerThread(QtCore.QThread):
 
     countspaces = 0
     sleep_interval = 0.005
-    nokeypress_interval = 4.0
+    nokeypress_interval = 1.0
 
     #starttime = datetime.datetime.now().time().second
     now = time()
