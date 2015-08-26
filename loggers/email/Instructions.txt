@@ -1,4 +1,6 @@
-Required packages:
+Python 2.7
+
+Required python packages:
 
 email 
 os
