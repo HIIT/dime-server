@@ -560,9 +560,9 @@ svn  1
   gianmarco.defranciscimorales@aalto.fi
 Skills:  set([u'loss function', u'linkedin', u'sense', u'cloud', u'information', u'confirmed', u'matrix', u'tf idf', u'entities', u'document', u'email', u'hope', u'files', u'mining', u'words', u'data', u'reference', u'instructions', u'thread', u'level', u'phrases', u'traceback', u'english'])
 Top 10 Skills:  [[u'information', 0.50248], [u'email', 0.2314], [u'assignment', 0.20826], [u'computer', 0.16529], [u'matlab', 0.14876], [u'simulink', 0.1157], [u'list', 0.09256], [u'finland', 0.08099], [u'windows phone', 0.08099], [u'engineering', 0.06942]]
-People:  set([u'Gianmarco', u'M.S.          \\', u'Gianmarco      On', u'M.S. ________________________________________'])
-Locations:  set([u'M.S.', u'Gionis Aristides'])
-Organizations:  set([u'Gionis Aristides &lt;aristides.gionis@aalto.fi&gt;', u'LDA', u'Open Innovation House', u'OIH', u'AM', u'10:07 AM', u'Non Negative Matrix', u'Email Mining', u'Word Cloud', u'Otaniemi', u'Giamarco', u'NMF', u'Enron Email', u'Mallenahalli Shankara Lingappa Darshan'])
+People:  set([u'Gianmarco', u'Gianmarco      On', u'Darshan M.S. ________________________________________'])
+Locations:  set([u'Gionis Aristides'])
+Organizations:  set([u'Darshan M.S.          \\', u'NMF', u'LDA', u'Open Innovation House', u'OIH', u'10:07 AM', u'Non Negative Matrix', u'NLTK', u'Email Mining', u'Word Cloud', u'Otaniemi', u'Giamarco', u'Enron Email', u'Stanford NER', u'Mallenahalli Shankara Lingappa Darshan', u'Darshan M.S.'])
 Total No of Emails Exchanged  39
 User Median  0 days 05:13:28
 User Average  1 days 14:46:30.636363
@@ -578,8 +578,8 @@ Initiation Probabilities  {'peer': 0.3333333333333333, 'user': 0.666666666666666
   aristides.gionis@aalto.fi
 Skills:  set([u'linkedin', u'error messages', u'sense', u'cloud', u'information', u'matrix', u'machine', u'entities', u'document', u'email', u'files', u'google drive', u'mapping', u'words', u'report', u'data', u'structure', u'instructions', u'definition', u'thread', u'level', u'phrases', u'tf idf', u'profiles', u'project', u'points', u'science', u'physics'])
 Top 10 Skills:  [[u'information', 0.50248], [u'email', 0.2314], [u'assignment', 0.20826], [u'computer', 0.16529], [u'matlab', 0.14876], [u'simulink', 0.1157], [u'list', 0.09256], [u'finland', 0.08099], [u'windows phone', 0.08099], [u'engineering', 0.06942]]
-People:  set([u'M.S.  ________________________________________', u'M.S.          \\', u'M.S. ________________________________________', u'DuBois', u'Aalto', u'Gianmarco', u'Patrik', u'Patrik Floreen'])
-Locations:  set([u'Navaroli', u'Aris', u'M.S.', u'Kumpula', u'Helsinki'])
+People:  set([u'M.S.  ________________________________________', u'M.S.          \\', u'M.S. ________________________________________', u'DuBois', u'Gianmarco', u'Patrik', u'Patrik Floreen'])
+Locations:  set([u'Navaroli', u'M.S.', u'Kumpula', u'Helsinki'])
 Organizations:  set([u'NMF', u'LDA', u'Open Innovation House', u'Nikolaj Tatti', u'OIH', u'Non Negative Matrix', u'Email Mining', u'Word Cloud', u'Otaniemi', u'Giamarco', u'International Conference on Computational Social Science', u'Digi Platform', u'CS', u'Enron Email', u'Macadamia', u'Exploring Individual Email Communication Behavior', u'& Smyth'])
 Total No of Emails Exchanged  68
 User Median  0 days 01:17:26
