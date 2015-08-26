@@ -1,4 +1,4 @@
-[mallend1@james email]$ python email_mining_main.py 'imap.aalto.fi' 'mallend1' '                                                                                        darshan.mallenahallishankaralingappa@aalto.fi'  '01-JUN-2014' '28-JUl-2015' 'ari                                                                                        stides.gionis@aalto.fi' 'gianmarco.defranciscimorales@aalto.fi'
+[mallend1@james email]$ python email_mining_main.py 'imap.aalto.fi' 'mallend1' 'darshan.mallenahallishankaralingappa@aalto.fi'  '01-JUN-2014' '28-JUl-2015' 'aristides.gionis@aalto.fi' 'gianmarco.defranciscimorales@aalto.fi'
 Skills Tree Constructed
 mallend1
 darshan.mallenahallishankaralingappa@aalto.fi
