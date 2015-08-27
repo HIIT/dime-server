@@ -58,6 +58,11 @@ class LoggerThread(QtCore.QThread):
       #time.sleep(sleep_interval)
       #changed, modifiers, keys = socket.recv()
       keys = self.socket.recv()
+      #The keys is a string of the form "keyvalue:keycode"
+      kc   = keys.split(":")[1]
+      kc   = int(kc)
+      keys = keys.split(":")[0]
+      print 'keys: ', keys, 'kc: ', kc
 
       #print modifiers
       #print changed, modifiers, keys
@@ -73,7 +78,7 @@ class LoggerThread(QtCore.QThread):
           var2 = cmachtime > now + float(time_interval)
           var3 = cmachtime > now + float(updateinterval)
 
-          if keys == '<backspace>':
+          if kc == 51:
             keys = ''
             #Convert current string into list of characters
             duml = list(dumstr)
@@ -83,7 +88,9 @@ class LoggerThread(QtCore.QThread):
               #Convert back to string
               dumstr = "".join(duml)
 
-          elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
+          #elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
+          elif kc in [36, 48, 49]:
+            print 'Keycodes: ', kc
             print 'Logger thread: keys: ', keys
             #print 'Logger thread: changed: ', changed[0]
             #keys = ' '

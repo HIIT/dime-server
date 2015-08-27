@@ -25,7 +25,7 @@ from ExtendedQLabel import *
 #For getting web page title
 #import lxml.html
 import urllib2
-from BeautifulSoup import BeautifulSoup
+#from BeautifulSoup import BeautifulSoup
 
 #
 import re

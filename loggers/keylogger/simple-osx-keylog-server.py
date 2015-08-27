@@ -24,7 +24,8 @@ def handler(event):
         #NSLog(u"%@", event)
         #print event
         #print event.keyCode()
-        socket.send_string(event.characters())
+
+        socket.send_string(str(event.characters())+':'+str(event.keyCode()))
         #print event.characters()
         
     except KeyboardInterrupt:
