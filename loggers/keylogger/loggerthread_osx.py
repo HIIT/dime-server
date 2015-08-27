@@ -40,8 +40,8 @@ class LoggerThread(QtCore.QThread):
     global var
 
     countspaces = 0
-    sleep_interval = 0.005
-    nokeypress_interval = 4.0
+    #sleep_interval = 0.005
+    #nokeypress_interval = 4.0
 
     #starttime = datetime.datetime.now().time().second
     now = time.time()
@@ -55,33 +55,24 @@ class LoggerThread(QtCore.QThread):
 
     while self.var:
 
-      time.sleep(sleep_interval)
+      #time.sleep(sleep_interval)
       #changed, modifiers, keys = socket.recv()
       keys = self.socket.recv()
-      
+
       #print modifiers
       #print changed, modifiers, keys
       keys  = str(keys)
       
       #Take care that ctrl is not pressed at the same time
       if True: #not (modifiers['left ctrl'] or modifiers['right ctrl']):
-        #Take current time
-        cdate = datetime.datetime.now().date()
-        ctime = datetime.datetime.now().time()
+          #Take current time
+          cdate = datetime.datetime.now().date()
+          ctime = datetime.datetime.now().time()
 
-        cmachtime = time.time()
-        var2 = cmachtime > now + float(time_interval)
-        var3 = cmachtime > now + float(updateinterval)
+          cmachtime = time.time()
+          var2 = cmachtime > now + float(time_interval)
+          var3 = cmachtime > now + float(updateinterval)
 
-        if keys == 'None':
-          keys = ''
-          if cmachtime > timestamp + nokeypress_interval and string_to_send is not None:
-            self.emit( QtCore.SIGNAL('update(QString)'), string_to_send)
-            string_to_send = None
-
-        else:
-          timestamp = time.time()
-                                  
           if keys == '<backspace>':
             keys = ''
             #Convert current string into list of characters
@@ -111,7 +102,7 @@ class LoggerThread(QtCore.QThread):
             f = open('typedwords.txt', 'a')
             f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr2 + '\n')
 
-            string_to_send = dumstr2
+            self.emit( QtCore.SIGNAL('update(QString)'), dumstr2)
 
             if var2:
               #Empty the dumstr2 after time_interval period of time
