@@ -34,7 +34,8 @@ public class ReadingEvent extends DesktopEvent {
     */
     public Boolean multiPage;
 
-    /** A vector representing the page numbers currently being displayed (starting from 0). */
+    /** A vector representing the page numbers currently being displayed (ORIGINAL page number).
+     * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example. */
     public int[] visiblePages;
     
     /** A list of rectangles representing where the viewport is placed for each page. 

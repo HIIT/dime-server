@@ -1,8 +1,19 @@
 from dateUtils import *
+import numpy as np
+import pandas as pd
+
 class user(object):
     def __init__(self, email):
         self.email=email
         self.peer_list = []
+    
+    def getUserDistribution(self):
+        lis = {}
+        for inter in self.peer_list:
+            if (inter.getMedianUserResponseTimes() == 0):
+                continue
+            lis[inter.email] = inter.getMedianUserResponseTimes()
+        return lis
 
 class peer(object):
     def __init__(self, email):
@@ -69,29 +80,56 @@ class peer(object):
             lis = lis + thd.people
         return lis
     
+    def getMedianUserTextLength(self):
+        lis = []
+        for thd in self.thread_list:
+            lis = lis + thd.doc_length_user
+        return getMedian(lis)
+    
+    def getMeanUserTextLength(self):
+        lis = []
+        for thd in self.thread_list:
+            lis = lis + thd.doc_length_user
+        return getMean(lis)
+    
+    
+    def getMedianPeerTextLength(self):
+        lis = []
+        for thd in self.thread_list:
+            lis = lis + thd.doc_length_peer
+        return getMedian(lis)
+    
+    
+    def getMeanPeerTextLength(self):
+        lis = []
+        for thd in self.thread_list:
+            lis = lis + thd.doc_length_peer
+        return getMean(lis)
+
+    
     def getMedianUserResponseTimes(self):
         lis = []
         for thd in self.thread_list:
             lis = lis + thd.user_response_times
-        return getMedianTime(lis)
+        return getMedian(lis)
         
     def getMedianPeerResponseTimes(self):
         lis = []
         for thd in self.thread_list:
             lis = lis + thd.peer_response_times
-        return getMedianTime(lis)
+        return getMedian(lis)
     
     def getAVGUserResponseTimes(self):
         lis = []
         for thd in self.thread_list:
             lis = lis + thd.user_response_times
-        return getMeanTime(lis)
+        return getMean(lis)
 
     def getAVGPeerResponseTimes(self):
         lis = []
         for thd in self.thread_list:
             lis = lis + thd.peer_response_times
-        return getMeanTime(lis)
+        return getMean(lis)
     
     def getInitiationProbabilities(self):
         n = len(self.thread_list)
@@ -124,6 +162,8 @@ def getTotalEmails(inter):
 class thread(object):
     def __init__(self, subject):
         self.subject = subject
+        self.doc_length_user = []
+        self.doc_length_peer = []
         self.document_user = " "
         self.document_peer = " "
         self.phrase_user = []

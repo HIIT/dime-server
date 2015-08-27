@@ -21,6 +21,16 @@ class FixedOffset(tzinfo):
         return 'FixedOffset(%d)' % (self.utcoffset().total_seconds() / 60)
 
 def getDateTime_numpy(date_str):
+    if ('(' in date_str):
+        date_str, _, offset_str = date_str.rpartition(' ')
+    if(len(date_str) <30):
+        naive_date_str, _, offset_str = date_str.rpartition(' ')
+        naive_dt = datetime.strptime(naive_date_str, '%d %b %Y %H:%M:%S')
+        offset = int(offset_str[-4:-2])*60 + int(offset_str[-2:])
+        if offset_str[0] == "-":
+            offset = -offset
+        dt = naive_dt.replace(tzinfo=FixedOffset(offset))
+        return (np.datetime64(dt))
     naive_date_str, _, offset_str = date_str.rpartition(' ')
     naive_dt = datetime.strptime(naive_date_str, '%a, %d %b %Y %H:%M:%S')
     offset = int(offset_str[-4:-2])*60 + int(offset_str[-2:])
@@ -29,16 +39,17 @@ def getDateTime_numpy(date_str):
     dt = naive_dt.replace(tzinfo=FixedOffset(offset))
     return (np.datetime64(dt))
 
-def getMedianTime(response_times):
-    if(len(response_times) >0):
-        m = pd.Series(response_times)
+def getMedian(lis):
+    if(len(lis) >0):
+        m = pd.Series(lis)
         return m.median()
     else:
         return 0
 
-def getMeanTime(response_times):
-    if(len(response_times) >0):
-        return sum(response_times, timedelta())/len(response_times)
+def getMean(lis):
+    if(len(lis) >0):
+        m = pd.Series(lis)
+        return m.mean()
     else:
         return 0
 

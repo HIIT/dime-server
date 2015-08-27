@@ -27,15 +27,29 @@ from update_dict_lda_and_Am import *
 import math
 
 #
+import scipy.cluster
+#
 #import matplotlib.pyplot as plt
 
 
 #####
 #Some additional functions that are used in search_dime function
+#
+def twotuplelist2fulllist(tuplelist, nfeatures):
+    if len(tuplelist) == 0:
+        vec = [0]*nfeatures
+        #pass
+    else:
+        #
+        vec = [0]*nfeatures
+        nel = len(tuplelist[0])
+        #print 'Num. of el.:', nel
+        for i in range(len(tuplelist)):
+            vec[tuplelist[i][0]] = tuplelist[i][1]
 
-
-
-
+    vec = np.array(vec)
+    #print 'Length of wordlist: ', len(vec)
+    return vec
 
 #Remove unwanted words
 def remove_unwanted_words(testlist):
@@ -63,6 +77,8 @@ def remove_unwanted_words(testlist):
 
 
 
+################################################################
+#Search functions 
 ################################################################
 
 
@@ -285,6 +301,722 @@ def search_dime_lda(query):
     
     return jsons[0:5]
 
+
+
+
+def search_dime_linrel_keyword_search(query,c):
+
+    #Get current path
+    cpath  = os.getcwd()
+    #print 'LinRel: ', cpath
+
+    #Import data
+    print 'loading data!!!'
+    data_file = open('data/json_data.txt', 'r')
+    data = json.load(data_file)    
+
+    #Import dictionary
+    print 'loading dictionary'
+    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
+    #Open docindlist (the list of indices of suggested documents
+    f = open(cpath + '/data/docindlist.list','r')
+    docinds = pickle.load(f)
+    #Sort from smallest to largest index value
+    #docinds.sort() 
+    #print 'Search thread: Old docindlist: ', docinds
+
+    #
+    f = open('data/varlist.list', 'r')
+    varlist = pickle.load(f)
+    nwords = varlist[0]
+    ndocuments = varlist[1]
+
+    #Import tfidf model by which the relevance scores are computed 
+    tfidf = models.TfidfModel.load('data/tfidfmodel.model')
+
+    #Make wordlist from the query string
+    test_wordlist = query.lower().split()
+    #Remove unwanted words from query
+    test_wordlist = remove_unwanted_words(test_wordlist)
+
+    #Convert the words into nearest dictionary word
+    for nword, word in enumerate(test_wordlist):
+        correctedword = difflib.get_close_matches(word, dictionary.values())
+        if len(correctedword):
+            test_wordlist[nword] = correctedword[0]
+        else:
+            test_wordlist[nword] = ' '
+    print "Search thread: Closest dictionary words: ", test_wordlist
+    f = open('data/test_wordlist.list','w')
+    pickle.dump(test_wordlist,f)
+
+    #Make bag of word vector of the input string taken from keyboard
+    test_vec = dictionary.doc2bow(test_wordlist)
+    #
+    #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
+    winds, kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c)
+    kws_vec = dictionary.doc2bow(kws)
+    #print test_vec
+    #print kws_vec
+    # kws_vec   = twotuplelist2fulllist(kws_vec, nwords)
+    # kws_vec[np.where(kws_vec)]     = 1.0
+    # test_vec2 = twotuplelist2fulllist(test_vec,nwords)
+    # test_vec2[np.where(test_vec2)] = 1.0
+    # dvec      = test_vec2 + kws_vec
+    # simwinds  = np.where(dvec == 2)
+    # print simwinds[0]
+    #np.save('data/simwinds.npy',simwinds[0])
+
+
+    #make string of keywords 
+    kwsstr = ''
+    for i in range(len(kws)):
+        kwsstr = kwsstr + ' ' + kws[i]
+    #print 'Keyword query string: ', kwsstr
+    
+    #Make
+    if len(kws) > 0:
+        #jsons, docinds = search_dime_docsim(kwsstr)
+        jsons, docinds = search_dime_docsim(query)
+    else:
+        #print 'QUERY: ', query
+        jsons, docinds = search_dime_docsim(query)
+        kws = []
+
+    #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
+    docinds.sort()
+    cpath = os.getcwd()
+    #os.chdir(cpath + '/data')
+    update_Xt_and_docindlist(docinds)
+    #os.chdir('../')
+
+    return jsons, kws
+
+
+def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c):
+
+    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
+    print 'test_vec_full: ', test_vec_full.shape
+    winds         = np.where(test_vec_full)
+    winds         = winds[0]
+    print 'winds: ', winds
+
+    #
+    if os.path.isfile('data/r_old.npy'):
+        r             = np.zeros([test_vec_full.shape[0],1])
+        r_old         = np.load('data/r_old.npy')             
+        oldwinds      = np.where(r_old)
+        r[oldwinds]   = 1.0
+        r             = r + r_old
+        r[winds]      = 1.0
+        np.save('data/r_old.npy',r)
+
+        #winds         = np.where(r)[0]
+        for i in range(len(r)):
+            if r[i] > 0.0:
+                r[i] = 1.0/r[i]
+
+        print r.shape
+        print 'r: ', r[np.where(r)[0],:]
+    else:
+        r             = np.zeros([test_vec_full.shape[0],1])
+        r[winds]      = 1.0
+        np.save('data/r_old.npy',r)
+
+    #
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates2(winds, r)
+    #Regularization paramter
+    mu = 1.0
+    set(winds)
+    #print r[winds], r[oldwinds]
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates(r, mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_auer(r,mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast(r,mu)
+    r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(r,mu)
+    #Save current r_hat and sigma_hat
+    np.save('data/r_hat.npy',r_hat)
+    np.save('data/sigma_hat.npy',sigma_hat)
+
+    #Normalize
+    if r_hat.max() > 0.0:
+        r_hat     = r_hat/r_hat.max()
+    if sigma_hat.max() > 0.0:
+        sigma_hat = sigma_hat/sigma_hat.max()
+
+    print sigma_hat.shape, sigma_hat.max()
+    #Exploitation/Exploration coefficient
+    #c = 1000.0
+    print 'Search thread: value of c is:', c
+    vsum     = r_hat + c*sigma_hat
+    print vsum.shape
+    #r_hat = return_keyword_relevance_estimates(docinds, r)
+    vsinds = np.argsort(vsum[:,0])
+    kwinds = np.argsort(r_hat[:,0])
+    #kwinds= np.argsort(r_hat)
+    #print 'Estimated Keyword weights: ', r_hat
+    print 'Search thread: Max(r_hat): ', r_hat.max(), ' argmax(r_hat):', r_hat.argmax()
+    print 'Search thread: Max(sigma_hat): ', sigma_hat.max(), ' argmax(sigma_hat):', sigma_hat.argmax()
+    if r_hat.max() > 0.0:
+        kwinds = kwinds[-20:]
+        vsinds = vsinds[-20:]
+        #Make reverse list object
+        kwindsrev = reversed(kwinds)
+        #Reverse
+        kwindsd = []
+        for i in kwindsrev:
+            kwindsd.append(i)
+        #
+        kwinds = kwindsd
+        #Initialize list of keywords
+        kws = []
+        #print 'Indices of estimated keywords: ', kwinds
+        #kwinds= docinds.tolist()
+        for i in range(len(kwinds)):
+            print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
+            kws.append(dictionary.get(kwinds[i]))
+
+
+        #Make reverse list object
+        vsindsrev = reversed(vsinds)
+        #Reverse
+        vsinds = []
+        for i in vsindsrev:
+            vsinds.append(i)
+        kws = []
+        for i in range(len(vsinds)):
+            print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
+            kws.append(dictionary.get(vsinds[i]))
+            #kws.append(dictionary.get(kwinds[i]))
+
+
+        return vsinds, kws
+    else:
+        return [], []
+
+
+def return_keyword_relevance_and_variance_estimates(y, mu):
+
+    #Load document term matrix 
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.transpose()
+    sX = sX.tocsr()
+
+
+    #Take non-zeros from y
+    inds = np.where(y)[0]
+    print 'inds: ', inds
+    if len(inds) > 1:
+        y    = y[inds]
+        #y    = 1/y
+        #print inds, y    
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+
+    #Compute estimation of weight vector (i.e. user model)
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    print 'len inds', len(inds)
+    sXt   = sX[inds,:]
+    sXtT  = sXt.transpose()
+    speye = sparse.identity(sXtT.shape[0])
+
+    print 'Compute A'
+    print sXtT.shape, sXt.shape, speye.shape
+    sdumA = sXtT*sXt + mu*speye
+    print sdumA.shape
+
+    #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
+    n=math.floor(0.99*sdumA.shape[0])
+    m=int(sdumA.shape[0]-n)
+    print 'm ', m
+    Dvec, Q = sparse.linalg.eigsh(sdumA,k=m)
+    Dvec    = Dvec.real
+    Dvecinv = 1.0/Dvec
+    D       = np.diag(Dvec)
+    D       = sparse.csr_matrix(D)
+    Dinv    = np.diag(Dvecinv)
+    Dinv    = sparse.csr_matrix(Dinv)
+
+    Q  = Q.real
+    Q  = sparse.csr_matrix(Q)
+    QT = Q.transpose()    
+
+    #sortedeigvalinds = Dvec.argsort()
+    #print sortedeigvalinds
+    print type(Q)
+    print type(D)
+
+    print 'sdumAinvapp1'
+    sdumAinvapp = Q*Dinv
+    print 'sdumAinvapp2'
+    sdumAinvapp = sdumAinvapp*QT
+
+    #sAtilde   = sdumAinv*sXT
+    print 'sdumAinvapp3'
+    sAtilde     = sdumAinvapp*sXtT
+    print sAtilde.shape
+
+
+    #sA      = sX*sAtilde
+    print 'sAapp2'
+    sA = sX.dot(sAtilde)
+
+    print 'sy'
+    sy = sparse.csr_matrix(y)
+
+    #
+    print sy.shape
+    print sA.shape
+    #sy_hat   = sA.dot(sy)
+    sy_hatapp= sA.dot(sy)
+    sw_hat2 = sAtilde*sy
+    w_hat2  = sw_hat2.toarray()
+    
+    #plt.plot(range(len(w_hat)),w_hat/w_hat.max(),'r')
+    #plt.plot(range(len(w_hat2)),w_hat2/w_hat2.max(),'b')
+    #plt.show()
+
+    print 'shape sy_hat: ', sy_hatapp.shape
+
+    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+    sigma_hatapp= np.array(sigma_hatapp)
+
+    #y_hat   = sy_hat.toarray()
+    y_hatapp= sy_hatapp.toarray()
+
+    print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hatapp.shape, ' type: ', type(y_hatapp)
+    print 'Search thread: update_keyword_matrix: argmax r_hat: ', y_hatapp.argmax()
+    print 'Search thread: update_keyword_matrix: argmax sigma_hat: ', sigma_hatapp.argmax()
+
+    return y_hatapp, sigma_hatapp
+
+
+
+def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
+
+    #Load document term matrix 
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.transpose()
+    sX = sX.tocsr()
+
+
+    #Take non-zeros from y
+    inds = np.where(y)[0]
+    print 'inds: ', inds
+    if len(inds) > 1:
+        y    = y[inds]
+        #y    = 1/y
+        #print inds, y    
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+
+    #Compute estimation of weight vector (i.e. user model)
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    print 'len inds', len(inds)
+    sXt   = sX[inds,:]
+    sXtT  = sXt.transpose()
+    speye  = sparse.identity(sXtT.shape[0])
+    speye2 = sparse.identity(sXtT.shape[1])
+
+    print 'Compute A'
+    print sXtT.shape, sXt.shape, speye2.shape
+    sXtsXtT = sXt.dot(sXtT)
+    sdumA = (1/mu)*sXtsXtT + speye2
+    print sdumA.shape
+
+    #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
+    sdumAinv = sparse.linalg.inv(sdumA)
+    print sdumAinv.shape
+    muI      = (1/mu)*speye
+    sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
+    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+    sA       = sX.dot(sAtilde)
+
+    print 'sy'
+    sy = sparse.csr_matrix(y)
+
+    #
+    print sy.shape
+    print sA.shape
+    #sy_hat   = sA.dot(sy)
+    sy_hatapp= sA.dot(sy)
+    sw_hat2  = sAtilde*sy
+    w_hat2   = sw_hat2.toarray()
+    
+    #
+    print 'shape sy_hat: ', sy_hatapp.shape
+
+    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+    sigma_hatapp= np.array(sigma_hatapp)
+
+    #y_hat   = sy_hat.toarray()
+    y_hatapp= sy_hatapp.toarray()
+
+    print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hatapp.shape, ' type: ', type(y_hatapp)
+    print 'Search thread: update_keyword_matrix: argmax r_hat: ', y_hatapp.argmax()
+    print 'Search thread: update_keyword_matrix: argmax sigma_hat: ', sigma_hatapp.argmax()
+
+    return y_hatapp, sigma_hatapp    
+
+
+
+
+def return_keyword_relevance_and_variance_estimates_auer(y, mu):
+
+    #Parameters
+    minLambda = 0.5
+
+    #Load document term matrix 
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.transpose()
+    sX = sX.tocsr()
+    X  = sX.toarray()
+
+
+    #Take non-zeros from y
+    inds = np.where(y)[0]
+    print 'inds: ', inds
+    if len(inds) > 1:
+        y    = y[inds]
+        #y    = 1/y
+        #print inds, y    
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+
+    #Compute estimation of weight vector (i.e. user model)
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    print 'len inds', len(inds)
+    sXt   = sX[inds,:]
+    Xt    = sXt.toarray()
+    XtTXt = np.dot(Xt.T,Xt)
+    eye   = mu*np.eye(Xt.T.shape[0])
+
+    print 'Compute inverse'
+    A = np.dot(np.linalg.inv(np.dot(Xt.T,Xt) + eye),Xt.T)
+
+    print 'Compute eig. values and vecs.'
+    eigv, U = np.linalg.eig(XtTXt + eye)
+    eigv    = np.absolute(eigv)
+    idx     = np.argsort(eigv)[::-1]
+    eigv    = eigv[idx]
+    U       = U[:,idx]
+
+    eigvk   = 1.0/eigv
+    eigv[np.absolute(eigv)> 1/minLambda] = 0
+    k = (eigvk > 0).sum()
+    eigvkdia = np.diag(eigvk)
+
+    print Xt.T.shape, Xt.shape, eye.shape
+    #print dumA.shape
+
+    return [], []
+
+def return_keyword_relevance_and_variance_estimates_scinet_fast(y, mu):
+
+    #Parameters
+    minLambda = 0.5
+    c         = 1.0
+
+    #Load document term matrix 
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.transpose()
+    sX = sX.tocsr()
+    X  = sX.toarray()
+
+    #Clusterize document term matrix
+    if not os.path.isfile('data/Xtilde.npy'):
+        Xtilde = scipy.cluster.vq.kmeans(X.T,20,iter=2,thresh=1e-01)
+        Xtilde = Xtilde[0].T
+        np.save('data/Xtilde.npy',Xtilde)
+    else:
+        Xtilde = np.load('data/Xtilde.npy')
+
+
+    #Take non-zeros from y
+    inds = np.where(y)[0]
+    print 'inds: ', inds
+    if len(inds) > 1:
+        y    = y[inds]
+        #y    = 1/y
+        #print inds, y    
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+    indslist = inds.tolist()
+
+
+    #Compute estimation of weight vector (i.e. user model) webmail webmail webmail 
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    print 'len inds', len(inds)
+    sXt   = sX[inds,:]
+    Xt    = Xtilde[inds,:]
+    #Xt    = sXt.toarray()
+
+    #XtTXt = np.dot(Xt.T,Xt)
+    eye   = mu*np.eye(Xt.T.shape[0])
+
+    print 'Compute inverse of A'
+    A  = np.dot(np.linalg.inv(np.dot(Xt.T,Xt) + eye),Xt.T)
+    print 'Compute Atilde'
+    # Atilde  = np.linalg.inv(np.dot(X.T,X) + eye)
+    # sAtilde = sparse.csr_matrix(Atilde)
+    # print 'Compute eig. vals and vecs of A'
+
+    #eigvals, U = np.linalg.eigvalsh(np.dot(X.T,X) + eye)
+
+    # n=math.floor(0.50*sAtilde.shape[0])
+    # m=int(sAtilde.shape[0]-n)
+    # Dvec, Q = sparse.linalg.eigsh(sAtilde,k=m)
+    print A.shape
+
+    print 'Compute upper bound confidence:'
+    #Number of keywords
+    y_hat     = []
+    sigma_hat = []
+    s         = []
+    numkw = Xtilde.shape[0]
+    for i in range(numkw):
+        aI = np.dot(Xtilde[i,:],A)
+        #s.append(float(np.dot(aI,y)+c*np.dot(aI,aI.T)))
+        y_hat.append( float(np.dot(aI,y)) )
+        sigma_hat.append( np.dot(aI,aI.T) ) 
+
+        #if i in indslist:
+            #s.append(float(np.dot(aI,y)))
+        #else:
+            #s.append(float(np.dot(aI,y)+c*np.dot(aI,aI.T)))
+
+
+    #print Xt.T.shape, Xt.shape, eye.shape
+    #print dumA.shape
+    y_hat = np.array([y_hat])
+    y_hat = y_hat.T
+    sigma_hat = np.array([sigma_hat])
+    sigma_hat = sigma_hat.T
+
+    return y_hat, sigma_hat
+
+
+def return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(y, mu):
+
+    #Parameters
+    minLambda = 0.5
+    c         = 1000.0
+
+    #Load document term matrix 
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.transpose()
+    sX = sX.tocsr()
+    #X  = sX.toarray()
+
+    #Take non-zeros from y
+    inds = np.where(y)[0]
+    print 'inds: ', inds
+    if len(inds) > 1:
+        y    = y[inds]
+        #y    = 1/y
+        #print inds, y    
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+    indslist = inds.tolist()
+    sy = sparse.csr_matrix(y)
+
+    #Compute estimation of weight vector (i.e. user model) webmail webmail webmail 
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    print 'len inds', len(inds)
+    sXt   = sX[inds,:]
+    #sXtTXt = sXt.T.dot(sXt)
+    #print type(sXtTXt)
+    #seye   = mu*sparse.eye(Xt.T.shape[0])
+    speye  = mu*sparse.identity(sXt.T.shape[0])
+
+    print 'Compute inverse of A'
+    sA = sparse.linalg.inv(sXt.T.dot(sXt) + speye).dot(sXt.T)
+    print sA.shape
+
+    print 'Compute upper bound confidence:'
+    #Number of keywords
+    y_hat     = []
+    sigma_hat = []
+    s         = []
+    numkw = sX.shape[0]
+    for i in range(numkw):
+        saI = sX[i,:].dot(sA)
+        #print saI.shape
+        #print sy.shape
+        #s.append(float(np.dot(aI,y)+c*np.dot(aI,aI.T)))
+        m = saI*sy.toarray()
+        y_hat.append( float(m[0,0]) )
+
+        m2= saI.dot(saI.T)
+        sigma_hat.append( float(m2[0,0]) ) 
+
+        #if i in indslist:
+            #s.append(float(np.dot(aI,y)))
+        #else:
+            #s.append(float(np.dot(aI,y)+c*np.dot(aI,aI.T)))
+
+
+    #print Xt.T.shape, Xt.shape, eye.shape
+    #print dumA.shape
+    y_hat = np.array([y_hat])
+    y_hat = y_hat.T
+    sigma_hat = np.array([sigma_hat])
+    sigma_hat = sigma_hat.T
+    #s = np.array([s])
+    #s = s.T
+
+
+    # sum_hat = y_hat + sigma_hat
+    #return y_hat, sigma_hat
+    return y_hat, sigma_hat    
+
+
+def recompute_keywords(c):
+    print 'c', c
+    #Import dictionary
+    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
+    #
+    r_hat     = np.load('data/r_hat.npy')
+    sigma_hat = np.load('data/sigma_hat.npy')
+
+    #Normalize
+    if r_hat.max() > 0.0:
+        r_hat     = r_hat/r_hat.max()
+    if sigma_hat.max() > 0.0:
+        sigma_hat = sigma_hat/sigma_hat.max()
+
+    #print 'Search thread: value of c is:', c
+    vsum     = r_hat + c*sigma_hat
+    #print vsum.shape
+    #r_hat = return_keyword_relevance_estimates(docinds, r)
+    vsinds= np.argsort(vsum[:,0])
+    kwinds= np.argsort(r_hat[:,0])
+
+    if r_hat.max() > 0.0:
+        kwinds = kwinds[-20:]
+        vsinds = vsinds[-20:]
+        #Make reverse list object
+        kwindsrev = reversed(kwinds)
+        #Reverse
+        kwindsd = []
+        for i in kwindsrev:
+            kwindsd.append(i)
+        #
+        kwinds = kwindsd
+        #Initialize list of keywords
+        kws = []
+        #print 'Indices of estimated keywords: ', kwinds
+        #kwinds= docinds.tolist()
+        for i in range(len(kwinds)):
+            #print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
+            kws.append(dictionary.get(kwinds[i]))
+
+
+        #Make reverse list object
+        vsindsrev = reversed(vsinds)
+        #Reverse
+        vsinds = []
+        for i in vsindsrev:
+            vsinds.append(i)
+        kws = []
+        for i in range(len(vsinds)):
+            #print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
+            kws.append(dictionary.get(vsinds[i]))
+            #kws.append(dictionary.get(kwinds[i]))
+    return kws
+
+
+
+#
+
+
+#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
+#I.e. compute estimation of user model
+def estimate_w(Xt,y):
+    #
+    mu = 0.5
+    #mu = 0.0
+    try:
+        print 'Search thread: Estimating w'
+        w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
+        #print w.shape
+    except ZeroDivisionError:
+        print 'Xt nrows: ', Xt.shape[1]
+        w = Xt.shape[1]*[0.0]
+        print w
+    return w
+
+
+
+#Computes cosine similarity between input vec. (test_vec) and previously
+#suggested documents and returns vector of these similarities
+def compute_relevance_scores(docinds, test_vec):
+
+    #Sparse tfidf matrix 
+    sX = load_sparse_csc('data/sX.sparsemat.npz')    
+
+    #print 'Search thread: Create Xt '
+    #print 'Search thread: X shape, ', sX.shape
+    sXcsr = sX.tocsr()
+    sXtcsr= sXcsr[docinds,:]
+    sXtcsc= sXtcsr.tocsc()
+    Xt    = sXtcsc.toarray()
+    print 'Search thread: Xt shape, ', Xt.shape
+
+    #Convert Xt to corpus form
+    nr, nc = Xt.shape
+    Xtlist = []
+    for i in range(nr):
+        Xtlist.append( gensim.matutils.full2sparse(Xt[i][:]) )
+        #print len(Xtlist[i])
+    #print 'Xt len:', len(Xtlist)
+
+    #Compute relevance scores
+    nr = len(Xtlist)
+    y = []
+    for i in range(nr):
+        y.append(gensim.matutils.cossim(test_vec,Xtlist[i]))
+        #print y[i]
+    y = np.asarray([y])
+    y = y.transpose()
+    nr, nc = y.shape
+
+    return y
+
+
+
 #
 def search_dime_linrel_summing_previous_estimates(query):
     
@@ -472,517 +1204,7 @@ def search_dime_linrel_summing_previous_estimates(query):
     return jsons[-20:], kws
 
 
-def search_dime_linrel_keyword_search(query,c):
 
-    #Get current path
-    cpath  = os.getcwd()
-    #print 'LinRel: ', cpath
-
-    #Import data
-    print 'loading data!!!'
-    data_file = open('data/json_data.txt', 'r')
-    data = json.load(data_file)    
-
-    #Import dictionary
-    print 'loading dictionary'
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-
-    #Open docindlist (the list of indices of suggested documents
-    f = open(cpath + '/data/docindlist.list','r')
-    docinds = pickle.load(f)
-    #Sort from smallest to largest index value
-    #docinds.sort() 
-    #print 'Search thread: Old docindlist: ', docinds
-
-    #
-    f = open('data/varlist.list', 'r')
-    varlist = pickle.load(f)
-    nwords = varlist[0]
-    ndocuments = varlist[1]
-
-    #Import tfidf model by which the relevance scores are computed 
-    tfidf = models.TfidfModel.load('data/tfidfmodel.model')
-
-    #Make wordlist from the query string
-    test_wordlist = query.lower().split()
-    #Remove unwanted words from query
-    test_wordlist = remove_unwanted_words(test_wordlist)
-
-    #Convert the words into nearest dictionary word
-    for nword, word in enumerate(test_wordlist):
-        correctedword = difflib.get_close_matches(word, dictionary.values())
-        if len(correctedword):
-            test_wordlist[nword] = correctedword[0]
-        else:
-            test_wordlist[nword] = ' '
-    print "Search thread: Closest dictionary words: ", test_wordlist
-    f = open('data/test_wordlist.list','w')
-    pickle.dump(test_wordlist,f)
-
-    #Make bag of word vector of the input string taken from keyboard
-    test_vec = dictionary.doc2bow(test_wordlist)
-    #
-    #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
-    winds, kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c)
-    kws_vec = dictionary.doc2bow(kws)
-    #print test_vec
-    #print kws_vec
-    # kws_vec   = twotuplelist2fulllist(kws_vec, nwords)
-    # kws_vec[np.where(kws_vec)]     = 1.0
-    # test_vec2 = twotuplelist2fulllist(test_vec,nwords)
-    # test_vec2[np.where(test_vec2)] = 1.0
-    # dvec      = test_vec2 + kws_vec
-    # simwinds  = np.where(dvec == 2)
-    # print simwinds[0]
-    #np.save('data/simwinds.npy',simwinds[0])
-
-
-    #make string of keywords 
-    kwsstr = ''
-    for i in range(len(kws)):
-        kwsstr = kwsstr + ' ' + kws[i]
-    #print 'Keyword query string: ', kwsstr
-    
-    #Make
-    if len(kws) > 0:
-        #jsons, docinds = search_dime_docsim(kwsstr)
-        jsons, docinds = search_dime_docsim(query)
-    else:
-        #print 'QUERY: ', query
-        jsons, docinds = search_dime_docsim(query)
-        kws = []
-
-    #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
-    docinds.sort()
-    cpath = os.getcwd()
-    #os.chdir(cpath + '/data')
-    update_Xt_and_docindlist(docinds)
-    #os.chdir('../')
-
-    return jsons, kws
-
-
-
-
-def twotuplelist2fulllist(tuplelist, nfeatures):
-    if len(tuplelist) == 0:
-        vec = [0]*nfeatures
-        #pass
-    else:
-        #
-        vec = [0]*nfeatures
-        nel = len(tuplelist[0])
-        #print 'Num. of el.:', nel
-        for i in range(len(tuplelist)):
-            vec[tuplelist[i][0]] = tuplelist[i][1]
-
-    vec = np.array(vec)
-    #print 'Length of wordlist: ', len(vec)
-    return vec
-
-
-def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c):
-
-    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
-    print 'test_vec_full: ', test_vec_full.shape
-    winds         = np.where(test_vec_full)
-    winds         = winds[0]
-    print 'winds: ', winds
-
-    #
-    if os.path.isfile('data/r_old.npy'):
-        r             = np.zeros([test_vec_full.shape[0],1])
-        r_old         = np.load('data/r_old.npy')             
-        oldwinds      = np.where(r_old)
-        r[oldwinds]   = 1.0
-        r             = r + r_old
-        r[winds]      = 1.0
-        np.save('data/r_old.npy',r)
-
-        #winds         = np.where(r)[0]
-        for i in range(len(r)):
-            if r[i] > 0.0:
-                r[i] = 1.0/r[i]
-
-        print r.shape
-        print 'r: ', r[np.where(r)[0],:]
-    else:
-        r             = np.zeros([test_vec_full.shape[0],1])
-        r[winds]      = 1.0
-        np.save('data/r_old.npy',r)
-
-    #
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates2(winds, r)
-    #Regularization paramter
-    mu = 1.5
-    set(winds)
-    #print r[winds], r[oldwinds]
-    r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates(r, mu)
-    #Save current r_hat and sigma_hat
-    np.save('data/r_hat.npy',r_hat)
-    np.save('data/sigma_hat.npy',sigma_hat)
-
-    #Normalize
-    if r_hat.max() > 0.0:
-        r_hat     = r_hat/r_hat.max()
-    if sigma_hat.max() > 0.0:
-        sigma_hat = sigma_hat/sigma_hat.max()
-
-    print sigma_hat.shape, sigma_hat.max()
-    #Exploitation/Exploration coefficient
-    #c = 1000.0
-    print 'Search thread: value of c is:', c
-    vsum     = r_hat + c*sigma_hat
-    print vsum.shape
-    #r_hat = return_keyword_relevance_estimates(docinds, r)
-    vsinds= np.argsort(vsum[:,0])
-    kwinds= np.argsort(r_hat[:,0])
-    #kwinds= np.argsort(r_hat)
-    #print 'Estimated Keyword weights: ', r_hat
-    print 'Search thread: Max(r_hat): ', r_hat.max(), ' argmax(r_hat):', r_hat.argmax()
-    print 'Search thread: Max(sigma_hat): ', sigma_hat.max(), ' argmax(sigma_hat):', sigma_hat.argmax()
-    if r_hat.max() > 0.0:
-        kwinds = kwinds[-20:]
-        vsinds = vsinds[-20:]
-        #Make reverse list object
-        kwindsrev = reversed(kwinds)
-        #Reverse
-        kwindsd = []
-        for i in kwindsrev:
-            kwindsd.append(i)
-        #
-        kwinds = kwindsd
-        #Initialize list of keywords
-        kws = []
-        #print 'Indices of estimated keywords: ', kwinds
-        #kwinds= docinds.tolist()
-        for i in range(len(kwinds)):
-            print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
-            kws.append(dictionary.get(kwinds[i]))
-
-
-        #Make reverse list object
-        vsindsrev = reversed(vsinds)
-        #Reverse
-        vsinds = []
-        for i in vsindsrev:
-            vsinds.append(i)
-        kws = []
-        for i in range(len(vsinds)):
-            print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
-            kws.append(dictionary.get(vsinds[i]))
-            #kws.append(dictionary.get(kwinds[i]))
-
-
-        return vsinds, kws
-    else:
-        return [], []
-
-
-def recompute_keywords(c):
-    #Import dictionary
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-
-    #
-    r_hat     = np.load('data/r_hat.npy')
-    sigma_hat = np.load('data/sigma_hat.npy')
-
-    #Normalize
-    if r_hat.max() > 0.0:
-        r_hat     = r_hat/r_hat.max()
-    if sigma_hat.max() > 0.0:
-        sigma_hat = sigma_hat/sigma_hat.max()
-
-    #print 'Search thread: value of c is:', c
-    vsum     = r_hat + c*sigma_hat
-    #print vsum.shape
-    #r_hat = return_keyword_relevance_estimates(docinds, r)
-    vsinds= np.argsort(vsum[:,0])
-    kwinds= np.argsort(r_hat[:,0])
-
-    if r_hat.max() > 0.0:
-        kwinds = kwinds[-20:]
-        vsinds = vsinds[-20:]
-        #Make reverse list object
-        kwindsrev = reversed(kwinds)
-        #Reverse
-        kwindsd = []
-        for i in kwindsrev:
-            kwindsd.append(i)
-        #
-        kwinds = kwindsd
-        #Initialize list of keywords
-        kws = []
-        #print 'Indices of estimated keywords: ', kwinds
-        #kwinds= docinds.tolist()
-        for i in range(len(kwinds)):
-            #print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
-            kws.append(dictionary.get(kwinds[i]))
-
-
-        #Make reverse list object
-        vsindsrev = reversed(vsinds)
-        #Reverse
-        vsinds = []
-        for i in vsindsrev:
-            vsinds.append(i)
-        kws = []
-        for i in range(len(vsinds)):
-            #print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
-            kws.append(dictionary.get(vsinds[i]))
-            #kws.append(dictionary.get(kwinds[i]))
-    return kws
-
-def return_keyword_relevance_and_variance_estimates(y, mu):
-
-    #Load document term matrix 
-    sX = load_sparse_csc('data/sX.sparsemat.npz')
-    #Make transpose of document term matrix 
-    sX = sX.transpose()
-    sX = sX.tocsr()
-
-
-    #Take non-zeros from y
-    inds = np.where(y)[0]
-    print 'inds: ', inds
-    if len(inds) > 1:
-        y    = y[inds]
-        #y    = 1/y
-        #print inds, y    
-    else:
-        if len(inds) == 0:
-            y    = np.zeros([1,1])
-            inds = np.array([[0]])
-        else:
-            y    = np.zeros([len(inds),1])
-            #inds = np.array([[0]])
-
-    #Compute estimation of weight vector (i.e. user model)
-    print 'Search thread: update_keyword_matrix: Create Xt '
-    print 'len inds', len(inds)
-    sXt   = sX[inds,:]
-    sXtT  = sXt.transpose()
-    speye = sparse.identity(sXtT.shape[0])
-
-    print 'Compute A'
-    print sXtT.shape, sXt.shape, speye.shape
-    sdumA = sXtT*sXt + mu*speye
-    print sdumA.shape
-
-    #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
-    n=math.floor(0.99*sdumA.shape[0])
-    m=int(sdumA.shape[0]-n)
-    print 'm ', m
-    Dvec, Q = sparse.linalg.eigsh(sdumA,k=m)
-    Dvec    = Dvec.real
-    Dvecinv = 1.0/Dvec
-    D    = np.diag(Dvec)
-    D    = sparse.csr_matrix(D)
-    Dinv = np.diag(Dvecinv)
-    Dinv = sparse.csr_matrix(Dinv)
-
-    Q = Q.real
-    Q  = sparse.csr_matrix(Q)
-    QT = Q.transpose()    
-
-    #sortedeigvalinds = Dvec.argsort()
-    #print sortedeigvalinds
-    print type(Q)
-    print type(D)
-
-    print 'sdumAinvapp1'
-    sdumAinvapp = Q*Dinv
-    print 'sdumAinvapp2'
-    sdumAinvapp = sdumAinvapp*QT
-
-    #sAtilde   = sdumAinv*sXT
-    print 'sdumAinvapp3'
-    sAtilde     = sdumAinvapp*sXtT
-    print sAtilde.shape
-
-
-    #sA      = sX*sAtilde
-    print 'sAapp2'
-    sA = sX.dot(sAtilde)
-
-    print 'sy'
-    sy = sparse.csr_matrix(y)
-
-    #
-    print sy.shape
-    print sA.shape
-    #sy_hat   = sA.dot(sy)
-    sy_hatapp= sA.dot(sy)
-    sw_hat2 = sAtilde*sy
-    w_hat2  = sw_hat2.toarray()
-    
-    #plt.plot(range(len(w_hat)),w_hat/w_hat.max(),'r')
-    #plt.plot(range(len(w_hat2)),w_hat2/w_hat2.max(),'b')
-    #plt.show()
-
-    print 'shape sy_hat: ', sy_hatapp.shape
-
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    #y_hat   = sy_hat.toarray()
-    y_hatapp= sy_hatapp.toarray()
-
-    print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hatapp.shape, ' type: ', type(y_hatapp)
-    print 'Search thread: update_keyword_matrix: argmax r_hat: ', y_hatapp.argmax()
-    print 'Search thread: update_keyword_matrix: argmax sigma_hat: ', sigma_hatapp.argmax()
-
-    return y_hatapp, sigma_hatapp
-
-#
-def return_keyword_relevance_and_variance_estimates2(winds, y):
-
-    #Take non-zeros from y
-    if len(winds) > 1:
-        inds = np.where(y)[0]
-        y    = y[inds]
-        #y    = 1/y
-        print inds, y    
-    else:
-        y    = np.zeros([len(winds),1])
-        inds = 0
-
-    #Load sparse tfidf matrix
-    #sX = np.load('sX.npy')
-    sX = load_sparse_csc('data/sX.sparsemat.npz')
-
-    #Compute estimation of weight vector (i.e. user model)
-    print 'Search thread: update_keyword_matrix: Create Xt '
-    #print winds
-    sX    = sX.transpose()
-    sXcsr = sX.tocsr()
-    #print type(sXcsr)
-    sXcsrt = sXcsr[inds,:]
-    #print sXcsr.shape
-    #print 'Search thread: Type of sXcsr: ', type(sXcsr)
-    Xt    = sXcsrt.toarray()
-    print 'Search thread: update_keyword_matrix: Xt shape: ', Xt.shape, ' type: ', type(Xt)
-    #print 'Search thread: update_keyword_matrix: min val Xt: ', Xt.min()
-
-    # if len(winds)>1:
-    #         y = np.ones([len(winds),1])
-    # else:
-    #         y = np.zeros([len(winds),1])        
-    # print 'Search thread: update_keyword_matrix: y shape: ', y.shape
-    #print y
-    #
-    #sy = sparse.csr_matrix(y)
-    w_hat = estimate_w(Xt,y)
-    w_hat = np.array([w_hat])
-    w_hat = w_hat.transpose()
-    sw_hat = sparse.csr_matrix(w_hat)
-
-    print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat), w_hat.max(), w_hat.argmax()
-    sy_hat  = sXcsr.dot(sw_hat)
-    sy_hatt = sy_hat.transpose()
-
-    print 'shape sy_hat: ', sy_hat.shape
-
-    #Compute Atilde
-    y    = y.transpose()
-    normy= np.linalg.norm(y)**2
-    syt= sparse.csr_matrix(y)
-    sAtilde = sw_hat.dot(syt)
-    print 'norm of v: ', normy
-    sAtilde = (1/normy)*sAtilde
-
-    #Compute sAtilde in a slow way
-    sXT = sX.transpose()
-    mu = 1.0
-    speye = sparse.identity(sXT.shape[0])
-    print 'Compute dumA'
-    sdumA   = sXT*sX + mu*speye
-    #sdumAinv= sparse.linalg.inv(sdumA)
-    #sAtilde = 
-
-    sA      = sX*sAtilde
-    print "sAtilde: ", type(sA), ' size: ', sA.shape
-    print 'sA: ', type(sA), 'shape: ', sA.shape   
-
-    sy      = syt.transpose()
-    #
-    print sy.toarray()
-    sy_hat  = sA.dot(sy)
-    print 'shape sy_hat: ', sy_hat.shape
-
-
-
-    #Compute upper bound on the deviation of the relevance estimate using matrix A
-    sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
-    sigma_hat = np.array(sigma_hat)
-
-    print 'sigma_hat: ', type(sigma_hat), 'shape: ', sigma_hat.shape, sigma_hat.max()
-
-    #sr_hat = sr_hat.transpose()
-
-    y_hat  = sy_hat.toarray()
-    np.save('y_hat.npy',y_hat)
-    np.save('sigma_hat.npy',sigma_hat)
-
-    print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hat.shape, ' type: ', type(y_hat)
-    print 'Search thread: update_keyword_matrix: max val r_hat: ', y_hat.max()
-    return y_hat, sigma_hat
-
-
-
-
-#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
-#I.e. compute estimation of user model
-def estimate_w(Xt,y):
-    #
-    mu = 1.5
-    #mu = 0.0
-    try:
-        print 'Search thread: Estimating w'
-        w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
-        #print w.shape
-    except ZeroDivisionError:
-        print 'Xt nrows: ', Xt.shape[1]
-        w = Xt.shape[1]*[0.0]
-        print w
-    return w
-
-
-
-#Computes cosine similarity between input vec. (test_vec) and previously
-#suggested documents and returns vector of these similarities
-def compute_relevance_scores(docinds, test_vec):
-
-    #Sparse tfidf matrix 
-    sX = load_sparse_csc('data/sX.sparsemat.npz')    
-
-    #print 'Search thread: Create Xt '
-    #print 'Search thread: X shape, ', sX.shape
-    sXcsr = sX.tocsr()
-    sXtcsr= sXcsr[docinds,:]
-    sXtcsc= sXtcsr.tocsc()
-    Xt    = sXtcsc.toarray()
-    print 'Search thread: Xt shape, ', Xt.shape
-
-    #Convert Xt to corpus form
-    nr, nc = Xt.shape
-    Xtlist = []
-    for i in range(nr):
-        Xtlist.append( gensim.matutils.full2sparse(Xt[i][:]) )
-        #print len(Xtlist[i])
-    #print 'Xt len:', len(Xtlist)
-
-    #Compute relevance scores
-    nr = len(Xtlist)
-    y = []
-    for i in range(nr):
-        y.append(gensim.matutils.cossim(test_vec,Xtlist[i]))
-        #print y[i]
-    y = np.asarray([y])
-    y = y.transpose()
-    nr, nc = y.shape
-
-    return y
 
 #Updates LinRel matrix, denoted by A 
 def return_keyword_relevance_estimates(docinds, y):
@@ -1019,6 +1241,13 @@ def return_keyword_relevance_estimates(docinds, y):
     print 'Search thread: update_keyword_matrix: r_hat shape: ', r_hat.shape, ' type: ', type(r_hat)
     print 'Search thread: update_keyword_matrix: max val r_hat: ', r_hat.max()
     return r_hat
+
+
+
+
+
+
+
 
 #
 def search_dime_linrel_without_summing_previous_estimates(query):
@@ -1188,3 +1417,106 @@ def search_dime_linrel_without_summing_previous_estimates(query):
     #os.chdir('../')
 
     return jsons[-20:]
+
+
+
+
+
+
+
+
+
+# def return_keyword_relevance_and_variance_estimates2(winds, y):
+
+#     #Take non-zeros from y
+#     if len(winds) > 1:
+#         inds = np.where(y)[0]
+#         y    = y[inds]
+#         #y    = 1/y
+#         print inds, y    
+#     else:
+#         y    = np.zeros([len(winds),1])
+#         inds = 0
+
+#     #Load sparse tfidf matrix
+#     #sX = np.load('sX.npy')
+#     sX = load_sparse_csc('data/sX.sparsemat.npz')
+
+#     #Compute estimation of weight vector (i.e. user model)
+#     print 'Search thread: update_keyword_matrix: Create Xt '
+#     #print winds
+#     sX    = sX.transpose()
+#     sXcsr = sX.tocsr()
+#     #print type(sXcsr)
+#     sXcsrt = sXcsr[inds,:]
+#     #print sXcsr.shape
+#     #print 'Search thread: Type of sXcsr: ', type(sXcsr)
+#     Xt    = sXcsrt.toarray()
+#     print 'Search thread: update_keyword_matrix: Xt shape: ', Xt.shape, ' type: ', type(Xt)
+#     #print 'Search thread: update_keyword_matrix: min val Xt: ', Xt.min()
+
+#     # if len(winds)>1:
+#     #         y = np.ones([len(winds),1])
+#     # else:
+#     #         y = np.zeros([len(winds),1])        
+#     # print 'Search thread: update_keyword_matrix: y shape: ', y.shape
+#     #print y
+#     #
+#     #sy = sparse.csr_matrix(y)
+#     w_hat = estimate_w(Xt,y)
+#     w_hat = np.array([w_hat])
+#     w_hat = w_hat.transpose()
+#     sw_hat = sparse.csr_matrix(w_hat)
+
+#     print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat), w_hat.max(), w_hat.argmax()
+#     sy_hat  = sXcsr.dot(sw_hat)
+#     sy_hatt = sy_hat.transpose()
+
+#     print 'shape sy_hat: ', sy_hat.shape
+
+#     #Compute Atilde
+#     y    = y.transpose()
+#     normy= np.linalg.norm(y)**2
+#     syt= sparse.csr_matrix(y)
+#     sAtilde = sw_hat.dot(syt)
+#     print 'norm of v: ', normy
+#     sAtilde = (1/normy)*sAtilde
+
+#     #Compute sAtilde in a slow way
+#     sXT = sX.transpose()
+#     mu = 1.0
+#     speye = sparse.identity(sXT.shape[0])
+#     print 'Compute dumA'
+#     sdumA   = sXT*sX + mu*speye
+#     #sdumAinv= sparse.linalg.inv(sdumA)
+#     #sAtilde = 
+
+#     sA      = sX*sAtilde
+#     print "sAtilde: ", type(sA), ' size: ', sA.shape
+#     print 'sA: ', type(sA), 'shape: ', sA.shape   
+
+#     sy      = syt.transpose()
+#     #
+#     print sy.toarray()
+#     sy_hat  = sA.dot(sy)
+#     print 'shape sy_hat: ', sy_hat.shape
+
+
+
+#     #Compute upper bound on the deviation of the relevance estimate using matrix A
+#     sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
+#     sigma_hat = np.array(sigma_hat)
+
+#     print 'sigma_hat: ', type(sigma_hat), 'shape: ', sigma_hat.shape, sigma_hat.max()
+
+#     #sr_hat = sr_hat.transpose()
+
+#     y_hat  = sy_hat.toarray()
+#     np.save('y_hat.npy',y_hat)
+#     np.save('sigma_hat.npy',sigma_hat)
+
+#     print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hat.shape, ' type: ', type(y_hat)
+#     print 'Search thread: update_keyword_matrix: max val r_hat: ', y_hat.max()
+#     return y_hat, sigma_hat
+
+

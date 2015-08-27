@@ -1,8 +1,8 @@
 import requests
 import json
-f = open("skills_1.txt", "w")
+f = open("skills.txt", "w")
 
-def getSkills(id, type):
+def getSkills(id, type, level):
     global f
     payload = {'id': id, 'type': type}    
     try:
@@ -13,16 +13,17 @@ def getSkills(id, type):
         return
     for i in d:
         try:
-            f.write( i['value'].encode('utf-8').strip())
-            print i['value'].encode('utf-8').strip()
+            t = '-' * level + i['value'].encode('utf-8').strip()
+            f.write( t)
+            print t
             f.write('\n')
         except Exception as e:
             print 'something wrong'
             continue 
         if(i['is_child']):
-            getSkills( i['id'], type)
+            getSkills( i['id'], type, level+1)
   
   
-getSkills('0', 'functionals' )
-getSkills('0', 'behavioural' )
+getSkills('0', 'functionals', 0 )
+getSkills('0', 'behavioural', 0 )
 f.close()
