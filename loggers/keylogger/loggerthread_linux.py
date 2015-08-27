@@ -71,7 +71,8 @@ class LoggerThread(QtCore.QThread):
 
         if keys == 'None':
           keys = ''
-          if cmachtime > timestamp + nokeypress_interval and string_to_send is not None:
+          #if cmachtime > timestamp + nokeypress_interval and string_to_send is not None:
+          if string_to_send is not None:
             self.emit( QtCore.SIGNAL('update(QString)'), string_to_send)
             string_to_send = None
 

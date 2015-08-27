@@ -631,7 +631,8 @@ class SearchThread(QtCore.QThread):
   QtCore.QThread.__init__(self)
   self.query = ''
   self.c     = 0.0
-  self.oldquery = None
+  self.oldquery  = None
+  self.oldquery2 = None
   self.searchfuncid = 0
   self.extrasearch = False
 
@@ -686,22 +687,32 @@ class SearchThread(QtCore.QThread):
 
 
  def search(self):
-  while True:
 
+  nokeypress_interval = 5.0
+  timestamp = time.time()
+  check_update()
+  while True:
+    #
+    cmachtime = time.time()
+    #
     if self.extrasearch:
       print 'Search thread: got extra search command from main!'      
       jsons, docinds = search_dime_docsim(dstr)      
       self.extrasearch = False    
 
+    if self.query is not None and self.query != self.oldquery2:
+      print 'self.query!!!!!'
+      timestamp = time.time()
+      self.oldquery2 = self.query
+
     #print "Query:", self.query, "Oldquery:", self.oldquery
+    #if self.query is not None and self.query != self.oldquery:
+    if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + nokeypress_interval:
+      dstr = self.query      
+      print 'Search thread:', dstr
+        #dstr = unicode(dstr, 'utf-8')
 
-    if self.query is not None and self.query != self.oldquery:
-      #self.query = unicode(self.query, 'utf-8')
-      dstr = self.query
-      #dstr = unicode(dstr, 'utf-8') films 
-      print 'Search thread:', dstr 
       self.emit(QtCore.SIGNAL('start_search()'))
-
       if self.searchfuncid == 0:
         jsons, docinds = search_dime_docsim(dstr)      
         print 'Search thread: Ready for new search!'
@@ -722,27 +733,27 @@ class SearchThread(QtCore.QThread):
         if len(jsons) > 0:
           #Return keyword list
           self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
-        print 'Search thread: Ready for new search!'         
+        print 'Search thread: Ready for new search!'      
 
       #print 'Search thread: len jsons ', len(jsons)
       if len(jsons) > 0:
-       #Return keyword list
-       #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
-       #Return jsons
-       self.emit( QtCore.SIGNAL('send_links(PyQt_PyObject)'), jsons)
+        #Return keyword list
+        #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
+        #Return jsons
+        self.emit( QtCore.SIGNAL('send_links(PyQt_PyObject)'), jsons)
 
-       #Write first url's appearing in jsons list to a 'suggested_pages.txt'
-       cdate = datetime.datetime.now().date()
-       ctime = datetime.datetime.now().time()
-       f = open("suggested_pages.txt","a")
-       f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
-       f.close()
-
+        #Write first url's appearing in jsons list to a 'suggested_pages.txt'
+        cdate = datetime.datetime.now().date()
+        ctime = datetime.datetime.now().time()
+        f = open("suggested_pages.txt","a")
+        f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
+        f.close()
       self.oldquery = dstr
       self.emit(QtCore.SIGNAL('all_done()'))
 
+
     else:
-     sleep(0.3) # artificial time delay    
+      sleep(0.3) # artificial time delay    
 
 #def unicode_to_str(ustr):
 #  """Converts unicode strings to 8-bit strings."""
