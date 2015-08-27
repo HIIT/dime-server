@@ -1,10 +1,9 @@
 
 from PyQt4 import QtCore, QtGui
 
-from fetch_keys_linux import *
-
 import time
 import datetime
+import zmq
 
 #
 class LoggerThread(QtCore.QThread):
@@ -12,6 +11,10 @@ class LoggerThread(QtCore.QThread):
   def __init__(self):
     QtCore.QThread.__init__(self)
     self.var = True
+    self.context = zmq.Context()
+    self.socket = self.context.socket(zmq.SUB)
+    self.socket.connect("tcp://127.0.0.1:5000")
+    self.socket.setsockopt(zmq.SUBSCRIBE, "")
 
   def start_logger_loop(self):
     self.var = True
@@ -53,14 +56,15 @@ class LoggerThread(QtCore.QThread):
     while self.var:
 
       time.sleep(sleep_interval)
-      changed, modifiers, keys = fetch_keys()
-
+      #changed, modifiers, keys = socket.recv()
+      keys = self.socket.recv()
+      
       #print modifiers
       #print changed, modifiers, keys
       keys  = str(keys)
       
       #Take care that ctrl is not pressed at the same time
-      if not (modifiers['left ctrl'] or modifiers['right ctrl']):
+      if True: #not (modifiers['left ctrl'] or modifiers['right ctrl']):
         #Take current time
         cdate = datetime.datetime.now().date()
         ctime = datetime.datetime.now().time()
@@ -90,7 +94,7 @@ class LoggerThread(QtCore.QThread):
 
           elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
             print 'Logger thread: keys: ', keys
-            print 'Logger thread: changed: ', changed[0]
+            #print 'Logger thread: changed: ', changed[0]
             #keys = ' '
             wordlist.append(dumstr)
             #print wordlist

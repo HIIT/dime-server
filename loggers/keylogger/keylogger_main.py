@@ -43,6 +43,8 @@ from simple_animation import *
 
 if sys.platform == "linux2":
   from loggerthread_linux import *
+elif sys.platform == "darwin":
+  from loggerthread_osx import *
 else:
   print "Unsupported platform"
   sys.exit()
@@ -50,7 +52,7 @@ else:
 ################################################################
 
 # linux only!
-assert("linux" in sys.platform)
+# assert("linux" in sys.platform)
 
 class MyApp(QtGui.QWidget):
 #class MyApp(QMainWindow):
