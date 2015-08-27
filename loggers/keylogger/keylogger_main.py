@@ -11,7 +11,6 @@ from time import sleep, time
 import ctypes as ct
 from ctypes.util import find_library
 
-import datetime
 import os
 import Queue
 import threading
@@ -88,8 +87,8 @@ class MyApp(QtGui.QWidget):
 
   #Data connection from logger thread to search thread
   self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
-  self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
-  self.connect(self, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
+  #self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
+  #self.connect(self, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
 
   #self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links_and_kwbuttons)
 
@@ -98,6 +97,7 @@ class MyApp(QtGui.QWidget):
                self.get_data_from_search_thread_and_update_visible_stuff)
   self.connect(self.SearchThreadObj, QtCore.SIGNAL("send_keywords(PyQt_PyObject)"),
                self.get_keywords_from_search_thread_and_update_visible_stuff)
+  self.connect(self.SearchThreadObj, QtCore.SIGNAL("start_search()"), self.anim1.tl.start)
   self.connect(self.SearchThreadObj, QtCore.SIGNAL("all_done()"), self.anim1.tl.stop)
 
   #Data connections from main thread to search thread
@@ -700,7 +700,7 @@ class SearchThread(QtCore.QThread):
       dstr = self.query
       #dstr = unicode(dstr, 'utf-8') films 
       print 'Search thread:', dstr 
-
+      self.emit(QtCore.SIGNAL('start_search()'))
 
       if self.searchfuncid == 0:
         jsons, docinds = search_dime_docsim(dstr)      
