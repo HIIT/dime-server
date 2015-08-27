@@ -16,8 +16,6 @@ import os
 import Queue
 import threading
 
-from fetch_keys_linux import *
-
 from update_dict_lda_and_Am import *
 
 from dime_search import *
@@ -42,6 +40,12 @@ import types
 
 #Animation for processing
 from simple_animation import *
+
+if sys.platform == "linux2":
+  from loggerthread_linux import *
+else:
+  print "Unsupported platform"
+  sys.exit()
 
 ################################################################
 
@@ -738,6 +742,8 @@ class SearchThread(QtCore.QThread):
     else:
      sleep(0.3) # artificial time delay    
 
+<<<<<<< HEAD:loggers/keylogger/keylogger_main.py
+=======
 #
 class LoggerThread(QtCore.QThread):
 
@@ -878,6 +884,7 @@ def read_user_ini():
 
     return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
+>>>>>>> 90e786fea4688d584e7833b7c382c3da1cc28afb:loggers/keylogger/keylogger_main_linux.py
 #def unicode_to_str(ustr):
 #  """Converts unicode strings to 8-bit strings."""
 #  try:
