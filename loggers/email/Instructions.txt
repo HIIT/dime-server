@@ -1,4 +1,7 @@
-Required packages:
+Python 2.7
+
+Required python packages:
+
 email 
 os
 sys
@@ -16,8 +19,38 @@ html2text : https://pypi.python.org/pypi/html2text
 quotequail : https://pypi.python.org/pypi/quotequail/0.1.1
 
 
+To setup Stanford NER package:
+
+- install python package ner
+- This NER system requires Java 1.8 or later. Make sure you have Java 8.
+- download JAR files from http://nlp.stanford.edu/software/stanford-ner-2015-04-20.zip
+- extract the files
+- cd <Directory where the files were extracted>
+- run the following command in the command line.
+java -mx1000m -cp stanford-ner.jar edu.stanford.nlp.ie.NERServer \
+    -loadClassifier classifiers/english.muc.7class.distsim.crf.ser.gz \
+    -port 8080 -outputFormat inlineXML
+- Minimize this terminal and open a new terminal
+
+
+
+Merging of different email-ids:
+(This is used when a single peer uses multiple email ids)
+
+- Checkout the file 'name_dictionary.txt'
+- Each line is of the format <duplicate email-id>:<original email-id>
+
+NLTK:
+
+>> import nltk
+>> nltk.download()
+# Download all the corpora
+
+
 Execution in the commandline:
 
-python email_mining_main.py '<username>' '<email_id>' '<password>' '<List of interesting peers>'  > email_mining_sample_output.txt
+python email_mining_main.py '<domain>' '<username>' '<email_id>'  <Emails Since Date>  <Emails Before Date> '<List of interesting peers>'  
 eg:
-python email_mining_main.py 'mallend1' 'darshan.mallenahallishankaralingappa@aalto.fi' '<password>' 'aristides.gionis@aalto.fi' 'petteri.kaski@aalto.fi' > email_mining_sample_output.txt
+python email_mining_main.py 'imap.aalto.fi' 'mallend1' 'darshan.mallenahallishankaralingappa@aalto.fi'  '01-JUN-2014' '28-JUl-2015' 'aristides.gionis@aalto.fi' 'gianmarco.defranciscimorales@aalto.fi'
+
+python email_mining_main.py 'imap.gmail.com' 'udaydarshan' 'udaydarshan@gmail.com'  '01-JUN-2014' '28-JUl-2015'  

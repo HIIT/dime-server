@@ -1,0 +1,593 @@
+
+TF top words for:['aristides.gionis@aalto.fi', 'gianmarco.defranciscimorales@aalto.fi']
+###########getTopPhrases('peer', 'user', True)
+
+gianmarco.defranciscimorales@aalto.fi
+[[u'email mining', 0.09677], [u'sample output', 0.07742], [u'document', 0.03871], [u'wp4', 0.03226], [u'wp3', 0.03226], [u'email', 0.03226], [u'know', 0.03226], [u'darshan', 0.03226], [u'words', 0.02581], [u'noun phrases', 0.02581]]
+
+aristides.gionis@aalto.fi
+[[u'email mining', 0.0625], [u'sample output', 0.0625], [u'summer internship', 0.03409], [u'darshan', 0.03409], [u'document', 0.03409], [u'know', 0.02841], [u'email', 0.02841], [u'wp4', 0.02841], [u'wp3', 0.02841], [u'aris', 0.02273]]
+###########getTopPhrases('peer', 'peer', True)
+
+gianmarco.defranciscimorales@aalto.fi
+[[u'email mining', 0.11429], [u'gianmarco', 0.07143], [u'mallenahalli shankara lingappa darshan', 0.05714], [u'gionis aristides', 0.04286], [u'wp4', 0.02857], [u'wp3', 0.02857], [u'tomorrow', 0.02857], [u'email', 0.02857], [u'jul', 0.02857], [u'know', 0.02857]]
+
+aristides.gionis@aalto.fi
+[[u'summer internship', 0.07143], [u'email', 0.0625], [u'wp4', 0.05357], [u'wp3', 0.05357], [u'know', 0.05357], [u'aris', 0.04464], [u'gianmarco', 0.03571], [u'darshan', 0.03571], [u'email mining', 0.03571], [u'patrik', 0.02679]]
+###########getTopPhrases('peer', 'both', True)
+
+gianmarco.defranciscimorales@aalto.fi
+[[u'email mining', 0.10222], [u'sample output', 0.05333], [u'know', 0.03111], [u'email', 0.03111], [u'wp4', 0.03111], [u'wp3', 0.03111], [u'gianmarco', 0.03111], [u'document', 0.02667], [u'darshan', 0.02222], [u'words', 0.01778]]
+
+aristides.gionis@aalto.fi
+[[u'email mining', 0.05208], [u'summer internship', 0.04861], [u'email', 0.04167], [u'know', 0.03819], [u'sample output', 0.03819], [u'wp4', 0.03819], [u'wp3', 0.03819], [u'darshan', 0.03472], [u'aris', 0.03125], [u'document', 0.02083]]
+###########getTopPhrases('thread', 'user', True)gianmarco.defranciscimorales@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+Email analysis for WP3 and WP4 in Know  7
+[[u'wp4', 0.18519], [u'wp3', 0.18519], [u'know', 0.18519], [u'email', 0.18519], [u'darshan', 0.11111], [u'oih', 0.03704], [u'thurday', 0.03704], [u'otaniemi', 0.03704], [u'innovation', 0.03704]]
+
+Email Mining  21
+[[u'email mining', 0.14583], [u'sample output', 0.125], [u'document', 0.0625], [u'words', 0.04167], [u'noun phrases', 0.04167], [u'document list', 0.03125], [u'aris', 0.03125], [u'lda', 0.02083], [u'nmf', 0.02083], [u'example code', 0.01042]]
+
+Accepted: Confirmed: Gianmarco / Darshan
+ Mallenahallishankaralingappa (Aalto) - Mon, Jul 13 @ 11:00am (EEST)  1
+[[u'confirmed', 0.125], [u'darshan mallenahallishankaralingappa', 0.125], [u'jul', 0.125], [u'aalto', 0.125], [u'mon', 0.125], [u'eest', 0.125], [u'gianmarco', 0.125], [u'@ 11:00am', 0.125]]
+
+summer  2
+[]
+
+meeting  3
+[[u'phrases', 0.16667], [u'enron email', 0.16667], [u'sample output files', 0.16667], [u'ner', 0.16667], [u'tomorrow', 0.16667], [u'pm', 0.16667]]
+
+know project  2
+[[u'udaydarshan gmail.com', 0.33333], [u'thursdays', 0.33333], [u'gmail id', 0.33333]]
+
+Accepted: Updated: Mail Mining - Tue, Jun 16 @ 5:00pm (EEST)  1
+[[u'@ 5:00pm', 0.16667], [u'updated', 0.16667], [u'jun', 0.16667], [u'mining', 0.16667], [u'eest', 0.16667], [u'tue', 0.16667]]
+
+Accepted: Updated: Email Mining - Tue, Jul 07 @ 2:00pm (EEST)  1
+[[u'updated', 0.16667], [u'jul', 0.16667], [u'email mining', 0.16667], [u'eest', 0.16667], [u'@ 2:00pm', 0.16667], [u'tue', 0.16667]]aristides.gionis@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+email addresses  1
+[]
+
+Emails  1
+[]
+
+Email Mining  14
+[[u'sample output', 0.1236], [u'email mining', 0.1236], [u'document', 0.06742], [u'words', 0.04494], [u'noun phrases', 0.04494], [u'document list', 0.03371], [u'aris', 0.03371], [u'lda', 0.02247], [u'nmf', 0.02247], [u'example code', 0.01124]]
+
+Points from Today's Discussion  1
+[[u'style endorsements', 0.07143], [u'email analysis', 0.07143], [u'darshan', 0.07143], [u'database schema', 0.07143], [u'discussion', 0.07143], [u'june', 0.07143], [u'mapping', 0.07143], [u'profiles', 0.07143], [u'search history', 0.07143], [u'points', 0.07143]]
+
+summer internship  11
+[[u'summer internship', 0.66667], [u'aris', 0.11111], [u'opportunity', 0.11111], [u'nikolai', 0.11111]]
+
+T-61.5060 - Missing Link Analysis Slides  2
+[[u'missing link analysis slides', 0.33333], [u't-61.5060', 0.33333], [u'link analysis lecture slides', 0.33333]]
+
+thursday  1
+[]
+
+9.50  3
+[[u'cs', 0.5], [u'physics department', 0.5]]
+
+Email analysis for WP3 and WP4 in Know  11
+[[u'wp4', 0.18519], [u'wp3', 0.18519], [u'know', 0.18519], [u'email', 0.18519], [u'darshan', 0.11111], [u'oih', 0.03704], [u'thurday', 0.03704], [u'otaniemi', 0.03704], [u'innovation', 0.03704]]
+
+Late  1
+[]
+
+summer  8
+[[u'conference', 0.2], [u'science', 0.2], [u'helsinki', 0.2], [u'june', 0.2], [u'research papers', 0.2]]
+
+meeting  4
+[[u'phrases', 0.16667], [u'enron email', 0.16667], [u'sample output files', 0.16667], [u'ner', 0.16667], [u'tomorrow', 0.16667], [u'pm', 0.16667]]
+
+T-61.6020 Special Course - Project Proposal  1
+[[u'project proposal', 0.5], [u't-61.6020', 0.25], [u'special course', 0.25]]
+
+meeting tomorrow?  2
+[[u'darshan', 0.5], [u'pm', 0.5]]
+
+know project  2
+[[u'udaydarshan gmail.com', 0.33333], [u'thursdays', 0.33333], [u'gmail id', 0.33333]]
+
+T-61.6020 Special Course - Intermediate Report  1
+[[u'report', 0.25], [u't-61.6020', 0.25], [u'special course', 0.25], [u'intermediate', 0.25]]
+
+pointers  1
+[]
+
+T-61.6020 Special Course - Final Report  1
+[[u'report', 0.2], [u't-61.6020', 0.2], [u'special course', 0.2], [u'presentation slides', 0.2], [u'final', 0.2]]
+
+svn  1
+[]
+###########getTopPhrases('thread', 'peer', True)gianmarco.defranciscimorales@aalto.fi
+
+group beer tomorrow  1
+[]
+
+Email analysis for WP3 and WP4 in Know  7
+[[u'wp4', 0.13333], [u'wp3', 0.13333], [u'know', 0.13333], [u'email', 0.13333], [u'tomorrow', 0.06667], [u'gionis aristides', 0.06667], [u'june', 0.06667], [u'//sunrise.am/m/pozphiwem9', 0.06667], [u'gianmarco', 0.06667], [u'aristides.gionis aalto.fi', 0.06667]]
+
+Email Mining  21
+[[u'email mining', 0.16667], [u'gianmarco', 0.08333], [u'mallenahalli shankara lingappa darshan', 0.0625], [u'//www.dxtr.it http', 0.02083], [u'//sunrise.am/m/e7hcqeuj9c', 0.02083], [u'loss function', 0.02083], [u'people', 0.02083], [u'python installation', 0.02083], [u'meetings', 0.02083], [u'linkedin', 0.02083]]
+
+Accepted: Confirmed: Gianmarco / Darshan
+ Mallenahallishankaralingappa (Aalto) - Mon, Jul 13 @ 11:00am (EEST)  1
+[]
+
+summer  2
+[]
+
+meeting  3
+[[u'gdfm iphone', 0.33333], [u'jul', 0.33333], [u'mallenahalli shankara lingappa darshan', 0.16667], [u'gionis aristides', 0.16667]]
+
+know project  2
+[[u'gdfm gdfm.me 2\\', 1.0]]
+
+Accepted: Updated: Mail Mining - Tue, Jun 16 @ 5:00pm (EEST)  1
+[]
+
+Accepted: Updated: Email Mining - Tue, Jul 07 @ 2:00pm (EEST)  1
+[]aristides.gionis@aalto.fi
+
+group beer tomorrow  1
+[]
+
+email addresses  1
+[[u'aris', 0.5], [u'email addresses', 0.5]]
+
+Emails  1
+[[u'vc', 0.33333], [u'email', 0.33333], [u'emails', 0.33333]]
+
+Email Mining  14
+[[u'email mining', 0.17391], [u'python user', 0.04348], [u'definition', 0.04348], [u'wikipedia page', 0.04348], [u'entity extraction package', 0.04348], [u'darshan', 0.04348], [u'darshans', 0.04348], [u'python installation', 0.04348], [u'nmf', 0.04348], [u'entities', 0.04348]]
+
+Points from Today's Discussion  1
+[]
+
+summer internship  11
+[[u'summer internship', 0.72727], [u'project', 0.09091], [u'nikolaj tatti', 0.09091], [u'aalto cs', 0.09091]]
+
+T-61.5060 - Missing Link Analysis Slides  2
+[[u'aris', 0.25], [u't-61.5060', 0.25], [u'missing link analysis slides', 0.25], [u'ops', 0.25]]
+
+thursday  1
+[[u'a317', 0.2], [u'exactum', 0.2], [u'physicum', 0.2], [u'physics', 0.2], [u'computer science building', 0.2]]
+
+9.50  3
+[[u'patrik', 0.5], [u'aris', 0.5]]
+
+Email analysis for WP3 and WP4 in Know  11
+[[u'wp4', 0.19355], [u'wp3', 0.19355], [u'know', 0.19355], [u'email', 0.19355], [u'darshan', 0.03226], [u'oih', 0.03226], [u'kumpula', 0.03226], [u'otaniemi', 0.03226], [u'gianmarco', 0.03226], [u'tuas', 0.03226]]
+
+Late  1
+[[u'late', 0.5], [u'aris', 0.5]]
+
+summer  8
+[[u'gianmarco', 0.5], [u'a348', 0.5]]
+
+meeting  4
+[[u'helsinki', 1.0]]
+
+T-61.6020 Special Course - Project Proposal  1
+[]
+
+meeting tomorrow?  2
+[]
+
+know project  2
+[[u'google drive', 0.18182], [u're', 0.18182], [u'patrik', 0.18182], [u'email address', 0.09091], [u'darshan', 0.09091], [u'gmail addresses', 0.09091], [u'gianmarco', 0.09091], [u'patrik floreen', 0.09091]]
+
+T-61.6020 Special Course - Intermediate Report  1
+[]
+
+pointers  1
+[[u'c.', 0.07692], [u'n.', 0.07692], [u'aiellos', 0.07692], [u'p.', 0.07692], [u'dubois', 0.07692], [u'kleinbergs', 0.07692], [u'machine', 0.07692], [u'anything', 0.07692], [u'hidalgos', 0.07692], [u'email communication behavior', 0.07692]]
+
+T-61.6020 Special Course - Final Report  1
+[]
+
+svn  1
+[[u'svn directory', 0.5], [u'darshan', 0.5]]
+###########getTopPhrases('thread', 'both', True)gianmarco.defranciscimorales@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+Email analysis for WP3 and WP4 in Know  7
+[[u'wp4', 0.16667], [u'wp3', 0.16667], [u'know', 0.16667], [u'email', 0.16667], [u'darshan', 0.07143], [u'tomorrow', 0.02381], [u'oih', 0.02381], [u'thurday', 0.02381], [u'gionis aristides', 0.02381], [u'june', 0.02381]]
+
+Email Mining  21
+[[u'email mining', 0.15278], [u'sample output', 0.08333], [u'document', 0.04167], [u'gianmarco', 0.03472], [u'words', 0.02778], [u'noun phrases', 0.02778], [u'document list', 0.02083], [u'aris', 0.02083], [u'mallenahalli shankara lingappa darshan', 0.02083], [u'lda', 0.01389]]
+
+Accepted: Confirmed: Gianmarco / Darshan
+ Mallenahallishankaralingappa (Aalto) - Mon, Jul 13 @ 11:00am (EEST)  1
+[[u'confirmed', 0.125], [u'darshan mallenahallishankaralingappa', 0.125], [u'jul', 0.125], [u'aalto', 0.125], [u'mon', 0.125], [u'eest', 0.125], [u'gianmarco', 0.125], [u'@ 11:00am', 0.125]]
+
+summer  2
+[]
+
+meeting  3
+[[u'jul', 0.16667], [u'gdfm iphone', 0.16667], [u'gionis aristides', 0.08333], [u'phrases', 0.08333], [u'enron email', 0.08333], [u'mallenahalli shankara lingappa darshan', 0.08333], [u'sample output files', 0.08333], [u'ner', 0.08333], [u'tomorrow', 0.08333], [u'pm', 0.08333]]
+
+know project  2
+[[u'udaydarshan gmail.com', 0.25], [u'thursdays', 0.25], [u'gmail id', 0.25], [u'gdfm gdfm.me 2\\', 0.25]]
+
+Accepted: Updated: Mail Mining - Tue, Jun 16 @ 5:00pm (EEST)  1
+[[u'@ 5:00pm', 0.16667], [u'updated', 0.16667], [u'jun', 0.16667], [u'mining', 0.16667], [u'eest', 0.16667], [u'tue', 0.16667]]
+
+Accepted: Updated: Email Mining - Tue, Jul 07 @ 2:00pm (EEST)  1
+[[u'updated', 0.16667], [u'jul', 0.16667], [u'email mining', 0.16667], [u'eest', 0.16667], [u'@ 2:00pm', 0.16667], [u'tue', 0.16667]]aristides.gionis@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+email addresses  1
+[[u'aris', 0.5], [u'email addresses', 0.5]]
+
+Emails  1
+[[u'vc', 0.33333], [u'email', 0.33333], [u'emails', 0.33333]]
+
+Email Mining  14
+[[u'email mining', 0.13393], [u'sample output', 0.09821], [u'document', 0.05357], [u'words', 0.04464], [u'aris', 0.03571], [u'noun phrases', 0.03571], [u'document list', 0.02679], [u'nmf', 0.02679], [u'lda', 0.01786], [u'entities', 0.01786]]
+
+Points from Today's Discussion  1
+[[u'style endorsements', 0.07143], [u'email analysis', 0.07143], [u'darshan', 0.07143], [u'database schema', 0.07143], [u'discussion', 0.07143], [u'june', 0.07143], [u'mapping', 0.07143], [u'profiles', 0.07143], [u'search history', 0.07143], [u'points', 0.07143]]
+
+summer internship  11
+[[u'summer internship', 0.7], [u'nikolaj tatti', 0.05], [u'nikolai', 0.05], [u'project', 0.05], [u'aalto cs', 0.05], [u'aris', 0.05], [u'opportunity', 0.05]]
+
+T-61.5060 - Missing Link Analysis Slides  2
+[[u'missing link analysis slides', 0.28571], [u't-61.5060', 0.28571], [u'aris', 0.14286], [u'link analysis lecture slides', 0.14286], [u'ops', 0.14286]]
+
+thursday  1
+[[u'a317', 0.2], [u'exactum', 0.2], [u'physicum', 0.2], [u'physics', 0.2], [u'computer science building', 0.2]]
+
+9.50  3
+[[u'cs', 0.25], [u'patrik', 0.25], [u'physics department', 0.25], [u'aris', 0.25]]
+
+Email analysis for WP3 and WP4 in Know  11
+[[u'wp4', 0.18966], [u'wp3', 0.18966], [u'know', 0.18966], [u'email', 0.18966], [u'darshan', 0.06897], [u'oih', 0.03448], [u'otaniemi', 0.03448], [u'thurday', 0.01724], [u'kumpula', 0.01724], [u'innovation', 0.01724]]
+
+Late  1
+[[u'late', 0.5], [u'aris', 0.5]]
+
+summer  8
+[[u'conference', 0.14286], [u'helsinki', 0.14286], [u'science', 0.14286], [u'june', 0.14286], [u'a348', 0.14286], [u'research papers', 0.14286], [u'gianmarco', 0.14286]]
+
+meeting  4
+[[u'helsinki', 0.14286], [u'phrases', 0.14286], [u'enron email', 0.14286], [u'sample output files', 0.14286], [u'ner', 0.14286], [u'tomorrow', 0.14286], [u'pm', 0.14286]]
+
+T-61.6020 Special Course - Project Proposal  1
+[[u'project proposal', 0.5], [u't-61.6020', 0.25], [u'special course', 0.25]]
+
+meeting tomorrow?  2
+[[u'darshan', 0.5], [u'pm', 0.5]]
+
+know project  2
+[[u'google drive', 0.14286], [u're', 0.14286], [u'patrik', 0.14286], [u'udaydarshan gmail.com', 0.07143], [u'gmail id', 0.07143], [u'darshan', 0.07143], [u'thursdays', 0.07143], [u'gmail addresses', 0.07143], [u'gianmarco', 0.07143], [u'patrik floreen', 0.07143]]
+
+T-61.6020 Special Course - Intermediate Report  1
+[[u'report', 0.25], [u't-61.6020', 0.25], [u'special course', 0.25], [u'intermediate', 0.25]]
+
+pointers  1
+[[u'c.', 0.07692], [u'n.', 0.07692], [u'aiellos', 0.07692], [u'p.', 0.07692], [u'dubois', 0.07692], [u'kleinbergs', 0.07692], [u'machine', 0.07692], [u'anything', 0.07692], [u'hidalgos', 0.07692], [u'email communication behavior', 0.07692]]
+
+T-61.6020 Special Course - Final Report  1
+[[u'report', 0.2], [u't-61.6020', 0.2], [u'special course', 0.2], [u'presentation slides', 0.2], [u'final', 0.2]]
+
+svn  1
+[[u'svn directory', 0.5], [u'darshan', 0.5]]
+###########getTopPhrases('thread', 'user', False)gianmarco.defranciscimorales@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+Email analysis for WP3 and WP4 in Know  7
+[[u'wp4', 0.18519], [u'wp3', 0.18519], [u'know', 0.18519], [u'email', 0.18519], [u'darshan', 0.11111], [u'oih', 0.03704], [u'thurday', 0.03704], [u'otaniemi', 0.03704], [u'innovation', 0.03704]]
+
+Email Mining  21
+[[u'email mining', 0.14583], [u'sample output', 0.125], [u'document', 0.0625], [u'words', 0.04167], [u'noun phrases', 0.04167], [u'document list', 0.03125], [u'aris', 0.03125], [u'lda', 0.02083], [u'nmf', 0.02083], [u'example code', 0.01042]]
+
+Accepted: Confirmed: Gianmarco / Darshan
+ Mallenahallishankaralingappa (Aalto) - Mon, Jul 13 @ 11:00am (EEST)  1
+[[u'confirmed', 0.125], [u'darshan mallenahallishankaralingappa', 0.125], [u'jul', 0.125], [u'aalto', 0.125], [u'mon', 0.125], [u'eest', 0.125], [u'gianmarco', 0.125], [u'@ 11:00am', 0.125]]
+
+summer  2
+[]
+
+meeting  3
+[[u'phrases', 0.16667], [u'enron email', 0.16667], [u'sample output files', 0.16667], [u'ner', 0.16667], [u'tomorrow', 0.16667], [u'pm', 0.16667]]
+
+know project  2
+[[u'udaydarshan gmail.com', 0.33333], [u'thursdays', 0.33333], [u'gmail id', 0.33333]]
+
+Accepted: Updated: Mail Mining - Tue, Jun 16 @ 5:00pm (EEST)  1
+[[u'@ 5:00pm', 0.16667], [u'updated', 0.16667], [u'jun', 0.16667], [u'mining', 0.16667], [u'eest', 0.16667], [u'tue', 0.16667]]
+
+Accepted: Updated: Email Mining - Tue, Jul 07 @ 2:00pm (EEST)  1
+[[u'updated', 0.16667], [u'jul', 0.16667], [u'email mining', 0.16667], [u'eest', 0.16667], [u'@ 2:00pm', 0.16667], [u'tue', 0.16667]]aristides.gionis@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+email addresses  1
+[]
+
+Emails  1
+[]
+
+Email Mining  14
+[[u'sample output', 0.1236], [u'email mining', 0.1236], [u'document', 0.06742], [u'words', 0.04494], [u'noun phrases', 0.04494], [u'document list', 0.03371], [u'aris', 0.03371], [u'lda', 0.02247], [u'nmf', 0.02247], [u'example code', 0.01124]]
+
+Points from Today's Discussion  1
+[[u'style endorsements', 0.07143], [u'email analysis', 0.07143], [u'darshan', 0.07143], [u'database schema', 0.07143], [u'discussion', 0.07143], [u'june', 0.07143], [u'mapping', 0.07143], [u'profiles', 0.07143], [u'search history', 0.07143], [u'points', 0.07143]]
+
+summer internship  11
+[[u'summer internship', 0.66667], [u'aris', 0.11111], [u'opportunity', 0.11111], [u'nikolai', 0.11111]]
+
+T-61.5060 - Missing Link Analysis Slides  2
+[[u'missing link analysis slides', 0.33333], [u't-61.5060', 0.33333], [u'link analysis lecture slides', 0.33333]]
+
+thursday  1
+[]
+
+9.50  3
+[[u'cs', 0.5], [u'physics department', 0.5]]
+
+Email analysis for WP3 and WP4 in Know  11
+[[u'wp4', 0.18519], [u'wp3', 0.18519], [u'know', 0.18519], [u'email', 0.18519], [u'darshan', 0.11111], [u'oih', 0.03704], [u'thurday', 0.03704], [u'otaniemi', 0.03704], [u'innovation', 0.03704]]
+
+Late  1
+[]
+
+summer  8
+[[u'conference', 0.2], [u'science', 0.2], [u'helsinki', 0.2], [u'june', 0.2], [u'research papers', 0.2]]
+
+meeting  4
+[[u'phrases', 0.16667], [u'enron email', 0.16667], [u'sample output files', 0.16667], [u'ner', 0.16667], [u'tomorrow', 0.16667], [u'pm', 0.16667]]
+
+T-61.6020 Special Course - Project Proposal  1
+[[u'project proposal', 0.5], [u't-61.6020', 0.25], [u'special course', 0.25]]
+
+meeting tomorrow?  2
+[[u'darshan', 0.5], [u'pm', 0.5]]
+
+know project  2
+[[u'udaydarshan gmail.com', 0.33333], [u'thursdays', 0.33333], [u'gmail id', 0.33333]]
+
+T-61.6020 Special Course - Intermediate Report  1
+[[u'report', 0.25], [u't-61.6020', 0.25], [u'special course', 0.25], [u'intermediate', 0.25]]
+
+pointers  1
+[]
+
+T-61.6020 Special Course - Final Report  1
+[[u'report', 0.2], [u't-61.6020', 0.2], [u'special course', 0.2], [u'presentation slides', 0.2], [u'final', 0.2]]
+
+svn  1
+[]
+###########getTopPhrases('thread', 'peer', False)gianmarco.defranciscimorales@aalto.fi
+
+group beer tomorrow  1
+[]
+
+Email analysis for WP3 and WP4 in Know  7
+[[u'wp4', 0.13333], [u'wp3', 0.13333], [u'know', 0.13333], [u'email', 0.13333], [u'tomorrow', 0.06667], [u'gionis aristides', 0.06667], [u'june', 0.06667], [u'//sunrise.am/m/pozphiwem9', 0.06667], [u'gianmarco', 0.06667], [u'aristides.gionis aalto.fi', 0.06667]]
+
+Email Mining  21
+[[u'email mining', 0.16667], [u'gianmarco', 0.08333], [u'mallenahalli shankara lingappa darshan', 0.0625], [u'//www.dxtr.it http', 0.02083], [u'//sunrise.am/m/e7hcqeuj9c', 0.02083], [u'loss function', 0.02083], [u'people', 0.02083], [u'python installation', 0.02083], [u'meetings', 0.02083], [u'linkedin', 0.02083]]
+
+Accepted: Confirmed: Gianmarco / Darshan
+ Mallenahallishankaralingappa (Aalto) - Mon, Jul 13 @ 11:00am (EEST)  1
+[]
+
+summer  2
+[]
+
+meeting  3
+[[u'gdfm iphone', 0.33333], [u'jul', 0.33333], [u'mallenahalli shankara lingappa darshan', 0.16667], [u'gionis aristides', 0.16667]]
+
+know project  2
+[[u'gdfm gdfm.me 2\\', 1.0]]
+
+Accepted: Updated: Mail Mining - Tue, Jun 16 @ 5:00pm (EEST)  1
+[]
+
+Accepted: Updated: Email Mining - Tue, Jul 07 @ 2:00pm (EEST)  1
+[]aristides.gionis@aalto.fi
+
+group beer tomorrow  1
+[]
+
+email addresses  1
+[[u'aris', 0.5], [u'email addresses', 0.5]]
+
+Emails  1
+[[u'vc', 0.33333], [u'email', 0.33333], [u'emails', 0.33333]]
+
+Email Mining  14
+[[u'email mining', 0.17391], [u'python user', 0.04348], [u'definition', 0.04348], [u'wikipedia page', 0.04348], [u'entity extraction package', 0.04348], [u'darshan', 0.04348], [u'darshans', 0.04348], [u'python installation', 0.04348], [u'nmf', 0.04348], [u'entities', 0.04348]]
+
+Points from Today's Discussion  1
+[]
+
+summer internship  11
+[[u'summer internship', 0.72727], [u'project', 0.09091], [u'nikolaj tatti', 0.09091], [u'aalto cs', 0.09091]]
+
+T-61.5060 - Missing Link Analysis Slides  2
+[[u'aris', 0.25], [u't-61.5060', 0.25], [u'missing link analysis slides', 0.25], [u'ops', 0.25]]
+
+thursday  1
+[[u'a317', 0.2], [u'exactum', 0.2], [u'physicum', 0.2], [u'physics', 0.2], [u'computer science building', 0.2]]
+
+9.50  3
+[[u'patrik', 0.5], [u'aris', 0.5]]
+
+Email analysis for WP3 and WP4 in Know  11
+[[u'wp4', 0.19355], [u'wp3', 0.19355], [u'know', 0.19355], [u'email', 0.19355], [u'darshan', 0.03226], [u'oih', 0.03226], [u'kumpula', 0.03226], [u'otaniemi', 0.03226], [u'gianmarco', 0.03226], [u'tuas', 0.03226]]
+
+Late  1
+[[u'late', 0.5], [u'aris', 0.5]]
+
+summer  8
+[[u'gianmarco', 0.5], [u'a348', 0.5]]
+
+meeting  4
+[[u'helsinki', 1.0]]
+
+T-61.6020 Special Course - Project Proposal  1
+[]
+
+meeting tomorrow?  2
+[]
+
+know project  2
+[[u'google drive', 0.18182], [u're', 0.18182], [u'patrik', 0.18182], [u'email address', 0.09091], [u'darshan', 0.09091], [u'gmail addresses', 0.09091], [u'gianmarco', 0.09091], [u'patrik floreen', 0.09091]]
+
+T-61.6020 Special Course - Intermediate Report  1
+[]
+
+pointers  1
+[[u'c.', 0.07692], [u'n.', 0.07692], [u'aiellos', 0.07692], [u'p.', 0.07692], [u'dubois', 0.07692], [u'kleinbergs', 0.07692], [u'machine', 0.07692], [u'anything', 0.07692], [u'hidalgos', 0.07692], [u'email communication behavior', 0.07692]]
+
+T-61.6020 Special Course - Final Report  1
+[]
+
+svn  1
+[[u'svn directory', 0.5], [u'darshan', 0.5]]
+###########getTopPhrases('thread', 'both', False)gianmarco.defranciscimorales@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+Email analysis for WP3 and WP4 in Know  7
+[[u'wp4', 0.16667], [u'wp3', 0.16667], [u'know', 0.16667], [u'email', 0.16667], [u'darshan', 0.07143], [u'tomorrow', 0.02381], [u'oih', 0.02381], [u'thurday', 0.02381], [u'gionis aristides', 0.02381], [u'june', 0.02381]]
+
+Email Mining  21
+[[u'email mining', 0.15278], [u'sample output', 0.08333], [u'document', 0.04167], [u'gianmarco', 0.03472], [u'words', 0.02778], [u'noun phrases', 0.02778], [u'document list', 0.02083], [u'aris', 0.02083], [u'mallenahalli shankara lingappa darshan', 0.02083], [u'lda', 0.01389]]
+
+Accepted: Confirmed: Gianmarco / Darshan
+ Mallenahallishankaralingappa (Aalto) - Mon, Jul 13 @ 11:00am (EEST)  1
+[[u'confirmed', 0.125], [u'darshan mallenahallishankaralingappa', 0.125], [u'jul', 0.125], [u'aalto', 0.125], [u'mon', 0.125], [u'eest', 0.125], [u'gianmarco', 0.125], [u'@ 11:00am', 0.125]]
+
+summer  2
+[]
+
+meeting  3
+[[u'jul', 0.16667], [u'gdfm iphone', 0.16667], [u'gionis aristides', 0.08333], [u'phrases', 0.08333], [u'enron email', 0.08333], [u'mallenahalli shankara lingappa darshan', 0.08333], [u'sample output files', 0.08333], [u'ner', 0.08333], [u'tomorrow', 0.08333], [u'pm', 0.08333]]
+
+know project  2
+[[u'udaydarshan gmail.com', 0.25], [u'thursdays', 0.25], [u'gmail id', 0.25], [u'gdfm gdfm.me 2\\', 0.25]]
+
+Accepted: Updated: Mail Mining - Tue, Jun 16 @ 5:00pm (EEST)  1
+[[u'@ 5:00pm', 0.16667], [u'updated', 0.16667], [u'jun', 0.16667], [u'mining', 0.16667], [u'eest', 0.16667], [u'tue', 0.16667]]
+
+Accepted: Updated: Email Mining - Tue, Jul 07 @ 2:00pm (EEST)  1
+[[u'updated', 0.16667], [u'jul', 0.16667], [u'email mining', 0.16667], [u'eest', 0.16667], [u'@ 2:00pm', 0.16667], [u'tue', 0.16667]]aristides.gionis@aalto.fi
+
+group beer tomorrow  1
+[[u'house cafe', 0.33333], [u'group beer', 0.33333], [u'darshan', 0.33333]]
+
+email addresses  1
+[[u'aris', 0.5], [u'email addresses', 0.5]]
+
+Emails  1
+[[u'vc', 0.33333], [u'email', 0.33333], [u'emails', 0.33333]]
+
+Email Mining  14
+[[u'email mining', 0.13393], [u'sample output', 0.09821], [u'document', 0.05357], [u'words', 0.04464], [u'aris', 0.03571], [u'noun phrases', 0.03571], [u'document list', 0.02679], [u'nmf', 0.02679], [u'lda', 0.01786], [u'entities', 0.01786]]
+
+Points from Today's Discussion  1
+[[u'style endorsements', 0.07143], [u'email analysis', 0.07143], [u'darshan', 0.07143], [u'database schema', 0.07143], [u'discussion', 0.07143], [u'june', 0.07143], [u'mapping', 0.07143], [u'profiles', 0.07143], [u'search history', 0.07143], [u'points', 0.07143]]
+
+summer internship  11
+[[u'summer internship', 0.7], [u'nikolaj tatti', 0.05], [u'nikolai', 0.05], [u'project', 0.05], [u'aalto cs', 0.05], [u'aris', 0.05], [u'opportunity', 0.05]]
+
+T-61.5060 - Missing Link Analysis Slides  2
+[[u'missing link analysis slides', 0.28571], [u't-61.5060', 0.28571], [u'aris', 0.14286], [u'link analysis lecture slides', 0.14286], [u'ops', 0.14286]]
+
+thursday  1
+[[u'a317', 0.2], [u'exactum', 0.2], [u'physicum', 0.2], [u'physics', 0.2], [u'computer science building', 0.2]]
+
+9.50  3
+[[u'cs', 0.25], [u'patrik', 0.25], [u'physics department', 0.25], [u'aris', 0.25]]
+
+Email analysis for WP3 and WP4 in Know  11
+[[u'wp4', 0.18966], [u'wp3', 0.18966], [u'know', 0.18966], [u'email', 0.18966], [u'darshan', 0.06897], [u'oih', 0.03448], [u'otaniemi', 0.03448], [u'thurday', 0.01724], [u'kumpula', 0.01724], [u'innovation', 0.01724]]
+
+Late  1
+[[u'late', 0.5], [u'aris', 0.5]]
+
+summer  8
+[[u'conference', 0.14286], [u'helsinki', 0.14286], [u'science', 0.14286], [u'june', 0.14286], [u'a348', 0.14286], [u'research papers', 0.14286], [u'gianmarco', 0.14286]]
+
+meeting  4
+[[u'helsinki', 0.14286], [u'phrases', 0.14286], [u'enron email', 0.14286], [u'sample output files', 0.14286], [u'ner', 0.14286], [u'tomorrow', 0.14286], [u'pm', 0.14286]]
+
+T-61.6020 Special Course - Project Proposal  1
+[[u'project proposal', 0.5], [u't-61.6020', 0.25], [u'special course', 0.25]]
+
+meeting tomorrow?  2
+[[u'darshan', 0.5], [u'pm', 0.5]]
+
+know project  2
+[[u'google drive', 0.14286], [u're', 0.14286], [u'patrik', 0.14286], [u'udaydarshan gmail.com', 0.07143], [u'gmail id', 0.07143], [u'darshan', 0.07143], [u'thursdays', 0.07143], [u'gmail addresses', 0.07143], [u'gianmarco', 0.07143], [u'patrik floreen', 0.07143]]
+
+T-61.6020 Special Course - Intermediate Report  1
+[[u'report', 0.25], [u't-61.6020', 0.25], [u'special course', 0.25], [u'intermediate', 0.25]]
+
+pointers  1
+[[u'c.', 0.07692], [u'n.', 0.07692], [u'aiellos', 0.07692], [u'p.', 0.07692], [u'dubois', 0.07692], [u'kleinbergs', 0.07692], [u'machine', 0.07692], [u'anything', 0.07692], [u'hidalgos', 0.07692], [u'email communication behavior', 0.07692]]
+
+T-61.6020 Special Course - Final Report  1
+[[u'report', 0.2], [u't-61.6020', 0.2], [u'special course', 0.2], [u'presentation slides', 0.2], [u'final', 0.2]]
+
+svn  1
+[[u'svn directory', 0.5], [u'darshan', 0.5]]
+
+
+  gianmarco.defranciscimorales@aalto.fi
+Skills:  set([u'loss function', u'linkedin', u'sense', u'cloud', u'information', u'confirmed', u'matrix', u'tf idf', u'entities', u'document', u'email', u'hope', u'files', u'mining', u'words', u'data', u'reference', u'instructions', u'thread', u'level', u'phrases', u'traceback', u'english'])
+Top 10 Skills:  [[u'information', 0.50248], [u'email', 0.2314], [u'assignment', 0.20826], [u'computer', 0.16529], [u'matlab', 0.14876], [u'simulink', 0.1157], [u'list', 0.09256], [u'finland', 0.08099], [u'windows phone', 0.08099], [u'engineering', 0.06942]]
+People:  set([u'Gianmarco', u'Gianmarco      On', u'Darshan M.S. ________________________________________'])
+Locations:  set([u'Gionis Aristides'])
+Organizations:  set([u'Darshan M.S.          \\', u'NMF', u'LDA', u'Open Innovation House', u'OIH', u'10:07 AM', u'Non Negative Matrix', u'NLTK', u'Email Mining', u'Word Cloud', u'Otaniemi', u'Giamarco', u'Enron Email', u'Stanford NER', u'Mallenahalli Shankara Lingappa Darshan', u'Darshan M.S.'])
+Total No of Emails Exchanged  39
+User Median  0 days 05:13:28
+User Average  1 days 14:46:30.636363
+Peer Median  0 days 01:33:44
+Peer Average  0 days 11:55:52.666666
+Text Length User Median  124.0
+Text Length User Average  261.0
+Text Length Peer Median  134.5
+Text Length Peer Average  278.428571429
+Initiation Probabilities  {'peer': 0.3333333333333333, 'user': 0.6666666666666667}
+
+
+  aristides.gionis@aalto.fi
+Skills:  set([u'linkedin', u'error messages', u'sense', u'cloud', u'information', u'matrix', u'machine', u'entities', u'document', u'email', u'files', u'google drive', u'mapping', u'words', u'report', u'data', u'structure', u'instructions', u'definition', u'thread', u'level', u'phrases', u'tf idf', u'profiles', u'project', u'points', u'science', u'physics'])
+Top 10 Skills:  [[u'information', 0.50248], [u'email', 0.2314], [u'assignment', 0.20826], [u'computer', 0.16529], [u'matlab', 0.14876], [u'simulink', 0.1157], [u'list', 0.09256], [u'finland', 0.08099], [u'windows phone', 0.08099], [u'engineering', 0.06942]]
+People:  set([u'M.S.  ________________________________________', u'M.S.          \\', u'M.S. ________________________________________', u'DuBois', u'Gianmarco', u'Patrik', u'Patrik Floreen'])
+Locations:  set([u'Navaroli', u'M.S.', u'Kumpula', u'Helsinki'])
+Organizations:  set([u'NMF', u'LDA', u'Open Innovation House', u'Nikolaj Tatti', u'OIH', u'Non Negative Matrix', u'Email Mining', u'Word Cloud', u'Otaniemi', u'Giamarco', u'International Conference on Computational Social Science', u'Digi Platform', u'CS', u'Enron Email', u'Macadamia', u'Exploring Individual Email Communication Behavior', u'& Smyth'])
+Total No of Emails Exchanged  68
+User Median  0 days 01:17:26
+User Average  3 days 14:05:11.571428
+Peer Median  0 days 00:50:33
+Peer Average  0 days 12:54:49.315789
+Text Length User Median  98.0
+Text Length User Average  233.857142857
+Text Length Peer Median  72.0
+Text Length Peer Average  147.212121212
+Initiation Probabilities  {'peer': 0.65, 'user': 0.35}

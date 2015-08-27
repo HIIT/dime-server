@@ -1,24 +1,31 @@
-
+# -*- coding: iso-8859-15 -*-
 import os, os.path, codecs
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn import decomposition
-from sklearn.feature_extraction.stop_words import ENGLISH_STOP_WORDS
 import numpy as np
 import math
 import os, os.path, codecs
 from textblob import TextBlob as tb
 import string
-import nltk
-from nltk.tokenize import RegexpTokenizer
-from nltk.corpus import stopwords
 import re
 from classes import *
 
 
 #current_user = pickle.load( open( "current_user_1.p", "rb" ) )
 import numpy
+pattern = re.compile('[\W_]+')
+import string
+ex_stop_words = ['thanks', 'cheers', 'm.s']
 
+def getPhrases(text, stop_text):
+    text = re.sub(u"(\u2018|\u2019)", " ", text)
+    np = tb(text).noun_phrases
+    ret = []
+    for t in np:
+        temp = ' '.join([word for word,pos in tb(t).tags if pos in ('NNP','NNS','NN','NNPS') and word not in set(string.punctuation) and word not in stop_text and word not in ex_stop_words])
+        #temp = t
+        if (temp not in(' ', '')):
+            ret.append(temp)
+    return ret
+    
 def tf(word, wordList):
     #print word
     #print float(wordList.count(word))
@@ -42,6 +49,7 @@ def tfidf(word, blob, bloblist):
     return tf(word, blob) * idf(word, bloblist)
 
 
+    
 def getTopWordsTF(blob,bloblist,k):
     scores = {word: tf(word, blob) for word in blob}
     sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -53,76 +61,86 @@ def getTopWordsTF(blob,bloblist,k):
         topWords.append(new)
         #print("\tWord: {}, TF-IDF: {}".format(word, round(score, 5)))
     return topWords
-def getTopPhrases_list(current_user, peer_id):
-    print'TF top words for:', peer_id
-    print "###########getTopPhrases('peer', 'user', True)"
-    getTopPhrases(current_user,'peer', 'user', True, peer_id)
 
-    print "###########getTopPhrases('peer', 'peer', True)"
-    getTopPhrases(current_user,'peer', 'peer', True, peer_id)
-
-    print "###########getTopPhrases('peer', 'both', True)"
-    getTopPhrases(current_user,'peer', 'both', True, peer_id)
-
-    print "###########getTopPhrases('thread', 'user', True)"
-    getTopPhrases(current_user,'thread', 'user', True, peer_id)
-
-    print "###########getTopPhrases('thread', 'peer', True)"
-    getTopPhrases(current_user,'thread', 'peer', True, peer_id)
-
-    print "###########getTopPhrases('thread', 'both', True)"
-    getTopPhrases(current_user,'thread', 'both', True, peer_id)
-
-    print "###########getTopPhrases('thread', 'user', False)"
-    getTopPhrases(current_user,'thread', 'user', False, peer_id)
-
-    print "###########getTopPhrases('thread', 'peer', False)"
-    getTopPhrases(current_user,'thread', 'peer', False, peer_id)
-
-    print "###########getTopPhrases('thread', 'both', False)"
-    getTopPhrases(current_user,'thread', 'both', False, peer_id)
+def getTopPhrases_list(current_user, i_peer_list, file):
+    file.write('\nTF top words for:'+str( i_peer_list))
+    file.write( "\n###########getTopPhrases('peer', 'user', True)")
+    getTopPhrases(current_user,'peer', 'user', True, i_peer_list, file)
     
-def getTopPhrases(current_user, level, p, doc_list_flag, peer_id):
+    file.write( "\n###########getTopPhrases('peer', 'peer', True)")
+    getTopPhrases(current_user,'peer', 'peer', True, i_peer_list, file)
+    
+    file.write( "\n###########getTopPhrases('peer', 'both', True)")
+    getTopPhrases(current_user,'peer', 'both', True, i_peer_list, file)
+    
+    file.write( "\n###########getTopPhrases('thread', 'user', True)")
+    getTopPhrases(current_user,'thread', 'user', True, i_peer_list, file)
+    
+    file.write( "\n###########getTopPhrases('thread', 'peer', True)")
+    getTopPhrases(current_user,'thread', 'peer', True, i_peer_list, file)
+    
+    file.write( "\n###########getTopPhrases('thread', 'both', True)")
+    getTopPhrases(current_user,'thread', 'both', True, i_peer_list, file)
+    
+    file.write( "\n###########getTopPhrases('thread', 'user', False)")
+    getTopPhrases(current_user,'thread', 'user', False, i_peer_list, file)
+
+    file.write( "\n###########getTopPhrases('thread', 'peer', False)")
+    getTopPhrases(current_user,'thread', 'peer', False, i_peer_list, file)
+    
+    file.write( "\n###########getTopPhrases('thread', 'both', False)")
+    getTopPhrases(current_user,'thread', 'both', False, i_peer_list, file)
+    
+def getTopPhrases(current_user, level, p, doc_list_flag, i_peer_list, file):
     # doc_list_flag indicates whether the list must be initialised just once or must be initialised for every peer
     # doc_list_flag = True then doc_list is initialised for every peer.
+    
     if (level =='peer'):
         doc_list = []
         for inter in current_user.peer_list:
             doc_list.append(inter.getPhrase(p))
         for inter in current_user.peer_list:
-            if(not inter.email ==peer_id):
+            if(inter.email not in i_peer_list):
                 continue
-            #print inter.email
+            file.write('\n')
+            file.write('\n')
+            file.write(inter.email)
             #print inter.getPhrase(p)
             #print doc_list
-            print getTopWordsTF(inter.getPhrase(p),doc_list,10)
-            print '\n'
+            file.write('\n')
+            file.write(str(getTopWordsTF(inter.getPhrase(p),doc_list,10)))
     elif (level =='thread'):
         doc_list = [] 
         if(doc_list_flag):
             for inter in current_user.peer_list:
                 doc_list= []
-                if(not inter.email ==peer_id):
+                if(inter.email not in i_peer_list):
                     continue
-                print inter.email
+                file.write(inter.email)
                 for thread in inter.thread_list:
                     doc_list.append(thread.getPhrase(p))
                 for thread in inter.thread_list:
-                    print thread.subject, len(thread.email_list)
-                    print getTopWordsTF(thread.getPhrase(p),doc_list,10)
-                    print '\n'
+                    file.write('\n')
+                    file.write('\n')
+                    file.write(str(thread.subject) +'  '+str(len(thread.email_list)))
+                    file.write('\n')
+                    file.write(str(getTopWordsTF(thread.getPhrase(p),doc_list,10)))
         else:
             doc_list= []
             for inter in current_user.peer_list:
                 for thread in inter.thread_list:
                     doc_list.append(thread.getPhrase(p))
             for inter in current_user.peer_list:
-                if(not inter.email ==peer_id):
+                if(inter.email not in i_peer_list):
                     continue
+                file.write(inter.email)
                 for thread in inter.thread_list:
-                    print thread.subject, len(thread.email_list)
-                    print getTopWordsTF(thread.getPhrase(p),doc_list,10)
-                    print '\n'
+                    file.write('\n')
+                    file.write('\n')
+                    file.write(str(thread.subject) +'  '+str(len(thread.email_list)))
+                    file.write('\n')
+                    file.write(str(getTopWordsTF(thread.getPhrase(p),doc_list,10)))
+
     
 
 def topPhrases_NMF(current_user):
