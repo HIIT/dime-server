@@ -357,7 +357,7 @@ if __name__ == '__main__':
         elif item_appl == u'Google Chrome' or item_appl == u'Chrome' or item_appl == u'Safari':
             document_isa  = common.o('nfo_remotefiledataobject')
             uri_prefix = ''
-            text = common.uri_to_text(item_path)
+            text, title = common.uri_to_text(item_path)
 
         if (config['maxtextlength_timing']>0 and
             len(text)>config['maxtextlength_timing']):
