@@ -207,16 +207,15 @@ def pdf_to_text(fn):
 def uri_to_text(uri, alt_text=''):
 
     temp = tempfile.NamedTemporaryFile()
-    title = ""
-
     try:
       urllib.urlretrieve(uri, temp.name)
-      soup = BeautifulSoup(temp)
-      if soup.title is not None:
-        title = soup.title.string
     except IOError:
-      pass
+      return "", ""
 
+    title = ""
+    soup = BeautifulSoup(temp)
+    if soup.title is not None:
+        title = soup.title.string
     #print 'Page title: ', title
 
     lynx_command = config['fulltext_command'] % temp.name
