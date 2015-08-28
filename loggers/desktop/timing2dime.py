@@ -385,6 +385,7 @@ if __name__ == '__main__':
         payload['targettedResource']['@type'] = document['@type']
         payload['id'] = common.to_json_sha1(payload)
         document['plainTextContent'] = text
+        document['title'] = title
         payload['targettedResource'] = document.copy()
 
         i = i+1
