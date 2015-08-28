@@ -608,9 +608,11 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
     sX = sX.tocsr()
 
 
-    #Take non-zeros from y
+    #Take indices of non-zeros of y-vector
     inds = np.where(y)[0]
     print 'inds: ', inds
+
+    #Form new y that has only non-zeros of the original y
     if len(inds) > 1:
         y    = y[inds]
         #y    = 1/y
@@ -638,7 +640,15 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
     print sdumA.shape
 
     #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
-    sdumAinv = sparse.linalg.inv(sdumA)
+    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+        if sdumA[0,0] > 0.0:
+            sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
+        else:
+            sdumAinv = sparse.csr_matrix([[1.0]])
+    else:
+        sdumAinv = sparse.linalg.inv(sdumA)
+        sdumAinv.tocsr()
+
     print sdumAinv.shape
     muI      = (1/mu)*speye
     sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
