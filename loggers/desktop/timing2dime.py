@@ -324,7 +324,7 @@ if __name__ == '__main__':
 
         mimetype = 'unknown'
         uri_prefix = 'file://'
-        text = ''
+        text, title  = '', ''
 
         if os.path.isfile(item_path):
             mimetype = common.get_mimetype(item_path)
