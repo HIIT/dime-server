@@ -48,7 +48,7 @@ class SearchThread(QtCore.QThread):
 
   #DiMe server path, username and password
   self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval = read_user_ini()
-
+  self.dataupdateinterval = 3600
   #
   self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
   self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
@@ -109,10 +109,23 @@ class SearchThread(QtCore.QThread):
 
   nokeypress_interval = 5.0
   timestamp = time()
+  dataupdatetimestamp = time()
+
+  #Check that all data files exist
   check_update()
+
+
   while True:
+
     #
     cmachtime = time()
+
+    #Update data
+    if cmachtime > self.dataupdateinterval + dataupdatetimestamp:
+      print "Update data!!!!!"
+      update_all_data()
+      dataupdatetimestamp = time()
+
     #
     if self.extrasearch:
       print 'Search thread: got extra search command from main!'      
