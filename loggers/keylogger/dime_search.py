@@ -99,21 +99,24 @@ def search_dime(srvurl, username, password, query):
         print('No connection to DiMe server!')
         sys.exit(1)
 
-    r = requests.get(server_url + '/search?query={}&limit=5'.format(query),
+    r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
         	         headers={'content-type': 'application/json'},
                 	 auth=(server_username, server_password),
                      timeout=10)
 
-    #print query
+    print r
 
     if r.status_code != requests.codes.ok:
         print('No results from DiMe database!')
-        r = None
-    else:
-        if len(r.json()) > 0:
+        r = []
+        return r
+    elif len(r.json()) > 0:
             r = r.json()
             print 'Search thread: number of data objects: ', len(r)
             return r
+    else: 
+        r = []
+        return r
 
 
 
@@ -304,38 +307,96 @@ def search_dime_lda(query):
 
 
 
-def search_dime_linrel_keyword_search(query,c):
+def search_dime_linrel_keyword_search(query, X, tfidf, dictionary, c):
 
-    #Get current path
-    cpath  = os.getcwd()
-    #print 'LinRel: ', cpath
-
-    #Import data
-    print 'loading data!!!'
-    data_file = open('data/json_data.txt', 'r')
-    data = json.load(data_file)    
-
-    #Import dictionary
-    print 'loading dictionary'
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-
-    #Open docindlist (the list of indices of suggested documents
-    f = open(cpath + '/data/docindlist.list','r')
-    docinds = pickle.load(f)
-    #Sort from smallest to largest index value
-    #docinds.sort() 
-    #print 'Search thread: Old docindlist: ', docinds
+    #Inputs:
+    #query = string from keyboard
+    #X     = document term matrix as tfidf form
+    #tfidf = tfidf -model by which the query is transformed into a tfidf vector
+    #dictionary = list of words and their indices ['word    ']
+    #c     = Exploitation/Exploration coefficient
+    #
+    #Outputs:
+    #jsons = links to resources
+    #kws   = keywords computed by LinRel
 
     #
-    f = open('data/varlist.list', 'r')
-    varlist = pickle.load(f)
-    nwords = varlist[0]
-    ndocuments = varlist[1]
+    ndocuments = X.shape[0]
+    nwords     = len(dictionary)
 
-    #Import tfidf model by which the relevance scores are computed 
-    tfidf = models.TfidfModel.load('data/tfidfmodel.model')
+    #Convert query into bag of words representation urheilu yle 
+    test_vec      = query2bow(query, dictionary)
+    #test_vec_full = 
 
-    #Make wordlist from the query string
+    #
+    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c)
+    kws_vec    = dictionary.doc2bow(kws)
+
+    #make string of keywords 
+    kwsstr = ''
+    for i in range(len(kws)):
+        kwsstr = kwsstr + ' ' + kws[i]
+    #print 'Keyword query string: ', kwsstr
+    
+    #Make
+    if len(kws) > 0:
+        #jsons, docinds = search_dime_docsim(kwsstr)
+        jsons, docinds = search_dime_docsim(query)
+    else:
+        #print 'QUERY: ', query
+        jsons, docinds = search_dime_docsim(query)
+        kws = []
+
+    docinds.sort()
+    cpath = os.getcwd()
+    update_Xt_and_docindlist(docinds)
+
+    return jsons, kws
+
+def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, srvurl, username, password):
+
+    #Inputs:
+    #query = string from keyboard
+    #X     = document term matrix as tfidf form
+    #tfidf = tfidf -model by which the query is transformed into a tfidf vector
+    #dictionary = list of words and their indices ['word    ']
+    #c     = Exploitation/Exploration coefficient
+
+    #Outputs:
+    #jsons = links to resources
+    #kws   = keywords computed by LinRel
+
+    #
+    ndocuments = X.shape[0]
+    nwords     = len(dictionary)
+
+    #Convert query into bag of words representation urheilu yle 
+    test_vec      = query2bow(query, dictionary)
+    #test_vec_full = 
+
+    #
+    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c)
+    kws_vec    = dictionary.doc2bow(kws)
+
+    #make string of keywords 
+    kwsstr = ''
+    for i in range(len(kws)):
+        kwsstr = kwsstr + ' ' + kws[i]
+    #print 'Keyword query string: ', kwsstr
+
+    # print srvurl
+    # print username
+    # print password
+    query = '"%s"' % query
+    # print query 
+
+    jsons = search_dime(srvurl, username, password, query)
+
+    return jsons, kws
+
+def query2bow(query,dictionary):
+
+    #Make list of words from the query string
     test_wordlist = query.lower().split()
     #Remove unwanted words from query
     test_wordlist = remove_unwanted_words(test_wordlist)
@@ -353,38 +414,13 @@ def search_dime_linrel_keyword_search(query,c):
 
     #Make bag of word vector of the input string taken from keyboard
     test_vec = dictionary.doc2bow(test_wordlist)
-    #
-    #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
-    winds, kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c)
-    kws_vec = dictionary.doc2bow(kws)
 
-    #make string of keywords 
-    kwsstr = ''
-    for i in range(len(kws)):
-        kwsstr = kwsstr + ' ' + kws[i]
-    #print 'Keyword query string: ', kwsstr
-    
-    #Make
-    if len(kws) > 0:
-        #jsons, docinds = search_dime_docsim(kwsstr)
-        jsons, docinds = search_dime_docsim(query)
-    else:
-        #print 'QUERY: ', query
-        jsons, docinds = search_dime_docsim(query)
-        kws = []
-
-    #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
-    docinds.sort()
-    cpath = os.getcwd()
-    #os.chdir(cpath + '/data')
-    update_Xt_and_docindlist(docinds)
-    #os.chdir('../')
-
-    return jsons, kws
-
+    return test_vec
 
 #
-def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c):
+def return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c):
+
+    nwords = len(dictionary)
 
     test_vec_full = twotuplelist2fulllist(test_vec, nwords)
     print 'test_vec_full: ', test_vec_full.shape
@@ -425,6 +461,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast(r,mu)
     r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, mu)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(r,mu)
+
     #Save current r_hat and sigma_hat
     np.save('data/r_hat.npy',r_hat)
     np.save('data/sigma_hat.npy',sigma_hat)
@@ -441,7 +478,6 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
     print 'Search thread: value of c is:', c
     vsum     = r_hat + c*sigma_hat
     print vsum.shape
-    #r_hat = return_keyword_relevance_estimates(docinds, r)
     vsinds = np.argsort(vsum[:,0])
     kwinds = np.argsort(r_hat[:,0])
     #kwinds= np.argsort(r_hat)
@@ -462,7 +498,6 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dic
         #Initialize list of keywords
         kws = []
         #print 'Indices of estimated keywords: ', kwinds
-        #kwinds= docinds.tolist()
         for i in range(len(kwinds)):
             print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
             kws.append(dictionary.get(kwinds[i]))
