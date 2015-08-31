@@ -392,12 +392,15 @@ class MyApp(QtGui.QWidget):
           nsuggestedlinks = 5
           for ijson in range( len(urlstrs) ):
                                       #title    = None
-                                      linkstr  = self.unicode_to_str( urlstrs[ijson]["uri"] )
-                                      ctime    = str(urlstrs[ijson]["timeCreated"])
-                                      typestr  = str(urlstrs[ijson]["type"])
-                                      storedas = str(urlstrs[ijson]["isStoredAs"])
-                                      dataid   = str(urlstrs[ijson]["id"])
+                                      linkstr   = self.unicode_to_str( urlstrs[ijson]["uri"] )
+                                      ctime     = str(urlstrs[ijson]["timeCreated"])
+                                      typestr   = str(urlstrs[ijson]["type"])
+                                      storedas  = str(urlstrs[ijson]["isStoredAs"])
+                                      dataid    = str(urlstrs[ijson]["id"])
                                       storedasl = storedas.split('#')[1]
+
+
+
                                       #print 'Main: storedasl: ', storedasl
                                       #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
                                       content = ''
@@ -456,6 +459,7 @@ class MyApp(QtGui.QWidget):
                                       else:
                                         #print 'Main: web ', linkstr
                                         title = None
+
                                         #title = str(urlstrs[ijson]["Title"])
                                         # try:
                                         #   #print 'Finding Web page title:'
@@ -472,9 +476,12 @@ class MyApp(QtGui.QWidget):
                                         # except (urllib2.HTTPError, urllib2.URLError, ValueError):
                                         #   pass
 
-                                        if title is None:
-                                          #print 'Main: Web page title is: ', title
-                                          title = linkstrshort
+                                        # if title is None:
+                                        #   title = linkstrshort
+                                        try:
+                                          title   = urlstrs[ijson]["title"]
+                                        except KeyError:
+                                          title   = linkstrshort
 
                                         #Create link to DiMe server
                                         dumlink = self.srvurl.split('/')[2]

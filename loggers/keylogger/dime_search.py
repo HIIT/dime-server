@@ -357,17 +357,6 @@ def search_dime_linrel_keyword_search(query,c):
     #print 'Search thread: search_dime_linrel_keyword_search: docinds', docinds
     winds, kws    = return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c)
     kws_vec = dictionary.doc2bow(kws)
-    #print test_vec
-    #print kws_vec
-    # kws_vec   = twotuplelist2fulllist(kws_vec, nwords)
-    # kws_vec[np.where(kws_vec)]     = 1.0
-    # test_vec2 = twotuplelist2fulllist(test_vec,nwords)
-    # test_vec2[np.where(test_vec2)] = 1.0
-    # dvec      = test_vec2 + kws_vec
-    # simwinds  = np.where(dvec == 2)
-    # print simwinds[0]
-    #np.save('data/simwinds.npy',simwinds[0])
-
 
     #make string of keywords 
     kwsstr = ''
@@ -394,6 +383,7 @@ def search_dime_linrel_keyword_search(query,c):
     return jsons, kws
 
 
+#
 def return_and_print_estimated_keyword_indices_and_values(test_vec, docinds, dictionary, nwords, c):
 
     test_vec_full = twotuplelist2fulllist(test_vec, nwords)
