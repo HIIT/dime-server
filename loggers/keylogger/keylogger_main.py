@@ -153,6 +153,7 @@ class MyApp(QtGui.QWidget):
   self.radiobutton1= QtGui.QRadioButton("DocSim")
   #self.radiobutton1.emit(QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton1, QtCore.SIGNAL("released()"), self.choose_search_function1)
+  self.radiobutton1.click()
 
   self.radiobutton2= QtGui.QRadioButton("LinRel + DiMe search")
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
