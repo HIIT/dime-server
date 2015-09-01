@@ -14,7 +14,7 @@ import threading
 
 from update_dict_lda_and_Am import *
 
-from dime_search2 import *
+from dime_search import *
 
 #Includes the definition of clickable label
 from ExtendedQLabel import *
