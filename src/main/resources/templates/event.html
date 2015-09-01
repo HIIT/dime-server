@@ -19,6 +19,29 @@
 	      <b>Query:</b> <span th:text="${event.query}"></span><br/><br/>
 	    </span>
 
+        <span th:if="${event instanceof T(fi.hiit.dime.data.ReadingEvent)}">
+          <b>Text content:</b> <pre th:text="${event.plainTextContent}"></pre><br/>
+          <b>Rectangles:</b>
+            <table class="table">
+                <thead><tr>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Width</th>
+                        <th>Height</th>
+                        <th>Class</th>
+                </tr></thead>
+              <tbody>
+                  <tr th:each="rect : ${event.pageRects}">
+                      <td th:text="${#numbers.formatDecimal(rect.origin.x, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.origin.y, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.size.width, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.size.height, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${rect.readingClass}"></td>
+                  </tr>
+              </tbody>
+            </table>
+        </span>
+
 	    <span th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
 	      <p th:replace="infoelem :: infoelemview (${event.targettedResource})"></p>
 	    </span>
