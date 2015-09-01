@@ -14,7 +14,7 @@ import threading
 
 from update_dict_lda_and_Am import *
 
-from dime_search import *
+from dime_search2 import *
 
 #Includes the definition of clickable label
 from ExtendedQLabel import *
@@ -33,7 +33,6 @@ import math
 #For checking data types
 import types
 
-
 #
 class SearchThread(QtCore.QThread):
 
@@ -48,12 +47,16 @@ class SearchThread(QtCore.QThread):
 
   #DiMe server path, username and password
   self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval = read_user_ini()
-  self.dataupdateinterval = 3600
+  self.dataupdateinterval = 600
   #
+  json_data = open('data/json_data.txt')
+  self.data       = json.load(json_data)
   self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
   self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
   self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
-  self.c     = 0.0
+  self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+
+  self.c          = 0.0
 
  def __del__(self):
    self.wait()
@@ -76,8 +79,6 @@ class SearchThread(QtCore.QThread):
   self.c = math.log(value+1)
   kws = recompute_keywords(math.log(value+1))
   self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
-    
-
 
  def get_new_word(self, newquery):
   #newquer is a QString, so it has to be changed to a unicode string
@@ -97,13 +98,11 @@ class SearchThread(QtCore.QThread):
   keywords = unicode(utf8keyword, 'utf-8')
   self.query = self.query + ' ' + keywords
 
-
   print "Search thread: got new query from main:", self.query
   self.extrasearch = True
 
  def run(self):
    self.search()
-
 
  def search(self):
 
@@ -125,15 +124,23 @@ class SearchThread(QtCore.QThread):
       print "Update data!!!!!"
       update_all_data()
       dataupdatetimestamp = time()
+      #
+      json_data = open('data/json_data.txt')
+      self.data       = json.load(json_data)
+      self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
+      self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+      self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+      self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
 
     #
     if self.extrasearch:
       print 'Search thread: got extra search command from main!'      
-      jsons, docinds = search_dime_docsim(dstr)      
+      jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
       self.extrasearch = False    
 
+    #
     if self.query is not None and self.query != self.oldquery2:
-      print 'self.query!!!!!'
+      #print 'self.query!!!!!'
       timestamp = time()
       self.oldquery2 = self.query
 
@@ -146,7 +153,7 @@ class SearchThread(QtCore.QThread):
 
       self.emit(QtCore.SIGNAL('start_search()'))
       if self.searchfuncid == 0:
-        jsons, docinds = search_dime_docsim(dstr)      
+        jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
         print 'Search thread: Ready for new search!'
       elif self.searchfuncid == 1:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
@@ -163,8 +170,8 @@ class SearchThread(QtCore.QThread):
         print 'Search thread: Ready for new search!'   
       elif self.searchfuncid == 3:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-        #jsons, kws = search_dime_linrel_keyword_search(dstr,self.c)   
-        jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.tfidf, self.dictionary, self.c)
+        #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.tfidf, self.dictionary, self.c)
+        jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.tfidf, self.dictionary, self.c)
         if len(jsons) > 0:
           #Return keyword list
           self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)

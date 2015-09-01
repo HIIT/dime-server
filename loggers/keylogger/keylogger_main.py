@@ -36,7 +36,6 @@ import math
 #For checking data types
 import types
 
-
 #Animation for processing
 from simple_animation import *
 
@@ -133,10 +132,6 @@ class MyApp(QtGui.QWidget):
   #
   self.stopButton  = QtGui.QPushButton("Stop")
   self.connect(self.stopButton, QtCore.SIGNAL("released()"), self.stop_keylogger)
-
-
-
-
 
   #
   self.testButton.setDisabled(True)

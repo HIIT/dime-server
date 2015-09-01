@@ -81,7 +81,7 @@ def remove_unwanted_words(testlist):
 #Search functions 
 ################################################################
 
-
+#Search using DiMe-server's own search function
 def search_dime(srvurl, username, password, query):
     #------------------------------------------------------------------------------
 
@@ -100,8 +100,8 @@ def search_dime(srvurl, username, password, query):
         sys.exit(1)
 
     r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
-        	         headers={'content-type': 'application/json'},
-                	 auth=(server_username, server_password),
+                     headers={'content-type': 'application/json'},
+                     auth=(server_username, server_password),
                      timeout=10)
 
     print r
@@ -119,68 +119,19 @@ def search_dime(srvurl, username, password, query):
         return r
 
 
-
-#
-def search_dime_docsim(query):
-
-    #Get current path
-    cpath  = os.getcwd()
-    cpathd = cpath + '/' + 'data'
-    if os.path.exists(cpathd):
-        pass
-        #os.chdir(cpathd)
-    else:
-        check_update()
-        #os.chdir(cpathd)
-
-
-
-    #Import data
-    json_data = open('data/json_data.txt')
-    data = json.load(json_data)
-
-    #Load index into which the query is compared
-    if os.path.isfile('/tmp/similarityvec'):
-        index = similarities.docsim.Similarity.load('/tmp/similarityvec')
-    else:
-        #print 'hula!'
-        update_docsim_model()
-        index = similarities.docsim.Similarity.load('/tmp/similarityvec')
-
-    #Import dictionary
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-
+#Search using gensim's cossim-function (cosine similarity)
+def search_dime_docsim(query, data, index, dictionary):
     #
     f = open('data/varlist.list','r')
     varlist = pickle.load(f)
     nword = varlist[0]
     ndocuments = varlist[1]
-
-    #
-    if os.path.isfile('data/docindlist.list'):
-        f = open('data/docindlist.list','r')
-        docinds = pickle.load(f)
-    else:
-        #os.chdir(cpathd)
-        update_Xt_and_docindlist([0])
-        #os.chdir('../')
-        f = open('data/docindlist.list','r')
-        docinds = pickle.load(f)
-
     
-    #Import document term matrix
-    f = open('data/doctm.data','r')
-    doctm = pickle.load(f)
-
-    #
-    #os.chdir('../')
-
     #Make wordlist from the query string
     test_wordlist = query.lower().split()
-    #print test_wordlist
+
     #Remove words belonging to stoplist
     test_wordlist = remove_unwanted_words(test_wordlist)
-    #print test_wordlist
 
     #Convert the words into nearest dictionary word
     for nword, word in enumerate(test_wordlist):
@@ -196,7 +147,6 @@ def search_dime_docsim(query):
 
     #Find the indices of most similar documents
     doclist = index[test_vec]
-    #print 'Search thread: docinds of DocSim: ', doclist
 
     #Take indices of similar documents
     docinds = []
@@ -213,101 +163,9 @@ def search_dime_docsim(query):
     return jsons[0:20], docinds[0:20]
 
 
-#
-def search_dime_lda(query):
-
-    # Read list of forbidden words #
-    f = open('stopwordlist.list', 'r')
-    stoplist = pickle.load(f)
-
-    #Import data
-    json_data = open('json_data.txt')
-    data = json.load(json_data)
-
-    #Import dictionary
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-
-    #Import lda model
-    ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
-
-    #Import document term matrix
-    f = open('doctm.data','r')
-    doctm = pickle.load(f)
-
-    #Number of documents
-    ndocuments = len(doctm)
-    
-    #Make wordlist from the query string
-    test_wordlist = query.lower().split()
-    print test_wordlist
-    #Remove words belonging to stoplist
-    test_wordlist = remove_unwanted_words(test_wordlist, stoplist)
-    print test_wordlist
-
-
-    #Convert the words into nearest dictionary word
-    for nword, word in enumerate(test_wordlist):
-        correctedword = difflib.get_close_matches(word, dictionary.values())
-        if len(correctedword):
-            test_wordlist[nword] = correctedword[0]
-        else:
-            test_wordlist[nword] = ' '
-    print "Closest dictionary words: ", test_wordlist
-
-    # Convert the wordlist into bag of words (bow)
-    test_vec = dictionary.doc2bow(test_wordlist)
-
-    # Compute cluster (topic) probabilities
-    test_lda  = ldamodel[test_vec]
-
-    #Compute the topic index of the test document (query)
-    dumtidv = []
-    dumtpv  = []
-    for j in range(len(test_lda)):
-        dumtidv.append(test_lda[j][0])
-        dumtpv.append(test_lda[j][1])
-    #
-    ttid = dumtidv[np.argmax(dumtpv)]
-
-    #Show the words included in the topic
-    #prkw = ldamodel.show_topic(ttid, topn=10)
-    prkw = ldamodel.show_topic(ttid)
-
-    #Print ten keywords 
-    for i in range(len(prkw)):
-        print prkw[i][1]
- 
-    #Compute topic ids for visited resources (web-pages, docs, emails, etc..)
-    dtid = []
-    for i in range(len(doctm)):
-        dumtidv = []
-        dumtpv  = []
-        doc_lda = ldamodel[doctm[i]]
-        for j in range(len(doc_lda)):
-                dumtidv.append(doc_lda[j][0])
-                dumtpv.append(doc_lda[j][1])
-        dtid.append(dumtidv[np.argmax(dumtpv)])
-    #
-    dtid = np.array(dtid)
-
-    # Give uri of documents that are in cluster of index ttid (in the same cluster as the test document)
-    docinds = np.where(dtid == ttid)[0]
-
-    #Return the json objects that are in the same
-    #cluster
-    jsons = []
-    for i in range(len(docinds)):
-        #print docinds[i]
-        jsons.append(data[docinds[i]])
-    
-    print len(jsons)
-    
-    return jsons[0:5]
-
-
-
-
-def search_dime_linrel_keyword_search(query, X, tfidf, dictionary, c):
+#Function that computes keywords using LinRel and makes search using
+#'search_dime_docsim'
+def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, c):
 
     #Inputs:
     #query = string from keyboard
@@ -341,10 +199,10 @@ def search_dime_linrel_keyword_search(query, X, tfidf, dictionary, c):
     #Make
     if len(kws) > 0:
         #jsons, docinds = search_dime_docsim(kwsstr)
-        jsons, docinds = search_dime_docsim(query)
+        jsons, docinds = search_dime_docsim(query, data, index, dictionary)
     else:
         #print 'QUERY: ', query
-        jsons, docinds = search_dime_docsim(query)
+        jsons, docinds = search_dime_docsim(query, data, index, dictionary)
         kws = []
 
     docinds.sort()
@@ -353,6 +211,9 @@ def search_dime_linrel_keyword_search(query, X, tfidf, dictionary, c):
 
     return jsons, kws
 
+
+#Function that computes keywords using LinRel and makes search using
+#DiMe-server's own search function, 'search_dime'
 def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, srvurl, username, password):
 
     #Inputs:
@@ -384,10 +245,10 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
         kwsstr = kwsstr + ' ' + kws[i]
     #print 'Keyword query string: ', kwsstr
 
+    query = '"%s"' % query
     # print srvurl
     # print username
     # print password
-    query = '"%s"' % query
     # print query 
 
     jsons = search_dime(srvurl, username, password, query)
@@ -423,10 +284,10 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, 
     nwords = len(dictionary)
 
     test_vec_full = twotuplelist2fulllist(test_vec, nwords)
-    print 'test_vec_full: ', test_vec_full.shape
+    #print 'test_vec_full: ', test_vec_full.shape
     winds         = np.where(test_vec_full)
     winds         = winds[0]
-    print 'winds: ', winds
+    #print 'winds: ', winds
 
     #
     if os.path.isfile('data/r_old.npy'):
@@ -443,85 +304,172 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, 
             if r[i] > 0.0:
                 r[i] = 1.0/r[i]
 
-        print r.shape
-        print 'r: ', r[np.where(r)[0],:]
+        print "Shape of r: ", r.shape
+        #print 'r: ', r[np.where(r)[0],:]
     else:
         r             = np.zeros([test_vec_full.shape[0],1])
         r[winds]      = 1.0
         np.save('data/r_old.npy',r)
 
-    #
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates2(winds, r)
     #Regularization paramter
     mu = 1.0
-    set(winds)
-    #print r[winds], r[oldwinds]
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates(r, mu)
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_auer(r,mu)
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast(r,mu)
+    #set(winds)
+
+    #
     r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, mu)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(r,mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_evd(r, mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_auer(r,mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast(r,mu)
 
     #Save current r_hat and sigma_hat
     np.save('data/r_hat.npy',r_hat)
     np.save('data/sigma_hat.npy',sigma_hat)
 
-    #Normalize
+    #Normalize relevance estimate vector
     if r_hat.max() > 0.0:
         r_hat     = r_hat/r_hat.max()
+    #Normalize sigma_hat (upper bound std.dev of relevance estimates)
     if sigma_hat.max() > 0.0:
         sigma_hat = sigma_hat/sigma_hat.max()
+    #
+    vsum = r_hat + c*sigma_hat
 
-    print sigma_hat.shape, sigma_hat.max()
-    #Exploitation/Exploration coefficient
-    #c = 1000.0
+    #
+    #print sigma_hat.shape, sigma_hat.max()
+
+    #Print Exploitation/Exploration coefficient
     print 'Search thread: value of c is:', c
-    vsum     = r_hat + c*sigma_hat
-    print vsum.shape
+
+    #Take take indices of elements of 'vsum' according to ascending order
     vsinds = np.argsort(vsum[:,0])
+    #Take last 20 indices from vsinds
+    vsinds = vsinds[-20:]
+    #Make reversed list of vsinds
+    vsindsrev = reversed(vsinds)
+    #Reverse
+    vsinds = []
+    for i in vsindsrev:
+        vsinds.append(i)
+
+
+    #Take take indices of elements of 'r_hat' according to ascending order
     kwinds = np.argsort(r_hat[:,0])
-    #kwinds= np.argsort(r_hat)
-    #print 'Estimated Keyword weights: ', r_hat
+    #Take last 20 indices from vsinds
+    kwinds = kwinds[-20:]
+    #Make reverse list object
+    kwindsrev = reversed(kwinds)
+    #Reverse
+    kwindsd = []
+    for i in kwindsrev:
+        kwindsd.append(i)
+    #
+    kwinds = kwindsd
+
+    #Print argmax(r_hat) and argmax(sigma_hat)
     print 'Search thread: Max(r_hat): ', r_hat.max(), ' argmax(r_hat):', r_hat.argmax()
     print 'Search thread: Max(sigma_hat): ', sigma_hat.max(), ' argmax(sigma_hat):', sigma_hat.argmax()
+
+    #
     if r_hat.max() > 0.0:
-        kwinds = kwinds[-20:]
-        vsinds = vsinds[-20:]
-        #Make reverse list object
-        kwindsrev = reversed(kwinds)
-        #Reverse
-        kwindsd = []
-        for i in kwindsrev:
-            kwindsd.append(i)
-        #
-        kwinds = kwindsd
         #Initialize list of keywords
         kws = []
-        #print 'Indices of estimated keywords: ', kwinds
-        for i in range(len(kwinds)):
-            print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
-            kws.append(dictionary.get(kwinds[i]))
-
-
-        #Make reverse list object
-        vsindsrev = reversed(vsinds)
-        #Reverse
-        vsinds = []
-        for i in vsindsrev:
-            vsinds.append(i)
-        kws = []
+        #
         for i in range(len(vsinds)):
             print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
             kws.append(dictionary.get(vsinds[i]))
             #kws.append(dictionary.get(kwinds[i]))
-
-
+        #
         return vsinds, kws
     else:
         return [], []
 
 
-def return_keyword_relevance_and_variance_estimates(y, mu):
+def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
+
+    #Load document term matrix 
+    sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.transpose()
+    sX = sX.tocsr()
+
+
+    #Take indices of non-zeros of y-vector
+    inds = np.where(y)[0]
+    print 'inds: ', inds
+
+    #Form new y that has only non-zeros of the original y
+    if len(inds) > 1:
+        y    = y[inds]
+        #y    = 1/y
+        #print inds, y    
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+
+    #Compute estimation of weight vector (i.e. user model)
+    print 'Search thread: update_keyword_matrix: Create Xt '
+    print 'len inds', len(inds)
+    sXt   = sX[inds,:]
+    sXtT  = sXt.transpose()
+    speye  = sparse.identity(sXtT.shape[0])
+    speye2 = sparse.identity(sXtT.shape[1])
+
+    print 'Compute A'
+    print sXtT.shape, sXt.shape, speye2.shape
+    sXtsXtT = sXt.dot(sXtT)
+    sdumA = (1/mu)*sXtsXtT + speye2
+    print sdumA.shape
+
+    #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
+    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+        if sdumA[0,0] > 0.0:
+            sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
+        else:
+            sdumAinv = sparse.csr_matrix([[1.0]])
+    else:
+        sdumAinv = sparse.linalg.inv(sdumA)
+        sdumAinv.tocsr()
+
+    print sdumAinv.shape
+    muI      = (1/mu)*speye
+    sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
+    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+    sA       = sX.dot(sAtilde)
+
+    print 'sy'
+    sy = sparse.csr_matrix(y)
+
+    #
+    print sy.shape
+    print sA.shape
+    #sy_hat   = sA.dot(sy)
+    sy_hatapp= sA.dot(sy)
+    sw_hat2  = sAtilde*sy
+    w_hat2   = sw_hat2.toarray()
+    
+    #
+    print 'shape sy_hat: ', sy_hatapp.shape
+
+    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+    sigma_hatapp= np.array(sigma_hatapp)
+
+    #y_hat   = sy_hat.toarray()
+    y_hatapp= sy_hatapp.toarray()
+
+    print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hatapp.shape, ' type: ', type(y_hatapp)
+    print 'Search thread: update_keyword_matrix: argmax r_hat: ', y_hatapp.argmax()
+    print 'Search thread: update_keyword_matrix: argmax sigma_hat: ', sigma_hatapp.argmax()
+
+    return y_hatapp, sigma_hatapp    
+
+
+
+def return_keyword_relevance_and_variance_estimates_evd(y, mu):
 
     #Load document term matrix 
     sX = load_sparse_csc('data/sX.sparsemat.npz')
@@ -622,93 +570,7 @@ def return_keyword_relevance_and_variance_estimates(y, mu):
 
     return y_hatapp, sigma_hatapp
 
-
-
-def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
-
-    #Load document term matrix 
-    sX = load_sparse_csc('data/sX.sparsemat.npz')
-    #Make transpose of document term matrix 
-    sX = sX.transpose()
-    sX = sX.tocsr()
-
-
-    #Take indices of non-zeros of y-vector
-    inds = np.where(y)[0]
-    print 'inds: ', inds
-
-    #Form new y that has only non-zeros of the original y
-    if len(inds) > 1:
-        y    = y[inds]
-        #y    = 1/y
-        #print inds, y    
-    else:
-        if len(inds) == 0:
-            y    = np.zeros([1,1])
-            inds = np.array([[0]])
-        else:
-            y    = np.zeros([len(inds),1])
-            #inds = np.array([[0]])
-
-    #Compute estimation of weight vector (i.e. user model)
-    print 'Search thread: update_keyword_matrix: Create Xt '
-    print 'len inds', len(inds)
-    sXt   = sX[inds,:]
-    sXtT  = sXt.transpose()
-    speye  = sparse.identity(sXtT.shape[0])
-    speye2 = sparse.identity(sXtT.shape[1])
-
-    print 'Compute A'
-    print sXtT.shape, sXt.shape, speye2.shape
-    sXtsXtT = sXt.dot(sXtT)
-    sdumA = (1/mu)*sXtsXtT + speye2
-    print sdumA.shape
-
-    #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
-    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
-        if sdumA[0,0] > 0.0:
-            sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
-        else:
-            sdumAinv = sparse.csr_matrix([[1.0]])
-    else:
-        sdumAinv = sparse.linalg.inv(sdumA)
-        sdumAinv.tocsr()
-
-    print sdumAinv.shape
-    muI      = (1/mu)*speye
-    sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
-    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
-    sA       = sX.dot(sAtilde)
-
-    print 'sy'
-    sy = sparse.csr_matrix(y)
-
-    #
-    print sy.shape
-    print sA.shape
-    #sy_hat   = sA.dot(sy)
-    sy_hatapp= sA.dot(sy)
-    sw_hat2  = sAtilde*sy
-    w_hat2   = sw_hat2.toarray()
-    
-    #
-    print 'shape sy_hat: ', sy_hatapp.shape
-
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    #y_hat   = sy_hat.toarray()
-    y_hatapp= sy_hatapp.toarray()
-
-    print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hatapp.shape, ' type: ', type(y_hatapp)
-    print 'Search thread: update_keyword_matrix: argmax r_hat: ', y_hatapp.argmax()
-    print 'Search thread: update_keyword_matrix: argmax sigma_hat: ', sigma_hatapp.argmax()
-
-    return y_hatapp, sigma_hatapp    
-
-
-
-
+#
 def return_keyword_relevance_and_variance_estimates_auer(y, mu):
 
     #Parameters
@@ -855,7 +717,7 @@ def return_keyword_relevance_and_variance_estimates_scinet_fast(y, mu):
 
     return y_hat, sigma_hat
 
-
+#
 def return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(y, mu):
 
     #Parameters
@@ -936,7 +798,7 @@ def return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(y, mu):
     #return y_hat, sigma_hat
     return y_hat, sigma_hat    
 
-
+#
 def recompute_keywords(c):
     print 'c', c
     #Import dictionary
@@ -1278,12 +1140,6 @@ def return_keyword_relevance_estimates(docinds, y):
     return r_hat
 
 
-
-
-
-
-
-
 #
 def search_dime_linrel_without_summing_previous_estimates(query):
     #print 'NEGLECTING HISTORY!!!'
@@ -1432,12 +1288,6 @@ def search_dime_linrel_without_summing_previous_estimates(query):
         docinds= np.argsort(e[:,0])
         docinds= docinds[-20:]
         docinds= docinds.tolist()
-        #print docinds
-    #print type(docinds)
-    #print docinds
-    #docinds.sort()
-    #print 'Search thread: New docindlist: ', docinds
-
 
     #Get jsons
     jsons = []
@@ -1460,98 +1310,183 @@ def search_dime_linrel_without_summing_previous_estimates(query):
 
 
 
+#
+def search_dime_lda(query):
 
-# def return_keyword_relevance_and_variance_estimates2(winds, y):
+    # Read list of forbidden words #
+    f = open('stopwordlist.list', 'r')
+    stoplist = pickle.load(f)
 
-#     #Take non-zeros from y
-#     if len(winds) > 1:
-#         inds = np.where(y)[0]
-#         y    = y[inds]
-#         #y    = 1/y
-#         print inds, y    
+    #Import data
+    json_data = open('json_data.txt')
+    data = json.load(json_data)
+
+    #Import dictionary
+    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
+    #Import lda model
+    ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
+
+    #Import document term matrix
+    f = open('doctm.data','r')
+    doctm = pickle.load(f)
+
+    #Number of documents
+    ndocuments = len(doctm)
+    
+    #Make wordlist from the query string
+    test_wordlist = query.lower().split()
+    print test_wordlist
+    #Remove words belonging to stoplist
+    test_wordlist = remove_unwanted_words(test_wordlist, stoplist)
+    print test_wordlist
+
+
+    #Convert the words into nearest dictionary word
+    for nword, word in enumerate(test_wordlist):
+        correctedword = difflib.get_close_matches(word, dictionary.values())
+        if len(correctedword):
+            test_wordlist[nword] = correctedword[0]
+        else:
+            test_wordlist[nword] = ' '
+    print "Closest dictionary words: ", test_wordlist
+
+    # Convert the wordlist into bag of words (bow)
+    test_vec = dictionary.doc2bow(test_wordlist)
+
+    # Compute cluster (topic) probabilities
+    test_lda  = ldamodel[test_vec]
+
+    #Compute the topic index of the test document (query)
+    dumtidv = []
+    dumtpv  = []
+    for j in range(len(test_lda)):
+        dumtidv.append(test_lda[j][0])
+        dumtpv.append(test_lda[j][1])
+    #
+    ttid = dumtidv[np.argmax(dumtpv)]
+
+    #Show the words included in the topic
+    #prkw = ldamodel.show_topic(ttid, topn=10)
+    prkw = ldamodel.show_topic(ttid)
+
+    #Print ten keywords 
+    for i in range(len(prkw)):
+        print prkw[i][1]
+ 
+    #Compute topic ids for visited resources (web-pages, docs, emails, etc..)
+    dtid = []
+    for i in range(len(doctm)):
+        dumtidv = []
+        dumtpv  = []
+        doc_lda = ldamodel[doctm[i]]
+        for j in range(len(doc_lda)):
+                dumtidv.append(doc_lda[j][0])
+                dumtpv.append(doc_lda[j][1])
+        dtid.append(dumtidv[np.argmax(dumtpv)])
+    #
+    dtid = np.array(dtid)
+
+    # Give uri of documents that are in cluster of index ttid (in the same cluster as the test document)
+    docinds = np.where(dtid == ttid)[0]
+
+    #Return the json objects that are in the same
+    #cluster
+    jsons = []
+    for i in range(len(docinds)):
+        #print docinds[i]
+        jsons.append(data[docinds[i]])
+    
+    print len(jsons)
+    
+    return jsons[0:5]
+
+
+
+
+
+# #Search using gensim's cossim-function (cosine similarity)
+# def search_dime_docsim_old(query):
+
+#     #Get current path
+#     cpath  = os.getcwd()
+#     cpathd = cpath + '/' + 'data'
+#     if os.path.exists(cpathd):
+#         pass
+#         #os.chdir(cpathd)
 #     else:
-#         y    = np.zeros([len(winds),1])
-#         inds = 0
+#         check_update()
+#         #os.chdir(cpathd)
 
-#     #Load sparse tfidf matrix
-#     #sX = np.load('sX.npy')
-#     sX = load_sparse_csc('data/sX.sparsemat.npz')
+#     #Import data
+#     json_data = open('data/json_data.txt')
+#     data = json.load(json_data)
 
-#     #Compute estimation of weight vector (i.e. user model)
-#     print 'Search thread: update_keyword_matrix: Create Xt '
-#     #print winds
-#     sX    = sX.transpose()
-#     sXcsr = sX.tocsr()
-#     #print type(sXcsr)
-#     sXcsrt = sXcsr[inds,:]
-#     #print sXcsr.shape
-#     #print 'Search thread: Type of sXcsr: ', type(sXcsr)
-#     Xt    = sXcsrt.toarray()
-#     print 'Search thread: update_keyword_matrix: Xt shape: ', Xt.shape, ' type: ', type(Xt)
-#     #print 'Search thread: update_keyword_matrix: min val Xt: ', Xt.min()
+#     #Load index into which the query is compared
+#     if os.path.isfile('/tmp/similarityvec'):
+#         index = similarities.docsim.Similarity.load('/tmp/similarityvec')
+#     else:
+#         update_docsim_model()
+#         index = similarities.docsim.Similarity.load('/tmp/similarityvec')
 
-#     # if len(winds)>1:
-#     #         y = np.ones([len(winds),1])
-#     # else:
-#     #         y = np.zeros([len(winds),1])        
-#     # print 'Search thread: update_keyword_matrix: y shape: ', y.shape
-#     #print y
+#     #Import dictionary
+#     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
 #     #
-#     #sy = sparse.csr_matrix(y)
-#     w_hat = estimate_w(Xt,y)
-#     w_hat = np.array([w_hat])
-#     w_hat = w_hat.transpose()
-#     sw_hat = sparse.csr_matrix(w_hat)
+#     f = open('data/varlist.list','r')
+#     varlist = pickle.load(f)
+#     nword = varlist[0]
+#     ndocuments = varlist[1]
 
-#     print 'Search thread: update_keyword_matrix: w shape: ', w_hat.shape, ' type: ', type(w_hat), w_hat.max(), w_hat.argmax()
-#     sy_hat  = sXcsr.dot(sw_hat)
-#     sy_hatt = sy_hat.transpose()
-
-#     print 'shape sy_hat: ', sy_hat.shape
-
-#     #Compute Atilde
-#     y    = y.transpose()
-#     normy= np.linalg.norm(y)**2
-#     syt= sparse.csr_matrix(y)
-#     sAtilde = sw_hat.dot(syt)
-#     print 'norm of v: ', normy
-#     sAtilde = (1/normy)*sAtilde
-
-#     #Compute sAtilde in a slow way
-#     sXT = sX.transpose()
-#     mu = 1.0
-#     speye = sparse.identity(sXT.shape[0])
-#     print 'Compute dumA'
-#     sdumA   = sXT*sX + mu*speye
-#     #sdumAinv= sparse.linalg.inv(sdumA)
-#     #sAtilde = 
-
-#     sA      = sX*sAtilde
-#     print "sAtilde: ", type(sA), ' size: ', sA.shape
-#     print 'sA: ', type(sA), 'shape: ', sA.shape   
-
-#     sy      = syt.transpose()
 #     #
-#     print sy.toarray()
-#     sy_hat  = sA.dot(sy)
-#     print 'shape sy_hat: ', sy_hat.shape
+#     if os.path.isfile('data/docindlist.list'):
+#         f = open('data/docindlist.list','r')
+#         docinds = pickle.load(f)
+#     else:
+#         #os.chdir(cpathd)
+#         update_Xt_and_docindlist([0])
+#         #os.chdir('../')
+#         f = open('data/docindlist.list','r')
+#         docinds = pickle.load(f)
 
+    
+#     #Import document term matrix
+#     f = open('data/doctm.data','r')
+#     doctm = pickle.load(f)
 
+#     #Make wordlist from the query string
+#     test_wordlist = query.lower().split()
 
-#     #Compute upper bound on the deviation of the relevance estimate using matrix A
-#     sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
-#     sigma_hat = np.array(sigma_hat)
+#     #Remove words belonging to stoplist
+#     test_wordlist = remove_unwanted_words(test_wordlist)
 
-#     print 'sigma_hat: ', type(sigma_hat), 'shape: ', sigma_hat.shape, sigma_hat.max()
+#     #Convert the words into nearest dictionary word
+#     for nword, word in enumerate(test_wordlist):
+#         correctedword = difflib.get_close_matches(word, dictionary.values())
+#         if len(correctedword):
+#             test_wordlist[nword] = correctedword[0]
+#         else:
+#             test_wordlist[nword] = ' '
+#     print "Search thread: Closest dictionary words: ", test_wordlist
 
-#     #sr_hat = sr_hat.transpose()
+#     # Convert the wordlist into bag of words (bow) representation
+#     test_vec = dictionary.doc2bow(test_wordlist)
 
-#     y_hat  = sy_hat.toarray()
-#     np.save('y_hat.npy',y_hat)
-#     np.save('sigma_hat.npy',sigma_hat)
+#     #Find the indices of most similar documents
+#     doclist = index[test_vec]
+#     #print 'Search thread: docinds of DocSim: ', doclist
 
-#     print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hat.shape, ' type: ', type(y_hat)
-#     print 'Search thread: update_keyword_matrix: max val r_hat: ', y_hat.max()
-#     return y_hat, sigma_hat
+#     #Take indices of similar documents
+#     docinds = []
+#     for i, d in enumerate(doclist):
+#         docinds.append(doclist[i][0])
 
+#     #
+#     jsons = []
+#     for i in range(len(docinds)):
+#         #print docinds[i]
+#         jsons.append(data[docinds[i]])
+    
+#     # print len(jsons)   
+#     return jsons[0:20], docinds[0:20]
 
