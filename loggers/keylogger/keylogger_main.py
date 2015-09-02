@@ -36,10 +36,10 @@ import math
 #For checking data types
 import types
 
-
 #Animation for processing
 from simple_animation import *
 
+#Import loggerthread
 if sys.platform == "linux2":
   from loggerthread_linux import *
 elif sys.platform == "darwin":
@@ -47,6 +47,9 @@ elif sys.platform == "darwin":
 else:
   print "Unsupported platform"
   sys.exit()
+
+#Import search thread
+from searchthread import *
 
 ################################################################
 
@@ -80,6 +83,8 @@ class MyApp(QtGui.QWidget):
   #self.testButton.clicked.connect(self.anim1.tl.start)
   #self.overlay.resize(event.size())
 
+  #Create data files
+  check_update()
 
   #Create  thread objects
   self.LoggerThreadObj  = LoggerThread()
@@ -128,10 +133,6 @@ class MyApp(QtGui.QWidget):
   self.stopButton  = QtGui.QPushButton("Stop")
   self.connect(self.stopButton, QtCore.SIGNAL("released()"), self.stop_keylogger)
 
-
-
-
-
   #
   self.testButton.setDisabled(True)
   self.stopButton.setDisabled(False)   
@@ -152,8 +153,9 @@ class MyApp(QtGui.QWidget):
   self.radiobutton1= QtGui.QRadioButton("DocSim")
   #self.radiobutton1.emit(QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton1, QtCore.SIGNAL("released()"), self.choose_search_function1)
+  self.radiobutton1.click()
 
-  self.radiobutton2= QtGui.QRadioButton("LinRel")
+  self.radiobutton2= QtGui.QRadioButton("LinRel + DiMe search")
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton2, QtCore.SIGNAL("released()"), self.choose_search_function2)
 
@@ -161,7 +163,7 @@ class MyApp(QtGui.QWidget):
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton3, QtCore.SIGNAL("released()"), self.choose_search_function3)
 
-  self.radiobutton4= QtGui.QRadioButton("LinRel Keyword Search")
+  self.radiobutton4= QtGui.QRadioButton("LinRel + DocSim")
   #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
   self.connect(self.radiobutton4, QtCore.SIGNAL("released()"), self.choose_search_function4)  
 
@@ -387,17 +389,17 @@ class MyApp(QtGui.QWidget):
 
           #Initialize rake object
           #rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
-
-          nlinks = 15
-          nsuggestedlinks = 5
           for ijson in range( len(urlstrs) ):
                                       #title    = None
-                                      linkstr  = self.unicode_to_str( urlstrs[ijson]["uri"] )
-                                      ctime    = str(urlstrs[ijson]["timeCreated"])
-                                      typestr  = str(urlstrs[ijson]["type"])
-                                      storedas = str(urlstrs[ijson]["isStoredAs"])
-                                      dataid   = str(urlstrs[ijson]["id"])
+                                      linkstr   = self.unicode_to_str( urlstrs[ijson]["uri"] )
+                                      ctime     = str(urlstrs[ijson]["timeCreated"])
+                                      typestr   = str(urlstrs[ijson]["type"])
+                                      storedas  = str(urlstrs[ijson]["isStoredAs"])
+                                      dataid    = str(urlstrs[ijson]["id"])
                                       storedasl = storedas.split('#')[1]
+
+
+
                                       #print 'Main: storedasl: ', storedasl
                                       #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
                                       content = ''
@@ -431,10 +433,11 @@ class MyApp(QtGui.QWidget):
                                           linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
 
                                           visiblestr = linkstrshort + '  ' + datestr
-                                          self.listWidget3.item(j).setText(visiblestr) 
-                                          self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
-                                          self.listWidget3.item(j).setToolTip(tooltipstr)
-                                          self.listWidget3.item(j).setHidden(False)
+                                          if j < len(self.listWidget3):
+                                            self.listWidget3.item(j).setText(visiblestr) 
+                                            self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
+                                            self.listWidget3.item(j).setToolTip(tooltipstr)
+                                            self.listWidget3.item(j).setHidden(False)
                                           #self.datelist3[j].setText(datestr)
                                           #self.labellist3[j].setAlignment(Qt.AlignLeft)
                                           j = j + 1
@@ -446,16 +449,18 @@ class MyApp(QtGui.QWidget):
                                           linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
                                           #print 'Main: linkstr ', linkstr
                                           visiblestr = subj + '  ' + datestr
-                                          self.listWidget2.item(k).setText(visiblestr) 
-                                          self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
-                                          self.listWidget2.item(k).setToolTip(tooltipstr)
-                                          self.listWidget2.item(k).setHidden(False)
+                                          if k < len(self.listWidget2):
+                                            self.listWidget2.item(k).setText(visiblestr) 
+                                            self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
+                                            self.listWidget2.item(k).setToolTip(tooltipstr)
+                                            self.listWidget2.item(k).setHidden(False)
                                           #self.labellist3[j].setAlignment(Qt.AlignLeft)
 
                                           k = k + 1                                  
                                       else:
                                         #print 'Main: web ', linkstr
                                         title = None
+
                                         #title = str(urlstrs[ijson]["Title"])
                                         # try:
                                         #   #print 'Finding Web page title:'
@@ -472,20 +477,24 @@ class MyApp(QtGui.QWidget):
                                         # except (urllib2.HTTPError, urllib2.URLError, ValueError):
                                         #   pass
 
-                                        if title is None:
-                                          #print 'Main: Web page title is: ', title
-                                          title = linkstrshort
+                                        # if title is None:
+                                        #   title = linkstrshort
+                                        try:
+                                          title   = urlstrs[ijson]["title"]
+                                        except KeyError:
+                                          title   = linkstrshort
 
                                         #Create link to DiMe server
                                         dumlink = self.srvurl.split('/')[2]
                                         linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid                                    
-
-                                        visiblestr = title + '  ' + datestr
-                                        self.listWidget1.item(i).setText(visiblestr) 
-                                        self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
-                                        self.listWidget1.item(i).setToolTip(tooltipstr)
-                                        self.listWidget1.item(i).setHidden(False)
+                                        if i < len(self.listWidget1):
+                                          visiblestr = title + '  ' + datestr
+                                          self.listWidget1.item(i).setText(visiblestr) 
+                                          self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
+                                          self.listWidget1.item(i).setToolTip(tooltipstr)
+                                          self.listWidget1.item(i).setHidden(False)
                                         i = i + 1  
+                                        #print i
 
 
  def update_kwbuttons(self, keywordlist):
@@ -621,147 +630,6 @@ class MyApp(QtGui.QWidget):
 
 
 
-
-#--------------------------------------------------------
-
-#
-class SearchThread(QtCore.QThread):
-
- def __init__(self):
-  QtCore.QThread.__init__(self)
-  self.query = ''
-  self.c     = 0.0
-  self.oldquery  = None
-  self.oldquery2 = None
-  self.searchfuncid = 0
-  self.extrasearch = False
-
- def __del__(self):
-   self.wait()
-
- def change_search_function(self, searchfuncid):
-  self.searchfuncid = searchfuncid
-  print 'Search thread: search function changed to', str(searchfuncid)
-  if searchfuncid == 1 or searchfuncid == 2 or searchfuncid == 3:
-    #Update LinRel data files
-    print 'Search thread: Updating Linrel data files!!!'
-    print 'Search thread: path: ', os.getcwd()
-    #check_update()
-
- def get_new_c(self, value):
-  #print "Search thread: new c value: ", value
-  self.c = math.log(value+1)
-
- def recompute_keywords(self,value):
-  print value
-  self.c = math.log(value+1)
-  kws = recompute_keywords(math.log(value+1))
-  self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
-    
-
-
- def get_new_word(self, newquery):
-  #newquer is a QString, so it has to be changed to a unicode string
-  asciiquery = newquery.toAscii()
-  #Convert to Unicode
-  newquery = unicode(asciiquery, 'utf-8')
-  #newquery = unicode(newquery)
-  print "Search thread: got new query from logger:", newquery
-  self.query = newquery
-
- def get_new_word_from_main_thread(self, keywords):
-  if self.query is None:
-    self.query = ''
-  #
-  utf8keyword = keywords.toUtf8()
-  print 'ASCII KEYWORD: ', utf8keyword
-  keywords = unicode(utf8keyword, 'utf-8')
-  self.query = self.query + ' ' + keywords
-
-
-  print "Search thread: got new query from main:", self.query
-  self.extrasearch = True
-
- def run(self):
-   self.search()
-
-
- def search(self):
-
-  nokeypress_interval = 5.0
-  timestamp = time.time()
-  check_update()
-  while True:
-    #
-    cmachtime = time.time()
-    #
-    if self.extrasearch:
-      print 'Search thread: got extra search command from main!'      
-      jsons, docinds = search_dime_docsim(dstr)      
-      self.extrasearch = False    
-
-    if self.query is not None and self.query != self.oldquery2:
-      print 'self.query!!!!!'
-      timestamp = time.time()
-      self.oldquery2 = self.query
-
-    #print "Query:", self.query, "Oldquery:", self.oldquery
-    #if self.query is not None and self.query != self.oldquery:
-    if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + nokeypress_interval:
-      dstr = self.query      
-      print 'Search thread:', dstr
-        #dstr = unicode(dstr, 'utf-8')
-
-      self.emit(QtCore.SIGNAL('start_search()'))
-      if self.searchfuncid == 0:
-        jsons, docinds = search_dime_docsim(dstr)      
-        print 'Search thread: Ready for new search!'
-      elif self.searchfuncid == 1:
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-        jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
-        print 'Search thread: Ready for new search!'
-        if len(jsons) > 0:
-          #Return keyword list
-          self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
-      elif self.searchfuncid == 2:
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-        jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
-        print 'Search thread: Ready for new search!'   
-      elif self.searchfuncid == 3:
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-        jsons, kws = search_dime_linrel_keyword_search(dstr,self.c)   
-        if len(jsons) > 0:
-          #Return keyword list
-          self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
-        print 'Search thread: Ready for new search!'      
-
-      #print 'Search thread: len jsons ', len(jsons)
-      if len(jsons) > 0:
-        #Return keyword list
-        #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
-        #Return jsons
-        self.emit( QtCore.SIGNAL('send_links(PyQt_PyObject)'), jsons)
-
-        #Write first url's appearing in jsons list to a 'suggested_pages.txt'
-        cdate = datetime.datetime.now().date()
-        ctime = datetime.datetime.now().time()
-        f = open("suggested_pages.txt","a")
-        f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
-        f.close()
-      self.oldquery = dstr
-      self.emit(QtCore.SIGNAL('all_done()'))
-
-
-    else:
-      sleep(0.3) # artificial time delay    
-
-#def unicode_to_str(ustr):
-#  """Converts unicode strings to 8-bit strings."""
-#  try:
-#      return ustr.encode('utf-8')
-#  except UnicodeEncodeError:
-#      print "Main: UnicodeEncodeError"
-#  return ""
 
 
 # run

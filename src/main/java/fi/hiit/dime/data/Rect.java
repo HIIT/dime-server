@@ -25,7 +25,7 @@
 package fi.hiit.dime.data;
 
 /**
-   Class representing a rectangle in a two dimension (similar to very basic NSRect).
+   Class representing a rectangle in a two dimensions (maps to the ReadingRect struct in PeyeDF).
 */
 public class Rect {
     /** The minimum value.
@@ -35,4 +35,28 @@ public class Rect {
     /** The maximum value.
      */
     public Size size;
+
+    /** Reading class of this rectangle (refer to the CLASS_* constants).
+     */
+    public int readingClass;
+
+    /** Unspecified reading class
+     */
+    public static final int CLASS_UNSET = 0;
+
+    /** Class for reading viewport rectangles (standard without eye tracking).
+     */
+    public static final int CLASS_VIEWPORT = 10;
+
+    /** Class for eye tracking read text.
+     */
+    public static final int CLASS_READ = 20;
+
+    /** Class for eye tracking "interesting" rectangles.
+     */
+    public static final int CLASS_INTERESTING = 25;
+
+    /** Class for eye tracking "critical" rectangles.
+     */
+    public static final int CLASS_CRITICAL = 30;
 }

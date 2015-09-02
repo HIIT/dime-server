@@ -65,7 +65,28 @@ def read_user_ini():
     return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
 
+#
+def update_all_data():
+	
+	print "Update data!!"
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
 
+	cpath  = os.getcwd()
+	cpathd = cpath + '/' + 'data'	
+
+	if not os.path.isdir(cpathd):
+		os.makedirs(cpathd)
+	#os.chdir(cpathd)
+	#print 'Path: ', os.getcwd()
+	#
+	update_data(srvurl, username, password)
+	update_dictionary()			
+	update_doctm(cpathd)
+	update_doc_tfidf_list(cpathd)
+	update_docsim_model()
+	update_Xt_and_docindlist([0])
+	update_tfidf_model(cpathd)
+	create_stopwordlist(cpathd)	
 
 #Check whether to update data files
 def check_update():

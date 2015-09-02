@@ -35,16 +35,19 @@ public class ReadingEvent extends DesktopEvent {
     public Boolean multiPage;
 
     /** A vector representing the page numbers currently being displayed (number within PDF document).
-     * A number representing the page number in the given document, starting from 0. */
+     * A number representing the page number in the given document, starting from 0.
+     * These should be in the same order as visiblePageLabels and pageRects. */
     public int[] visiblePageNumbers;
     
     /** A vector representing the page numbers currently being displayed (ORIGINAL page number).
-     * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example. */
+     * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example.
+     * These should be in the same order as visiblePageNumbers and pageRects. */
     public String[] visiblePageLabels;
     
     /** A list of rectangles representing where the viewport is placed for each page. 
      * All the rects should fit within the page. Rect dimensions refer to points in a 72 dpi space where the bottom left is the origin,
-     * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points. */
+     * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points.
+     * These should be in the same order as visiblePageNumbers and visiblePageLabels. */
     public List<Rect> pageRects;
 
     /** The proportion of the document currently being displayed on screen.
