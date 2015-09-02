@@ -131,6 +131,9 @@ class SearchThread(QtCore.QThread):
       self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
       self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
       self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+      #
+      if os.path.isfile('data/r_old.npy'):
+        os.remove('data/r_old.npy')
 
     #
     if self.extrasearch:
