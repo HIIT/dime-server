@@ -213,9 +213,13 @@ def uri_to_text(uri, alt_text=''):
       return "", ""
 
     title = ""
-    soup = BeautifulSoup(temp)
-    if soup.title is not None:
-        title = soup.title.string
+    try:
+        soup = BeautifulSoup(temp)
+        if soup.title is not None:
+            title = soup.title.string
+    except UnicodeEncodeError:
+        pass
+
     #print 'Page title: ', title
 
     lynx_command = config['fulltext_command'] % temp.name
