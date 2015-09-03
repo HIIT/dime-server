@@ -20,6 +20,7 @@
 	    </span>
 
         <span th:if="${event instanceof T(fi.hiit.dime.data.ReadingEvent)}">
+          <b>Start Time:</b> <span th:text="${event.start}"></span>, <b>End Time:</b> <span th:text="${event.end}"></span><br/><br/>
           <b>Text content:</b> <pre th:text="${event.plainTextContent}"></pre><br/>
           <b>Rectangles:</b>
             <table class="table">
