@@ -24,6 +24,7 @@
           <b>Rectangles:</b>
             <table class="table">
                 <thead><tr>
+                        <th>Page no.</th>
                         <th>X</th>
                         <th>Y</th>
                         <th>Width</th>
@@ -31,7 +32,8 @@
                         <th>Class</th>
                 </tr></thead>
               <tbody>
-                  <tr th:each="rect : ${event.pageRects}">
+                  <tr th:each="rect, iterationStatus : ${event.pageRects}">
+                      <td th:text="${event.visiblePageNumbers[iterationStatus.index]}"></td>
                       <td th:text="${#numbers.formatDecimal(rect.origin.x, 0, 'COMMA', 2, 'POINT')}"></td>
                       <td th:text="${#numbers.formatDecimal(rect.origin.y, 0, 'COMMA', 2, 'POINT')}"></td>
                       <td th:text="${#numbers.formatDecimal(rect.size.width, 0, 'COMMA', 2, 'POINT')}"></td>
