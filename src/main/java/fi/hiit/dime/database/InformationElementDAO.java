@@ -85,8 +85,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	// For mongodb versions >= 2.6, we can use the new TextQuery
 	// interface
 	if (version[0] >= 3 || (version[0] >= 2 && version[1] >= 6)) {
-	    Query dbQuery = TextQuery.queryText(new TextCriteria()
-						.matchingPhrase(query))
+	    Query dbQuery = new TextQuery(query)
 		.sortByScore()
 		.addCriteria(filterCriteria);
 	    
