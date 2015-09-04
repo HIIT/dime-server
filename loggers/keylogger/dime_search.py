@@ -473,6 +473,61 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
 
 
 
+#
+def recompute_keywords(c):
+    print 'c', c
+    #Import dictionary
+    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+
+    #
+    r_hat     = np.load('data/r_hat.npy')
+    sigma_hat = np.load('data/sigma_hat.npy')
+
+    #Normalize
+    if r_hat.max() > 0.0:
+        r_hat     = r_hat/r_hat.max()
+    if sigma_hat.max() > 0.0:
+        sigma_hat = sigma_hat/sigma_hat.max()
+
+    #print 'Search thread: value of c is:', c
+    vsum     = r_hat + c*sigma_hat
+    #print vsum.shape
+    #r_hat = return_keyword_relevance_estimates(docinds, r)
+    vsinds= np.argsort(vsum[:,0])
+    kwinds= np.argsort(r_hat[:,0])
+
+    if r_hat.max() > 0.0:
+        kwinds = kwinds[-20:]
+        vsinds = vsinds[-20:]
+        #Make reverse list object
+        kwindsrev = reversed(kwinds)
+        #Reverse
+        kwindsd = []
+        for i in kwindsrev:
+            kwindsd.append(i)
+        #
+        kwinds = kwindsd
+        #Initialize list of keywords
+        kws = []
+        #print 'Indices of estimated keywords: ', kwinds
+        #kwinds= docinds.tolist()
+        for i in range(len(kwinds)):
+            #print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
+            kws.append(dictionary.get(kwinds[i]))
+
+
+        #Make reverse list object
+        vsindsrev = reversed(vsinds)
+        #Reverse
+        vsinds = []
+        for i in vsindsrev:
+            vsinds.append(i)
+        kws = []
+        for i in range(len(vsinds)):
+            #print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
+            kws.append(dictionary.get(vsinds[i]))
+            #kws.append(dictionary.get(kwinds[i]))
+    return kws
 
 
 
@@ -881,61 +936,6 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
 #     #return y_hat, sigma_hat
 #     return y_hat, sigma_hat    
 
-# #
-# def recompute_keywords(c):
-#     print 'c', c
-#     #Import dictionary
-#     dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
-
-#     #
-#     r_hat     = np.load('data/r_hat.npy')
-#     sigma_hat = np.load('data/sigma_hat.npy')
-
-#     #Normalize
-#     if r_hat.max() > 0.0:
-#         r_hat     = r_hat/r_hat.max()
-#     if sigma_hat.max() > 0.0:
-#         sigma_hat = sigma_hat/sigma_hat.max()
-
-#     #print 'Search thread: value of c is:', c
-#     vsum     = r_hat + c*sigma_hat
-#     #print vsum.shape
-#     #r_hat = return_keyword_relevance_estimates(docinds, r)
-#     vsinds= np.argsort(vsum[:,0])
-#     kwinds= np.argsort(r_hat[:,0])
-
-#     if r_hat.max() > 0.0:
-#         kwinds = kwinds[-20:]
-#         vsinds = vsinds[-20:]
-#         #Make reverse list object
-#         kwindsrev = reversed(kwinds)
-#         #Reverse
-#         kwindsd = []
-#         for i in kwindsrev:
-#             kwindsd.append(i)
-#         #
-#         kwinds = kwindsd
-#         #Initialize list of keywords
-#         kws = []
-#         #print 'Indices of estimated keywords: ', kwinds
-#         #kwinds= docinds.tolist()
-#         for i in range(len(kwinds)):
-#             #print 'Suggested keywords: ', dictionary.get(kwinds[i]), type(dictionary.get(kwinds[i]))
-#             kws.append(dictionary.get(kwinds[i]))
-
-
-#         #Make reverse list object
-#         vsindsrev = reversed(vsinds)
-#         #Reverse
-#         vsinds = []
-#         for i in vsindsrev:
-#             vsinds.append(i)
-#         kws = []
-#         for i in range(len(vsinds)):
-#             #print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
-#             kws.append(dictionary.get(vsinds[i]))
-#             #kws.append(dictionary.get(kwinds[i]))
-#     return kws
 
 
 
