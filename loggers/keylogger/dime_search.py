@@ -245,7 +245,8 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
         kwsstr = kwsstr + ' ' + kws[i]
     #print 'Keyword query string: ', kwsstr
 
-    query = '"%s"' % query
+    query = '%s' % query
+    #query = '"%s"' % query
     # print srvurl
     # print username
     # print password
