@@ -1,5 +1,6 @@
 #import sys, time
-from PyQt4 import QtCore, QtGui
+from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from PyQt5 import QtGui
 
 # For Keylogger
 import sys
@@ -34,10 +35,15 @@ import math
 import types
 
 #
-class SearchThread(QtCore.QThread):
+class SearchThread(QThread):
 
+ send_links = pyqtSignal(list)
+ send_keywords = pyqtSignal(list)
+ start_search = pyqtSignal()
+ all_done = pyqtSignal()
+ 
  def __init__(self):
-  QtCore.QThread.__init__(self)
+  QThread.__init__(self)
   self.query = ''
   self.oldquery  = None
   self.oldquery2 = None
@@ -78,13 +84,14 @@ class SearchThread(QtCore.QThread):
   print value
   self.c = math.log(value+1)
   kws = recompute_keywords(math.log(value+1))
-  self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
+  self.send_keywords.emit(kws)
 
  def get_new_word(self, newquery):
   #newquer is a QString, so it has to be changed to a unicode string
-  asciiquery = newquery.toAscii()
+  #print "XXX", type(newquery)
+  #asciiquery = newquery.toAscii()
   #Convert to Unicode
-  newquery = unicode(asciiquery, 'utf-8')
+  #newquery = unicode(asciiquery, 'utf-8')
   #newquery = unicode(newquery)
   print "Search thread: got new query from logger:", newquery
   self.query = newquery
@@ -93,9 +100,9 @@ class SearchThread(QtCore.QThread):
   if self.query is None:
     self.query = ''
   #
-  utf8keyword = keywords.toUtf8()
-  print 'ASCII KEYWORD: ', utf8keyword
-  keywords = unicode(utf8keyword, 'utf-8')
+  #utf8keyword = keywords.toUtf8()
+  #print 'ASCII KEYWORD: ', utf8keyword
+  #keywords = unicode(utf8keyword, 'utf-8')
   self.query = self.query + ' ' + keywords
 
   print "Search thread: got new query from main:", self.query
@@ -151,7 +158,7 @@ class SearchThread(QtCore.QThread):
       print 'Search thread:', dstr
         #dstr = unicode(dstr, 'utf-8')
 
-      self.emit(QtCore.SIGNAL('start_search()'))
+      self.start_search.emit()
       if self.searchfuncid == 0:
         jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
         print 'Search thread: Ready for new search!'
@@ -163,7 +170,7 @@ class SearchThread(QtCore.QThread):
         print len(jsons)
         if len(jsons) > 0:
           #Return keyword list
-          self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
+          self.send_keywords.emit(kws)
       elif self.searchfuncid == 2:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
         jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
@@ -174,15 +181,15 @@ class SearchThread(QtCore.QThread):
         jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.tfidf, self.dictionary, self.c)
         if len(jsons) > 0:
           #Return keyword list
-          self.emit( QtCore.SIGNAL('send_keywords(PyQt_PyObject)'), kws)
+          self.send_keywords.emit(kws)
         print 'Search thread: Ready for new search!'      
 
-      #print 'Search thread: len jsons ', len(jsons)
+      print 'Search thread: len jsons ', len(jsons)
       if len(jsons) > 0:
         #Return keyword list
         #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
         #Return jsons
-        self.emit( QtCore.SIGNAL('send_links(PyQt_PyObject)'), jsons)
+        self.send_links.emit(jsons)
 
         #Write first url's appearing in jsons list to a 'suggested_pages.txt'
         cdate = datetime.datetime.now().date()
@@ -191,7 +198,7 @@ class SearchThread(QtCore.QThread):
         f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
         f.close()
       self.oldquery = dstr
-      self.emit(QtCore.SIGNAL('all_done()'))
+      self.all_done.emit()
 
 
     else:

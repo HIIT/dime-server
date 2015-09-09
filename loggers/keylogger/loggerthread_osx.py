@@ -1,15 +1,18 @@
 
-from PyQt4 import QtCore, QtGui
+from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from PyQt5 import QtGui
 
 import time
 import datetime
 import zmq
 
 #
-class LoggerThread(QtCore.QThread):
+class LoggerThread(QThread):
 
+  update = pyqtSignal(unicode)
+  
   def __init__(self):
-    QtCore.QThread.__init__(self)
+    QThread.__init__(self)
     self.var = True
     self.context = zmq.Context()
     self.socket = self.context.socket(zmq.SUB)
@@ -113,7 +116,7 @@ class LoggerThread(QtCore.QThread):
             f = open('typedwords.txt', 'a')
             f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr2 + '\n')
 
-            self.emit( QtCore.SIGNAL('update(QString)'), dumstr2)
+            self.update.emit(dumstr2)
 
             if var2:
               #Empty the dumstr2 after time_interval period of time

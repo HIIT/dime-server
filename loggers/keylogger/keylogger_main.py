@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #import sys, time
-from PyQt4 import QtCore, QtGui
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 # For Keylogger
 import sys
@@ -56,10 +58,14 @@ from searchthread import *
 # linux only!
 # assert("linux" in sys.platform)
 
-class MyApp(QtGui.QWidget):
+class MyApp(QWidget):
 #class MyApp(QMainWindow):
+
+ finished = pyqtSignal(int)
+ update = pyqtSignal(unicode)
+ 
  def __init__(self, parent=None):
-  QtGui.QWidget.__init__(self, parent)
+  QWidget.__init__(self, parent)
   #QMainWindow.__init__(self, parent)
   #widget = QWidget(self)
   #self.setCentralWidget(widget)
@@ -91,47 +97,45 @@ class MyApp(QtGui.QWidget):
   self.SearchThreadObj = SearchThread()
 
   #Data connection from logger thread to search thread
-  self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word)
+  self.LoggerThreadObj.update.connect(self.SearchThreadObj.get_new_word)
+
   #self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
   #self.connect(self, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
-
   #self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links_and_kwbuttons)
 
   #Data connections from search thread to main thread
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("send_links(PyQt_PyObject)"),
-               self.get_data_from_search_thread_and_update_visible_stuff)
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("send_keywords(PyQt_PyObject)"),
-               self.get_keywords_from_search_thread_and_update_visible_stuff)
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("start_search()"), self.anim1.tl.start)
-  self.connect(self.SearchThreadObj, QtCore.SIGNAL("all_done()"), self.anim1.tl.stop)
+  self.SearchThreadObj.send_links.connect(self.get_data_from_search_thread_and_update_visible_stuff)
+  self.SearchThreadObj.send_keywords.connect(self.get_keywords_from_search_thread_and_update_visible_stuff)
+  self.SearchThreadObj.start_search.connect(self.anim1.tl.start)
+  self.SearchThreadObj.all_done.connect(self.anim1.tl.stop)
 
   #Data connections from main thread to search thread
-  self.connect(self, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.SearchThreadObj.change_search_function)
-  self.connect(self, QtCore.SIGNAL("update(QString)"), self.SearchThreadObj.get_new_word_from_main_thread)
+  self.finished.connect(self.SearchThreadObj.change_search_function)
+  self.update.connect(self.SearchThreadObj.get_new_word_from_main_thread)
 
   #Create visible stuff
   val = 5
   iconfile = 'web.png'
-  self.gbtitle = QtGui.QLabel('Web sites')
+  self.gbtitle = QLabel('Web sites')
   self.listWidget1 = self.create_QListWidget(20, iconfile)
 
   iconfile = 'mail.png'
-  self.gbtitle2 = QtGui.QLabel('E-Mails')
+  self.gbtitle2 = QLabel('E-Mails')
   self.listWidget2 = self.create_QListWidget(20, iconfile)
   #
   iconfile = 'doc.png'
-  self.gbtitle3 = QtGui.QLabel('Docs')
+  self.gbtitle3 = QLabel('Docs')
   self.listWidget3 = self.create_QListWidget(20, iconfile)
 
 
   #Buttons
   #Start button
-  self.testButton  = QtGui.QPushButton("Start")
+  self.testButton  = QPushButton("Start")
   #self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
-  self.connect(self.testButton, QtCore.SIGNAL("released()"), self.start_keylogger)
+  self.testButton.released.connect(self.start_keylogger)
   #
-  self.stopButton  = QtGui.QPushButton("Stop")
-  self.connect(self.stopButton, QtCore.SIGNAL("released()"), self.stop_keylogger)
+  self.stopButton  = QPushButton("Stop")
+  self.stopButton.released.connect(self.stop_keylogger)
 
   #
   self.testButton.setDisabled(True)
@@ -140,32 +144,28 @@ class MyApp(QtGui.QWidget):
   self.SearchThreadObj.start()
 
   #Slider for exploitation/exploration slider
-  self.eeslider    = QtGui.QSlider(Qt.Horizontal)
+  self.eeslider    = QSlider(Qt.Horizontal)
   self.eeslider.setRange(0,200)
   self.eeslider.setTickInterval(200)
   #self.eeslider.setFocusPolicy(QtCore.Qt.NoFocus)
   #self.connect(self.eeslider, QtCore.SIGNAL("valueChanged(int)"),self.change_c)
-  self.connect(self.eeslider, QtCore.SIGNAL("valueChanged(int)"),self.SearchThreadObj.recompute_keywords)
-  self.eesliderl1  = QtGui.QLabel("Exploit")
-  self.eesliderl2  = QtGui.QLabel("Explore")
+  self.eeslider.valueChanged.connect(self.SearchThreadObj.recompute_keywords)
+  self.eesliderl1  = QLabel("Exploit")
+  self.eesliderl2  = QLabel("Explore")
 
   #Radio buttons for choosing search function
-  self.radiobutton1= QtGui.QRadioButton("DocSim")
-  #self.radiobutton1.emit(QtCore.SIGNAL('released()'))
-  self.connect(self.radiobutton1, QtCore.SIGNAL("released()"), self.choose_search_function1)
+  self.radiobutton1= QRadioButton("DocSim")
+  self.radiobutton1.released.connect(self.choose_search_function1)
   self.radiobutton1.click()
 
-  self.radiobutton2= QtGui.QRadioButton("LinRel + DiMe search")
-  #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
-  self.connect(self.radiobutton2, QtCore.SIGNAL("released()"), self.choose_search_function2)
+  self.radiobutton2= QRadioButton("LinRel + DiMe search")
+  self.radiobutton2.released.connect(self.choose_search_function2)
 
-  self.radiobutton3= QtGui.QRadioButton("LinRel (omitting history)")
-  #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
-  self.connect(self.radiobutton3, QtCore.SIGNAL("released()"), self.choose_search_function3)
+  self.radiobutton3= QRadioButton("LinRel (omitting history)")
+  self.radiobutton3.released.connect(self.choose_search_function3)
 
-  self.radiobutton4= QtGui.QRadioButton("LinRel + DocSim")
-  #self.radiobutton2.emit( QtCore.SIGNAL('released()'))
-  self.connect(self.radiobutton4, QtCore.SIGNAL("released()"), self.choose_search_function4)  
+  self.radiobutton4= QRadioButton("LinRel + DocSim")
+  self.radiobutton4.released.connect(self.choose_search_function4)
 
   #Connect animation to logger thread and search thread
   # self.testButton.clicked.connect(self.anim1.tl.start)
@@ -177,75 +177,75 @@ class MyApp(QtGui.QWidget):
 
 
   #Layout for Web Pages
-  self.vlayout1 = QtGui.QVBoxLayout()
+  self.vlayout1 = QVBoxLayout()
   self.vlayout1.addWidget(self.gbtitle)
   self.vlayout1.addWidget(self.listWidget1)
   #
-  self.vlayout2 = QtGui.QVBoxLayout()
+  self.vlayout2 = QVBoxLayout()
   self.vlayout2.addWidget(self.gbtitle2)
   self.vlayout2.addWidget(self.listWidget2)
   #  
-  self.vlayout3 = QtGui.QVBoxLayout()
+  self.vlayout3 = QVBoxLayout()
   self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
   #
-  self.vlayout4 = QtGui.QVBoxLayout()
-  #self.vlayout4.addWidget(QtGui.QLabel(' '))
-  self.subhlayout= QtGui.QHBoxLayout()
+  self.vlayout4 = QVBoxLayout()
+  #self.vlayout4.addWidget(QLabel(' '))
+  self.subhlayout= QHBoxLayout()
   self.subhlayout.addWidget(self.testButton)
   self.subhlayout.addWidget(self.stopButton)
   self.subhlayout.addWidget(self.anim1)
   self.vlayout4.addLayout(self.subhlayout)
 
-  self.subhlayout2= QtGui.QHBoxLayout()
+  self.subhlayout2= QHBoxLayout()
   self.subhlayout2.addWidget(self.eesliderl1)
   self.subhlayout2.addWidget(self.eeslider)
   self.subhlayout2.addWidget(self.eesliderl2)
   self.vlayout4.addLayout(self.subhlayout2)
   #vlayout5 is a sub layout for vlayout4
-  self.vlayout5 = QtGui.QVBoxLayout()
+  self.vlayout5 = QVBoxLayout()
   self.vlayout5.addWidget(self.radiobutton1)
   self.vlayout5.addWidget(self.radiobutton2)
   #self.vlayout5.addWidget(self.radiobutton3)
   self.vlayout5.addWidget(self.radiobutton4)
 
   #Groupbox for radiobuttons
-  self.mygroupbox = QtGui.QGroupBox('Search Method')
+  self.mygroupbox = QGroupBox('Search Method')
   self.mygroupbox.setLayout(self.vlayout5)
   self.vlayout4.addWidget(self.mygroupbox)
 
   #Add layouts
-  self.hlayout = QtGui.QHBoxLayout()
+  self.hlayout = QHBoxLayout()
   self.hlayout.addLayout(self.vlayout1)
   self.hlayout.addLayout(self.vlayout2)
   self.hlayout.addLayout(self.vlayout3)
   self.hlayout.addLayout(self.vlayout4)
 
   #Master vertical layout:
-  self.mastervlayout = QtGui.QVBoxLayout(self)
+  self.mastervlayout = QVBoxLayout(self)
 
   #Add self.hlayout to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout)
 
   #
-  self.hlayout2 = QtGui.QHBoxLayout()
-  self.keywordlabel = QtGui.QLabel('Suggested keywords: ')
+  self.hlayout2 = QHBoxLayout()
+  self.keywordlabel = QLabel('Suggested keywords: ')
   self.keywordlabel.setStyleSheet('color: green')
   self.hlayout2.addWidget(self.keywordlabel)
   #
-  self.hlayout3 = QtGui.QHBoxLayout()
+  self.hlayout3 = QHBoxLayout()
   #Create buttons
   self.buttonlist = []
   numofkwbuttons = 10
   for i in range(numofkwbuttons):
                   #keywordstr = keywordstr + urlstrs[i] + ', '
-                  dumbutton = QtGui.QPushButton('button'+ str(i))
+                  dumbutton = QPushButton('button'+ str(i))
                   self.buttonlist.append(dumbutton)
   for i in range( len(self.buttonlist) ):
                   self.buttonlist[i].hide()
                   #keywordstr = keywordstr + urlstrs[i] + ', '
                   self.hlayout3.addWidget(self.buttonlist[i])
-                  self.connect(self.buttonlist[i], QtCore.SIGNAL("clicked()"), self.emit_search_command)
+                  self.buttonlist[i].clicked.connect(self.emit_search_command)
                   #Hide buttons initially
 
 
@@ -294,14 +294,15 @@ class MyApp(QtGui.QWidget):
  def emit_search_command(self):
   #if searchfuncid == 0:
     sender = self.sender()
-    print 'Main: Sending new word from main: ',  sender.text().toAscii()
-    self.emit(QtCore.SIGNAL('update(QString)'),sender.text())
+    sender_text = sender.text()
+    print 'Main: Sending new word from main: ', sender_text , type(sender_text)
+    self.update.emit(sender_text)
 
  def choose_search_function1(self):
   #if searchfuncid == 0:
     print 'Main: Search function is DocSim'
     #check_update()
-    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 0)
+    self.finished.emit(0)
   # elif searchfuncid == 1:
   #   print 'Main: Search function is LinRel'
 
@@ -309,23 +310,23 @@ class MyApp(QtGui.QWidget):
   #if searchfuncid == 0:
     print 'Main: Search function is LinRel'
     #check_update()
-    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 1)
-  #elif searchfuncid == 1:
+    self.finished.emit(1)
+    #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
 
  def choose_search_function3(self):
   #if searchfuncid == 0:
     print 'Main: Search function is LinRel'
     #check_update()
-    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 2)
-  #elif searchfuncid == 1:
+    self.finished.emit(2)
+    #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
 
  def choose_search_function4(self):
   #if searchfuncid == 0:
     print 'Main: Search function is LinRel'
     #check_update()
-    self.emit(QtCore.SIGNAL('finished(PyQt_PyObject)'), 3)
+    self.finished.emit(3)
   #elif searchfuncid == 1:
   #  print 'Main: Search function is LinRel'
 
@@ -342,8 +343,7 @@ class MyApp(QtGui.QWidget):
         dumitem.setIcon(icon)
         dumitem.setHidden(True)
 
-    listWidget.connect(listWidget,SIGNAL("itemClicked(QListWidgetItem*)"),
-              self.open_url)
+    listWidget.itemClicked.connect(self.open_url)
 
     return listWidget
 
@@ -538,9 +538,9 @@ class MyApp(QtGui.QWidget):
     #print buttext
     if buttext in test_wordlist:
       #print 'True!!'
-      # buttextcol    = QtGui.QColor('red')
-      # butbackgrdcol = QtGui.QColor('red')
-      # redpalette = QtGui.QPalette(buttextcol, butbackgrdcol)
+      # buttextcol    = QColor('red')
+      # butbackgrdcol = QColor('red')
+      # redpalette = QPalette(buttextcol, butbackgrdcol)
       # self.buttonlist[i].setPalette(redpalette)
       self.buttonlist[i].setStyleSheet("background-color: GreenYellow")
     else:
@@ -633,7 +633,7 @@ class MyApp(QtGui.QWidget):
 
 
 # run
-app  = QtGui.QApplication(sys.argv)
+app  = QApplication(sys.argv)
 test = MyApp()
 test.show()
 app.exec_()
