@@ -443,7 +443,9 @@ class MyApp(QWidget):
                                           j = j + 1
                                       elif storedasl in ["MailboxDataObject"]:
                                           #print 'Main: mail ', storedasl
-                                          subj = self.unicode_to_str(urlstrs[ijson]["subject"])
+                                          subj = "[no subject]"
+                                          if urlstrs[ijson].has_key("subject"):
+                                            subj = self.unicode_to_str(urlstrs[ijson]["subject"])
                                           #Create link to DiMe server
                                           dumlink = self.srvurl.split('/')[2]
                                           linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
