@@ -39,7 +39,8 @@ import math
 import types
 
 #Animation for processing
-from simple_animation import *
+#from simple_animation import *
+#from not_so_simple_animation import *
 
 #Import loggerthread
 if sys.platform == "linux2":
@@ -76,11 +77,15 @@ class MyApp(QWidget):
   self.keywords = ''
 
   #Animation objects
-  self.anim1 = MyView()
-  self.anim1.scale(0.3,0.3)
-  self.anim1.setStyleSheet("border: 0px; background-color: transparent")
-  self.anim1.show()
+  # self.anim1 = MyView()
+  # self.anim1.scale(0.3,0.3)
+  # self.anim1.setStyleSheet("border: 0px; background-color: transparent")
+  # self.anim1.show() 
   
+
+  self.animlabel = QLabel()
+  self.animation = QMovie("images-loader.gif")
+  self.animlabel.setMovie(self.animation)
   # self.anim1 = Overlay(self)
   # #self.anim1.scale(0.5,0.5)
   # self.anim1.setStyleSheet("border: 0px; background-color: transparent")
@@ -106,8 +111,13 @@ class MyApp(QWidget):
   #Data connections from search thread to main thread
   self.SearchThreadObj.send_links.connect(self.get_data_from_search_thread_and_update_visible_stuff)
   self.SearchThreadObj.send_keywords.connect(self.get_keywords_from_search_thread_and_update_visible_stuff)
-  self.SearchThreadObj.start_search.connect(self.anim1.tl.start)
-  self.SearchThreadObj.all_done.connect(self.anim1.tl.stop)
+  #self.SearchThreadObj.start_search.connect(self.anim1.tl.start)
+  #self.SearchThreadObj.start_search.connect(self.animation.start)
+  self.SearchThreadObj.start_search.connect(self.start_animation)
+
+  #self.SearchThreadObj.all_done.connect(self.anim1.tl.stop)
+  #self.SearchThreadObj.all_done.connect(self.animation.stop)
+  self.SearchThreadObj.all_done.connect(self.stop_animation)
 
   #Data connections from main thread to search thread
   self.finished.connect(self.SearchThreadObj.change_search_function)
@@ -194,7 +204,10 @@ class MyApp(QWidget):
   self.subhlayout= QHBoxLayout()
   self.subhlayout.addWidget(self.testButton)
   self.subhlayout.addWidget(self.stopButton)
-  self.subhlayout.addWidget(self.anim1)
+  #self.subhlayout.addWidget(self.anim1)
+  self.subhlayout.addWidget(self.animlabel)
+  #self.movie.start()
+
   self.vlayout4.addLayout(self.subhlayout)
 
   self.subhlayout2= QHBoxLayout()
@@ -259,8 +272,13 @@ class MyApp(QWidget):
   self.setWindowTitle("ProActive Search") 
 
 
+ def stop_animation(self):
+  self.animlabel.setMovie(None)
+  self.animlabel.setPixmap(QPixmap('empty.gif'))
 
-
+ def start_animation(self):
+  self.animlabel.setMovie(self.animation)
+  self.animation.start()
 
  #Runs the Keylogger and Search 
  def test_pressed(self):
