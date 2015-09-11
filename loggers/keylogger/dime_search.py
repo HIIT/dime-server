@@ -236,7 +236,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     #test_vec_full = 
 
     #
-    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c)
+    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c)
     kws_vec    = dictionary.doc2bow(kws)
 
     #make string of keywords 
@@ -280,7 +280,7 @@ def query2bow(query,dictionary):
     return test_vec
 
 #
-def return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c):
+def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c):
 
     nwords = len(dictionary)
 
@@ -317,7 +317,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, 
     #set(winds)
 
     #
-    r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, mu)
+    r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, X, mu)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(r,mu)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_evd(r, mu)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_auer(r,mu)
@@ -386,14 +386,13 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, 
         return [], []
 
 
-def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
+def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
 
     #Load document term matrix 
-    sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #sX = load_sparse_csc('data/sX.sparsemat.npz')
     #Make transpose of document term matrix 
-    sX = sX.transpose()
+    sX = sX.T
     sX = sX.tocsr()
-
 
     #Take indices of non-zeros of y-vector
     inds = np.where(y)[0]
@@ -402,8 +401,6 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, mu):
     #Form new y that has only non-zeros of the original y
     if len(inds) > 1:
         y    = y[inds]
-        #y    = 1/y
-        #print inds, y    
     else:
         if len(inds) == 0:
             y    = np.zeros([1,1])

@@ -61,7 +61,8 @@ class SearchThread(QThread):
   self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
   self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
   self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
-
+  if os.path.isfile('data/r_old.npy'):
+    os.remove('data/r_old.npy')
   self.c          = 0.0
 
  def __del__(self):
@@ -129,7 +130,7 @@ class SearchThread(QThread):
     #Update data
     if cmachtime > self.dataupdateinterval + dataupdatetimestamp:
       print "Update data!!!!!"
-      update_all_data()
+      #update_all_data()
       dataupdatetimestamp = time()
       #
       json_data = open('data/json_data.txt')
