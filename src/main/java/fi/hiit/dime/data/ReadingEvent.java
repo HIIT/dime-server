@@ -56,6 +56,14 @@ public class ReadingEvent extends DesktopEvent {
      */
     public Range proportion;
 
+    /** The scale factor currently being used (1 = 100% size, 2 = 200%, etc).
+     */
+    public double scaleFactor;
+
+    /** Eye tracking data for this event
+     */
+    public PageEyeData eyeData;
+
     /** Plain text content of text currently displayed on screen. */
     public String plainTextContent;
 }

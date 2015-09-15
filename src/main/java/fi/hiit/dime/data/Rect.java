@@ -28,17 +28,25 @@ package fi.hiit.dime.data;
    Class representing a rectangle in a two dimensions (maps to the ReadingRect struct in PeyeDF).
 */
 public class Rect {
-    /** The minimum value.
+    /** Position of the origin of this rectangle (origin: bottom left).
      */
     public Point origin;
 
-    /** The maximum value.
+    /** Size of this rectangle.
      */
     public Size size;
 
-    /** Reading class of this rectangle (refer to the CLASS_* constants).
+    /** Page (starting from 0) on which this rectangle appears.
+     */
+    public int pageIndex;
+
+    /** Reading class of this rectangle, or why is it marked (refer to the CLASS_* constants, Importance enum in PeyeDF).
      */
     public int readingClass;
+
+    /** Source of classification for this rectangle, or what marked it (refer to the CLASSSOURCE_* constants, ClassSource enum in PeyeDF.
+     */
+    public int classSource;
 
     /** Unspecified reading class
      */
@@ -54,9 +62,26 @@ public class Rect {
 
     /** Class for eye tracking "interesting" rectangles.
      */
-    public static final int CLASS_INTERESTING = 25;
+    public static final int CLASS_INTERESTING = 30;
 
     /** Class for eye tracking "critical" rectangles.
      */
-    public static final int CLASS_CRITICAL = 30;
+    public static final int CLASS_CRITICAL = 40;
+
+    /** Class source for rectangles marked from an unkown source.
+     */ 
+    public static final int CLASSSOURCE_UNSET = 0;
+    
+    /** Class source for rectangles marked by the UI as viewports.
+     */ 
+    public static final int CLASSSOURCE_VIEWPORT = 1;
+
+    /** Class source for rectangles marked by click.
+     */
+    public static final int CLASSSOURCE_CLICK = 2;
+    
+    /** Class source for rectangles marked by eye tracking.
+     */
+    public static final int CLASSSOURCE_EYE = 3;
+
 }
