@@ -24,6 +24,7 @@
 package fi.hiit.dime.data;
 
 import java.util.List;
+import java.util.Dictionary;
 
 /**
    A detailed reading event.
@@ -60,9 +61,9 @@ public class ReadingEvent extends DesktopEvent {
      */
     public double scaleFactor;
 
-    /** Eye tracking data for this event
+    /** Eye tracking data for this event, one entry per page (key is page index, from 0).
      */
-    public PageEyeData eyeData;
+    public Dictionary<Integer, PageEyeData> pageEyeData;
 
     /** Plain text content of text currently displayed on screen. */
     public String plainTextContent;

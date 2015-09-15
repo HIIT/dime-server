@@ -36,11 +36,11 @@ public class PageEyeData {
      */
     public double[] Ys;
 
+    /** Pupil size.
+     */
+    public double[] Ps;
+
     /** Timempoints as milliseconds since epoch.
      */
     public long[] timepoints;
-
-    /** Page indices of each point
-     */
-    public int[] pageIndices;
 }
