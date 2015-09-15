@@ -60,7 +60,7 @@ public class ReadingEvent extends DesktopEvent {
      */
     public double scaleFactor;
 
-    /** Eye tracking data for this event, one entry per page (key is page index, from 0).
+    /** Eye tracking data for this event, one entry per page (pageEyeData contains page index, from 0).
      */
     public PageEyeData[] pageEyeData;
 
