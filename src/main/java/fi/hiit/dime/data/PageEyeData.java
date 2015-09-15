@@ -25,7 +25,7 @@
 package fi.hiit.dime.data;
 
 /**
-   Class representing points on page .
+   Class representing points read on a specific page (in page space coordinates).
 */
 public class PageEyeData {
     /** Horizontal (x) coordinates
@@ -43,4 +43,8 @@ public class PageEyeData {
     /** Timempoints as milliseconds since epoch.
      */
     public long[] timepoints;
+
+    /** Page index for this block of data.
+     */
+    public int pageIndex;
 }
