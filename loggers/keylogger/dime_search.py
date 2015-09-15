@@ -21,7 +21,7 @@ from gensim import corpora, models, similarities, interfaces
 import difflib
 
 #
-from update_dict_lda_and_Am import *
+from update_files import *
 
 #
 import math
@@ -237,12 +237,12 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
 
     #
     winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c)
-    kws_vec    = dictionary.doc2bow(kws)
+    #kws_vec    = dictionary.doc2bow(kws)
 
     #make string of keywords 
-    kwsstr = ''
-    for i in range(len(kws)):
-        kwsstr = kwsstr + ' ' + kws[i]
+    #kwsstr = ''
+    #for i in range(len(kws)):
+    #    kwsstr = kwsstr + ' ' + kws[i]
     #print 'Keyword query string: ', kwsstr
 
     query = '%s' % query
@@ -252,6 +252,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     # print password
     # print query 
 
+    #Search from dime using Dime-servers own search function
     jsons = search_dime(srvurl, username, password, query)
 
     return jsons, kws

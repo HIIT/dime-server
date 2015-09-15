@@ -13,7 +13,7 @@ import os
 import Queue
 import threading
 
-from update_dict_lda_and_Am import *
+from update_files import *
 
 from dime_search import *
 
@@ -49,21 +49,39 @@ class SearchThread(QThread):
   self.oldquery2 = None
   self.searchfuncid = 0
   self.extrasearch = False
-
+  #Exploration/Exploitation -coefficient
+  self.c          = 0.0
 
   #DiMe server path, username and password
   self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval = read_user_ini()
   self.dataupdateinterval = 600
+
   #
   json_data = open('data/json_data.txt')
+  #DiMe data in json -format
   self.data       = json.load(json_data)
-  self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
+  #Load df-matrix (document frequency matrix)
+  self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
+  #Load dictionary
   self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+  #Remove common words from dictionary
+  self.dictionary = df_word_removal(self.sXdoctm, self.dictionary)
+  #Load updated tfidf-matrix of the corpus
+  self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
+  #Load updated df-matrix
+  self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
+  #Load tfidf -model
   self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+  #Load 
   self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+  #Load tfidf -model
+  self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+  #Load cosine similarity model for computing cosine similarity between keyboard input with documents
+  self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+
   if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
-  self.c          = 0.0
+
 
  def __del__(self):
    self.wait()
@@ -123,7 +141,6 @@ class SearchThread(QThread):
 
 
   while True:
-
     #
     cmachtime = time()
 
@@ -134,14 +151,30 @@ class SearchThread(QThread):
       dataupdatetimestamp = time()
       #
       json_data = open('data/json_data.txt')
+      #DiMe data in json -format
       self.data       = json.load(json_data)
-      self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
+      #Load df-matrix (document frequency matrix)
+      self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
+      #Load dictionary
       self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+      #Remove common words from dictionary
+      self.dictionary = df_word_removal(self.sXdoctm, self.dictionary)
+      #Load updated tfidf-matrix of the corpus
+      self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
+      #Load updated df-matrix
+      self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
+      #Load tfidf -model
       self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+      #Load 
       self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
-      #
+      #Load tfidf -model
+      self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+      #Load cosine similarity model for computing cosine similarity between keyboard input with documents
+      self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+      #Clean the history buffer
       if os.path.isfile('data/r_old.npy'):
         os.remove('data/r_old.npy')
+
 
     #
     if self.extrasearch:

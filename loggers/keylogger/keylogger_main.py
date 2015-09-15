@@ -17,7 +17,8 @@ import os
 import Queue
 import threading
 
-from update_dict_lda_and_Am import *
+#For updating data and other files (dictionary, Document term matrices etc.)
+from update_files import *
 
 from dime_search import *
 
