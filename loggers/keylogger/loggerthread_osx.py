@@ -1,3 +1,4 @@
+# coding=UTF-8
 
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
 from PyQt5 import QtGui
@@ -10,6 +11,8 @@ import zmq
 class LoggerThread(QThread):
 
   update = pyqtSignal(unicode)
+
+  special_keys = {33: 'å', 39: 'ä', 41: 'ö'}
   
   def __init__(self):
     QThread.__init__(self)
@@ -60,15 +63,17 @@ class LoggerThread(QThread):
 
       #time.sleep(sleep_interval)
       #changed, modifiers, keys = socket.recv()
-      keys = self.socket.recv()
+      key_kc = self.socket.recv()
       #The keys is a string of the form "keyvalue:keycode"
-      kc   = keys.split(":")[1]
+      keys, kc = key_kc.split(":")
       try:
-        kc   = int(kc)
+        kc = int(kc)
       except ValueError:
-        kc   = 0
+        kc = -1
+
+      if self.special_keys.has_key(kc):
+        keys = self.special_keys[kc]
         
-      keys = keys.split(":")[0]
       print 'keys: ', keys, 'kc: ', kc
 
       #print modifiers
@@ -121,6 +126,9 @@ class LoggerThread(QThread):
             if var2:
               #Empty the dumstr2 after time_interval period of time
               dumstr2 = ''
+
+          elif kc in [-1, 123, 124, 125, 126]: # arrow keys
+            pass
 
           else:
             cdate = datetime.datetime.now().date()

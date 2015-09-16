@@ -14,6 +14,8 @@ socket = context.socket(zmq.PUB)
 socket.bind("tcp://127.0.0.1:5000")
 print "Keylogger: Socket initialized"
 
+special_keys = (33, 39, 41, 51, 123, 124, 125, 126)
+
 class AppDelegate(NSObject):
     def applicationDidFinishLaunching_(self, notification):
         mask = NSKeyDownMask
@@ -24,8 +26,16 @@ def handler(event):
         #NSLog(u"%@", event)
         #print event
         #print event.keyCode()
+        print event.characters(), type (event.characters()), event.keyCode()
 
-        socket.send_string(str(event.characters())+':'+str(event.keyCode()))
+        char = "?"
+        keycode = event.keyCode()
+        if keycode not in special_keys:
+            try:
+                char = str(event.characters())
+            except UnicodeEncodeError:
+                print "<UnicodeEncodeError>"
+        socket.send_string(char+':'+str(keycode))
         #print event.characters()
         
     except KeyboardInterrupt:
