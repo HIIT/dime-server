@@ -27,6 +27,9 @@ from update_files import *
 import math
 
 #
+from math_utils import *
+
+#
 import scipy.cluster
 #
 #import matplotlib.pyplot as plt
@@ -337,8 +340,16 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     #
     vsum = r_hat + c*sigma_hat
 
-    #
-    #print sigma_hat.shape, sigma_hat.max()
+    #Compute sparsity of sigma_hat using P. Hoyer sparsity measure
+    sigma_hat_spar = vec_sparsity(sigma_hat)
+    print "dime_search: Sparsity of sigma_hat vector: ", sigma_hat_spar 
+    #Store value to sparsity history vector
+    if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
+        sigma_hat_spar_hist_vec = np.load('data/sigma_hat_spar_hist_vec.npy')
+        sigma_hat_spar_hist_vec = np.append(sigma_hat_spar_hist_vec, sigma_hat_spar)
+    else:
+        sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
+        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
 
     #Print Exploitation/Exploration coefficient
     print 'Search thread: value of c is:', c

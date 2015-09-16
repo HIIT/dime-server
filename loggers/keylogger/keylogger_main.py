@@ -60,6 +60,15 @@ from searchthread import *
 # linux only!
 # assert("linux" in sys.platform)
 
+class MainWindow(QMainWindow):
+  def __init__(self):
+    super(MainWindow, self).__init__()
+    #
+    self.main_widget = MyApp()
+    #
+    self.setCentralWidget(self.main_widget)
+    self.show()
+
 class MyApp(QWidget):
 #class MyApp(QMainWindow):
 
@@ -73,7 +82,7 @@ class MyApp(QWidget):
   #self.setCentralWidget(widget)
 
   #Read user.ini file
-  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval = self.read_user_ini()
+  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval = read_user_ini()
   self.data = []
   self.keywords = ''
 
@@ -178,13 +187,9 @@ class MyApp(QWidget):
   self.radiobutton4= QRadioButton("LinRel + DocSim")
   self.radiobutton4.released.connect(self.choose_search_function4)
 
-  #Connect animation to logger thread and search thread
-  # self.testButton.clicked.connect(self.anim1.tl.start)
-  # self.stopButton.clicked.connect(self.anim1.tl.stop)
-
-
   #
   self.buttonlist = []
+
 
 
   #Layout for Web Pages
@@ -240,7 +245,6 @@ class MyApp(QWidget):
 
   #Add self.hlayout to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout)
-
   #
   self.hlayout2 = QHBoxLayout()
   self.keywordlabel = QLabel('Suggested keywords: ')
@@ -268,6 +272,7 @@ class MyApp(QWidget):
   #Add self.hlayout2 to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout2)
   self.mastervlayout.addLayout(self.hlayout3)
+
 
   #
   self.setWindowTitle("ProActive Search") 
@@ -571,33 +576,72 @@ class MyApp(QWidget):
  def is_non_zero_file(self, fpath):
   return True if os.path.isfile(fpath) and os.path.getsize(fpath) > 0 else False
 
- def read_user_ini(self):
 
-    f          = open('user.ini','r')
-    dumstr     = f.read()
-    stringlist = dumstr.split()
+ # def read_user_ini():
 
-    for i in range( len(stringlist) ):
-            if stringlist[i] == "server_url:":
-                    srvurl = stringlist[i+1]
-            if stringlist[i] == "usrname:":
-                    usrname = stringlist[i+1]
-            if stringlist[i] == "password:":
-                    password = stringlist[i+1]
-            if stringlist[i] == "time_interval:":
-                    time_interval_string = stringlist[i+1]
-                    time_interval = float(time_interval_string)
-            if stringlist[i] == "nspaces:":
-                    nspaces_string = stringlist[i+1]
-                    nspaces = int(nspaces_string)
-            if stringlist[i] == "numwords:":
-                    dum_string = stringlist[i+1]
-                    numwords = int(dum_string)                      
-            if stringlist[i] == "updating_interval:":
-                    dum_string = stringlist[i+1]
-                    updateinterval = float(dum_string)                        
+ #    #
+ #    f          = open('user.ini','r')
+ #    dumstr     = f.read()
+ #    stringlist = dumstr.split()
 
-    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
+ #    for i in range( len(stringlist) ):
+ #            if stringlist[i] == "server_url:":
+ #                    srvurl = stringlist[i+1]
+ #            if stringlist[i] == "usrname:":
+ #                    usrname = stringlist[i+1]
+ #            if stringlist[i] == "password:":
+ #                    password = stringlist[i+1]
+ #            if stringlist[i] == "time_interval:":
+ #                    time_interval_string = stringlist[i+1]
+ #                    time_interval = float(time_interval_string)
+ #            if stringlist[i] == "nspaces:":
+ #                    nspaces_string = stringlist[i+1]
+ #                    nspaces = int(nspaces_string)
+ #            if stringlist[i] == "numwords:":
+ #                    dum_string = stringlist[i+1]
+ #                    numwords = int(dum_string)                      
+ #            if stringlist[i] == "updating_interval:":
+ #                    dum_string = stringlist[i+1]
+ #                    updateinterval = float(dum_string)  
+ #            if stringlist[i] == "data_update_interval:":
+ #                dum_string = stringlist[i+1]
+ #                data_update_interval = float(dum_string)
+ #            if stringlist[i] == "nokeypress_interval:":
+ #                dum_string = stringlist[i+1]
+ #                nokeypress_interval = float(dum_string)
+
+ #    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval
+
+
+
+
+ # def read_user_ini(self):
+
+ #    f          = open('user.ini','r')
+ #    dumstr     = f.read()
+ #    stringlist = dumstr.split()
+
+ #    for i in range( len(stringlist) ):
+ #            if stringlist[i] == "server_url:":
+ #                    srvurl = stringlist[i+1]
+ #            if stringlist[i] == "usrname:":
+ #                    usrname = stringlist[i+1]
+ #            if stringlist[i] == "password:":
+ #                    password = stringlist[i+1]
+ #            if stringlist[i] == "time_interval:":
+ #                    time_interval_string = stringlist[i+1]
+ #                    time_interval = float(time_interval_string)
+ #            if stringlist[i] == "nspaces:":
+ #                    nspaces_string = stringlist[i+1]
+ #                    nspaces = int(nspaces_string)
+ #            if stringlist[i] == "numwords:":
+ #                    dum_string = stringlist[i+1]
+ #                    numwords = int(dum_string)                      
+ #            if stringlist[i] == "updating_interval:":
+ #                    dum_string = stringlist[i+1]
+ #                    updateinterval = float(dum_string)                        
+
+ #    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
  #films 
  #
@@ -649,13 +693,12 @@ class MyApp(QWidget):
      self.quitting()
 
 
+if __name__ == "__main__":
 
-
-
-
-# run
-app  = QApplication(sys.argv)
-test = MyApp()
-test.show()
-app.exec_()
+  # run
+  app  = QApplication(sys.argv)
+  #test = MainWindow()
+  test = MyApp()
+  test.show()
+  app.exec_()
 

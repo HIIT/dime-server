@@ -53,7 +53,7 @@ class SearchThread(QThread):
   self.c          = 0.0
 
   #DiMe server path, username and password
-  self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval = read_user_ini()
+  self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval = read_user_ini()
   self.dataupdateinterval = 600
 
   #
@@ -132,7 +132,7 @@ class SearchThread(QThread):
 
  def search(self):
 
-  nokeypress_interval = 5.0
+  #nokeypress_interval = 5.0
   timestamp = time()
   dataupdatetimestamp = time()
 
@@ -190,7 +190,7 @@ class SearchThread(QThread):
 
     #print "Query:", self.query, "Oldquery:", self.oldquery
     #if self.query is not None and self.query != self.oldquery:
-    if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + nokeypress_interval:
+    if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + self.nokeypress_interval:
       dstr = self.query      
       print 'Search thread:', dstr
         #dstr = unicode(dstr, 'utf-8')
@@ -241,34 +241,73 @@ class SearchThread(QThread):
     else:
       sleep(0.3) # artificial time delay    
 
+
+
+ # def read_user_ini():
+
+ #    #
+ #    f          = open('user.ini','r')
+ #    dumstr     = f.read()
+ #    stringlist = dumstr.split()
+
+ #    for i in range( len(stringlist) ):
+ #            if stringlist[i] == "server_url:":
+ #                    srvurl = stringlist[i+1]
+ #            if stringlist[i] == "usrname:":
+ #                    usrname = stringlist[i+1]
+ #            if stringlist[i] == "password:":
+ #                    password = stringlist[i+1]
+ #            if stringlist[i] == "time_interval:":
+ #                    time_interval_string = stringlist[i+1]
+ #                    time_interval = float(time_interval_string)
+ #            if stringlist[i] == "nspaces:":
+ #                    nspaces_string = stringlist[i+1]
+ #                    nspaces = int(nspaces_string)
+ #            if stringlist[i] == "numwords:":
+ #                    dum_string = stringlist[i+1]
+ #                    numwords = int(dum_string)                      
+ #            if stringlist[i] == "updating_interval:":
+ #                    dum_string = stringlist[i+1]
+ #                    updateinterval = float(dum_string)  
+ #            if stringlist[i] == "data_update_interval:":
+ #                dum_string = stringlist[i+1]
+ #                data_update_interval = float(dum_string)
+ #            if stringlist[i] == "nokeypress_interval:":
+ #                dum_string = stringlist[i+1]
+ #                nokeypress_interval = float(dum_string)
+
+ #    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval
+
+
+
  
- def read_user_ini(self):
+ # def read_user_ini(self):
 
-    f          = open('user.ini','r')
-    dumstr     = f.read()
-    stringlist = dumstr.split()
+ #    f          = open('user.ini','r')
+ #    dumstr     = f.read()
+ #    stringlist = dumstr.split()
 
-    for i in range( len(stringlist) ):
-            if stringlist[i] == "server_url:":
-                    srvurl = stringlist[i+1]
-            if stringlist[i] == "usrname:":
-                    usrname = stringlist[i+1]
-            if stringlist[i] == "password:":
-                    password = stringlist[i+1]
-            if stringlist[i] == "time_interval:":
-                    time_interval_string = stringlist[i+1]
-                    time_interval = float(time_interval_string)
-            if stringlist[i] == "nspaces:":
-                    nspaces_string = stringlist[i+1]
-                    nspaces = int(nspaces_string)
-            if stringlist[i] == "numwords:":
-                    dum_string = stringlist[i+1]
-                    numwords = int(dum_string)                      
-            if stringlist[i] == "updating_interval:":
-                    dum_string = stringlist[i+1]
-                    updateinterval = float(dum_string)                        
+ #    for i in range( len(stringlist) ):
+ #            if stringlist[i] == "server_url:":
+ #                    srvurl = stringlist[i+1]
+ #            if stringlist[i] == "usrname:":
+ #                    usrname = stringlist[i+1]
+ #            if stringlist[i] == "password:":
+ #                    password = stringlist[i+1]
+ #            if stringlist[i] == "time_interval:":
+ #                    time_interval_string = stringlist[i+1]
+ #                    time_interval = float(time_interval_string)
+ #            if stringlist[i] == "nspaces:":
+ #                    nspaces_string = stringlist[i+1]
+ #                    nspaces = int(nspaces_string)
+ #            if stringlist[i] == "numwords:":
+ #                    dum_string = stringlist[i+1]
+ #                    numwords = int(dum_string)                      
+ #            if stringlist[i] == "updating_interval:":
+ #                    dum_string = stringlist[i+1]
+ #                    updateinterval = float(dum_string)                        
 
-    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval  
+ #    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval  
 
 
 #def unicode_to_str(ustr):

@@ -61,15 +61,21 @@ def read_user_ini():
             if stringlist[i] == "updating_interval:":
                     dum_string = stringlist[i+1]
                     updateinterval = float(dum_string)  
+            if stringlist[i] == "data_update_interval:":
+            		dum_string = stringlist[i+1]
+            		data_update_interval = float(dum_string)
+            if stringlist[i] == "nokeypress_interval:":
+            		dum_string = stringlist[i+1]
+            		nokeypress_interval = float(dum_string)
 
-    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
+    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval
 
 
 #
 def update_all_data():
 	
 	print "Update data!!"
-	srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
 
 	cpath  = os.getcwd()
 	cpathd = cpath + '/' + 'data'	
@@ -92,8 +98,9 @@ def update_all_data():
 def check_update():
 
 	#
-	srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
-
+	#srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
+	
 	#Get current path
 	cpath  = os.getcwd()
 	cpathd = cpath + '/' + 'data'
@@ -676,64 +683,61 @@ def update_topic_model_and_doctid():
 #Remove words from dictionary based on df-value (df = document frequency)
 #of each word
 def df_word_removal(sXdoctm, dictionary):
-    # #Import data
-    # if os.path.isfile('data/sXdoctm.sparsemat.npz'):
-    #     sX = load_sparse_csc('data/sXdoctm.sparsemat.npz')
-    # else:
-    #     print "No document term matrix!"
-    #     return
+	print "df_word_removal: Removing common words from dictionary!!"
+	sX = sXdoctm
 
-    # #Modify dictionary
-    # dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	#Number of documents
+	N = sX.shape[0]
+	N = float(N)
 
+	#Create boolean matrices
+	boolmat = sX > 0
+	boolmat = boolmat.tolil()
+	#Create zero sparse matrix
+	O = scipy.sparse.lil_matrix(np.zeros(sX.shape))
+	O[boolmat] = 1.0
+	O = O.tocsc()
 
-    sX = sXdoctm
+	#print "shape of X", sX.shape
+	df_values = O.sum(0)
+	df_values = np.array(df_values)
+	df_values = df_values.T
 
-    #Number of documents
-    N = sX.shape[0]
-    N = float(N)
+	#Take indices of words having 1 < tf < c*N, where c in [0,1] and N = num. of docs
+	c = 0.9
+	boolvec= np.logical_or(df_values <= 1, df_values >= (c*N))
+	#boolvec = df_values >= (c*N)
 
-    #O = word occurrence matrix, (0,1) - matrix
-    boolmat = sX > 0
-    boolmat = boolmat.tolil()
-    #Create zero sparse matrix
-    O = scipy.sparse.lil_matrix(np.zeros(sX.shape))
-    O[boolmat] = 1.0
-    O = O.tocsc()
-    # print type(O), O.shape, O.max()
+	#print boolvec
+	inds    = np.where(boolvec == True)[0]
 
-    #
-    #print "shape of X", sX.shape
-    df_values = O.sum(0)
-    df_values = np.array(df_values)
-    df_values = df_values.T
+	#Remove bad words from dictionary (i.e. words having tfidf < 1)
+	dictionary_old = dictionary
+	dictionary.filter_tokens(bad_ids = inds)
+	#Assign new word ids to all words after filtering.
+	dictionary.compactify()
+	#Save the updated version
+	dictionary.save('/tmp/tmpdict.dict')    
 
-    #Take indices of words having 1 < tf < c*N, where c in [0,1] and N = num. of docs
-    c = 0.9
-    boolvec= np.logical_or(df_values <= 1, df_values >= (c*N))
-    #boolvec = df_values >= (c*N)
-    
-    #print boolvec
-    inds    = np.where(boolvec == True)[0]
+	#
+	dictionary_changed = False
+	if len(dictionary_old) != len(dictionary):
+		dictionary_changed = True
 
-    #Remove bad words from dictionary (i.e. words having tfidf < 1)
-    dictionary.filter_tokens(bad_ids = inds)
-    #Assign new word ids to all words after filtering.
-    dictionary.compactify()
-    #Save the updated version
-    dictionary.save('/tmp/tmpdict.dict')    
-
-    #Update dictionary dependent data files
-    update_doctm('data/')
-    update_doc_tfidf_list('data/')
-    update_docsim_model()
-    update_Xt_and_docindlist([0])
-    update_tfidf_model('data/')
-    create_stopwordlist('data/')
-
-    #
-    return dictionary
-
+	if dictionary_changed:
+		print "update_files: df_word_removal: Dictionary changed!"
+		#Update dictionary dependent data files
+		update_doctm('data/')
+		update_doc_tfidf_list('data/')
+		update_docsim_model()
+		update_Xt_and_docindlist([0])
+		update_tfidf_model('data/')
+		create_stopwordlist('data/')
+		#
+		return dictionary
+	else:
+		print "update_files: df_word_removal: Dictionary not changed!"
+		return dictionary_old
 
 
 #######
