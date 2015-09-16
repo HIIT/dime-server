@@ -164,6 +164,8 @@ class MyApp(QWidget):
   self.clearButton.setFixedWidth(60)
   self.clearButton.setFixedHeight(20)
   self.clearButton.released.connect(self.clear_kw_history)
+  self.clearButton.released.connect(self.SearchThreadObj.clear_query_string)
+  self.clearButton.released.connect(self.LoggerThreadObj.clear_dumstring)
 
   #
   self.testButton.setDisabled(True)

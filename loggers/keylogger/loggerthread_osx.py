@@ -22,8 +22,16 @@ class LoggerThread(QThread):
     self.socket.connect("tcp://127.0.0.1:5000")
     self.socket.setsockopt(zmq.SUBSCRIBE, "")
 
+    self.dumstr2 = ''
+    self.wordlist = []
+
   def start_logger_loop(self):
     self.var = True
+
+
+  def clear_dumstring(self):
+    self.dumstr2 = ''
+    self.wordlist = []
 
   def stop_logger_loop(self):
     self.var = False
@@ -52,7 +60,7 @@ class LoggerThread(QThread):
     #starttime = datetime.datetime.now().time().second
     now = time.time()
     dumstr = ''
-    wordlist = []
+    self.wordlist = []
     
     string_to_send = None
     timestamp = now
@@ -106,26 +114,26 @@ class LoggerThread(QThread):
             print 'Logger thread: keys: ', keys
             #print 'Logger thread: changed: ', changed[0]
             #keys = ' '
-            wordlist.append(dumstr)
+            self.wordlist.append(dumstr)
             #print wordlist
-            print 'Logger thread: wordlist:', wordlist[-nwords:]
-            dwordlist = wordlist[-nwords:]
+            print 'Logger thread: wordlist:', self.wordlist[-nwords:]
+            dwordlist = self.wordlist[-nwords:]
             #dumstr = dumstr + keys
             countspaces = countspaces + 1
             dumstr = ''
-            dumstr2 = ''
+            self.dumstr2 = ''
             for i in range( len(dwordlist) ):
-              dumstr2 = dumstr2 + dwordlist[i] + ' '
+              self.dumstr2 = self.dumstr2 + dwordlist[i] + ' '
 
             #Print the typed words to a file 'typedwords.txt'
             f = open('typedwords.txt', 'a')
-            f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr2 + '\n')
+            f.write(str(cdate) + ' ' + str(ctime) + ' ' + self.dumstr2 + '\n')
 
-            self.update.emit(dumstr2)
+            self.update.emit(self.dumstr2)
 
             if var2:
               #Empty the dumstr2 after time_interval period of time
-              dumstr2 = ''
+              self.dumstr2 = ''
 
           elif kc in [-1, 123, 124, 125, 126]: # arrow keys
             pass

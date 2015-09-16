@@ -112,6 +112,11 @@ class SearchThread(QThread):
   print "Search thread: got new query from logger:", newquery
   self.query = newquery
 
+
+ def clear_query_string(self):
+  self.query = ''
+  print "searchthread: query string cleared!!"
+
  def get_new_word_from_main_thread(self, keywords):
   if self.query is None:
     self.query = ''
