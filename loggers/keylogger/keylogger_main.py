@@ -257,9 +257,9 @@ class MyApp(QWidget):
   self.mastervlayout.addLayout(self.hlayout)
   #
   self.hlayout2 = QHBoxLayout()
-  self.keywordlabel = QLabel('Suggested keywords: ')
-  self.keywordlabel.setStyleSheet('color: green')
-  self.hlayout2.addWidget(self.keywordlabel)
+  #self.keywordlabel = QLabel('Suggested keywords: ')
+  #self.keywordlabel.setStyleSheet('color: green')
+  #self.hlayout2.addWidget(self.keywordlabel)
   #
   self.hlayout3 = QHBoxLayout()
   #Create buttons
@@ -278,7 +278,7 @@ class MyApp(QWidget):
 
 
   #
-  self.mastervlayout.addWidget(self.keywordlabel)
+  #self.mastervlayout.addWidget(self.keywordlabel)
   #Add self.hlayout2 to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout2)
   self.mastervlayout.addLayout(self.hlayout3)

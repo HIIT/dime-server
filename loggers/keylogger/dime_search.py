@@ -102,7 +102,14 @@ def search_dime(srvurl, username, password, query):
         print('No connection to DiMe server!')
         sys.exit(1)
 
-    r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
+    try:
+        query_str = query.encode('utf-8')
+    except UnicodeEncodeError:
+        print "<UnicodeEncodeError>"
+        return []
+
+
+    r = requests.get(server_url + '/search?query={}&limit=60'.format(query_str),
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=10)
@@ -111,15 +118,13 @@ def search_dime(srvurl, username, password, query):
 
     if r.status_code != requests.codes.ok:
         print('No results from DiMe database!')
-        r = []
-        return r
+        return []
     elif len(r.json()) > 0:
             r = r.json()
             print 'Search thread: number of data objects: ', len(r)
             return r
     else: 
-        r = []
-        return r
+        return []
 
 
 #Search using gensim's cossim-function (cosine similarity)
