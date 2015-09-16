@@ -108,8 +108,7 @@ def check_update():
 	#
 	if os.path.exists(cpathd):
 		print 'Search thread: check_update: data/ folder EXISTS!'
-		#os.chdir(cpathd)
-		#print 'check_update: ', cpath
+
 		if not os.path.isfile('data/json_data.txt'):
 			update_data(srvurl, username, password)
 
@@ -120,7 +119,7 @@ def check_update():
 			update_doctm(cpathd)
 			update_doc_tfidf_list(cpathd)
 
-		if not os.path.isfile('/tmp/docsim.model'):
+		if not os.path.isfile('/tmp/similarityvec'):
 			update_docsim_model()
 
 		if not os.path.isfile('data/docindlist.list'):
@@ -131,16 +130,11 @@ def check_update():
 
 		if not os.path.isfile('data/stopwordlist.list'):
 			create_stopwordlist(cpathd)
-		#Go back in directory
-		#os.chdir('../')
 
-		#print 'check_update: ', os.getcwd()
 	else: 
 		print 'Search thread: check_update: data/ DOES NOT EXISTS! CREATE ONE!'
 		#Create data folder into the current path
 		os.makedirs(cpathd)
-		#os.chdir(cpathd)
-		#print 'Path: ', os.getcwd()
 		#
 		update_data(srvurl, username, password)
 		update_dictionary()			
@@ -150,17 +144,6 @@ def check_update():
 		update_Xt_and_docindlist([0])
 		update_tfidf_model(cpathd)
 		create_stopwordlist(cpathd)		
-		# update_data(srvurl, username, password)
-		# update_dictionary()
-		# update_doctm()
-		# update_doc_tfidf_list()
-		# update_docsim_model()
-		# update_Xt_and_docindlist([0])
-		# update_tfidf_model()
-		# create_stopwordlist()
-
-	#print 'Search thread: check_update: ', os.getcwd()	
-
 
 
 #Update data
@@ -683,7 +666,9 @@ def update_topic_model_and_doctid():
 #Remove words from dictionary based on df-value (df = document frequency)
 #of each word
 def df_word_removal(sXdoctm, dictionary):
-	print "df_word_removal: Removing common words from dictionary!!"
+
+	#
+	print "update_files: df_word_removal: Removing common words from dictionary!!"
 	sX = sXdoctm
 
 	#Number of documents
@@ -705,28 +690,32 @@ def df_word_removal(sXdoctm, dictionary):
 
 	#Take indices of words having 1 < tf < c*N, where c in [0,1] and N = num. of docs
 	c = 0.9
-	boolvec= np.logical_or(df_values <= 1, df_values >= (c*N))
-	#boolvec = df_values >= (c*N)
+	boolvec = np.logical_or(df_values <= 1, df_values >= (c*N))
 
 	#print boolvec
 	inds    = np.where(boolvec == True)[0]
 
+	#Number of words before filtering
+	nwords_before = len(dictionary)
 	#Remove bad words from dictionary (i.e. words having tfidf < 1)
-	dictionary_old = dictionary
 	dictionary.filter_tokens(bad_ids = inds)
 	#Assign new word ids to all words after filtering.
 	dictionary.compactify()
-	#Save the updated version
-	dictionary.save('/tmp/tmpdict.dict')    
+	#
+	nwords_after = len(dictionary)
+
+
+	print "new and old ", nwords_before, nwords_after
 
 	#
 	dictionary_changed = False
-	if len(dictionary_old) != len(dictionary):
+	if nwords_before != nwords_after:
 		dictionary_changed = True
 
 	if dictionary_changed:
 		print "update_files: df_word_removal: Dictionary changed!"
 		#Update dictionary dependent data files
+		dictionary.save('/tmp/tmpdict.dict')
 		update_doctm('data/')
 		update_doc_tfidf_list('data/')
 		update_docsim_model()
@@ -734,10 +723,17 @@ def df_word_removal(sXdoctm, dictionary):
 		update_tfidf_model('data/')
 		create_stopwordlist('data/')
 		#
-		return dictionary
-	else:
-		print "update_files: df_word_removal: Dictionary not changed!"
-		return dictionary_old
+		#return dictionary
+
+
+
+
+
+
+
+
+
+
 
 
 #######

@@ -65,15 +65,12 @@ class SearchThread(QThread):
   #Load dictionary
   self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
   #Remove common words from dictionary
-  self.dictionary = df_word_removal(self.sXdoctm, self.dictionary)
+  df_word_removal(self.sXdoctm, self.dictionary)
+  self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
   #Load updated tfidf-matrix of the corpus
   self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
   #Load updated df-matrix
   self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
-  #Load tfidf -model
-  self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
-  #Load 
-  self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
   #Load tfidf -model
   self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
   #Load cosine similarity model for computing cosine similarity between keyboard input with documents
@@ -158,7 +155,8 @@ class SearchThread(QThread):
       #Load dictionary
       self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
       #Remove common words from dictionary
-      self.dictionary = df_word_removal(self.sXdoctm, self.dictionary)
+      df_word_removal(self.sXdoctm, self.dictionary)
+      self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
       #Load updated tfidf-matrix of the corpus
       self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
       #Load updated df-matrix

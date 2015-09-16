@@ -136,7 +136,7 @@ def search_dime_docsim(query, data, index, dictionary):
     #Remove words belonging to stoplist
     test_wordlist = remove_unwanted_words(test_wordlist)
 
-    #Convert the words into nearest dictionary word
+    #Map the input words into nearest dictionary words
     for nword, word in enumerate(test_wordlist):
         correctedword = difflib.get_close_matches(word, dictionary.values())
         if len(correctedword):
@@ -148,7 +148,7 @@ def search_dime_docsim(query, data, index, dictionary):
     # Convert the wordlist into bag of words (bow) representation
     test_vec = dictionary.doc2bow(test_wordlist)
 
-    #Find the indices of most similar documents
+    #Find the indices of the most similar documents
     doclist = index[test_vec]
 
     #Take indices of similar documents
