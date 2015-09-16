@@ -1,11 +1,15 @@
 #DiMe server_url, username and password
 server_url: http://localhost:8080/api
 usrname: usrname
-password: passwd
+password: password
 
 #Keylogger settings
 time_interval: 30.0
 #time_interval: 0.5
-nspaces: 5
+nspaces: 10
 numwords: 10
 updating_interval: 3600.0
+data_update_interval: 600
+nokeypress_interval: 1.0
+#regparam
+#df 
