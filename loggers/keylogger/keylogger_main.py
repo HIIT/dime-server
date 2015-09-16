@@ -157,6 +157,14 @@ class MyApp(QWidget):
   self.stopButton  = QPushButton("Stop")
   self.stopButton.released.connect(self.stop_keylogger)
 
+  #Button for deleting keyword history
+  self.clearButton  = QPushButton("Clear")
+  self.clearButton.setToolTip("Clears the keyword history")
+  self.clearButton.setGeometry(1,1,1,1)
+  self.clearButton.setFixedWidth(60)
+  self.clearButton.setFixedHeight(20)
+  self.clearButton.released.connect(self.clear_kw_history)
+
   #
   self.testButton.setDisabled(True)
   self.stopButton.setDisabled(False)   
@@ -209,12 +217,14 @@ class MyApp(QWidget):
   #self.vlayout4.addWidget(QLabel(' '))
   self.subhlayout= QHBoxLayout()
   self.subhlayout.addWidget(self.testButton)
-  self.subhlayout.addWidget(self.stopButton)
+  self.subhlayout.addWidget(self.stopButton)  
+  self.subhlayout.addWidget(self.clearButton)
   #self.subhlayout.addWidget(self.anim1)
   self.subhlayout.addWidget(self.animlabel)
   #self.movie.start()
 
   self.vlayout4.addLayout(self.subhlayout)
+  #self.vlayout4.addWidget(self.clearButton)
 
   self.subhlayout2= QHBoxLayout()
   self.subhlayout2.addWidget(self.eesliderl1)
@@ -551,6 +561,11 @@ class MyApp(QWidget):
                               #self.buttonlist[i].setText(self.unicode_to_str(keywordlist[i]))
                               self.buttonlist[i].show()  
     return
+
+ def clear_kw_history(self):
+  if os.path.isfile('data/r_old.npy'):
+    os.remove('data/r_old.npy')
+
 
 
  def color_kwbuttons(self):
