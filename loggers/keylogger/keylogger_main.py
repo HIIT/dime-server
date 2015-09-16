@@ -101,7 +101,7 @@ class MyApp(QWidget):
   # self.anim1.setStyleSheet("border: 0px; background-color: transparent")
   # self.anim1.hide()
 
-  #self.testButton.clicked.connect(self.anim1.tl.start)
+  #self.startStopButton.clicked.connect(self.anim1.tl.start)
   #self.overlay.resize(event.size())
 
   #Create data files
@@ -150,24 +150,24 @@ class MyApp(QWidget):
 
   #Buttons
   #Start button
-  self.testButton  = QPushButton("Start")
-  #self.connect(self.testButton, QtCore.SIGNAL("released()"), self.test_pressed)
-  self.testButton.released.connect(self.start_keylogger)
+  self.startStopButton  = QPushButton("Stop")
+  #self.connect(self.startStopButton, QtCore.SIGNAL("released()"), self.test_pressed)
+  self.startStopButton.released.connect(self.start_stop_keylogger)
   #
-  self.stopButton  = QPushButton("Stop")
-  self.stopButton.released.connect(self.stop_keylogger)
+  #self.stopButton  = QPushButton("Stop")
+  #self.stopButton.released.connect(self.stop_keylogger)
 
   #Button for deleting keyword history
   self.clearButton  = QPushButton("Clear")
   self.clearButton.setToolTip("Clears the keyword history")
-  self.clearButton.setGeometry(1,1,1,1)
-  self.clearButton.setFixedWidth(60)
-  self.clearButton.setFixedHeight(20)
+  #self.clearButton.setGeometry(1,1,1,1)
+  #self.clearButton.setFixedWidth(60)
+  #self.clearButton.setFixedHeight(20)
   self.clearButton.released.connect(self.clear_kw_history)
 
   #
-  self.testButton.setDisabled(True)
-  self.stopButton.setDisabled(False)   
+  #self.startStopButton.setDisabled(True)
+  #self.stopButton.setDisabled(False)   
   self.LoggerThreadObj.start()
   self.SearchThreadObj.start()
 
@@ -216,8 +216,8 @@ class MyApp(QWidget):
   self.vlayout4 = QVBoxLayout()
   #self.vlayout4.addWidget(QLabel(' '))
   self.subhlayout= QHBoxLayout()
-  self.subhlayout.addWidget(self.testButton)
-  self.subhlayout.addWidget(self.stopButton)  
+  self.subhlayout.addWidget(self.startStopButton)
+  #self.subhlayout.addWidget(self.stopButton)  
   self.subhlayout.addWidget(self.clearButton)
   #self.subhlayout.addWidget(self.anim1)
   self.subhlayout.addWidget(self.animlabel)
@@ -299,8 +299,8 @@ class MyApp(QWidget):
  #Runs the Keylogger and Search 
  def test_pressed(self):
   print 'Main: Test'
-  self.testButton.setDisabled(True)
-  self.stopButton.setDisabled(False)  
+  #self.startStopButton.setDisabled(True)
+  #self.stopButton.setDisabled(False)  
   #self.listwidget.clear()
 
   #Start thread processes
@@ -308,18 +308,22 @@ class MyApp(QWidget):
   self.LoggerThreadObj.start()
   self.SearchThreadObj.start()
  
- def stop_keylogger(self):
-    print 'Stop logger!'
-    self.stopButton.setDisabled(True)
-    self.testButton.setDisabled(False)
-    self.LoggerThreadObj.stop_logger_loop()
+ #def stop_keylogger(self):
+ #   print 'Stop logger!'
+ #   #self.stopButton.setDisabled(True)
+ #   self.startStopButton.setDisabled(False)
+ #   self.LoggerThreadObj.stop_logger_loop()
 
- def start_keylogger(self):
-    print 'Start logger!'
-    self.stopButton.setDisabled(False)
-    self.testButton.setDisabled(True)
-    self.LoggerThreadObj.start_logger_loop()    
-    self.LoggerThreadObj.start()
+ def start_stop_keylogger(self):
+    print 'Start or stop logger!'
+    #self.stopButton.setDisabled(False)
+    if self.startStopButton.text() == "Start":
+      self.startStopButton.setText("Stop")
+      self.LoggerThreadObj.start_logger_loop()
+      self.LoggerThreadObj.start()
+    else:
+      self.startStopButton.setText("Start")
+      self.LoggerThreadObj.stop_logger_loop()
 
  def change_c(self,value):
     print 'Value: ', value
