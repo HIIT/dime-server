@@ -192,7 +192,6 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
 
     #Convert query into bag of words representation urheilu yle 
     test_vec      = query2bow(query, dictionary)
-    #test_vec_full = 
 
     #
     winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c)
@@ -346,7 +345,10 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     vsum = r_hat + c*sigma_hat
 
     #Compute sparsity of sigma_hat using P. Hoyer sparsity measure
+    r_hat_spar     = vec_sparsity(r_hat)
     sigma_hat_spar = vec_sparsity(sigma_hat)
+
+    print "dime_search: Sparsity of r_hat vector: ", r_hat_spar 
     print "dime_search: Sparsity of sigma_hat vector: ", sigma_hat_spar 
     #Store value to sparsity history vector
     if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
@@ -355,6 +357,15 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     else:
         sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
         np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+
+    #Store value to sparsity history vector
+    if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
+        r_hat_spar_hist_vec = np.load('data/r_hat_spar_hist_vec.npy')
+        r_hat_spar_hist_vec = np.append(r_hat_spar_hist_vec, r_hat_spar)
+    else:
+        r_hat_spar_hist_vec = np.array([r_hat_spar])
+        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
+
 
     #Print Exploitation/Exploration coefficient
     print 'Search thread: value of c is:', c
