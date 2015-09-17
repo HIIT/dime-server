@@ -348,14 +348,29 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     if vsum.max() > 0.0:
         vsum = vsum/vsum.sum()
 
-    #Compute sparsity of sigma_hat using P. Hoyer sparsity measure
+    #Compute sparsities of vectors
     r_hat_spar     = vec_sparsity(r_hat)
     sigma_hat_spar = vec_sparsity(sigma_hat)
     vsum_spar = vec_sparsity(vsum)
 
+    #Load previous vsum -vector and compute cosine similarity
+    cossim = 0.0
+    if os.path.isfile('data/vsum.npy'):
+        print "dime_search: Load vsum_old!!"
+        vsum_old = np.load('data/vsum.npy')
+        #Compute cosine similarity between previous and current vsum -vectors
+        cossim = vsum_old.T.dot(vsum)[0.0]
+        n1 = np.linalg.norm(vsum)
+        n2 = np.linalg.norm(vsum_old)
+        cossim = cossim/(n1*n2)
+
+    #Store current vsum-vector to vsum.npy
+    np.save('data/vsum.npy', vsum)
+
     print "dime_search: Sparsity of r_hat vector: ", r_hat_spar 
     print "dime_search: Sparsity of sigma_hat vector: ", sigma_hat_spar 
     print "dime_search: Sparsity of vsum vector: ", vsum_spar
+    print "dime_search: Cosine similarity between old and new vsum: ", cossim
 
     #Store sparsity values of r_hat vector
     if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
@@ -374,6 +389,15 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     else:
         sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
         np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+
+    #Store cosine similarity values into a vector and file
+    if os.path.isfile("data/cossim_vsum_vec.npy"):
+        cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
+        cossim_vsum_vec = np.append(cossim_vsum_vec, cossim)
+        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
+    else:
+        cossim_vsum_vec = np.array([cossim])
+        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
 
     #Print Exploitation/Exploration coefficient
     print 'Search thread: value of c is:', c
