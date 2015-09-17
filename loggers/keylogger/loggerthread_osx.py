@@ -118,7 +118,8 @@ class LoggerThread(QThread):
             print 'Logger thread: keys: ', keys
             #print 'Logger thread: changed: ', changed[0]
             #keys = ' '
-            self.wordlist.append(dumstr)
+            if len(dumstr)>0:
+              self.wordlist.append(dumstr)
             #print wordlist
             print 'Logger thread: wordlist:', self.wordlist[-nwords:]
             dwordlist = self.wordlist[-nwords:]
