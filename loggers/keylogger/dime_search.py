@@ -355,6 +355,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Load previous vsum -vector and compute cosine similarity
     cossim = 0.0
+    eps = 1e-15
     if os.path.isfile('data/vsum.npy'):
         print "dime_search: Load vsum_old!!"
         vsum_old = np.load('data/vsum.npy')
@@ -362,7 +363,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         cossim = vsum_old.T.dot(vsum)[0.0]
         n1 = np.linalg.norm(vsum)
         n2 = np.linalg.norm(vsum_old)
-        cossim = cossim/(n1*n2)
+        cossim = cossim/(max(n1*n2,eps))
 
     #Store current vsum-vector to vsum.npy
     np.save('data/vsum.npy', vsum)
