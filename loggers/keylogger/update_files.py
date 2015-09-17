@@ -689,7 +689,7 @@ def df_word_removal(sXdoctm, dictionary):
 	df_values = df_values.T
 
 	#Take indices of words having 1 < tf < c*N, where c in [0,1] and N = num. of docs
-	c = 0.9
+	c = 0.1
 	boolvec = np.logical_or(df_values <= 1, df_values >= (c*N))
 
 	#print boolvec

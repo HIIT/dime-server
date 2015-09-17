@@ -73,7 +73,11 @@ class LoggerThread(QThread):
       #changed, modifiers, keys = socket.recv()
       key_kc = self.socket.recv()
       #The keys is a string of the form "keyvalue:keycode"
-      keys, kc = key_kc.split(":")
+      keys = "?"
+      try:
+        keys, kc = key_kc.split(":")
+      except ValueError:
+        kc = -1
       try:
         kc = int(kc)
       except ValueError:

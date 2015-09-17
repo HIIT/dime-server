@@ -287,8 +287,7 @@ class MyApp(QWidget):
 
 
   #
-  self.setWindowTitle("ProActive Search") 
-
+  self.setWindowTitle("Re:Know Proactive Search")
 
  def stop_animation(self):
   self.animlabel.setMovie(None)
