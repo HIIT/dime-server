@@ -262,8 +262,11 @@ class MyApp(QWidget):
   #self.keywordlabel = QLabel('Suggested keywords: ')
   #self.keywordlabel.setStyleSheet('color: green')
   #self.hlayout2.addWidget(self.keywordlabel)
-  #
+
+  #Horizontal layouts for keyword buttons
   self.hlayout3 = QHBoxLayout()
+  self.hlayout4 = QHBoxLayout()
+
   #Create buttons
   self.buttonlist = []
   numofkwbuttons = 10
@@ -284,6 +287,7 @@ class MyApp(QWidget):
   #Add self.hlayout2 to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout2)
   self.mastervlayout.addLayout(self.hlayout3)
+  self.mastervlayout.addLayout(self.hlayout4)
 
 
   #
@@ -550,14 +554,12 @@ class MyApp(QWidget):
         #
         if type(keywordlist[0]) is types.UnicodeType:
           print 'Main: update_links: got a list of keywords!!!'
-          keywordstr = 'Suggested keywords: '
           print 'Main: keyword button labels keywords: ', keywordlist
           ncols = self.hlayout3.count()
           #print 'Num of widgets ', ncols
           #Remove old buttons
           if len(self.buttonlist) > 0:
             for i in range( len(keywordlist) ):
-                            #keywordstr = keywordstr + urlstrs[i] + ', ' 
                             #self.hlayout2.removeWidget(self.buttonlist[i])                  
                             #self.hlayout3.itemAt(i).widget().setParent(None) 
                             #self.hlayout3.itemAt(i).setParent(None)
@@ -572,11 +574,13 @@ class MyApp(QWidget):
   if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
 
-
-
  def color_kwbuttons(self):
+
+  #
   if not self.is_non_zero_file('data/test_wordlist.list'):
    return
+
+  #
   f = open('data/test_wordlist.list','r')
   test_wordlist = pickle.load(f)
   print test_wordlist
@@ -584,15 +588,10 @@ class MyApp(QWidget):
     buttext = self.buttonlist[i].text()
     #print buttext
     if buttext in test_wordlist:
-      #print 'True!!'
-      # buttextcol    = QColor('red')
-      # butbackgrdcol = QColor('red')
-      # redpalette = QPalette(buttextcol, butbackgrdcol)
-      # self.buttonlist[i].setPalette(redpalette)
       self.buttonlist[i].setStyleSheet("background-color: GreenYellow")
+      #self.hlayout4.addWidget(self.buttonlist[i])
     else:
       self.buttonlist[i].setStyleSheet("background-color: white")
-  #for i in range(len(self.keywords))
 
  def is_non_zero_file(self, fpath):
   return True if os.path.isfile(fpath) and os.path.getsize(fpath) > 0 else False
@@ -664,7 +663,6 @@ class MyApp(QWidget):
 
  #    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
- #films 
  #
  def unicode_to_str(self, ustr):
     """Converts unicode strings to 8-bit strings."""
