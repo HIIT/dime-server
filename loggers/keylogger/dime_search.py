@@ -337,19 +337,25 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Normalize relevance estimate vector
     if r_hat.max() > 0.0:
-        r_hat     = r_hat/r_hat.max()
+        r_hat     = r_hat/r_hat.sum()
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
     if sigma_hat.max() > 0.0:
-        sigma_hat = sigma_hat/sigma_hat.max()
+        sigma_hat = sigma_hat/sigma_hat.sum()
+
     #
     vsum = r_hat + c*sigma_hat
+    #Normalize vsum
+    if vsum.max() > 0.0:
+        vsum = vsum/vsum.sum()
 
     #Compute sparsity of sigma_hat using P. Hoyer sparsity measure
     r_hat_spar     = vec_sparsity(r_hat)
     sigma_hat_spar = vec_sparsity(sigma_hat)
+    vsum_spar = vec_sparsity(vsum)
 
     print "dime_search: Sparsity of r_hat vector: ", r_hat_spar 
     print "dime_search: Sparsity of sigma_hat vector: ", sigma_hat_spar 
+    print "dime_search: Sparsity of vsum vector: ", vsum_spar
 
     #Store sparsity values of r_hat vector
     if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
@@ -407,7 +413,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         kws = []
         #
         for i in range(len(vsinds)):
-            print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i]))
+            print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i])), vsum[vsinds[i]]
             kws.append(dictionary.get(vsinds[i]))
             #kws.append(dictionary.get(kwinds[i]))
         #
