@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #import sys, time
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
@@ -62,11 +62,12 @@ from searchthread import *
 
 class MainWindow(QMainWindow):
   def __init__(self):
-    super(MainWindow, self).__init__()
+    super(MainWindow, self).__init__(parent, Qt.WindowStaysOnTopHint)
     #
     self.main_widget = MyApp()
     #
     self.setCentralWidget(self.main_widget)
+
     self.show()
 
 class MyApp(QWidget):
@@ -80,7 +81,7 @@ class MyApp(QWidget):
   #QMainWindow.__init__(self, parent)
   #widget = QWidget(self)
   #self.setCentralWidget(widget)
-
+  
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval = read_user_ini()
   self.data = []
@@ -292,6 +293,10 @@ class MyApp(QWidget):
 
   #
   self.setWindowTitle("Re:Know Proactive Search")
+  self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
+  self.setStyleSheet('font-size: 10pt')
+  screen = QDesktopWidget().screenGeometry()
+  self.setGeometry(screen.width()-1024, 0, 1024, 180)
 
  def stop_animation(self):
   self.animlabel.setMovie(None)
@@ -475,7 +480,8 @@ class MyApp(QWidget):
                                           dumlink = self.srvurl.split('/')[2]
                                           linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
 
-                                          visiblestr = linkstrshort + '  ' + datestr
+                                          parts = linkstr.rsplit("/",1)
+                                          visiblestr = parts[-1] + '  (' + datestr + ')'
                                           if j < len(self.listWidget3):
                                             self.listWidget3.item(j).setText(visiblestr) 
                                             self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
@@ -493,7 +499,7 @@ class MyApp(QWidget):
                                           dumlink = self.srvurl.split('/')[2]
                                           linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
                                           #print 'Main: linkstr ', linkstr
-                                          visiblestr = subj + '  ' + datestr
+                                          visiblestr = subj + '  (' + datestr + ')'
                                           if k < len(self.listWidget2):
                                             self.listWidget2.item(k).setText(visiblestr) 
                                             self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
@@ -533,7 +539,7 @@ class MyApp(QWidget):
                                         dumlink = self.srvurl.split('/')[2]
                                         linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid                                    
                                         if i < len(self.listWidget1):
-                                          visiblestr = title + '  ' + datestr
+                                          visiblestr = title + '  (' + datestr + ')'
                                           self.listWidget1.item(i).setText(visiblestr) 
                                           self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
                                           self.listWidget1.item(i).setToolTip(tooltipstr)
