@@ -111,4 +111,11 @@ public abstract class RestTest {
     public static <T> void assertSuccessful(ResponseEntity<T> res) {
 	assert(res.getStatusCode().is2xxSuccessful());
     }
+
+    /**
+     * Helper method to check if the REST call caused an HTTP 4xx error.
+     */
+    public static <T> void assertClientError(ResponseEntity<T> res) {
+	assert(res.getStatusCode().is4xxClientError());
+    }
 }

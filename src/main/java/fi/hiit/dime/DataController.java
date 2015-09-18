@@ -224,6 +224,10 @@ public class DataController extends AuthorizedController {
 	User user = getUser(auth);
 
 	Event event = eventDAO.findById(id);
+
+	if (event == null)
+	    return new ResponseEntity<Event>(HttpStatus.NOT_FOUND);
+
 	if (!event.user.id.equals(user.id))
 	    return new ResponseEntity<Event>(HttpStatus.UNAUTHORIZED);
 
@@ -260,6 +264,10 @@ public class DataController extends AuthorizedController {
 	User user = getUser(auth);
 
 	InformationElement elem = infoElemDAO.findById(id);
+
+	if (elem == null)
+	    return new ResponseEntity<InformationElement>(HttpStatus.NOT_FOUND);
+
 	if (!elem.user.id.equals(user.id))
 	    return new ResponseEntity<InformationElement>(HttpStatus.UNAUTHORIZED);
 

@@ -302,5 +302,17 @@ public class DataControllerTest extends RestTest {
 
 	Document getDirectDoc = getDocRes.getBody();
 	assertEquals(getDirectDoc.uri, origDoc.uri);
+
+	// Also test accessing an object that doesn't exist
+	ResponseEntity<Document> getBadRes1 = 
+	    getRest().getForEntity(infoElemApi + "/foobar42",
+				   Document.class);
+	assertClientError(getBadRes1);
+
+	// Also test accessing an object that doesn't exist
+	ResponseEntity<SearchEvent> getBadRes2 = 
+	    getRest().getForEntity(eventApi + "/foobar42",
+				   SearchEvent.class);
+	assertClientError(getBadRes2);
     }
 }
