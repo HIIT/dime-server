@@ -47,7 +47,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @SpringApplicationConfiguration(classes = Application.class)
 @WebIntegrationTest("server.port:0")
-public class RestTest {
+public abstract class RestTest {
     @Autowired
     EmbeddedWebApplicationContext server;
 
@@ -63,7 +63,7 @@ public class RestTest {
     private RandomPassword pw = new RandomPassword();
 
     @Before 
-    public void setup() {
+    public void restSetup() {
 	apiBase = String.format("http://localhost:%d/api",
 				server.getEmbeddedServletContainer().getPort());
 	UserCreateForm form = new UserCreateForm();
@@ -75,6 +75,11 @@ public class RestTest {
 
 	rest = new TestRestTemplate(form.getUsername(),
 				    form.getPassword());
+
+	setup();
+    }
+
+    protected void setup() {
     }
 
     @After

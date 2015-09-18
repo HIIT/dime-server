@@ -100,10 +100,10 @@ public class EventDAO extends BaseDAO<Event> {
     	return operations.findById(id, Event.class, collectionName());
     }
 
-    public List<Event> eventsForUser(String id) {
+    public List<Event> eventsForUser(String userId) {
 	ensureIndex("start");
 
-	return operations.find(query(where("user._id").is(new ObjectId(id))).
+	return operations.find(query(where("user._id").is(new ObjectId(userId))).
 			       with(new Sort(Sort.Direction.DESC, "start")).
 			       limit(100),
 			       Event.class, collectionName());
