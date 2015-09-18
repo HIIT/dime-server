@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -217,9 +218,21 @@ public class DataController extends AuthorizedController {
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	
 
+    @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
+    public ResponseEntity<Event>
+	event(Authentication auth, @PathVariable String id) {
+	User user = getUser(auth);
+
+	Event event = eventDAO.findById(id);
+	if (!event.user.id.equals(user.id))
+	    return new ResponseEntity<Event>(HttpStatus.UNAUTHORIZED);
+
+	return new ResponseEntity<Event>(event, HttpStatus.OK);
+    }	
+
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
-	event(Authentication auth, @RequestBody Event[] input) {
+	events(Authentication auth, @RequestBody Event[] input) {
 	User user = getUser(auth);
 
 	for (int i=0; i<input.length; i++) {
@@ -233,11 +246,24 @@ public class DataController extends AuthorizedController {
 
     @RequestMapping(value="/informationelement", method = RequestMethod.GET)
     public ResponseEntity<List<InformationElement>> 
-	informationElement(Authentication auth) {
+    	informationElement(Authentication auth) {
+    	User user = getUser(auth);
+
+    	List<InformationElement> results = infoElemDAO.elementsForUser(user.id);
+
+    	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
+    }
+
+    @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
+    public ResponseEntity<InformationElement>
+	informationElement(Authentication auth, @PathVariable String id) {
 	User user = getUser(auth);
 
-	List<InformationElement> results = infoElemDAO.elementsForUser(user.id);
+	InformationElement elem = infoElemDAO.findById(id);
+	if (!elem.user.id.equals(user.id))
+	    return new ResponseEntity<InformationElement>(HttpStatus.UNAUTHORIZED);
 
-	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
-    }
+	return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
+    }	
+
 }
