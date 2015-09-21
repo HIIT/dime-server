@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import os
 import sys
 import mailbox
 import requests
 import argparse
 import time
 import rfc822
+import pprint
 
 from dlog_globals import config
 import dlog_conf as conf
@@ -13,7 +15,7 @@ import dlog_common as common
 
 #------------------------------------------------------------------------------
 
-def create_payload(message, i):
+def create_payload(message, i, tag_category, tag_frequency):
 
     print "---###---###---###---###---###---###---###---###---###---###---"
     print
@@ -48,6 +50,7 @@ def create_payload(message, i):
         'fromString': message['from'],
         'toString': message['to'],
         'ccString': message['cc'],
+        'tags' : ['enron_category='+tag_category, 'enron_frequency='+tag_frequency]
         #'attachments': [],
         #'rawMessage': '' # the full raw message here...
     }
@@ -69,18 +72,18 @@ def create_payload(message, i):
 
     payload['targettedResource'] = targettedResource.copy()
 
-    return common.json_dumps(payload)
+    return common.json_dumps(payload, indent=2)
 
 #------------------------------------------------------------------------------
 
 if __name__ == "__main__":
 
-    print "Starting the mbox2dime.py logger on " + time.strftime("%c")
+    print "Starting the enron2dime.py logger on " + time.strftime("%c")
 
-    parser = argparse.ArgumentParser(description='Sends emails in mbox format to DiMe.')
+    parser = argparse.ArgumentParser(description='Sends Enron (enron_with_categories) emails to DiMe.')
 
-    parser.add_argument('mboxfile', metavar='FILE',
-                        help='email file in mbox format to be processed')
+    parser.add_argument('emailfile', metavar='FILE',
+                        help='list of Enron emails to be processed')
     parser.add_argument('--dryrun', action='store_true',
                         help='do not actually send anything')
     parser.add_argument('--limit', metavar='N', action='store', type=int,
@@ -88,7 +91,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    conf.configure()
+    cwd = os.getcwd()
+    os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+    conf.configure(inifile="enron.ini")
+    os.chdir(cwd)
 
     pingstring = "Pinging DiMe server at location: " + config['server_url'] + " : "
     if common.ping_server():
@@ -99,20 +105,28 @@ if __name__ == "__main__":
             print 'Ping failed and "--dryrun" not set, exiting'
             sys.exit()
 
-    mbox = mailbox.mbox(args.mboxfile)
-    i=0
-    for message in mbox:
-        json_payload = create_payload(message, i)
-        if json_payload is None:
-            continue
-        print "PAYLOAD:\n" + json_payload
+    i=1
+    with open(args.emailfile) as f:
+        for line in f:
+            line = line.rstrip()
+            parts = line.split(" ")
+            print "Processing [{}] [{}] [{}] [{}]".format(line, *parts)
+            mbox = mailbox.mbox(parts[0])
+            if len(mbox) != 1:
+                print "ERROR: Multiple emails found in", parts[0]
+                break
+            for message in mbox:
+                json_payload = create_payload(message, i, parts[1], parts[2])
+                if json_payload is None:
+                    continue
+                print "PAYLOAD:\n" + json_payload
 
-        if not args.dryrun:
-            common.post_payload(json_payload, "messageevent")
+                if not args.dryrun:
+                    common.post_payload(json_payload, "messageevent")
 
-        if args.limit>0 and i >= args.limit:
-            break
-        i=i+1
+            if args.limit>0 and i >= args.limit:
+                break
+            i=i+1
 
     print "Processed %d entries" % i
     

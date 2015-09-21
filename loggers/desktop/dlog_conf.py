@@ -222,12 +222,12 @@ def process_config(config_file, v=True):
 
 # -----------------------------------------------------------------------
 
-def configure(verbose=True):
+def configure(verbose=True, inifile="user.ini"):
 
     config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
 
     process_config("default.ini", verbose)
-    process_config("user.ini", verbose)
+    process_config(inifile, verbose)
 
     return True
 
