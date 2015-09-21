@@ -232,14 +232,17 @@ public class DataControllerTest extends RestTest {
 	FeedbackEvent event1 = new FeedbackEvent();
 	event1.value = 0.42;
 	event1.targettedResource = doc1;
+	event1.actor = "TestActor1";
 	events[0] = event1;
 
 	SearchEvent event2 = new SearchEvent();
 	event2.query = "some search query";
+	event2.actor = "TestActor1";
 	events[1] = event2;
 
 	SearchEvent event3 = new SearchEvent();
 	event3.query = "some other search query";
+	event3.actor = "TestActor2";
 	events[2] = event3;
 	    
 	dumpData("List of events to be uploaded to " + eventsApi, events);
@@ -314,5 +317,20 @@ public class DataControllerTest extends RestTest {
 	    getRest().getForEntity(eventApi + "/foobar42",
 				   SearchEvent.class);
 	assertClientError(getBadRes2);
+
+	// Test event search
+	ResponseEntity<Event[]> getEventsRes = 
+	    getRest().getForEntity(eventsApi + "?actor=TestActor1",
+				   Event[].class);
+	assertSuccessful(getEventsRes);
+
+	Event[] eventsRes = getEventsRes.getBody();
+	assertEquals(eventsRes.length, 2);
+
+	for (Event ev : eventsRes) {
+	    assertEquals(ev.actor, "TestActor1");
+	}
+
+	dumpData("events", eventsRes);
     }
 }

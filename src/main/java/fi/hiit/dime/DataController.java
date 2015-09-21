@@ -40,10 +40,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.io.IOException;
 
 /**
@@ -187,6 +189,14 @@ public class DataController extends AuthorizedController {
 	return msg;
     }
 
+    /**
+     * Helper method to store an event, and possibly expand its
+     * information element if needed.
+     *
+     * @param input Event to store
+     * @param user current authenticated user
+     * @return The event as stored
+     */
     private Event storeEvent(Event input, User user) {
 	input.user = user;
 
@@ -206,6 +216,7 @@ public class DataController extends AuthorizedController {
 	return input;
     }
 
+    /** HTTP end point for uploading a single event. */    
     @RequestMapping(value="/event", method = RequestMethod.POST)
     public ResponseEntity<Event>
 	event(Authentication auth, @RequestBody Event input) {
@@ -218,6 +229,7 @@ public class DataController extends AuthorizedController {
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	
 
+    /** HTTP end point for accessing single event. */    
     @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
     public ResponseEntity<Event>
 	event(Authentication auth, @PathVariable String id) {
@@ -234,6 +246,7 @@ public class DataController extends AuthorizedController {
 	return new ResponseEntity<Event>(event, HttpStatus.OK);
     }	
 
+    /** HTTP end point for uploading multiple events. */    
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
 	events(Authentication auth, @RequestBody Event[] input) {
@@ -248,6 +261,27 @@ public class DataController extends AuthorizedController {
 	return new ResponseEntity<Event[]>(input, HttpStatus.OK);
     }	
 
+    /** HTTP end point for accessing multiple events via a search-like
+     * interface. */    
+    @RequestMapping(value="/events", method = RequestMethod.GET)
+    public ResponseEntity<Event[]>
+	events(Authentication auth, 
+	       @RequestParam String actor) {
+	User user = getUser(auth);
+
+	Properties searchProps = new Properties();
+	if (actor != null)
+	    searchProps.setProperty("actor", actor);
+
+	List<Event> events = eventDAO.find(user.id, searchProps);
+
+	Event[] eventsArray = new Event[events.size()];
+	events.toArray(eventsArray);	
+
+	return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for uploading a single informationelement. */    
     @RequestMapping(value="/informationelement", method = RequestMethod.GET)
     public ResponseEntity<List<InformationElement>> 
     	informationElement(Authentication auth) {
@@ -258,6 +292,7 @@ public class DataController extends AuthorizedController {
     	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
     }
 
+    /** HTTP end point for accessing a single informationelement. */    
     @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
     public ResponseEntity<InformationElement>
 	informationElement(Authentication auth, @PathVariable String id) {
