@@ -39,7 +39,7 @@ def filter_string(string):
 
 #------------------------------------------------------------------------------
 
-def create_payload(message, i, tag_category, tag_frequency):
+def create_payload(message, i, tags):
 
     print "---###---###---###---###---###---###---###---###---###---###---"
     print
@@ -55,6 +55,12 @@ def create_payload(message, i, tag_category, tag_frequency):
         return None
         
     dt = 1000*int(rfc822.mktime_tz(rfc822.parsedate_tz(message['date'])))
+
+    print "XXX", len(tags[1:])
+    finaltags = []
+    for i in range(0, len(tags[1:]), 2):
+        print i
+        finaltags.append('enron_category='+tags[i+1]+':'+tags[i+2])
     
     payload = {
         '@type':  'MessageEvent',
@@ -74,7 +80,7 @@ def create_payload(message, i, tag_category, tag_frequency):
         'fromString': message['from'],
         'toString': message['to'],
         'ccString': message['cc'],
-        'tags' : ['enron_category='+tag_category, 'enron_frequency='+tag_frequency]
+        'tags' : finaltags
         #'attachments': [],
         #'rawMessage': '' # the full raw message here...
     }
@@ -134,13 +140,13 @@ if __name__ == "__main__":
         for line in f:
             line = line.rstrip()
             parts = line.split(" ")
-            print "Processing [{}] [{}] [{}] [{}]".format(line, *parts)
+            print "Processing [{}]".format(line)
             mbox = mailbox.mbox(parts[0])
             if len(mbox) != 1:
                 print "ERROR: Multiple emails found in", parts[0]
                 break
             for message in mbox:
-                json_payload = create_payload(message, i, parts[1], parts[2])
+                json_payload = create_payload(message, i, parts)
                 if json_payload is None:
                     continue
                 print "PAYLOAD:\n" + json_payload
