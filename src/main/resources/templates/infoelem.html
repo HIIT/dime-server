@@ -27,6 +27,14 @@
 		<b>Mimetype:</b> <span th:text="${elem.mimeType}"></span><br/>
 	      </span>
 
+	      <span th:if="${elem.tags}">
+		<b>Tags:</b> 
+		<span th:each="tag : ${elem.tags}"
+		      th:text="${tag}"
+		      class="label label-default">
+		</span><br />
+	      </span>
+
 	      <span th:if="${elem instanceof T(fi.hiit.dime.data.Message)}">
 		<b>Date:</b> <span th:text="${elem.date}"></span><br/>
 		<b>Subject:</b> <span th:text="${elem.subject}"></span><br/>

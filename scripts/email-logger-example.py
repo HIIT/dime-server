@@ -9,8 +9,8 @@ import json
 #------------------------------------------------------------------------------
 
 server_url = 'http://localhost:8080/api'
-server_username = 'testuser'
-server_password = 'testuser123'
+server_username = 'mvsjober'
+server_password = 'tBaiTwIIAjB+YGg24F59zH9p'
 
 #------------------------------------------------------------------------------
 
@@ -45,6 +45,7 @@ Patrik""",
         'subject':    '[Reknow-principal-researchers] Suggestions for how to improve the Re:Know Big Meetings',
         'fromString': 'Patrik Floreen <patrik.floreen@cs.helsinki.fi>',
         'toString':   'reknow-principal-researchers@hiit.fi',
+        'tags': ['email', 'reknow'],
         #'ccString': [],
         #'attachments': [],
         #'rawMessage': '' # the full raw message here...
