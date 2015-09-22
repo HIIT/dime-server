@@ -23,7 +23,7 @@
 */
 package fi.hiit.dime.data;
 
-import java.util.List;
+import java.util.ArrayList;
 
 /**
    A detailed reading event.
@@ -42,13 +42,13 @@ public class ReadingEvent extends DesktopEvent {
     /** A vector representing the page numbers currently being displayed (ORIGINAL page number).
      * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example.
      * These should be in the same order as visiblePageNumbers and pageRects. */
-    public String[] visiblePageLabels;
+    public ArrayList<String> visiblePageLabels;
     
     /** A list of rectangles representing where the viewport is placed for each page. 
      * All the rects should fit within the page. Rect dimensions refer to points in a 72 dpi space where the bottom left is the origin,
      * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points.
      * These should be in the same order as visiblePageNumbers and visiblePageLabels. */
-    public List<Rect> pageRects;
+    public ArrayList<Rect> pageRects;
 
     /** The proportion of the document currently being displayed on screen.
      For example, 0.25, 0.50 means that we are seeing from the first quarter until half the document (if a document has 4 pages then it means we are
@@ -62,7 +62,7 @@ public class ReadingEvent extends DesktopEvent {
 
     /** Eye tracking data for this event, one entry per page (pageEyeData contains page index, from 0).
      */
-    public PageEyeData[] pageEyeData;
+    public ArrayList<PageEyeData> pageEyeData;
 
     /** Plain text content of text currently displayed on screen. */
     public String plainTextContent;

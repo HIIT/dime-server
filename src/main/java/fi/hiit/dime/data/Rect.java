@@ -56,6 +56,14 @@ public class Rect {
      */
     public static final int CLASS_VIEWPORT = 10;
 
+    /** A paragraph (probably) exists at this point, can overlap with other paragraph rectangles.
+     */
+    public static final int CLASS_PARAGRAPH_FLOATING = 13;
+
+    /** A paragraph (probably) exists at this point, tries to cover a whole paragraph (no overlapping).
+     */
+    public static final int CLASS_PARAGRAPH_UNITED = 14;
+
     /** Class for eye tracking read text.
      */
     public static final int CLASS_READ = 20;
