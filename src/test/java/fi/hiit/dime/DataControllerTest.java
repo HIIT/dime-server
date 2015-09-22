@@ -229,10 +229,15 @@ public class DataControllerTest extends RestTest {
 	doc1.uri = "http://www.example.com/hello.txt";
 	doc1.plainTextContent = "Hello, world";
 	doc1.mimeType = "text/plain";
+	doc1.tags = new ArrayList<String>();
+	doc1.tags.add("tag1");
+	doc1.tags.add("tag2");
 	FeedbackEvent event1 = new FeedbackEvent();
 	event1.value = 0.42;
 	event1.targettedResource = doc1;
 	event1.actor = "TestActor1";
+	event1.tags = new ArrayList<String>();
+	event1.tags.add("eventTag1");
 	events[0] = event1;
 
 	SearchEvent event2 = new SearchEvent();
@@ -280,8 +285,14 @@ public class DataControllerTest extends RestTest {
 
 	FeedbackEvent getEvent1 = getRes1.getBody();
 	assertEquals(event1.value, getEvent1.value, DELTA);
+	assertEquals(getEvent1.tags.size(), 1);
+	assertEquals(getEvent1.tags.get(0), "eventTag1");
+
 	Document getDoc = (Document)getEvent1.targettedResource;
 	assertEquals(origDoc.uri, getDoc.uri);
+	assertEquals(getDoc.tags.size(), 2);
+	assertEquals(getDoc.tags.get(0), "tag1");
+	assertEquals(getDoc.tags.get(1), "tag2");
 
 	ResponseEntity<SearchEvent> getRes2 = 
 	    getRest().getForEntity(eventApi + "/" + outEvent2.id,

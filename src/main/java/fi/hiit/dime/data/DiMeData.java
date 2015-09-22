@@ -31,6 +31,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 
 /**
    Base class for all DiMe data objects, i.e. data items uploaded to be stored.
@@ -85,6 +86,10 @@ public class DiMeData {
 	DiMe.
     */
     public User user;
+
+    /** List of user-specified tags, interpretation depends on the
+     * application. */
+    public List<String> tags;
 
     public DiMeData() {
 	// Set to current date and time
