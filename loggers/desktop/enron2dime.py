@@ -8,10 +8,34 @@ import argparse
 import time
 import rfc822
 import pprint
+import nltk
 
 from dlog_globals import config
 import dlog_conf as conf
 import dlog_common as common
+
+porter = nltk.PorterStemmer()
+#wnl = nltk.WordNetLemmatizer()
+
+#------------------------------------------------------------------------------
+
+def filter_string(string):
+
+    #tokens = nltk.word_tokenize(string)
+
+    pattern = r'''(?x)  # set flag to allow verbose regexps
+    ([A-Z]\.)+          # abbreviations, e.g. U.S.A.
+    | \w+(-\w+)*        # words with optional internal hyphens
+    | \$?\d+(\.\d+)?%?  # currency and percentages, e.g. $12.40, 82%
+    | \.\.\.            # ellipsis
+    | [][.,;"'?():-_`]  # these are separate tokens
+    '''
+    tokens = nltk.regexp_tokenize(string, pattern)
+
+    tokens = [t.lower() for t in tokens]
+    tokens = [porter.stem(t) for t in tokens]
+    #tokens = [wnl.lemmatize(t) for t in tokens]
+    return " ".join(item for item in tokens if len(item)>1)
 
 #------------------------------------------------------------------------------
 
@@ -46,7 +70,7 @@ def create_payload(message, i, tag_category, tag_frequency):
         'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#Email',
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#MailboxDataObject',
         'date': message['date'],
-        'subject': message['subject'],
+        'subject': filter_string(message['subject']),
         'fromString': message['from'],
         'toString': message['to'],
         'ccString': message['cc'],
@@ -67,8 +91,8 @@ def create_payload(message, i, tag_category, tag_frequency):
 
     if isinstance(msgpayload, str):
         msgtext = msgpayload
-            
-    targettedResource['plainTextContent'] = msgtext    
+
+    targettedResource['plainTextContent'] = filter_string(msgtext)
 
     payload['targettedResource'] = targettedResource.copy()
 
