@@ -56,8 +56,7 @@ def create_payload(message, i, tags):
         
     dt = 1000*int(rfc822.mktime_tz(rfc822.parsedate_tz(message['date'])))
 
-    print "XXX", len(tags[1:])
-    finaltags = []
+    finaltags = ['enron_filename='+tags[0]]
     for i in range(0, len(tags[1:]), 2):
         print i
         finaltags.append('enron_category='+tags[i+1]+':'+tags[i+2])
