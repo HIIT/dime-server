@@ -369,5 +369,17 @@ public class DataControllerTest extends RestTest {
 				   Event[].class);
 	assertClientError(getEventsRes3);
 
+	// Test filtering on multiple parameters
+	ResponseEntity<SearchEvent[]> getEventsRes4 = 
+	    getRest().getForEntity(eventsApi + "?query=" + event3.query
+				   + "&tag=foo",
+				   SearchEvent[].class);
+	assertSuccessful(getEventsRes4);
+
+	SearchEvent[] eventsRes4 = getEventsRes4.getBody();
+	assertEquals(1, eventsRes4.length);
+
+	assertEquals(eventsRes4[0].query, event3.query);
+	assertTrue(eventsRes4[0].tags.contains("foo"));
     }
 }

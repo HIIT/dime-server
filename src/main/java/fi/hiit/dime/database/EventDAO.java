@@ -119,9 +119,9 @@ public class EventDAO extends BaseDAO<Event> {
 	    case "actor":
 	    case "origin":
 	    case "type":
-	    case "start":
-	    case "end":
-	    case "duration":
+	    // case "start":
+	    // case "end":
+	    // case "duration":
 	    case "query":
 	    // case "":
 		break;
