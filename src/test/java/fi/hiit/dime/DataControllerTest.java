@@ -38,7 +38,6 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -47,7 +46,7 @@ import java.util.HashSet;
 public class DataControllerTest extends RestTest {
     private static final double DELTA = 1e-10;
 
-    private String eventApi, eventsApi, infoElemApi;
+    private String eventApi, eventsApi, infoElemApi, infoElemsApi;
 
     @Autowired 
     private ObjectMapper objectMapper;
@@ -57,6 +56,7 @@ public class DataControllerTest extends RestTest {
 	eventApi = apiUrl("/data/event");
 	eventsApi = apiUrl("/data/events");
 	infoElemApi = apiUrl("/data/informationelement");
+	infoElemsApi = apiUrl("/data/informationelements");
     }
 
     /**
@@ -160,11 +160,7 @@ public class DataControllerTest extends RestTest {
 	//assertEquals(doc.plainTextContent, outDoc2.plainTextContent);
     }
 
-    /**
-       Test uploading MessageEvent
-     */
-    @Test
-    public void testMessageEvent() throws Exception {
+    protected Message createTestEmail() {
 	// Create a message
 	Message msg = new Message();
 	msg.date = new Date(); // current date
@@ -173,10 +169,10 @@ public class DataControllerTest extends RestTest {
 	msg.toString = "Mats Sjöberg <mats.sjoberg@hiit.fi>";
 	msg.ccString = "Mats Sjöberg <mats.sjoberg@cs.helsinki.fi>";
 	msg.plainTextContent = "Hello, world";
-
+	
 	SimpleDateFormat format =
 	    new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
-
+	
 	msg.rawMessage = 
 	    "From: " + msg.fromString + "\n" +
 	    "To: " + msg.toString + "\n" +
@@ -186,7 +182,16 @@ public class DataControllerTest extends RestTest {
 	    "Message-ID: <43254843985749@helsinki.fi>\n" + 
 	    "\n\n" + msg.plainTextContent;
 
+	return msg;
+    }
+
+    /**
+       Test uploading MessageEvent
+     */
+    @Test
+    public void testMessageEvent() throws Exception {
 	// Create a message event
+	Message msg = createTestEmail();
 	MessageEvent event1 = new MessageEvent();
 	event1.targettedResource = msg;
 
@@ -222,23 +227,21 @@ public class DataControllerTest extends RestTest {
     @Test
     public void testEventGet() throws Exception {
 	// First upload three events of different types
-	Event[] events = new Event[3];
+	Event[] events = new Event[4];
 
 	Document doc1 = new Document();
 	doc1.uri = "http://www.example.com/hello.txt";
 	doc1.plainTextContent = "Hello, world";
 	doc1.mimeType = "text/plain";
-	doc1.tags = new HashSet<String>();
-	doc1.tags.add("tag1");
-	doc1.tags.add("tag2");
-	doc1.tags.add("tag1");
+	doc1.addTag("tag1");
+	doc1.addTag("tag2");
+	doc1.addTag("tag1");
 	FeedbackEvent event1 = new FeedbackEvent();
 	event1.value = 0.42;
 	event1.targettedResource = doc1;
 	event1.actor = "TestActor1";
-	event1.tags = new HashSet<String>();
-	event1.tags.add("eventTag1");
-	event1.tags.add("foo");
+	event1.addTag("eventTag1");
+	event1.addTag("foo");
 	events[0] = event1;
 
 	SearchEvent event2 = new SearchEvent();
@@ -249,11 +252,18 @@ public class DataControllerTest extends RestTest {
 	SearchEvent event3 = new SearchEvent();
 	event3.query = "some other search query";
 	event3.actor = "TestActor2";
-	event3.tags = new HashSet<String>();
-	event3.tags.add("foo");
-	event3.tags.add("bar");
+	event3.addTag("foo");
+	event3.addTag("bar");
 	events[2] = event3;
-	    
+
+	// Create a message event
+	Message emailMsg = createTestEmail();
+	emailMsg.addTag("tag2");
+	
+	MessageEvent event4 = new MessageEvent();
+	event4.targettedResource = emailMsg;
+	events[3] = event4;
+    
 	dumpData("List of events to be uploaded to " + eventsApi, events);
 
 	// Upload to DiMe
@@ -290,13 +300,13 @@ public class DataControllerTest extends RestTest {
 	FeedbackEvent getEvent1 = getRes1.getBody();
 	assertEquals(event1.value, getEvent1.value, DELTA);
 	assertEquals(getEvent1.tags.size(), 2);
-	assertTrue(getEvent1.tags.contains("eventTag1"));
+	assertTrue(getEvent1.hasTag("eventTag1"));
 
 	Document getDoc = (Document)getEvent1.targettedResource;
 	assertEquals(origDoc.uri, getDoc.uri);
 	assertEquals(getDoc.tags.size(), 2);
-	assertTrue(getDoc.tags.contains("tag1"));
-	assertTrue(getDoc.tags.contains("tag2"));
+	assertTrue(getDoc.hasTag("tag1"));
+	assertTrue(getDoc.hasTag("tag2"));
 
 	ResponseEntity<SearchEvent> getRes2 = 
 	    getRest().getForEntity(eventApi + "/" + outEvent2.id,
@@ -358,7 +368,7 @@ public class DataControllerTest extends RestTest {
 	assertEquals(2, eventsRes2.length);
 
 	for (Event ev : eventsRes2) {
-	    assertTrue(ev.tags.contains("foo"));
+	    assertTrue(ev.hasTag("foo"));
 	}
 
 	dumpData("events filtered by tag", eventsRes2);
@@ -380,6 +390,20 @@ public class DataControllerTest extends RestTest {
 	assertEquals(1, eventsRes4.length);
 
 	assertEquals(eventsRes4[0].query, event3.query);
-	assertTrue(eventsRes4[0].tags.contains("foo"));
+	assertTrue(eventsRes4[0].hasTag("foo"));
+
+	// Test filtering for information elements
+	ResponseEntity<InformationElement[]> getInfoElems = 
+	    getRest().getForEntity(infoElemsApi + "?tag=tag2", InformationElement[].class);
+	assertSuccessful(getInfoElems);
+
+	InformationElement[] infoElemsRes = getInfoElems.getBody();
+	assertEquals(2, infoElemsRes.length);
+
+	for (InformationElement elem : infoElemsRes) {
+	    assertTrue(elem.hasTag("tag2"));
+	}
+
+	dumpData("info elems filtered by tag", infoElemsRes);
     }
 }

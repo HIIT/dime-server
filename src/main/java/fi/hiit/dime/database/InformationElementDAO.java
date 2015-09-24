@@ -35,6 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.stereotype.Repository;
@@ -45,6 +47,7 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class InformationElementDAO extends BaseDAO<InformationElement> {
@@ -136,6 +139,40 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	    return new ArrayList<InformationElement>();
 	}
     }
+
+    public List<InformationElement> find(String userId, Map<String, String> filterParams) {
+	ensureIndex("start");
+
+	Criteria search = where("user._id").is(new ObjectId(userId));
+
+	for (Map.Entry<String, String> param : filterParams.entrySet()) {
+	    String name = param.getKey();
+	    String value = param.getValue();
+
+	    switch (name) {
+	    case "tag":
+		name = "tags";
+		break;
+	    case "uri":
+	    case "plainTextContent":
+	    case "isStoredAs":
+	    case "typeStoredAs":
+	    case "mimeType":
+	    case "title":
+	    // case "":
+		break;
+	    default:
+		throw new IllegalArgumentException(name);
+	    }
+	    search = search.and(name).is(value);
+	}
+
+	return operations.find(query(search).
+			       with(new Sort(Sort.Direction.DESC, "start")).
+			       limit(100),
+			       InformationElement.class, collectionName());
+    }
+
 
     /**
        Return all InformationElement objects in database.

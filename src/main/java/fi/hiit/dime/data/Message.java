@@ -45,4 +45,11 @@ public class Message extends InformationElement {
     //
     public List<InformationElement> attachments;
     public String rawMessage;
+
+    @Override
+    public void processUploaded() {
+	if (subject.length() > 0)
+	    plainTextContent = 
+		subject + "\n\n" + plainTextContent;
+    }
 }

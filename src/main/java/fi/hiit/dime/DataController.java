@@ -162,9 +162,7 @@ public class DataController extends AuthorizedController {
 	if (msg != null) {
 	    if (!msg.isStub()) {
 		msg.user = user;
-		if (msg.subject.length() > 0)
-		    msg.plainTextContent = 
-			msg.subject + "\n\n" + msg.plainTextContent;
+		msg.processUploaded();
 		infoElemDAO.save(msg);
 
 		// infoElemDAO.save(msg.from);
@@ -261,7 +259,7 @@ public class DataController extends AuthorizedController {
 	return new ResponseEntity<Event[]>(input, HttpStatus.OK);
     }	
 
-    /** HTTP end point for accessing multiple events via a search-like
+    /** HTTP end point for accessing multiple events via a filtering
      * interface. */    
     @RequestMapping(value="/events", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
@@ -307,6 +305,26 @@ public class DataController extends AuthorizedController {
 	    return new ResponseEntity<InformationElement>(HttpStatus.UNAUTHORIZED);
 
 	return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for accessing multiple information elements via
+     * a filtering interface. */    
+    @RequestMapping(value="/informationelements", method = RequestMethod.GET)
+    public ResponseEntity<InformationElement[]>
+	informationElements(Authentication auth,
+			    @RequestParam Map<String, String> params) {
+	User user = getUser(auth);
+
+	try {
+	    List<InformationElement> infoElems = infoElemDAO.find(user.id, params);
+
+	    InformationElement[] infoElemsArray = new InformationElement[infoElems.size()];
+	    infoElems.toArray(infoElemsArray);	
+
+	    return new ResponseEntity<InformationElement[]>(infoElemsArray, HttpStatus.OK);
+	} catch (IllegalArgumentException e) {
+	    return new ResponseEntity<InformationElement[]>(HttpStatus.BAD_REQUEST);
+	}
     }	
 
 }
