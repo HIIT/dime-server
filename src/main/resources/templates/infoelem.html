@@ -15,7 +15,7 @@
 			     th:text="${elem.uri}"></a><br/>
 	      <span th:if="${elem.type}">
 		<b>Type:</b> <a th:href="${elem.type}" 
-				th:text="${#strings.substringAfter(elem.type,'#')}"></a>
+				th:text="${#strings.substringAfter(elem.type,'#')}"></a><br/>
 	      </span>
 	      <span th:if="${elem.isStoredAs}">
 		<b>Stored as:</b> <a th:href="${elem.isStoredAs}" 

@@ -12,7 +12,7 @@
 	    <b>Origin:</b> <span th:text="${event.origin}"></span>
 	    <b>Actor:</b> <span th:text="${event.actor}"></span><br/>
 	    <b>Type:</b> <a th:href="${event.type}" 
-			    th:text="${#strings.substringAfter(event.type,'#')}"></a>
+			    th:text="${#strings.substringAfter(event.type,'#')}"></a><br/>
 	    <b>Time:</b> <span th:text="${event.start}"></span><br/>
 
 	    <span th:if="${event.tags}">

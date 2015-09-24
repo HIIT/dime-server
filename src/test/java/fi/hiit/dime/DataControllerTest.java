@@ -238,6 +238,7 @@ public class DataControllerTest extends RestTest {
 	event1.actor = "TestActor1";
 	event1.tags = new HashSet<String>();
 	event1.tags.add("eventTag1");
+	event1.tags.add("foo");
 	events[0] = event1;
 
 	SearchEvent event2 = new SearchEvent();
@@ -248,6 +249,9 @@ public class DataControllerTest extends RestTest {
 	SearchEvent event3 = new SearchEvent();
 	event3.query = "some other search query";
 	event3.actor = "TestActor2";
+	event3.tags = new HashSet<String>();
+	event3.tags.add("foo");
+	event3.tags.add("bar");
 	events[2] = event3;
 	    
 	dumpData("List of events to be uploaded to " + eventsApi, events);
@@ -285,7 +289,7 @@ public class DataControllerTest extends RestTest {
 
 	FeedbackEvent getEvent1 = getRes1.getBody();
 	assertEquals(event1.value, getEvent1.value, DELTA);
-	assertEquals(getEvent1.tags.size(), 1);
+	assertEquals(getEvent1.tags.size(), 2);
 	assertTrue(getEvent1.tags.contains("eventTag1"));
 
 	Document getDoc = (Document)getEvent1.targettedResource;
@@ -329,19 +333,53 @@ public class DataControllerTest extends RestTest {
 				   SearchEvent.class);
 	assertClientError(getBadRes2);
 
-	// Test event search
+	// Test filtering on actor
 	ResponseEntity<Event[]> getEventsRes = 
 	    getRest().getForEntity(eventsApi + "?actor=TestActor1",
 				   Event[].class);
 	assertSuccessful(getEventsRes);
 
 	Event[] eventsRes = getEventsRes.getBody();
-	assertEquals(eventsRes.length, 2);
+	assertEquals(2, eventsRes.length);
 
 	for (Event ev : eventsRes) {
 	    assertEquals(ev.actor, "TestActor1");
 	}
 
-	dumpData("events", eventsRes);
+	dumpData("events filtered by actor", eventsRes);
+
+	// Test filtering on tag
+	ResponseEntity<Event[]> getEventsRes2 = 
+	    getRest().getForEntity(eventsApi + "?tag=foo",
+				   Event[].class);
+	assertSuccessful(getEventsRes2);
+
+	Event[] eventsRes2 = getEventsRes2.getBody();
+	assertEquals(2, eventsRes2.length);
+
+	for (Event ev : eventsRes2) {
+	    assertTrue(ev.tags.contains("foo"));
+	}
+
+	dumpData("events filtered by tag", eventsRes2);
+
+	// Test filtering by bad parameters
+	ResponseEntity<Event[]> getEventsRes3 = 
+	    getRest().getForEntity(eventsApi + "?foo=bar",
+				   Event[].class);
+	assertClientError(getEventsRes3);
+
+	// Test filtering on multiple parameters
+	ResponseEntity<SearchEvent[]> getEventsRes4 = 
+	    getRest().getForEntity(eventsApi + "?query=" + event3.query
+				   + "&tag=foo",
+				   SearchEvent[].class);
+	assertSuccessful(getEventsRes4);
+
+	SearchEvent[] eventsRes4 = getEventsRes4.getBody();
+	assertEquals(1, eventsRes4.length);
+
+	assertEquals(eventsRes4[0].query, event3.query);
+	assertTrue(eventsRes4[0].tags.contains("foo"));
     }
 }
