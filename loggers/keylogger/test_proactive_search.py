@@ -2,7 +2,7 @@ import numpy as np
 
 import argparse
 
-from dime_search import *
+from dime_search2 import *
 from update_files import *
 
 #
@@ -167,7 +167,8 @@ if args.simulation:
                 print "Input to search function: ", dstr2
                 jsons, kws = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)                
                 nsuggested_files = len(jsons)
-                
+
+
                 #Number of files having same category
                 nsamecategory = 0.0
 
@@ -187,11 +188,17 @@ if args.simulation:
                                 #break
                 
                 #Current precision
-                cprecision = float(nsamecategory)/float(nsuggested_files)
+                if nsuggested_files > 0:
+                    cprecision = float(nsamecategory)/float(nsuggested_files)
+                else:
+                    cprecision = 0
 
                 #Average precision so far
                 sumavgprecision = sumavgprecision + cprecision
-                avgprecision = float(sumavgprecision)/float(j2)
+                if j2 > 0:
+                    avgprecision = float(sumavgprecision)/float(j2)
+                else:
+                    avgprecision = 0
                 #
                 print "Precisions: ",cprecision, avgprecision
                 #
