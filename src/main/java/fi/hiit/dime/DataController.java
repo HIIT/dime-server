@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 import java.io.IOException;
 
 /**
@@ -265,20 +265,20 @@ public class DataController extends AuthorizedController {
      * interface. */    
     @RequestMapping(value="/events", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
-	events(Authentication auth, 
-	       @RequestParam String actor) {
+	events(Authentication auth, @RequestParam Map<String, String> params) {
+
 	User user = getUser(auth);
 
-	Properties searchProps = new Properties();
-	if (actor != null)
-	    searchProps.setProperty("actor", actor);
+	try {
+	    List<Event> events = eventDAO.find(user.id, params);
 
-	List<Event> events = eventDAO.find(user.id, searchProps);
+	    Event[] eventsArray = new Event[events.size()];
+	    events.toArray(eventsArray);	
 
-	Event[] eventsArray = new Event[events.size()];
-	events.toArray(eventsArray);	
-
-	return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
+	    return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
+	} catch (IllegalArgumentException e) {
+	    return new ResponseEntity<Event[]>(HttpStatus.BAD_REQUEST);
+	}
     }	
 
     /** HTTP end point for uploading a single informationelement. */    
