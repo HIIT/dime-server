@@ -23,8 +23,9 @@ for a in sys.argv[1:]:
 
 meanvector = np.zeros(500)
 for i,m in enumerate(means):
-    print i, len(m), type(m), m[0]
-    meanvector[i] = float(sum(m))/len(m)
+    if len(m):
+        print i, len(m), type(m), m[0]
+        meanvector[i] = float(sum(m))/len(m)
 plt.plot(meanvector, linewidth=5, color='k')
     
 plt.show()
