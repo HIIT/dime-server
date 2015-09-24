@@ -146,7 +146,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	Criteria search = where("user._id").is(new ObjectId(userId));
 
 	for (Map.Entry<String, String> param : filterParams.entrySet()) {
-	    String name = param.getKey();
+	    String name = param.getKey().toLowerCase();
 	    String value = param.getValue();
 
 	    switch (name) {
@@ -154,10 +154,10 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 		name = "tags";
 		break;
 	    case "uri":
-	    case "plainTextContent":
-	    case "isStoredAs":
-	    case "typeStoredAs":
-	    case "mimeType":
+	    case "plaintextcontent":
+	    case "isstoredas":
+	    case "type":
+	    case "mimetype":
 	    case "title":
 	    // case "":
 		break;
@@ -168,8 +168,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	}
 
 	return operations.find(query(search).
-			       with(new Sort(Sort.Direction.DESC, "start")).
-			       limit(100),
+			       with(new Sort(Sort.Direction.DESC, "start")),
 			       InformationElement.class, collectionName());
     }
 

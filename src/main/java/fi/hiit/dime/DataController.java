@@ -279,17 +279,6 @@ public class DataController extends AuthorizedController {
 	}
     }	
 
-    /** HTTP end point for uploading a single informationelement. */    
-    @RequestMapping(value="/informationelement", method = RequestMethod.GET)
-    public ResponseEntity<List<InformationElement>> 
-    	informationElement(Authentication auth) {
-    	User user = getUser(auth);
-
-    	List<InformationElement> results = infoElemDAO.elementsForUser(user.id);
-
-    	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
-    }
-
     /** HTTP end point for accessing a single informationelement. */    
     @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
     public ResponseEntity<InformationElement>

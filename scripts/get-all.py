@@ -21,13 +21,13 @@ if r.status_code != requests.codes.ok:
     print('No connection to DiMe server!')
     sys.exit(1)
 
-r = requests.get(server_url + '/data/informationelement',
+r = requests.get(server_url + '/data/informationelements',
                  headers={'content-type': 'application/json'},
                  auth=(server_username, server_password),
                  timeout=10)
 
 if r.status_code != requests.codes.ok:
-    print('ErrorNo connection to DiMe server!')
+    print('HTTP Error:', r.status_code)
     sys.exit(1)
 
 j = r.json()

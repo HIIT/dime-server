@@ -132,8 +132,7 @@ public class EventDAO extends BaseDAO<Event> {
 	}
 
 	return operations.find(query(search).
-			       with(new Sort(Sort.Direction.DESC, "start")).
-			       limit(100),
+			       with(new Sort(Sort.Direction.DESC, "start")),
 			       Event.class, collectionName());
     }
 
