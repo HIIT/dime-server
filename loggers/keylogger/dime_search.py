@@ -462,13 +462,12 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
     #Form new y that has only non-zeros of the original y
     if len(inds) > 1:
         y    = y[inds]
+    elif len(inds) == 0:
+        y    = np.zeros([1,1])
+        inds = np.array([[0]])
     else:
-        if len(inds) == 0:
-            y    = np.zeros([1,1])
-            inds = np.array([[0]])
-        else:
-            y    = np.zeros([len(inds),1])
-            #inds = np.array([[0]])
+        y    = np.zeros([len(inds),1])
+        #inds = np.array([[0]])
 
     #Compute estimation of weight vector (i.e. user model)
     print 'Search thread: update_keyword_matrix: Create Xt '
