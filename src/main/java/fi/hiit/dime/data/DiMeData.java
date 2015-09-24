@@ -124,7 +124,7 @@ public class DiMeData {
 
     /** Checks if the object contains a given tag.
 	@param tag Tag to check for
-	@returns true if tag found, otherwise false
+	@return true if tag found, otherwise false
     */
     public boolean hasTag(String tag) {
 	return tags != null && tags.contains(tag);
