@@ -112,6 +112,8 @@ if __name__ == "__main__":
     conf.configure(inifile="20news.ini")
     os.chdir(cwd)
 
+    print "Username read from ini-file:", config['username']
+
     pingstring = "Pinging DiMe server at location: " + config['server_url'] + " : "
     if common.ping_server():
         print pingstring + "OK"
@@ -131,7 +133,7 @@ if __name__ == "__main__":
                 print "ERROR: Multiple messages found in", line
                 break
             for message in mbox:
-                json_payload = create_payload(message, i, line, !args.nostem)
+                json_payload = create_payload(message, i, line, not args.nostem)
                 if json_payload is None:
                     continue
                 print "PAYLOAD:\n" + json_payload
