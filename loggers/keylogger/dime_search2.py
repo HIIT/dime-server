@@ -256,7 +256,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     #Search resources from DiMe using Dime-servers own search function
     jsons = search_dime(srvurl, username, password, query)
 
-    return jsons, kws
+    return jsons, kws, winds
 
 #
 def query2bow(query,dictionary):
@@ -614,7 +614,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
 def recompute_keywords(c):
     #print 'c', c
     #Import dictionary
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+    dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 
     #
     r_hat     = np.load('data/r_hat.npy')

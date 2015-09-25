@@ -6,6 +6,9 @@ from dime_search2 import *
 from update_files import *
 
 #
+from math_utils import *
+
+#
 import mailbox
 
 #
@@ -47,7 +50,7 @@ data       = json.load(json_data)
 #Load df-matrix (document frequency matrix)
 sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
 #Load dictionary
-dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 #Remove common words from dictionary
 #df_word_removal(sXdoctm, dictionary)
 #dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
@@ -59,6 +62,9 @@ sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
 tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
 #Load cosine similarity model for computing cosine similarity between keyboard input with documents
 index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+
+#Compute topics of each document
+doccategorylist = compute_doccategorylist()
 
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
@@ -80,7 +86,7 @@ if args.simulation:
 
     #
     filename = args.simulation
-    print "Simulation with file", filename
+    print("Simulation with file", filename)
 
     #
     f = open(filename,'r')
@@ -92,7 +98,7 @@ if args.simulation:
         dlist       = line.split(" ")
         filename    = dlist[0]
         filecategory= int(dlist[1])
-        print "filename2: ", dlist[0], dlist[1]
+        print("filename2: ", dlist[0], dlist[1])
         #print 'enron_with_categories/'+dlist[0]
         #dumfile = open('enron_with_categories/'+dlist[0])
 
@@ -101,7 +107,7 @@ if args.simulation:
         #mbox = mailbox.mbox(parts[0])
         mbox = mailbox.mbox('enron_with_categories/'+filename)
         if len(mbox) != 1:
-            print "ERROR: Multiple emails found in", parts[0]
+            print("ERROR: Multiple emails found in", parts[0])
             break
         for message in mbox:
             #json_payload = create_payload(message, i, parts[1], parts[2])
@@ -155,7 +161,7 @@ if args.simulation:
 
                 #
                 if i2 == 0:
-                    print "\nMail ", j
+                    print("\nMail ", j)
                     filelocatorlist.append(1.0)
                 else:
                     filelocatorlist.append(0.0)
@@ -164,8 +170,11 @@ if args.simulation:
                 #print "Currently typed: ", dstr2
                 dstr2 = dwordlist[-numwords:]
                 dstr2 = ' '.join(dstr2)
-                print "Input to search function: ", dstr2
-                jsons, kws = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)                
+                print("Input to search function: ", dstr2)
+                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password) 
+                #     
+                kw_scores = compute_topic_keyword_scores(sX, winds, doccategorylist, filecategory)          
+                #
                 nsuggested_files = len(jsons)
 
 
@@ -174,19 +183,19 @@ if args.simulation:
 
                 #Print all tags of jsons
                 for json in jsons:
-                    print "Tags: ", json['tags'] 
+                    print("Tags: ", json['tags'])
                     #Split file -tag for checking category
                     for ti, tag in enumerate(json['tags']):
                         if json['tags'][ti].split('=')[0] == "enron_category":
                             #
                             categoryid = int( json['tags'][ti].split('=')[1].split(':')[0] )
-                            print "Category: ", categoryid
+                            print("Category: ", categoryid)
                             #
                             if categoryid == filecategory:
-                                print "GOT SAME CATEGORY!"
+                                print("GOT SAME CATEGORY!")
                                 nsamecategory = nsamecategory + 1.0
                                 #break
-                
+
                 #Current precision
                 if nsuggested_files > 0:
                     cprecision = float(nsamecategory)/float(nsuggested_files)
@@ -200,7 +209,7 @@ if args.simulation:
                 else:
                     avgprecision = 0
                 #
-                print "Precisions: ",cprecision, avgprecision
+                print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores)
                 #
                 precisionlist.append([cprecision, avgprecision])
 
@@ -243,7 +252,7 @@ else:
     elif sys.platform == "darwin":
       from loggerthread_osx import *
     else:
-      print "Unsupported platform"
+      print("Unsupported platform")
       sys.exit()
 
     #open()

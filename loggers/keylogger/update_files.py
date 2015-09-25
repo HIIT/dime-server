@@ -351,6 +351,7 @@ def update_doc_tfidf_list(destinationfolder):
 	save_sparse_csc(destinationfolder+'/sX.sparsemat',sparsemat)
 
 
+
 #Converts doc_tfidf_list to scipy sparse matrix format (as csc_matrix)
 def doc_tfidf_list_to_sparsemat(doc_tfidf_list):
 	#Import dictionary
