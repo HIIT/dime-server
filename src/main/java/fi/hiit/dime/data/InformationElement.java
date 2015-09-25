@@ -58,6 +58,9 @@ public /*abstract*/ class InformationElement extends DiMeData {
     @TextScore 
     public Float score;
 
+    @JsonIgnore
+    public boolean isIndexed = false;
+
     /** Determines if this element is a stub, i.e. contains only the
         id of a previously uploaded object.
 

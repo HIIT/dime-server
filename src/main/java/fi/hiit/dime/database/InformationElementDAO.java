@@ -39,6 +39,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.*;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -140,6 +141,13 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	}
     }
 
+    /**
+       Filtered search for a given user's objects.
+
+       @param userId User id
+       @param filterParams Filtering parameters
+       @return List of matching information elements
+    */
     public List<InformationElement> find(String userId, Map<String, String> filterParams) {
 	ensureIndex("start");
 
@@ -172,6 +180,40 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 			       InformationElement.class, collectionName());
     }
 
+    /**
+       Helper function that returns the mongodb query for non-indexed documents.
+
+       @return Mongodb query for getting non-indexed documents
+    */
+    protected Query notIndexedQuery() {
+	int numFixed = fixMissingField("isIndexed", false);
+	if (numFixed > 0)
+	    LOG.info("Fixed " + numFixed + " old objects with missing isIndexed fields.");
+
+	return query(where("isIndexed").is(false));
+    }
+
+    /**
+       Returns number of InformationElement objects which haven't been
+       indexed yet.
+       
+       @return Number of not indexed objects
+    */
+    public long countNotIndexed() {
+	return operations.count(notIndexedQuery(), InformationElement.class,
+				collectionName());
+    }
+
+    /**
+       Returns number of InformationElement objects which haven't been
+       indexed yet.
+       
+       @return Number of not indexed objects
+    */
+    public List<InformationElement> findNotIndexed() {
+	return operations.find(notIndexedQuery(), InformationElement.class,
+			       collectionName());
+    }
 
     /**
        Return all InformationElement objects in database.

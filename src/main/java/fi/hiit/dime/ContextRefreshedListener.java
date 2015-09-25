@@ -26,32 +26,23 @@ package fi.hiit.dime;
 
 import fi.hiit.dime.database.SearchIndex;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.stereotype.Component;
 
-@Configuration
-public class AppConfig {
-    public static final String DB_NAME = "dime";
-    private String indexPath = "/home/mvsjober/var/dime-lucene";
+/**
+   This is just to start search index updating when server has started.
+*/
+@Component
+public class ContextRefreshedListener 
+    implements ApplicationListener<ContextRefreshedEvent> {
 
-    @Bean
-    public Mongo mongo() throws Exception {
-	return new MongoClient("localhost");
-    }
-    
-    @Bean
-    public MongoTemplate mongoTemplate() throws Exception {
-	return new MongoTemplate(mongo(), DB_NAME);
-    }
+    @Autowired
+    protected SearchIndex searchIndex;
 
-    @Bean
-    public SearchIndex searchIndex() throws Exception {
-	SearchIndex index = new SearchIndex(indexPath);
-	return index;
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent event) {
+	searchIndex.updateIndex();
     }
 }

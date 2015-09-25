@@ -31,10 +31,14 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
+import com.mongodb.WriteResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 
 import java.util.Iterator;
 
@@ -73,6 +77,22 @@ abstract class BaseDAO<T extends Object> {
 
     public void ensureTextIndex(String fieldName) {
 	getCollection().createIndex(new BasicDBObject(fieldName, "text"));
+    }
+
+    /**
+       Helper method to find missing fields and set them to a default
+       value. Useful when the object definition has been modified and
+       old objects need to be updated.
+
+       @param fieldName Name of field to check for
+       @param value Default value for setting the field
+    */
+    protected int fixMissingField(String fieldName, Object value) {
+	WriteResult res =
+	    operations.updateMulti(query(where(fieldName).exists(false)),
+				   update(fieldName, value),
+				   collectionName());
+	return res.getN();
     }
 
     /**
