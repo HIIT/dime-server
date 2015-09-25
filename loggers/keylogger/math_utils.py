@@ -26,8 +26,12 @@ def vec_sparsity(v):
 
     return spar
 
+#Compute cosine similarity between two vectors
+def cossim(x1,x2):
+	pass    
+
 if __name__ == "__main__":
-    v = np.random.randint(0,3,[5,1])
-    s = vec_sparsity(v)
-    print v
-    print s
+  v = np.random.randint(0,3,[5,1])
+  s = vec_sparsity(v)
+  print(v)
+  print(s)

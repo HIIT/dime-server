@@ -10,19 +10,19 @@ import ctypes as ct
 from ctypes.util import find_library
 
 import os
-import Queue
+import queue
 import threading
 
 from update_files import *
 
-from dime_search import *
+from dime_search2 import *
 
 #Includes the definition of clickable label
-from ExtendedQLabel import *
+#from ExtendedQLabel import *
 
 #For getting web page title
 #import lxml.html
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 #from BeautifulSoup import BeautifulSoup
 
 #
@@ -63,10 +63,10 @@ class SearchThread(QThread):
   #Load df-matrix (document frequency matrix)
   self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
   #Load dictionary
-  self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+  self.dictionary = corpora.Dictionary.load('data/tmpdict.dict')
   #Remove common words from dictionary
-  df_word_removal(self.sXdoctm, self.dictionary)
-  self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+  #df_word_removal(self.sXdoctm, self.dictionary)
+  #self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
   #Load updated tfidf-matrix of the corpus
   self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
   #Load updated df-matrix
@@ -85,11 +85,11 @@ class SearchThread(QThread):
 
  def change_search_function(self, searchfuncid):
   self.searchfuncid = searchfuncid
-  print 'Search thread: search function changed to', str(searchfuncid)
+  print('Search thread: search function changed to', str(searchfuncid))
   if searchfuncid == 1 or searchfuncid == 2 or searchfuncid == 3:
     #Update LinRel data files
-    print 'Search thread: Updating Linrel data files!!!'
-    print 'Search thread: path: ', os.getcwd()
+    print('Search thread: Updating Linrel data files!!!')
+    print('Search thread: path: ', os.getcwd())
     #check_update()
 
  def get_new_c(self, value):
@@ -97,7 +97,7 @@ class SearchThread(QThread):
   self.c = math.log(value+1)
 
  def recompute_keywords(self,value):
-  print value
+  print(value)
   self.c = math.log(value+1)
   kws = recompute_keywords(math.log(value+1))
   self.send_keywords.emit(kws)
@@ -110,12 +110,12 @@ class SearchThread(QThread):
   #newquery = unicode(asciiquery, 'utf-8')
   #newquery = unicode(newquery)
   newquery = newquery.strip() # to get rid of extra spaces, enters
-  print "Search thread: got new query from logger: [%s]" % newquery
+  print("Search thread: got new query from logger: [%s]" % newquery)
   self.query = newquery
 
  def clear_query_string(self):
   self.query = ''
-  print "searchthread: query string cleared!!"
+  print("searchthread: query string cleared!!")
 
  def get_new_word_from_main_thread(self, keywords):
   if self.query is None:
@@ -126,7 +126,7 @@ class SearchThread(QThread):
   #keywords = unicode(utf8keyword, 'utf-8')
   self.query = self.query + ' ' + keywords
 
-  print "Search thread: got new query from main:", self.query
+  print("Search thread: got new query from main:", self.query)
   self.extrasearch = True
 
  def run(self):
@@ -148,7 +148,7 @@ class SearchThread(QThread):
 
     #Update data
     if cmachtime > self.dataupdateinterval + dataupdatetimestamp:
-      print "Update data!!!!!"
+      print("Update data!!!!!")
       #update_all_data()
       dataupdatetimestamp = time()
       #
@@ -158,10 +158,10 @@ class SearchThread(QThread):
       #Load df-matrix (document frequency matrix)
       self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
       #Load dictionary
-      self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+      self.dictionary = corpora.Dictionary.load('data/tmpdict.dict')
       #Remove common words from dictionary
-      df_word_removal(self.sXdoctm, self.dictionary)
-      self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+      #df_word_removal(self.sXdoctm, self.dictionary)
+      #self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
       #Load updated tfidf-matrix of the corpus
       self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
       #Load updated df-matrix
@@ -181,7 +181,7 @@ class SearchThread(QThread):
 
     #
     if self.extrasearch:
-      print 'Search thread: got extra search command from main!'      
+      print('Search thread: got extra search command from main!')      
       jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
       self.extrasearch = False    
 
@@ -191,30 +191,28 @@ class SearchThread(QThread):
       timestamp = time()
       self.oldquery2 = self.query
 
-    #print "Query:", self.query, "Oldquery:", self.oldquery
-    #if self.query is not None and self.query != self.oldquery:
     if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + self.nokeypress_interval:
       dstr = self.query      
-      print 'Search thread:', dstr
+      print('Search thread:', dstr)
         #dstr = unicode(dstr, 'utf-8')
 
       self.start_search.emit()
       if self.searchfuncid == 0:
         jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
-        print 'Search thread: Ready for new search!'
+        print('Search thread: Ready for new search!')
       elif self.searchfuncid == 1:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
         #jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
         jsons, kws = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.srvurl, self.usrname, self.password)
-        print 'Search thread: Ready for new search!'
-        print len(jsons)
+        print('Search thread: Ready for new search!')
+        print(len(jsons))
         if len(jsons) > 0:
           #Return keyword list
           self.send_keywords.emit(kws)
       elif self.searchfuncid == 2:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
         jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
-        print 'Search thread: Ready for new search!'   
+        print('Search thread: Ready for new search!')   
       elif self.searchfuncid == 3:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
         #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.tfidf, self.dictionary, self.c)
@@ -222,9 +220,9 @@ class SearchThread(QThread):
         if len(jsons) > 0:
           #Return keyword list
           self.send_keywords.emit(kws)
-        print 'Search thread: Ready for new search!'      
+        print('Search thread: Ready for new search!')      
 
-      print 'Search thread: len jsons ', len(jsons)
+      print('Search thread: len jsons ', len(jsons))
       if len(jsons) > 0:
         #Return keyword list
         #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
