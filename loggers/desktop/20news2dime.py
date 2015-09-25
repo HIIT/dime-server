@@ -19,7 +19,7 @@ porter = nltk.PorterStemmer()
 
 #------------------------------------------------------------------------------
 
-def filter_string(string):
+def filter_string(string, do_stem=True):
 
     #tokens = nltk.word_tokenize(string)
 
@@ -33,52 +33,37 @@ def filter_string(string):
     tokens = nltk.regexp_tokenize(string, pattern)
 
     tokens = [t.lower() for t in tokens]
-    tokens = [porter.stem(t) for t in tokens]
+    if do_stem:
+        tokens = [porter.stem(t) for t in tokens]
     #tokens = [wnl.lemmatize(t) for t in tokens]
     return " ".join(item for item in tokens if len(item)>1)
 
 #------------------------------------------------------------------------------
 
-def create_payload(message, i, tags):
+def create_payload(message, i, fn, do_stem):
 
     print "---###---###---###---###---###---###---###---###---###---###---"
     print
     print '%d: %s "%s" from %s' % (i, message['Message-ID'], message['subject'], message['from'])
     print
-    
-    if message['Message-ID'] is None:
-        print 'Error: No "Message-ID" found on, skipping'
-        return None
-    
-    if message['date'] is None:
-        print 'Error: No "date" found on %s, skipping' % message['Message-ID']
-        return None
-        
-    dt = 1000*int(rfc822.mktime_tz(rfc822.parsedate_tz(message['date'])))
 
-    finaltags = ['enron_filename='+tags[0]]
-    for i in range(0, len(tags[1:]), 2):
-        print i
-        finaltags.append('enron_category='+tags[i+1]+':'+tags[i+2])
+    parts = fn.split("/")
+    finaltags = ['filename='+fn, 'newsgroup='+parts[0]]
     
     payload = {
         '@type':  'MessageEvent',
-        'actor':    'enron2dime.py',
+        'actor':    '20news2dime.py',
         'origin':   config['hostname'],
-        'type':     'http://www.hiit.fi/ontologies/dime/#EmailEvent',
-        'start':    dt,
+        'type':     'http://www.hiit.fi/ontologies/dime/#NewsEvent',
         'duration': 0}
     
     targettedResource = {
         '@type':      'Message',
-        'uri': 'Message-ID:'+message['Message-ID'],
-        'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#Email',
-        'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#MailboxDataObject',
-        'date': message['date'],
-        'subject': filter_string(message['subject']),
-        'fromString': message['from'],
-        'toString': message['to'],
-        'ccString': message['cc'],
+        'uri': fn,
+        'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#Message',
+        'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#LocalFileDataObject',
+        'subject': filter_string(message['Subject'], do_stem),
+        'fromString': message['From'],
         'tags' : finaltags
         #'attachments': [],
         #'rawMessage': '' # the full raw message here...
@@ -97,7 +82,7 @@ def create_payload(message, i, tags):
     if isinstance(msgpayload, str):
         msgtext = msgpayload
 
-    targettedResource['plainTextContent'] = filter_string(msgtext)
+    targettedResource['plainTextContent'] = filter_string(msgtext, do_stem)
 
     payload['targettedResource'] = targettedResource.copy()
 
@@ -109,20 +94,22 @@ if __name__ == "__main__":
 
     print "Starting the enron2dime.py logger on " + time.strftime("%c")
 
-    parser = argparse.ArgumentParser(description='Sends Enron (enron_with_categories) emails to DiMe.')
+    parser = argparse.ArgumentParser(description='Sends 20 Newsgroups data to DiMe.')
 
-    parser.add_argument('emailfile', metavar='FILE',
-                        help='list of Enron emails to be processed')
+    parser.add_argument('msgfile', metavar='FILE',
+                        help='list of newsgroup articles to be processed')
     parser.add_argument('--dryrun', action='store_true',
                         help='do not actually send anything')
     parser.add_argument('--limit', metavar='N', action='store', type=int,
-                        default=0, help='process only N first emails')
+                        default=0, help='process only N first messages')
+    parser.add_argument('--nostem', action='store_true',
+                        help='disable Porter stemming of tokens')
 
     args = parser.parse_args()
 
     cwd = os.getcwd()
     os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
-    conf.configure(inifile="enron.ini")
+    conf.configure(inifile="20news.ini")
     os.chdir(cwd)
 
     pingstring = "Pinging DiMe server at location: " + config['server_url'] + " : "
@@ -135,17 +122,16 @@ if __name__ == "__main__":
             sys.exit()
 
     i=1
-    with open(args.emailfile) as f:
+    with open(args.msgfile) as f:
         for line in f:
             line = line.rstrip()
-            parts = line.split(" ")
             print "Processing [{}]".format(line)
-            mbox = mailbox.mbox(parts[0])
+            mbox = mailbox.mbox(line)
             if len(mbox) != 1:
-                print "ERROR: Multiple emails found in", parts[0]
+                print "ERROR: Multiple messages found in", line
                 break
             for message in mbox:
-                json_payload = create_payload(message, i, parts)
+                json_payload = create_payload(message, i, line, !args.nostem)
                 if json_payload is None:
                     continue
                 print "PAYLOAD:\n" + json_payload
