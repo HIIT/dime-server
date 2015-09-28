@@ -58,7 +58,7 @@ dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 #Load updated tfidf-matrix of the corpus
 sX         = load_sparse_csc('data/sX.sparsemat.npz')
 sXarray    = sX.toarray()
-#Load updated df-matrix
+#Load updated df-matrix of the corpus
 sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
 #Load tfidf -model
 tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
