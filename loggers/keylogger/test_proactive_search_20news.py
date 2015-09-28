@@ -61,12 +61,13 @@ data       = json.load(json_data)
 #Load df-matrix (document frequency matrix)
 sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
 #Load dictionary
-dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 #Remove common words from dictionary
 #df_word_removal(sXdoctm, dictionary)
 #dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 #Load updated tfidf-matrix of the corpus
 sX         = load_sparse_csc('data/sX.sparsemat.npz')
+sXarray    = sX.toarray()
 #Load updated df-matrix
 sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
 #Load tfidf -model
