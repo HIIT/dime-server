@@ -119,7 +119,8 @@ def check_update():
 			update_doctm(cpathd)
 			update_doc_tfidf_list(cpathd)
 
-		if not os.path.isfile('/tmp/similarityvec'):
+		#if not os.path.isfile('/tmp/similarityvec'):
+		if not os.path.isfile('data/similarityvec'):
 			update_docsim_model()
 
 		if not os.path.isfile('data/docindlist.list'):
@@ -470,9 +471,11 @@ def update_docsim_model():
 	doctm = pickle.load(open('data/doctm.data','rb'))
 
 	#Build index
-	index = similarities.docsim.Similarity('/tmp/similarityvec',doctm, num_features = len(dictionary), num_best = 20)
+	#index = similarities.docsim.Similarity('/tmp/similarityvec',doctm, num_features = len(dictionary), num_best = 20)
+	index = similarities.docsim.Similarity('data/similarityvec',doctm, num_features = len(dictionary), num_best = 20)
 	index.num_best = 20
-	index.save('/tmp/similarityvec')
+	#index.save('/tmp/similarityvec')
+	index.save('data/similarityvec')
 
 #Updates LinRel matrix, denoted by A 
 def update_A(docinds, y):

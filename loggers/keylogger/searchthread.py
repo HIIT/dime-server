@@ -74,7 +74,8 @@ class SearchThread(QThread):
   #Load tfidf -model
   self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
   #Load cosine similarity model for computing cosine similarity between keyboard input with documents
-  self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+  #self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+  self.index      = similarities.docsim.Similarity.load('data/similarityvec')
 
   if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
@@ -169,11 +170,13 @@ class SearchThread(QThread):
       #Load tfidf -model
       self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
       #Load 
-      self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+      #self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+      self.index      = similarities.docsim.Similarity.load('data/similarityvec')
       #Load tfidf -model
       self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
       #Load cosine similarity model for computing cosine similarity between keyboard input with documents
-      self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+      #self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+      self.index      = similarities.docsim.Similarity.load('data/similarityvec')
       #Clean the history buffer
       if os.path.isfile('data/r_old.npy'):
         os.remove('data/r_old.npy')
@@ -203,7 +206,7 @@ class SearchThread(QThread):
       elif self.searchfuncid == 1:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
         #jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
-        jsons, kws = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.srvurl, self.usrname, self.password)
+        jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.srvurl, self.usrname, self.password)
         print('Search thread: Ready for new search!')
         print(len(jsons))
         if len(jsons) > 0:

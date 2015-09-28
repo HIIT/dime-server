@@ -70,7 +70,7 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #print(doccategorylist)
 
     sub_tfidf_matrix = tfidf_matrix[:,keywordindlist]
-    #print(sub_tfidf_matrix.shape)
+    print(sub_tfidf_matrix.shape)
     #
     #boolvec = docid_topicid_list == writing_topic
     #doccategorylist = compute_doccategorylist()

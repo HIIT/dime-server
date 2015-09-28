@@ -63,7 +63,7 @@ sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
 #Load tfidf -model
 tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
 #Load cosine similarity model for computing cosine similarity between keyboard input with documents
-index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+index      = similarities.docsim.Similarity.load('data/similarityvec')
 
 #Compute topics of each document
 doccategorylist = compute_doccategorylist()
