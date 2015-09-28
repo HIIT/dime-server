@@ -175,9 +175,9 @@ def update_data(srvurl, username, password):
 	dumdata = r.json()
 	#
 	data = []
-	for i in range(len(dumdata)):
-		if 'plainTextContent' in dumdata[i]:
-			data.append(dumdata[i])
+	for dd in dumdata:
+		if 'plainTextContent' in dd:
+			data.append(dd)
 	
 	#
 	f = open('data/json_data.txt','w')	
