@@ -12,10 +12,11 @@ from math_utils import *
 import mailbox
 
 #
-import pickle
-
 import nltk
 porter = nltk.PorterStemmer()
+
+import pickle
+compute_topic_keyword_scores
 
 
 def filter_string(string):
@@ -173,7 +174,7 @@ if args.simulation:
                 print("Input to search function: ", dstr2)
                 jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password) 
                 #     
-                kw_scores = compute_topic_keyword_scores(sX, winds, doccategorylist, filecategory)          
+                #kw_scores = compute_topic_keyword_scores(sX, winds, doccategorylist, filecategory)          
                 #
                 nsuggested_files = len(jsons)
 
@@ -209,7 +210,7 @@ if args.simulation:
                 else:
                     avgprecision = 0
                 #
-                print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores)
+                #print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores)
                 #
                 precisionlist.append([cprecision, avgprecision])
 
