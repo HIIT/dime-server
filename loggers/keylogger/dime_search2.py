@@ -112,7 +112,7 @@ def search_dime(srvurl, username, password, query):
     r = requests.get(server_url + '/search?query={}&limit=5'.format(query_str),
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
-                     timeout=10)
+                     timeout=100)
     # r = requests.get(server_url + '/search?query={}&limit=60'.format(query_str),
     #                  headers={'content-type': 'application/json'},
     #                  auth=(server_username, server_password),
