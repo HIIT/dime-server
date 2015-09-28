@@ -67,9 +67,10 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #tfidf_matrix
     #doccategorylist = list of topic ids corresponding each document id
     #
+    #print(doccategorylist)
 
     sub_tfidf_matrix = tfidf_matrix[:,keywordindlist]
-    print(sub_tfidf_matrix.shape)
+    #print(sub_tfidf_matrix.shape)
     #
     #boolvec = docid_topicid_list == writing_topic
     #doccategorylist = compute_doccategorylist()
@@ -82,10 +83,10 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     sub_tfidf_matrix = sub_tfidf_matrix[boolvec, :]
     print(sub_tfidf_matrix.shape)
 
-    kw_scores = sub_tfidf_matrix.sum(0)
+    #kw_scores = sub_tfidf_matrix.sum(0)
+    kw_scores = sub_tfidf_matrix.mean(0)
 
-    return kw_scores
-
+    return kw_scores.mean()
 
 
 if __name__ == "__main__":

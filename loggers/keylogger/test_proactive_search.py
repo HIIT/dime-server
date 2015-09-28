@@ -174,8 +174,11 @@ if args.simulation:
                 dstr2 = ' '.join(dstr2)
                 print("Input to search function: ", dstr2)
                 jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password) 
-                #     
-                kw_scores = compute_topic_keyword_scores(sXarray, winds, doccategorylist, filecategory)          
+                # 
+                all_kw_scores = []
+                for i in range(1,13):
+                    all_kw_scores.append(compute_topic_keyword_scores(sXarray, winds, doccategorylist, i))          
+                kw_scores = all_kw_scores[filecategory-1]
                 #
                 nsuggested_files = len(jsons)
 
@@ -211,7 +214,9 @@ if args.simulation:
                 else:
                     avgprecision = 0
                 #
-                print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores)
+                print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores/sum(all_kw_scores))
+                print("  ", all_kw_scores/sum(all_kw_scores))
+                print("  ", kws,"\n")
                 #
                 precisionlist.append([cprecision, avgprecision])
 
@@ -234,9 +239,9 @@ if args.simulation:
         #Save precisionlist
         filename = filename.replace('/','_')
         filename = filename.replace('.','_')
-        f = open('data/precisionlist_'+filename+'.list','w')
-        pickle.dump(precisionlist,f)
-
+        #f = open('data/precisionlist_'+filename+'.list','w')
+        #pickle.dump(precisionlist,f)
+        pickle.dump(precisionlist, open('data/precisionlist_'+filename+'.list','wb'))
 
 
 
