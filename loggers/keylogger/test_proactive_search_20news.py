@@ -80,11 +80,11 @@ if os.path.isfile('data/r_old.npy'):
 #
 
 if not args.queries:
-    print "args.queries is empty"
+    print("args.queries is empty")
     sys.exit()
 
 if not args.querypath:
-    print "args.querypath is empty"
+    print("args.querypath is empty")
     sys.exit()
 
 #
@@ -95,7 +95,7 @@ dwordlist = []
 
 #
 filename = args.queries
-print "Reading simulation queries from file", filename
+print("Reading simulation queries from file", filename)
 
 #
 f = open(filename,'r')
@@ -116,7 +116,7 @@ for j,line in enumerate(f):
     #mbox = mailbox.mbox(parts[0])
     mbox = mailbox.mbox(args.querypath+'/'+filename)
     if len(mbox) != 1:
-        print "ERROR: Multiple emails (", len(mbox), ") found in", filename
+        print("ERROR: Multiple emails (", len(mbox), ") found in", filename)
         break
     for message in mbox:
         #json_payload = create_payload(message, i, parts[1], parts[2])
@@ -171,7 +171,7 @@ for j,line in enumerate(f):
 
             #
             if i2 == 0:
-                print "\nMail ", j
+                print("\nMail ", j)
                 filelocatorlist.append(1.0)
             else:
                 filelocatorlist.append(0.0)
@@ -180,8 +180,8 @@ for j,line in enumerate(f):
             #print "Currently typed: ", dstr2
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
-            print "Filename:", filename
-            print "Input to search function: ", dstr2
+            print("Filename:", filename)
+            print("Input to search function: ", dstr2)
             jsons, kws = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)                
             nsuggested_files = len(jsons)
 
@@ -191,17 +191,17 @@ for j,line in enumerate(f):
 
             #Print all tags of jsons
             for json in jsons:
-                print "Tags: ", json['tags'] 
+                print("Tags: ", json['tags']) 
                 #Split file -tag for checking category
                 for ti, tag in enumerate(json['tags']):
                     parts = json['tags'][ti].split('=')
                     if parts[0] == "newsgroup":
                         #
                         categoryid = parts[1]
-                        print "Category:", categoryid, "Correct:", filecategory
+                        print("Category:", categoryid, "Correct:", filecategory)
                         #
                         if categoryid == filecategory:
-                            print "GOT SAME CATEGORY!"
+                            print("GOT SAME CATEGORY!")
                             nsamecategory = nsamecategory + 1.0
                             #break
 
@@ -218,7 +218,7 @@ for j,line in enumerate(f):
             else:
                 avgprecision = 0
             #
-            print "Precisions: ",cprecision, avgprecision
+            print("Precisions: ",cprecision, avgprecision)
             #
             precisionlist.append([cprecision, avgprecision])
 
