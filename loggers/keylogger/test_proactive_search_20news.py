@@ -73,7 +73,7 @@ sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
 #Load tfidf -model
 tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
 #Load cosine similarity model for computing cosine similarity between keyboard input with documents
-index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
+index      = similarities.docsim.Similarity.load('data/similarityvec')
 
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
@@ -183,9 +183,8 @@ for j,line in enumerate(f):
             dstr2 = ' '.join(dstr2)
             print("Filename:", filename)
             print("Input to search function: ", dstr2)
-            jsons, kws = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)                
+            jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
             nsuggested_files = len(jsons)
-
 
             #Number of files having same category
             nsamecategory = 0.0
