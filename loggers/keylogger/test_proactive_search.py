@@ -16,8 +16,6 @@ import nltk
 porter = nltk.PorterStemmer()
 
 import pickle
-compute_topic_keyword_scores
-
 
 def filter_string(string):
 
