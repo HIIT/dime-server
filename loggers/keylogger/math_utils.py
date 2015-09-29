@@ -33,7 +33,7 @@ def vec_sparsity(v):
 
 #Compute cosine similarity between two vectors
 def cossim(x1,x2):
-	pass    
+	pass
 
 
 #Compute list of topic ids corresponding each document id
@@ -56,6 +56,7 @@ def compute_doccategorylist():
         doccategorylist.append(sublist)
 
     #print(doccategorylist)
+    pickle.dump(doccategorylist,open('data/doccategorylist.list','wb'))
     print(len(doccategorylist))
     return doccategorylist
     #return 0
@@ -83,12 +84,12 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
             boolvec[i] = True
     
     sub_tfidf_matrix = sub_tfidf_matrix[boolvec, :]
-    print(sub_tfidf_matrix.shape)
+    #print(sub_tfidf_matrix.shape)
 
     #kw_scores = sub_tfidf_matrix.sum(0)
     kw_scores = sub_tfidf_matrix.mean(0)
 
-    return kw_scores.mean()
+    return kw_scores.mean(), kw_scores
 
 
 if __name__ == "__main__":

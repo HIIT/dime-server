@@ -218,7 +218,7 @@ if args.simulation:
                 print("  ", all_kw_scores/sum(all_kw_scores))
                 print("  ", kws,"\n")
                 #
-                precisionlist.append([cprecision, avgprecision])
+                precisionlist.append([cprecision, avgprecision, kw_scores/sum(all_kw_scores)])
 
                 #
                 dstr2 = ''
