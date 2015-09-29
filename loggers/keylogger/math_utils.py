@@ -67,7 +67,9 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #tfidf_matrix
     #doccategorylist = list of topic ids corresponding each document id
     #
-    #print(doccategorylist)
+    #output:
+    #kw_scores.mean() = list of topic related mean of tfidf values of suggested keywords
+    #
 
     sub_tfidf_matrix = tfidf_matrix[:,keywordindlist]
     print(sub_tfidf_matrix.shape)
