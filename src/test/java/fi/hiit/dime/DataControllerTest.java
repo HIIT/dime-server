@@ -36,8 +36,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -46,18 +44,8 @@ import java.util.Date;
 public class DataControllerTest extends RestTest {
     private static final double DELTA = 1e-10;
 
-    private String eventApi, eventsApi, infoElemApi, infoElemsApi;
-
     @Autowired 
     private ObjectMapper objectMapper;
-
-    @Override
-    protected void setup() {
-	eventApi = apiUrl("/data/event");
-	eventsApi = apiUrl("/data/events");
-	infoElemApi = apiUrl("/data/informationelement");
-	infoElemsApi = apiUrl("/data/informationelements");
-    }
 
     /**
      * Helper method to print out the content of a DiMeData object.
@@ -158,31 +146,6 @@ public class DataControllerTest extends RestTest {
 	/* This is not returned at the moment, since we don't want to
 	   duplicate the huge plainTextContent field... */
 	//assertEquals(doc.plainTextContent, outDoc2.plainTextContent);
-    }
-
-    protected Message createTestEmail() {
-	// Create a message
-	Message msg = new Message();
-	msg.date = new Date(); // current date
-	msg.subject = "Hello DiMe";
-	msg.fromString = "Mats Sjöberg <mats.sjoberg@helsinki.fi>";
-	msg.toString = "Mats Sjöberg <mats.sjoberg@hiit.fi>";
-	msg.ccString = "Mats Sjöberg <mats.sjoberg@cs.helsinki.fi>";
-	msg.plainTextContent = "Hello, world";
-	
-	SimpleDateFormat format =
-	    new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
-	
-	msg.rawMessage = 
-	    "From: " + msg.fromString + "\n" +
-	    "To: " + msg.toString + "\n" +
-	    "Cc: " + msg.ccString + "\n" + 
-	    "Subject: " + msg.subject + "\n" +
-	    "Date: " + format.format(msg.date) +
-	    "Message-ID: <43254843985749@helsinki.fi>\n" + 
-	    "\n\n" + msg.plainTextContent;
-
-	return msg;
     }
 
     /**

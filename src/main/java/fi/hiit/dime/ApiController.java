@@ -93,20 +93,27 @@ public class ApiController extends AuthorizedController {
     }
 
     @RequestMapping(value="/search", method = RequestMethod.GET)
-    public ResponseEntity<List<InformationElement>>
+    public ResponseEntity<InformationElement[]>
 	search(Authentication auth, 
 	       @RequestParam String query,
 	       @RequestParam(defaultValue="-1") int limit) {
 	User user = getUser(auth);
 
-	List<InformationElement> results = new ArrayList<InformationElement>();
+	if (query.length() > 0) {
+	    List<InformationElement> resultsList =
+		infoElemDAO.textSearch(query, limit, user.id);
 
-	if (query.length() > 0)
-	    results = infoElemDAO.textSearch(query, limit, user.id);
+	    InformationElement[] results = new InformationElement[resultsList.size()];
+	    resultsList.toArray(results);	
+	    
+	    LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
+			       query, limit, resultsList.size()));
+	    return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
+	}
 
-	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
-			       query, limit, results.size()));
-	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
+	return new ResponseEntity<InformationElement[]>(new InformationElement[0],
+							HttpStatus.OK);
+
     }
 
 }
