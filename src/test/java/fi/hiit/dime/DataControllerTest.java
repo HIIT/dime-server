@@ -26,7 +26,6 @@ package fi.hiit.dime;
 
 import fi.hiit.dime.data.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,43 +34,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DataControllerTest extends RestTest {
     private static final double DELTA = 1e-10;
-
-    @Autowired 
-    private ObjectMapper objectMapper;
-
-    /**
-     * Helper method to print out the content of a DiMeData object.
-     */
-    private void dumpData(String message, DiMeData data) {
-	try {
-	    System.out.println(message + "\n" +
-			       objectMapper.writerWithDefaultPrettyPrinter().
-			       writeValueAsString(data));
-	} catch (IOException e) {
-	}
-    }
-
-    /**
-     * Helper method to print out the content of an array of DiMeData objects.
-     */
-    private void dumpData(String message, DiMeData[] data) {
-	try {
-	    for (int i=0; i<data.length; i++) {
-		String dataStr = objectMapper.
-		    writerWithDefaultPrettyPrinter().writeValueAsString(data[i]);
-		System.out.println(String.format("%s [%d]: %s", message, i, dataStr));
-	    }
-	} catch (IOException e) {
-	}
-    }
 
     /**
        Tests uploading event

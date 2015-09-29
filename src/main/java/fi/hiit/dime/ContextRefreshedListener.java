@@ -43,6 +43,6 @@ public class ContextRefreshedListener
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
-	searchIndex.updateIndex();
+	searchIndex.updateIndex(false);
     }
 }

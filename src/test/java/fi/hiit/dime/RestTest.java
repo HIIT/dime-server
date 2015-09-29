@@ -28,9 +28,11 @@ import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserService;
+import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Message;
 import fi.hiit.dime.util.RandomPassword;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,7 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -57,6 +60,9 @@ public abstract class RestTest {
 
     @Autowired
     UserService userService;
+
+    @Autowired 
+    private ObjectMapper objectMapper;
 
     private String apiBase;
 
@@ -158,5 +164,30 @@ public abstract class RestTest {
 	return msg;
     }
 
+    /**
+     * Helper method to print out the content of a DiMeData object.
+     */
+    protected void dumpData(String message, DiMeData data) {
+	try {
+	    System.out.println(message + "\n" +
+			       objectMapper.writerWithDefaultPrettyPrinter().
+			       writeValueAsString(data));
+	} catch (IOException e) {
+	}
+    }
+
+    /**
+     * Helper method to print out the content of an array of DiMeData objects.
+     */
+    protected void dumpData(String message, DiMeData[] data) {
+	try {
+	    for (int i=0; i<data.length; i++) {
+		String dataStr = objectMapper.
+		    writerWithDefaultPrettyPrinter().writeValueAsString(data[i]);
+		System.out.println(String.format("%s [%d]: %s", message, i, dataStr));
+	    }
+	} catch (IOException e) {
+	}
+    }
 
 }

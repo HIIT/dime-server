@@ -216,6 +216,13 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
     }
 
     /**
+       Returns all InformationElement objects.
+    */
+    public List<InformationElement> findAll() {
+	return operations.findAll(InformationElement.class, collectionName());
+    }
+
+    /**
        Return all InformationElement objects in database.
        
        @param id User id

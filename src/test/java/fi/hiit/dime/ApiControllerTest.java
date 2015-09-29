@@ -31,6 +31,7 @@ import fi.hiit.dime.util.RandomPassword;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
@@ -43,6 +44,9 @@ import java.util.Set;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApiControllerTest extends RestTest {
+    @Autowired
+    SearchIndex searchIndex;
+
     @Test
     public void testPing() throws Exception {
 	ResponseEntity<ApiMessage> res = 
@@ -113,12 +117,20 @@ public class ApiControllerTest extends RestTest {
 	// Check that HTTP was successful
 	assertSuccessful(res);
 
+	//
+	searchIndex.updateIndex(false);
+
 	// Now try searching for the ones in idxToFind
 	InformationElement[] searchRes = doSearch(magicWord);
+
+	dumpData("searchRes", searchRes);
+
     	assertEquals(idxToFind.size(), searchRes.length);
 	
     	for (InformationElement elem : searchRes) {
     	    assertTrue(elem.plainTextContent.contains(magicWord));
     	}
+
+	//FIXME: also compare to idxToFind
     }
 }

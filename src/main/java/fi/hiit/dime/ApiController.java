@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import javax.servlet.ServletRequest;
@@ -60,6 +61,9 @@ public class ApiController extends AuthorizedController {
 
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
+
+    @Autowired
+    SearchIndex searchIndex;
 
     @Autowired
     ApiController(EventDAO eventDAO,
@@ -100,15 +104,21 @@ public class ApiController extends AuthorizedController {
 	User user = getUser(auth);
 
 	if (query.length() > 0) {
-	    List<InformationElement> resultsList =
-		infoElemDAO.textSearch(query, limit, user.id);
-
-	    InformationElement[] results = new InformationElement[resultsList.size()];
-	    resultsList.toArray(results);	
+	    try {
+		List<InformationElement> resultsList =
+		    // 	infoElemDAO.textSearch(query, limit, user.id);
+		    searchIndex.textSearch(query, limit, user.id);
 	    
-	    LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
-			       query, limit, resultsList.size()));
-	    return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
+		InformationElement[] results = new InformationElement[resultsList.size()];
+		resultsList.toArray(results);	
+		
+		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
+				       query, limit, results.length));
+		return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
+	    } catch (IOException e) {
+		return new ResponseEntity<InformationElement[]>
+		    (HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
 
 	return new ResponseEntity<InformationElement[]>(new InformationElement[0],
