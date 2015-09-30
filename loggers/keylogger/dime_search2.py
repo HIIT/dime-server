@@ -333,9 +333,9 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         for i in range(len(r)):
             if float(r[i]) > 0.0:
                 #
-                r[i] = 1.0/r[i]
+                r[i] = 1.0/float(r[i])
                 #If value is less than thresval, put to zero
-                if 1.0/float(r[i]) < thresval:
+                if float(r[i]) < thresval:
                     r[i] = 0.0
     else:
         r             = np.zeros([test_vec_full.shape[0],1])
