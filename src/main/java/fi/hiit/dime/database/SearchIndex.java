@@ -32,7 +32,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -69,7 +68,7 @@ public class SearchIndex {
     private IndexWriterConfig iwc;
     private FSDirectory fsDir;
 
-    private IndexReader reader;
+    private DirectoryReader reader;
     private IndexSearcher searcher;
     private StandardQueryParser parser;
 
@@ -100,6 +99,9 @@ public class SearchIndex {
     	// iwc.setRAMBufferSizeMB(256.0);
 
 	parser = new StandardQueryParser(new StandardAnalyzer());
+
+	reader = DirectoryReader.open(fsDir);
+	searcher = new IndexSearcher(reader);
     }
 
     /**
@@ -227,8 +229,14 @@ public class SearchIndex {
 
 
 	try {
-	    reader = DirectoryReader.open(fsDir);
-	    searcher = new IndexSearcher(reader);
+	    DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
+
+	    // Reinitialise reader and searcher if the index has changed.
+	    if (newReader != null) {
+		reader.close();
+		reader = newReader;
+		searcher = new IndexSearcher(reader);
+	    }
 
 	    BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
@@ -254,7 +262,6 @@ public class SearchIndex {
 		else
 		    LOG.warn("Lucene returned result for wrong user: " + elem.id);
 	    }
-	    reader.close();
 	} catch (QueryNodeException e) {
 	     LOG.error("Exception: " + e);
 	}	 
