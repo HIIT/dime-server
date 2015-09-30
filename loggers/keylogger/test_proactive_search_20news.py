@@ -19,6 +19,30 @@ porter = nltk.PorterStemmer()
 
 #------------------------------------------------------------------------------
 
+categoryindices = {
+    "alt.atheism": 0,
+    "comp.graphics": 1,
+    "comp.os.ms-windows.misc": 2,
+    "comp.sys.ibm.pc.hardware": 3,
+    "comp.sys.mac.hardware": 4,
+    "comp.windows.x": 5,
+    "misc.forsale": 6,
+    "rec.autos": 7,
+    "rec.motorcycles": 8,
+    "rec.sport.baseball": 9,
+    "rec.sport.hockey": 10,
+    "sci.crypt": 11,
+    "sci.electronics": 12,
+    "sci.med": 13,
+    "sci.space": 14,
+    "soc.religion.christian": 15,
+    "talk.politics.guns": 16,
+    "talk.politics.mideast": 17,
+    "talk.politics.misc": 18,
+    "talk.religion.misc": 19 }
+
+#------------------------------------------------------------------------------
+
 def filter_string(string, do_stem=True):
 
     #tokens = nltk.word_tokenize(string)
@@ -37,6 +61,28 @@ def filter_string(string, do_stem=True):
         tokens = [porter.stem(t) for t in tokens]
     #tokens = [wnl.lemmatize(t) for t in tokens]
     return " ".join(item for item in tokens if len(item)>1)
+
+#------------------------------------------------------------------------------
+
+#Compute list of topic ids corresponding each document id
+def compute_doccategorylist_20news(jsons):
+
+    doccategorylist = []
+    for jsond in jsons:
+        #print(jsond['tags'])
+        dstr=''
+        sublist = []
+        for tag in jsond['tags']:
+            parts = tag.split('=')
+            if parts[0] == "newsgroup":
+                category = categoryindices[parts[1]]
+                sublist.append(category)
+                #dstr = dstr + ' ' + str(category)
+        doccategorylist.append(sublist)
+
+    #print(doccategorylist)
+    print("Doccategorylist size:", len(doccategorylist))
+    return doccategorylist
 
 #------------------------------------------------------------------------------
 
@@ -75,6 +121,9 @@ tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
 #Load cosine similarity model for computing cosine similarity between keyboard input with documents
 index      = similarities.docsim.Similarity.load('data/similarityvec')
 
+#Compute topics of each document
+doccategorylist = compute_doccategorylist_20news(data)
+
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
 
@@ -94,6 +143,7 @@ filelocatorlist = []
 #
 dwordlist = []
 
+
 #
 filename = args.queries
 print("Reading simulation queries from file", filename)
@@ -107,7 +157,7 @@ for j,line in enumerate(f):
     line        = line.rstrip()
     dlist       = line.split("/")
     filename    = line
-    filecategory= dlist[1]
+    filecategory= categoryindices[dlist[1]]
     #print "filename2: ", dlist[0], dlist[1]
     #print 'enron_with_categories/'+dlist[0]
     #dumfile = open('enron_with_categories/'+dlist[0])
@@ -186,6 +236,12 @@ for j,line in enumerate(f):
             jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
             nsuggested_files = len(jsons)
 
+            #
+            all_kw_scores = []
+            for ii in range(0,20):
+                all_kw_scores.append(compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii))
+            kw_scores = all_kw_scores[filecategory]
+
             #Number of files having same category
             nsamecategory = 0.0
 
@@ -197,7 +253,7 @@ for j,line in enumerate(f):
                     parts = json['tags'][ti].split('=')
                     if parts[0] == "newsgroup":
                         #
-                        categoryid = parts[1]
+                        categoryid = categoryindices[parts[1]]
                         print("Category:", categoryid, "Correct:", filecategory)
                         #
                         if categoryid == filecategory:
@@ -218,9 +274,12 @@ for j,line in enumerate(f):
             else:
                 avgprecision = 0
             #
-            print("Precisions: ",cprecision, avgprecision)
+            kw_scores_norm = kw_scores/sum(all_kw_scores)
+            print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
+            print("  ", kw_scores_norm)
+            print("  ", kws,"\n")
             #
-            precisionlist.append([cprecision, avgprecision])
+            precisionlist.append([cprecision, avgprecision, kw_scores_norm])
 
             #
             dstr2 = ''
@@ -241,7 +300,6 @@ for j,line in enumerate(f):
     #Save precisionlist
     filename = filename.replace('/','_')
     filename = filename.replace('.','_')
-    f = open('data/precisionlist_'+filename+'.list','w')
-    pickle.dump(precisionlist,f)
+    pickle.dump(precisionlist, open('data/precisionlist_'+filename+'.list','wb'))
 
 
