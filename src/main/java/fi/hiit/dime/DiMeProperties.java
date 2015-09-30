@@ -24,37 +24,18 @@
 
 package fi.hiit.dime;
 
-import fi.hiit.dime.database.SearchIndex;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-/**
-   This is just to start search index updating when server has started.
-*/
+@ConfigurationProperties(locations = "classpath:application.properties", ignoreUnknownFields = false, prefix = "dime")
 @Component
-public class ContextRefreshedListener 
-    implements ApplicationListener<ContextRefreshedEvent> 
-{
-    private static final Logger LOG = LoggerFactory.getLogger(ContextRefreshedListener.class);
+public class DiMeProperties {
+    private String luceneIndexPath;
+    private boolean useLucene;
 
-    @Autowired
-    private DiMeProperties dimeConfig;
+    public void setUseLucene(boolean b) { useLucene = b; }
+    public boolean getUseLucene() { return useLucene; }
 
-    @Autowired
-    protected SearchIndex searchIndex;
-
-    @Override
-    public void onApplicationEvent(final ContextRefreshedEvent event) {
-	if (dimeConfig.getUseLucene()) {
-	    LOG.info("Using Lucene for searching.");
-	    searchIndex.updateIndex(true);
-	} else {
-	    LOG.info("Lucene not configured, using mongodb search.");
-	}
-    }
+    public void setLuceneIndexPath(String s) { luceneIndexPath = s; }
+    public String getLuceneIndexPath() { return luceneIndexPath; }
 }

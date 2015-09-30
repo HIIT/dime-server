@@ -64,6 +64,9 @@ public class WebController extends WebMvcConfigurerAdapter {
 	LoggerFactory.getLogger(WebController.class);
 
     @Autowired
+    private DiMeProperties dimeConfig;
+
+    @Autowired
     private EventDAO eventDAO;
 
     @Autowired
@@ -88,8 +91,6 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "root";
     }
 
-    //--------------------------------------------------------------------------
-
     /* Show log of all data */
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
@@ -98,8 +99,6 @@ public class WebController extends WebMvcConfigurerAdapter {
 	model.addAttribute("count", eventDAO.count(userId));
         return "log";
     }
-
-    //--------------------------------------------------------------------------
 
     /* Show a specific event */
     @RequestMapping("/event")
@@ -112,8 +111,6 @@ public class WebController extends WebMvcConfigurerAdapter {
 	    model.addAttribute("event", event);
         return "event";
     }
-
-    //--------------------------------------------------------------------------
 
     /* Show a specific information element */
     @RequestMapping("/infoelem")
@@ -130,8 +127,6 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "infoelem";
     }
 
-    //--------------------------------------------------------------------------
-
     /* Show a specific message object */
     @RequestMapping("/message")
     public String message(Authentication authentication, Model model,
@@ -144,8 +139,6 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "message";
     }
 
-    //--------------------------------------------------------------------------
-
     /* Search page */
     @RequestMapping("/search")
     public String search(@ModelAttribute SearchQuery search,
@@ -153,14 +146,20 @@ public class WebController extends WebMvcConfigurerAdapter {
 			 Model model) {
 
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	model.addAttribute("info", "");
 
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
-	    List<InformationElement> results;
-	    try {
-		 results = searchIndex.textSearch(query, 100, userId);
-	    } catch (IOException e) {
-		LOG.warn("Lucene search failed [" + e + "], using mongodb search instead.");
+	    List<InformationElement> results = null;
+	    if (dimeConfig.getUseLucene()) {
+		try {
+		    results = searchIndex.textSearch(query, 100, userId);
+		    model.addAttribute("info", "(Lucene)");
+		} catch (IOException e) {
+		    LOG.warn("Lucene search failed [" + e + "].");
+		    model.addAttribute("error", e);
+		}
+	    } else {
 		results = infoElemDAO.textSearch(query, -1, userId);
 	    }
 

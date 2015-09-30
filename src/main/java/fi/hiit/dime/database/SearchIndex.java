@@ -117,6 +117,12 @@ public class SearchIndex {
     	//
     	// writer.forceMerge(1);
 
+	// Also, for low-latency turnaround it's best to use a
+	// near-real-time reader
+	// (DirectoryReader.open(IndexWriter,boolean)). Once you have
+	// a new IndexReader, it's relatively cheap to create a new
+	// IndexSearcher from it.
+
 	return writer;
     }
 
@@ -129,6 +135,7 @@ public class SearchIndex {
 	long count = 0;
 
 	if (forceAll || infoElemDAO.countNotIndexed() > 0) {
+	    LOG.info("Updating Lucene index ....");
 	    try {
 		IndexWriter writer = getIndexWriter();
 		int skipped = 0;
@@ -146,9 +153,6 @@ public class SearchIndex {
 
 		writer.close();
 
-		if (skipped > 0)
-		    LOG.warn("Skipped {} elements with empty content.", skipped);
-
 		for (InformationElement elem : toIndex) {
 		    // NOTE: we are also marking those which were
 		    // skipped as "isIndexed" since otherwise DiMe
@@ -160,6 +164,9 @@ public class SearchIndex {
 		}
 
 		LOG.info("Indexed {} information elements.", count);
+		if (skipped > 0)
+		    LOG.info("Skipped {} elements with empty content.", skipped);
+
 	    } catch (IOException e) {
 		LOG.error("Exception while updating search index: " + e);
 	    }
@@ -180,7 +187,7 @@ public class SearchIndex {
 	if (elem.plainTextContent == null || elem.plainTextContent.isEmpty())
 	    return false;
 
-	LOG.info("Indexing document {}", elem.id);
+	LOG.debug("Indexing document {}", elem.id);
 
 	Document doc = new Document(); // NOTE: Lucene Document!
 
@@ -197,6 +204,13 @@ public class SearchIndex {
 	return true;
     }
 
+    /**
+       Perform text search to Lucene index.
+
+       @param query Query string
+       @param limit Maximum number of results to return
+       @param userId DiMe user id.
+    */
     public List<InformationElement> textSearch(String query, int limit,
 					       String userId)
 	throws IOException
@@ -205,24 +219,6 @@ public class SearchIndex {
 	    limit = 100;
 
 	List<InformationElement> elems = new ArrayList<InformationElement>();
-
-	//FIXME: check when we need to reinitialize reader, searcher etc
-
-	/* Applications usually need only call the inherited
-	 * search(Query,int) or search(Query,Filter,int) methods. For
-	 * performance reasons, if your index is unchanging, you
-	 * should share a single IndexSearcher instance across
-	 * multiple searches instead of creating a new one per-search.
-	 * If your index has changed and you wish to see the changes
-	 * reflected in searching, you should use
-	 * DirectoryReader.openIfChanged(DirectoryReader) to obtain a
-	 * new reader and then create a new IndexSearcher from that.
-	 * Also, for low-latency turnaround it's best to use a
-	 * near-real-time reader
-	 * (DirectoryReader.open(IndexWriter,boolean)). Once you have
-	 * a new IndexReader, it's relatively cheap to create a new
-	 * IndexSearcher from it.*/
-
 
 	try {
 	    if (reader == null) {

@@ -56,11 +56,13 @@ import javax.servlet.ServletRequest;
 @RestController
 @RequestMapping("/api")
 public class ApiController extends AuthorizedController {
-    private static final Logger LOG = 
-	LoggerFactory.getLogger(ApiController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ApiController.class);
 
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
+
+    @Autowired
+    private DiMeProperties dimeConfig;
 
     @Autowired
     SearchIndex searchIndex;
@@ -105,15 +107,18 @@ public class ApiController extends AuthorizedController {
 
 	if (query.length() > 0) {
 	    try {
-		List<InformationElement> resultsList =
-		    // 	infoElemDAO.textSearch(query, limit, user.id);
-		    searchIndex.textSearch(query, limit, user.id);
+		List<InformationElement> resultsList;
+		if (dimeConfig.getUseLucene())
+		    resultsList = searchIndex.textSearch(query, limit, user.id);
+		else
+		    resultsList = infoElemDAO.textSearch(query, limit, user.id);
 	    
 		InformationElement[] results = new InformationElement[resultsList.size()];
 		resultsList.toArray(results);	
 		
 		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
 				       query, limit, results.length));
+
 		return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
 	    } catch (IOException e) {
 		return new ResponseEntity<InformationElement[]>

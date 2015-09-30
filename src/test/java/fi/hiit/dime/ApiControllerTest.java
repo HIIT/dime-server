@@ -117,8 +117,9 @@ public class ApiControllerTest extends RestTest {
 	// Check that HTTP was successful
 	assertSuccessful(res);
 
-	//
-	searchIndex.updateIndex(false);
+	// Refresh Lucene index
+	if (searchIndex != null)
+	    searchIndex.updateIndex(false);
 
 	// Now try searching for the ones in idxToFind
 	InformationElement[] searchRes = doSearch(magicWord);

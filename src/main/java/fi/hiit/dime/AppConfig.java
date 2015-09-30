@@ -28,6 +28,9 @@ import fi.hiit.dime.database.SearchIndex;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +41,12 @@ import java.io.File;
 
 @Configuration
 public class AppConfig {
+    private static final Logger LOG = LoggerFactory.getLogger(AppConfig.class);
+
     public static final String DB_NAME = "dime";
-    private String indexPath = System.getProperty("user.home") + File.separator + "dime-lucene";
+
+    @Autowired
+    private DiMeProperties dimeConfig;
 
     @Bean
     public Mongo mongo() throws Exception {
@@ -53,7 +60,9 @@ public class AppConfig {
 
     @Bean
     public SearchIndex searchIndex() throws Exception {
-	SearchIndex index = new SearchIndex(indexPath);
-	return index;
+	if (dimeConfig.getUseLucene())
+	    return new SearchIndex(dimeConfig.getLuceneIndexPath());
+	else 
+	    return null;
     }
 }
