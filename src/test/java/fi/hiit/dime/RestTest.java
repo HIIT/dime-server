@@ -24,12 +24,15 @@
 
 package fi.hiit.dime;
 
-import fi.hiit.dime.authentication.UserCreateForm;
-import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.authentication.UserCreateForm;
+import fi.hiit.dime.authentication.UserService;
+import fi.hiit.dime.data.DiMeData;
+import fi.hiit.dime.data.Message;
 import fi.hiit.dime.util.RandomPassword;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +42,10 @@ import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Base class for REST API testers.
@@ -54,6 +61,9 @@ public abstract class RestTest {
     @Autowired
     UserService userService;
 
+    @Autowired 
+    private ObjectMapper objectMapper;
+
     private String apiBase;
 
     private RestTemplate rest;
@@ -61,6 +71,8 @@ public abstract class RestTest {
     private User testUser;
 
     private RandomPassword pw = new RandomPassword();
+
+    protected String eventApi, eventsApi, infoElemApi, infoElemsApi;
 
     @Before 
     public void restSetup() {
@@ -80,6 +92,10 @@ public abstract class RestTest {
     }
 
     protected void setup() {
+	eventApi = apiUrl("/data/event");
+	eventsApi = apiUrl("/data/events");
+	infoElemApi = apiUrl("/data/informationelement");
+	infoElemsApi = apiUrl("/data/informationelements");
     }
 
     @After
@@ -118,4 +134,60 @@ public abstract class RestTest {
     public static <T> void assertClientError(ResponseEntity<T> res) {
 	assert(res.getStatusCode().is4xxClientError());
     }
+
+    protected Message createTestEmail() {
+	return createTestEmail("Hello, world");
+    }
+
+    protected Message createTestEmail(String content) {
+	// Create a message
+	Message msg = new Message();
+	msg.date = new Date(); // current date
+	msg.subject = "Hello DiMe";
+	msg.fromString = "Mats Sjöberg <mats.sjoberg@helsinki.fi>";
+	msg.toString = "Mats Sjöberg <mats.sjoberg@hiit.fi>";
+	msg.ccString = "Mats Sjöberg <mats.sjoberg@cs.helsinki.fi>";
+	msg.plainTextContent = content;
+	
+	SimpleDateFormat format =
+	    new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+	
+	msg.rawMessage = 
+	    "From: " + msg.fromString + "\n" +
+	    "To: " + msg.toString + "\n" +
+	    "Cc: " + msg.ccString + "\n" + 
+	    "Subject: " + msg.subject + "\n" +
+	    "Date: " + format.format(msg.date) +
+	    "Message-ID: <43254843985749@helsinki.fi>\n" + 
+	    "\n\n" + msg.plainTextContent;
+
+	return msg;
+    }
+
+    /**
+     * Helper method to print out the content of a DiMeData object.
+     */
+    protected void dumpData(String message, DiMeData data) {
+	try {
+	    System.out.println(message + "\n" +
+			       objectMapper.writerWithDefaultPrettyPrinter().
+			       writeValueAsString(data));
+	} catch (IOException e) {
+	}
+    }
+
+    /**
+     * Helper method to print out the content of an array of DiMeData objects.
+     */
+    protected void dumpData(String message, DiMeData[] data) {
+	try {
+	    for (int i=0; i<data.length; i++) {
+		String dataStr = objectMapper.
+		    writerWithDefaultPrettyPrinter().writeValueAsString(data[i]);
+		System.out.println(String.format("%s [%d]: %s", message, i, dataStr));
+	    }
+	} catch (IOException e) {
+	}
+    }
+
 }

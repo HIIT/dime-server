@@ -24,19 +24,17 @@
 
 package fi.hiit.dime;
 
-//------------------------------------------------------------------------------
-
-import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.CurrentUser;
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
-import java.util.List;
-import java.util.NoSuchElementException;
-import javax.validation.Valid;
+
 import org.slf4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -49,15 +47,24 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-//------------------------------------------------------------------------------
+import java.io.IOException;
+import java.util.List;
+import java.util.NoSuchElementException;
+import javax.validation.Valid;
 
+/**
+ * Web UI controller.
+ *
+ * @author Mats Sjöberg, mats.sjoberg@helsinki.fi
+ */
 @Controller
 public class WebController extends WebMvcConfigurerAdapter {
     private static final Logger LOG = 
 	LoggerFactory.getLogger(WebController.class);
+
+    @Autowired
+    private DiMeProperties dimeConfig;
 
     @Autowired
     private EventDAO eventDAO;
@@ -65,20 +72,14 @@ public class WebController extends WebMvcConfigurerAdapter {
     @Autowired
     private InformationElementDAO infoElemDAO;
 
-    //@Autowired
-    //private Authentication authentication;
-
     @Autowired
     private UserService userService;
 
     @Autowired
     private UserCreateFormValidator userCreateFormValidator;
 
-
-    // private CurrentUser getCurrentUser() {
-    // 	// return (CurrentUser)authentication.getPrincipal();
-    // 	return new CurrentUser();
-    // }
+    @Autowired
+    SearchIndex searchIndex;
 
 
     //------------------------------------------------------------------------------
@@ -90,8 +91,6 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "root";
     }
 
-    //--------------------------------------------------------------------------
-
     /* Show log of all data */
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
@@ -100,8 +99,6 @@ public class WebController extends WebMvcConfigurerAdapter {
 	model.addAttribute("count", eventDAO.count(userId));
         return "log";
     }
-
-    //--------------------------------------------------------------------------
 
     /* Show a specific event */
     @RequestMapping("/event")
@@ -114,8 +111,6 @@ public class WebController extends WebMvcConfigurerAdapter {
 	    model.addAttribute("event", event);
         return "event";
     }
-
-    //--------------------------------------------------------------------------
 
     /* Show a specific information element */
     @RequestMapping("/infoelem")
@@ -132,8 +127,6 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "infoelem";
     }
 
-    //--------------------------------------------------------------------------
-
     /* Show a specific message object */
     @RequestMapping("/message")
     public String message(Authentication authentication, Model model,
@@ -146,8 +139,6 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "message";
     }
 
-    //--------------------------------------------------------------------------
-
     /* Search page */
     @RequestMapping("/search")
     public String search(@ModelAttribute SearchQuery search,
@@ -155,11 +146,23 @@ public class WebController extends WebMvcConfigurerAdapter {
 			 Model model) {
 
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	model.addAttribute("info", "");
 
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
-	    List<InformationElement> results =
-		infoElemDAO.textSearch(query, -1, userId);
+	    List<InformationElement> results = null;
+	    if (dimeConfig.getUseLucene()) {
+		try {
+		    results = searchIndex.textSearch(query, 100, userId);
+		    model.addAttribute("info", "(Lucene)");
+		} catch (IOException e) {
+		    LOG.warn("Lucene search failed [" + e + "].");
+		    model.addAttribute("error", e);
+		}
+	    } else {
+		results = infoElemDAO.textSearch(query, -1, userId);
+	    }
+
 	    model.addAttribute("results", results);
 	}
 

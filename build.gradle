@@ -27,6 +27,9 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-thymeleaf")
     compile("org.springframework.boot:spring-boot-starter-security")
     compile("com.fasterxml.jackson.core:jackson-annotations")
+    compile("org.apache.lucene:lucene-core:5.3.0")
+    compile("org.apache.lucene:lucene-analyzers-common:5.3.0")
+    compile("org.apache.lucene:lucene-queryparser:5.3.0")
     testCompile("org.springframework.boot:spring-boot-starter-test")
     //testCompile("junit:junit")
 }

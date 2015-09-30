@@ -51,11 +51,6 @@ import java.io.IOException;
 /**
  * Controller for /data REST API, for writing and reading data objects. 
  *
- * Each new object type needs its own endpoint here. The convention is
- * to name the endpoint as the class but in lower case, e.g. for
- * <code>SearchEvent</code> the REST endpoint is
- * <code>/data/searchevent</code>.
- *
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
 @RestController
