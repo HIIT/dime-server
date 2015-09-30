@@ -95,11 +95,15 @@ parser.add_argument('--nostem', action='store_true',
                     help='disable Porter stemming of tokens')
 parser.add_argument('--norestart', action='store_true',
                     help='do not restart between documents')
+parser.add_argument('--numwords', metavar='N', action='store', type=int,
+                    default=10, help='number of written words to consider')
 args = parser.parse_args()
 
 #User ini
-srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
+srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
 #
+numwords = args.numwords
+
 #update_data(srvurl, usrname, password)
 check_update()
 #Load necessary data files 
