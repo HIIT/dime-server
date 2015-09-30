@@ -34,10 +34,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import java.io.File;
+
 @Configuration
 public class AppConfig {
     public static final String DB_NAME = "dime";
-    private String indexPath = "/home/mvsjober/var/dime-lucene";
+    private String indexPath = System.getProperty("user.home") + File.separator + "dime-lucene";
 
     @Bean
     public Mongo mongo() throws Exception {

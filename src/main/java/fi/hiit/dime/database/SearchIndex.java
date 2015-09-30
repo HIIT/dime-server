@@ -65,10 +65,9 @@ public class SearchIndex {
     private static final String userIdField = "userId";
     private static final String textQueryField = "plainTextContent";
 
-    private IndexWriterConfig iwc;
     private FSDirectory fsDir;
 
-    private DirectoryReader reader;
+    private DirectoryReader reader = null;
     private IndexSearcher searcher;
     private StandardQueryParser parser;
 
@@ -86,7 +85,17 @@ public class SearchIndex {
 	// FIXME: check if index was destroyed, i.e. would need
 	// reindexing
 
-        iwc = new IndexWriterConfig(new StandardAnalyzer());
+	parser = new StandardQueryParser(new StandardAnalyzer());
+    }
+
+    /**
+       Get an IndexWriter for writing to the index. Remember to close
+       after use!
+
+       @return An IndexWriter instance
+    */
+    protected IndexWriter getIndexWriter() throws IOException {
+	IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 
     	// Advice from Lucene example:
@@ -98,19 +107,6 @@ public class SearchIndex {
     	//
     	// iwc.setRAMBufferSizeMB(256.0);
 
-	parser = new StandardQueryParser(new StandardAnalyzer());
-
-	reader = DirectoryReader.open(fsDir);
-	searcher = new IndexSearcher(reader);
-    }
-
-    /**
-       Get an IndexWriter for writing to the index. Remember to close
-       after use!
-
-       @return An IndexWriter instance
-    */
-    protected IndexWriter getIndexWriter() throws IOException {
 	IndexWriter writer = new IndexWriter(fsDir, iwc);
 
     	// NOTE: if you want to maximize search performance,
@@ -184,7 +180,7 @@ public class SearchIndex {
 	if (elem.plainTextContent == null || elem.plainTextContent.isEmpty())
 	    return false;
 
-	LOG.info("Indexing document {} \"{}\"", elem.id, elem.plainTextContent);
+	LOG.info("Indexing document {}", elem.id);
 
 	Document doc = new Document(); // NOTE: Lucene Document!
 
@@ -229,6 +225,11 @@ public class SearchIndex {
 
 
 	try {
+	    if (reader == null) {
+		reader = DirectoryReader.open(fsDir);
+		searcher = new IndexSearcher(reader);
+	    }
+
 	    DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
 
 	    // Reinitialise reader and searcher if the index has changed.
