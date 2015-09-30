@@ -37,8 +37,6 @@ def filter_string(string):
     #tokens = [wnl.lemmatize(t) for t in tokens]
     return " ".join(item for item in tokens if len(item)>1)
 
-
-
 #User ini
 srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
 #
@@ -66,7 +64,7 @@ tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
 index      = similarities.docsim.Similarity.load('data/similarityvec')
 
 #Compute topics of each document
-doccategorylist = compute_doccategorylist()
+doccategorylist = compute_doccategorylist_enron()
 
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
@@ -242,14 +240,6 @@ if args.simulation:
         #f = open('data/precisionlist_'+filename+'.list','w')
         #pickle.dump(precisionlist,f)
         pickle.dump(precisionlist, open('data/precisionlist_'+filename+'.list','wb'))
-
-
-
-
-
-
-
-
 
 
 else:

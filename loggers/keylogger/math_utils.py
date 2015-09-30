@@ -37,7 +37,7 @@ def cossim(x1,x2):
 
 
 #Compute list of topic ids corresponding each document id
-def compute_doccategorylist():
+def compute_doccategorylist_enron():
     #
     #print('hello')
     f = open('data/json_data.txt','r')
@@ -71,7 +71,8 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #output:
     #kw_scores.mean() = list of topic related mean of tfidf values of suggested keywords
     #
-
+    # if len(keywordindlist)==0:
+    #     return 0, [0]
     sub_tfidf_matrix = tfidf_matrix[:,keywordindlist]
     print(sub_tfidf_matrix.shape)
     #
