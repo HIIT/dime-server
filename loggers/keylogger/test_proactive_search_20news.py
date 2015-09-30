@@ -93,6 +93,8 @@ parser.add_argument("--querypath", metavar = "PATH",
                     help="path to queries to process")
 parser.add_argument('--nostem', action='store_true',
                     help='disable Porter stemming of tokens')
+parser.add_argument('--norestart', action='store_true',
+                    help='do not restart between documents')
 args = parser.parse_args()
 
 #User ini
@@ -143,6 +145,7 @@ filelocatorlist = []
 #
 dwordlist = []
 
+filecategory_old = None
 
 #
 filename = args.queries
@@ -191,8 +194,10 @@ for j,line in enumerate(f):
     c = 1.0
 
     #Remove r_old.npy = old version of observed relevance vector
-    if os.path.isfile('data/r_old.npy'):
-        os.remove('data/r_old.npy')
+    if not args.norestart:    
+        if os.path.isfile('data/r_old.npy'):
+            os.remove('data/r_old.npy')
+        dwordlist = []
 
     #
     i = 0
@@ -201,7 +206,6 @@ for j,line in enumerate(f):
     divn = 1
     #
     dstr2 = ''
-    dwordlist = []
     #Go through words of wordlist of a single message
     #dummy index
     j2 = 0
@@ -210,8 +214,11 @@ for j,line in enumerate(f):
     nwritten = 50
     #Average precision
     sumavgprecision = 0.0
+    sumavgprecision_old = 0.0
     #List of precisionlist corresponding one file
     precisionlist = []
+    precisionlist_old = []
+
     for i, dstr in enumerate(wordlist):
 
         #If nth word has been written, do search
@@ -239,11 +246,21 @@ for j,line in enumerate(f):
             #
             all_kw_scores = []
             for ii in range(0,20):
-                all_kw_scores.append(compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii))
+                kwm, foo = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
+                all_kw_scores.append(kwm)
             kw_scores = all_kw_scores[filecategory]
+            if filecategory_old is not None:
+                kw_scores_old = all_kw_scores[filecategory_old]
+            else:
+                kw_scores_old = kw_scores
+
+            sum_of_all_kw_scores = sum(all_kw_scores)
+            kw_scores_norm = kw_scores/sum_of_all_kw_scores
+            kw_scores_norm_old = kw_scores_old/sum_of_all_kw_scores
 
             #Number of files having same category
             nsamecategory = 0.0
+            nsamecategory_old = 0.0
 
             #Print all tags of jsons
             for json in jsons:
@@ -254,32 +271,41 @@ for j,line in enumerate(f):
                     if parts[0] == "newsgroup":
                         #
                         categoryid = categoryindices[parts[1]]
-                        print("Category:", categoryid, "Correct:", filecategory)
+                        print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
                         #
                         if categoryid == filecategory:
-                            print("GOT SAME CATEGORY!")
+                            print("GOT SAME CATEGORY AS CURRENT!")
                             nsamecategory = nsamecategory + 1.0
-                            #break
+                        elif categoryid == filecategory_old:
+                            print("GOT SAME CATEGORY AS OLD!")
+                            nsamecategory_old = nsamecategory_old + 1.0
 
             #Current precision
             if nsuggested_files > 0:
                 cprecision = float(nsamecategory)/float(nsuggested_files)
+                cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
             else:
                 cprecision = 0
+                cprecision_old = 0
 
             #Average precision so far
             sumavgprecision = sumavgprecision + cprecision
+            sumavgprecision_old = sumavgprecision_old + cprecision_old
             if j2 > 0:
                 avgprecision = float(sumavgprecision)/float(j2)
+                avgprecision_old = float(sumavgprecision_old)/float(j2)
             else:
                 avgprecision = 0
+                avgprecision_old = 0
             #
-            kw_scores_norm = kw_scores/sum(all_kw_scores)
-            print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
-            print("  ", kw_scores_norm)
-            print("  ", kws,"\n")
+            print("Suggested keywords:", kws)
+            print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
+            print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
+            print("  ", all_kw_scores/sum_of_all_kw_scores, '\n')
+
             #
             precisionlist.append([cprecision, avgprecision, kw_scores_norm])
+            precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
 
             #
             dstr2 = ''
@@ -301,5 +327,8 @@ for j,line in enumerate(f):
     filename = filename.replace('/','_')
     filename = filename.replace('.','_')
     pickle.dump(precisionlist, open('data/precisionlist_'+filename+'.list','wb'))
+    if filecategory != filecategory_old and filecategory_old is not None:
+        pickle.dump(precisionlist_old, open('data/precisionlistold_'+filename+'.list','wb'))
 
+    filecategory_old = filecategory
 
