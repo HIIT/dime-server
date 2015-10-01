@@ -49,9 +49,11 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.NoSuchElementException;
 import javax.validation.Valid;
+import java.net.UnknownHostException;
 
 /**
  * Web UI controller.
@@ -87,7 +89,13 @@ public class WebController extends WebMvcConfigurerAdapter {
     //------------------------------------------------------------------------------
 
     @RequestMapping("/")
-    public String root(Model model) {
+    public String root(Model model, @RequestHeader("host") String hostName) {	
+	try {
+	    hostName = InetAddress.getLocalHost().getHostName();
+	} catch (UnknownHostException e) {
+	}
+
+	model.addAttribute("hostname", hostName);
         return "root";
     }
 

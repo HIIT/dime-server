@@ -8,7 +8,7 @@
 
     <div class="starter-template">
 
-      <h1>Welcome to your friendly local Digital Work Me server!</h1>
+      <h1>Welcome to your friendly local Digital Work Me server at <span th:text="${hostname}">some unknown computer</span>!</h1>
       
       <div th:if="${#httpServletRequest.remoteUser}">
         <form th:action="@{/logout}" method="post">
