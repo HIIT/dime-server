@@ -97,12 +97,31 @@ parser.add_argument('--norestart', action='store_true',
                     help='do not restart between documents')
 parser.add_argument('--numwords', metavar='N', action='store', type=int,
                     default=10, help='number of written words to consider')
+parser.add_argument('--histremoval', metavar='X:Y', 
+                    help='remove history with parameters X and Y')
+
 args = parser.parse_args()
 
 #User ini
 srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
 #
 numwords = args.numwords
+
+if not args.queries:
+    print("args.queries is empty")
+    sys.exit()
+
+if not args.querypath:
+    print("args.querypath is empty")
+    sys.exit()
+
+histremoval_threshold = 0
+histremoval_ma_value  = 0
+if args.histremoval:
+    print(args.histremoval)
+    parts = args.histremoval.split(":")
+    histremoval_threshold = int(parts[0])
+    histremoval_ma_value  = int(parts[1])
 
 #update_data(srvurl, usrname, password)
 check_update()
@@ -135,13 +154,6 @@ if os.path.isfile('data/r_old.npy'):
 
 #
 
-if not args.queries:
-    print("args.queries is empty")
-    sys.exit()
-
-if not args.querypath:
-    print("args.querypath is empty")
-    sys.exit()
 
 #
 filelocatorlist = []
@@ -248,6 +260,12 @@ for j,line in enumerate(f):
             nsuggested_files = len(jsons)
 
             #
+            if args.histremoval:                
+                histremoval_val = check_history_removal(histremoval_threshold, histremoval_ma_value)
+                if histremoval_val > histremoval_threshold:
+                    dwordlist = dwordlist[-3:]
+
+            #
             all_kw_scores = []
             for ii in range(0,20):
                 kwm, foo = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
@@ -258,9 +276,10 @@ for j,line in enumerate(f):
             else:
                 kw_scores_old = kw_scores
 
-            sum_of_all_kw_scores = sum(all_kw_scores)
+            sum_of_all_kw_scores = max(sum(all_kw_scores),0.0000000001)
             kw_scores_norm = kw_scores/sum_of_all_kw_scores
             kw_scores_norm_old = kw_scores_old/sum_of_all_kw_scores
+            all_kw_scores_norm = [x / sum_of_all_kw_scores for x in all_kw_scores]
 
             #Number of files having same category
             nsamecategory = 0.0
@@ -305,7 +324,7 @@ for j,line in enumerate(f):
             print("Suggested keywords:", kws)
             print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
             print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-            print("  ", all_kw_scores/sum_of_all_kw_scores, '\n')
+            print("  ", all_kw_scores_norm, '\n')
 
             #
             precisionlist.append([cprecision, avgprecision, kw_scores_norm])
