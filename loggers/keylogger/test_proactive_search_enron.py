@@ -175,20 +175,12 @@ if args.simulation:
 
                 #Remove r_old.npy = old version of observed relevance vector
                 #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values
-                if os.path.isfile("data/cossim_vsum_vec.npy"):
-                    cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
-                #Maximum fraction 
+                
+                #Maximum fraction threshold
                 frac_thres = 10.0
-                #Take latest value of cosine similarity between consecutive vsum-vectors
-                latest_cossim = cossim_vsum_vec[-1:]
-                #Compute moving average
-                mvng_avg      = cossim_vsum_vec[-11:-1].mean()
-                if mvng_avg > 0.0:
-                    frac      = latest_cossim/mvng_avg
-                    if frac > frac_thres:
-                        print("REMOVING HISTORY!")
-                        if os.path.isfile('data/r_old.npy'):
-                            os.remove('data/r_old.npy')
+                #Number of past values from which the average is computed
+                mvn_avg_n  = 10
+                check_history_removal(frac_thres, mvn_avg_n)
 
                 # 
                 all_kw_scores = []

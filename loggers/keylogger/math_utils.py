@@ -35,6 +35,23 @@ def vec_sparsity(v):
 def cossim(x1,x2):
 	pass
 
+#
+def check_history_removal(frac_thres, mvn_avg_n):
+    if os.path.isfile("data/cossim_vsum_vec.npy"):
+        cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
+
+    #Take latest value of cosine similarity between consecutive vsum-vectors
+    latest_cossim = cossim_vsum_vec[-1:]
+    #Compute moving average
+    #mvng_avg      = cossim_vsum_vec[-11:-1].mean()
+    mvng_avg      = cossim_vsum_vec[-(mvn_avg_n+1):-1].mean()
+    if mvng_avg > 0.0:
+        frac      = (1-latest_cossim)/(1-mvng_avg)
+        if frac > frac_thres:
+            print("REMOVING HISTORY!")
+            if os.path.isfile('data/r_old.npy'):
+                os.remove('data/r_old.npy')
+
 
 #Compute list of topic ids corresponding each document id
 def compute_doccategorylist_enron():
