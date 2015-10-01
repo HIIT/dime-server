@@ -146,7 +146,7 @@ if args.simulation:
         j2 = 0
         
         #Maximum number of words written from each file 
-        nwritten = 150
+        nwritten = 50
         #Average precision
         sumavgprecision = 0.0
         #List of precisionlist corresponding one file
@@ -177,10 +177,13 @@ if args.simulation:
                 #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values
                 
                 #Maximum fraction threshold
-                frac_thres = 10.0
+                frac_thres = 5.0
                 #Number of past values from which the average is computed
                 mvn_avg_n  = 10
-                check_history_removal(frac_thres, mvn_avg_n)
+                #frac = 0.0
+                frac = check_history_removal(frac_thres, mvn_avg_n)
+                if frac > frac_thres:
+                    dwordlist = []
 
                 # 
                 all_kw_scores = []
@@ -224,11 +227,13 @@ if args.simulation:
                 else:
                     avgprecision = 0
                 #
-                print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores/sum(all_kw_scores))
-                print("  ", all_kw_scores/sum(all_kw_scores))
+                eps = 0.00001
+                if sum(all_kw_scores) > 0:
+                    print("Precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores/(sum(all_kw_scores)))
+                    print("  ", all_kw_scores/(sum(all_kw_scores)))
                 print("  ", kws,"\n")
                 #
-                precisionlist.append([cprecision, avgprecision, kw_scores/sum(all_kw_scores)])
+                precisionlist.append([cprecision, avgprecision, kw_scores/(sum(all_kw_scores)+eps)])
 
                 #
                 dstr2 = ''

@@ -37,6 +37,9 @@ def cossim(x1,x2):
 
 #
 def check_history_removal(frac_thres, mvn_avg_n):
+
+    frac = 0.0
+
     if os.path.isfile("data/cossim_vsum_vec.npy"):
         cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
 
@@ -45,12 +48,14 @@ def check_history_removal(frac_thres, mvn_avg_n):
     #Compute moving average
     #mvng_avg      = cossim_vsum_vec[-11:-1].mean()
     mvng_avg      = cossim_vsum_vec[-(mvn_avg_n+1):-1].mean()
-    if mvng_avg > 0.0:
+    if (1-mvng_avg) > 0.0:
         frac      = (1-latest_cossim)/(1-mvng_avg)
         if frac > frac_thres:
             print("REMOVING HISTORY!")
             if os.path.isfile('data/r_old.npy'):
                 os.remove('data/r_old.npy')
+
+    return frac
 
 
 
@@ -92,6 +97,9 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #
     # if len(keywordindlist)==0:
     #     return 0, [0]
+    if len(keywordindlist)==0:
+        return 0, []
+
     sub_tfidf_matrix = tfidf_matrix[:,keywordindlist]
     #print(sub_tfidf_matrix.shape)
     #
