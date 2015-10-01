@@ -53,6 +53,8 @@ def check_history_removal(frac_thres, mvn_avg_n):
                 os.remove('data/r_old.npy')
 
 
+
+
 #Compute list of topic ids corresponding each document id
 def compute_doccategorylist_enron():
     #
