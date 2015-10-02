@@ -131,7 +131,7 @@ if args.simulation:
 
 
         #Exploration/Exploitation coefficient
-        c = 1.0
+        c = 0.0
 
 
         #
@@ -149,8 +149,10 @@ if args.simulation:
         nwritten = 50
         #Average precision
         sumavgprecision = 0.0
+        sumavgprecision_old = 0.0
         #List of precisionlist corresponding one file
         precisionlist = []
+        precisionlist_old = []
         for i, dstr in enumerate(wordlist):
 
             #If nth word has been written, do search
@@ -161,7 +163,9 @@ if args.simulation:
 
                 #
                 if i2 == 0:
-                    print("\nMail ", j)
+                    print("###########################################")
+                    print("\nSTARTING NEW MAIL no. ", j)
+                    print("###########################################")
                     filelocatorlist.append(1.0)
                 else:
                     filelocatorlist.append(0.0)
@@ -172,6 +176,18 @@ if args.simulation:
                 dstr2 = ' '.join(dstr2)
                 print("Input to search function: ", dstr2)
                 jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password) 
+
+                #Remove keywords occurring already in input
+                test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
+                print(test_wordlist)
+                for i,kw in enumerate(kws):
+                    #print buttext
+                    if kw in test_wordlist:
+                      print("KEYWORD ALREADY IN INPUT, REMOVE!!")
+                      kws.pop(i)
+                      winds.pop(i)
+
+                #print("Keywords used in precision calculation: ",kws)
 
                 #Remove r_old.npy = old version of observed relevance vector
                 #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values
