@@ -99,6 +99,8 @@ parser.add_argument('--numwords', metavar='N', action='store', type=int,
                     default=10, help='number of written words to consider')
 parser.add_argument('--histremoval', metavar='X:Y', 
                     help='remove history with parameters X and Y')
+parser.add_argument('--removeseenkws', action='store_true',
+                    help='remove keywords that appear in input')
 
 args = parser.parse_args()
 
@@ -258,6 +260,22 @@ for j,line in enumerate(f):
             print("Input to search function: ", dstr2)
             jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
             nsuggested_files = len(jsons)
+
+            #
+            if args.removeseenkws:
+                test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
+                print("TEST_WORDLIST:", test_wordlist)
+                new_kws = []
+                new_winds = []
+                for i,kw in enumerate(kws):
+                    if kw not in test_wordlist:
+                        new_kws.append(kws[i])
+                        new_winds.append(winds[i])
+                    else:
+                        print("KEYWORD", kw, "ALREADY IN INPUT, REMOVE!!")
+                kws = new_kws
+                winds = new_winds
+                print("KWS AFTER REMOVAL:", kws)
 
             #
             if args.histremoval:                
