@@ -48,7 +48,7 @@ public class Message extends InformationElement {
 
     @Override
     public void processUploaded() {
-	if (subject.length() > 0)
+	if (subject != null && subject.length() > 0)
 	    plainTextContent = 
 		subject + "\n\n" + plainTextContent;
     }
