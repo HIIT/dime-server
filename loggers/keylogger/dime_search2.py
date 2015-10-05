@@ -349,28 +349,50 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Compute relevance estimate vector r_hat, and sigma_hat (= upper bound vector of st.dev vector of r_hat)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, X, mu)
-    r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc(r, X, mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc(r, X, mu)
+    r_hat, sigma_hat, w_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(r, X, mu)
+    #print("w_hat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!:", w_hat)
 
     #Normalize relevance estimate vector
-    if r_hat.max() > 0.0:
+    if r_hat.sum() > 0.0:
         r_hat     = r_hat/r_hat.sum()
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
-    if sigma_hat.max() > 0.0:
+    if sigma_hat.sum() > 0.0:
         sigma_hat = sigma_hat/sigma_hat.sum()
-
-    #Save current r_hat and sigma_hat
-    np.save('data/r_hat.npy',r_hat)
-    np.save('data/sigma_hat.npy',sigma_hat)
+    #Normalize w_hat (user model)
+    if w_hat.sum() > 0.0:
+        w_hat = w_hat/w_hat.sum()
 
     #Add r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
     vsum = r_hat + c*sigma_hat
     #Normalize vsum
     if vsum.max() > 0.0:
         vsum = vsum/vsum.sum()
+    #Store current vsum-vector to vsum.npy
+    np.save('data/vsum.npy', vsum)        
 
     #Compute sparsities of vectors
     r_hat_spar     = vec_sparsity(r_hat)
+    #Store sparsity values of r_hat vector
+    if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
+        r_hat_spar_hist_vec = np.load('data/r_hat_spar_hist_vec.npy')
+        r_hat_spar_hist_vec = np.append(r_hat_spar_hist_vec, r_hat_spar)
+        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
+    else:
+        r_hat_spar_hist_vec = np.array([r_hat_spar])
+        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
+
     sigma_hat_spar = vec_sparsity(sigma_hat)
+    #Store sparsity values of sigma_hat vector
+    if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
+        sigma_hat_spar_hist_vec = np.load('data/sigma_hat_spar_hist_vec.npy')
+        sigma_hat_spar_hist_vec = np.append(sigma_hat_spar_hist_vec, sigma_hat_spar)
+        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+    else:
+        sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
+        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+
+    #
     vsum_spar      = vec_sparsity(vsum)
 
     #Load previous vsum -vector, and compute cosine similarity between current vsum and previous vsum vectors
@@ -384,36 +406,58 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         n1 = np.linalg.norm(vsum)
         n2 = np.linalg.norm(vsum_old)   
         cossim = cossim/(max(n1*n2,eps))
-
-    #Store current vsum-vector to vsum.npy
-    np.save('data/vsum.npy', vsum)
-
-    #Store sparsity values of r_hat vector
-    if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
-        r_hat_spar_hist_vec = np.load('data/r_hat_spar_hist_vec.npy')
-        r_hat_spar_hist_vec = np.append(r_hat_spar_hist_vec, r_hat_spar)
-        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
-    else:
-        r_hat_spar_hist_vec = np.array([r_hat_spar])
-        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
-
-    #Store sparsity values of sigma_hat vector
-    if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
-        sigma_hat_spar_hist_vec = np.load('data/sigma_hat_spar_hist_vec.npy')
-        sigma_hat_spar_hist_vec = np.append(sigma_hat_spar_hist_vec, sigma_hat_spar)
-        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
-    else:
-        sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
-        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
-
-    #Store cosine similarity values into a vector and file
+    #Store cosine similarity between vsum vectors into a vector and file    
     if os.path.isfile("data/cossim_vsum_vec.npy"):
         cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
         cossim_vsum_vec = np.append(cossim_vsum_vec, cossim)
         np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
     else:
         cossim_vsum_vec = np.array([cossim])
-        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
+        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)        
+
+    #Load previous w_hat -vector, and compute cosine similarity between current w_hat and previous w_hat vectors
+    cossim_w_hat = 0.0
+    eucl_dist_w_hat = 0.0
+    eps    = 1e-15
+    if os.path.isfile('data/w_hat.npy'):
+        #print "dime_search: Load vsum_old!!"
+        w_hat_old = np.load('data/w_hat.npy')
+        #print(w_hat)
+        #Compute cosine similarity between previous and current vsum -vectors
+        # cossim_w_hat = w_hat_old.T.dot(w_hat)[0.0]
+        # print("Cosine similari!!!!!!!!!!!!!!!!!!: ",cossim_w_hat)
+        # n1 = np.linalg.norm(w_hat)
+        # n2 = np.linalg.norm(w_hat_old)   
+        # print("MAXIMUM: ",max(n1*n2,eps))
+        # cossim_w_hat = cossim/(max(n1*n2,eps))
+        # print("Cosine similari!!!!!!!!!!!!!!!!!!: ",cossim_w_hat)
+
+        diff_w_hat       = w_hat_old-w_hat
+        eucl_dist_w_hat  = np.linalg.norm(diff_w_hat)
+        print("Euclidean distance!!!!!!!!!!!!!!!!!!: ", eucl_dist_w_hat)
+
+    #Compute and store eucl distance between current and previous w_hat
+    if os.path.isfile("data/eucl_dist_w_hat_vec.npy"):
+        eucl_dist_w_hat_vec = np.load('data/eucl_dist_w_hat_vec.npy')
+        eucl_dist_w_hat_vec = np.append(eucl_dist_w_hat_vec, eucl_dist_w_hat)
+        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)
+    else:
+        eucl_dist_w_hat_vec = np.array([eucl_dist_w_hat])
+        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)    
+
+    #Compute and store cosine similarity between current and previous user model
+    # if os.path.isfile("data/cossim_w_hat_vec.npy"):
+    #     cossim_w_hat_vec = np.load('data/cossim_w_hat_vec.npy')
+    #     cossim_w_hat_vec = np.append(cossim_w_hat_vec, cossim_w_hat)
+    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)
+    # else:
+    #     cossim_w_hat_vec = np.array([cossim_w_hat])
+    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)    
+
+    #Save current r_hat and sigma_hat, and w_hat
+    np.save('data/r_hat.npy',r_hat)
+    np.save('data/sigma_hat.npy',sigma_hat)
+    np.save('data/w_hat.npy',w_hat)
 
     #Take take indices of elements of 'vsum' according to ascending order
     vsinds = np.argsort(vsum[:,0])
@@ -606,6 +650,87 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
 
     return y_hatapp, sigma_hatapp    
 
+
+
+
+
+def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu):
+
+    #Inputs
+    #y = observed relevance vector
+    #sX= tfidf matrix in scipy sparse matrix format
+    #mu= regularization parameter
+
+    #Output
+    #y_hatapp     = estimation of relevance vector 
+    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
+
+    #Load document term matrix 
+    #sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.T
+    sX = sX.tocsc()
+
+    #Take indices of non-zeros of y-vector
+    inds = np.where(y)[0]
+    #print 'inds: ', inds
+
+    #Form new y that has only non-zeros of the original y
+    if len(inds) > 1:
+        y    = y[inds]
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+
+    #
+    sy = sparse.csc_matrix(y)
+
+    #Take rows from sX corresponding the indices of observed words from (keyboard) input
+    sXt   = sX[inds,:]
+    sXtT  = sXt.transpose()
+
+    #Make identity matrices needed in further steps
+    speye2 = sparse.identity(sXtT.shape[1])
+
+    #Compute XX^T
+    sXtsXtT = sXt.dot(sXtT)
+    #Compute A matrix 
+    sdumA = mu*speye2 + sXtsXtT 
+    #Compute inverse of sdumA
+    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+        if sdumA[0,0] > 0.0:
+            sdumAinv = sparse.csc_matrix([[1.0/sdumA[0,0]]])
+        else:
+            sdumAinv = sparse.csc_matrix([[1.0]])
+    else:
+        #Compute inverse of sdumA
+        sdumAinv = sparse.linalg.inv(sdumA)
+        sdumAinv.tocsc()
+
+    #print sdumAinv.shape
+    sdumAinv2= speye2 - sdumAinv.dot(sXtsXtT)
+    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+    sA       = sX.dot(sAtilde)
+
+    #Compute estimation of user intent model, w_hat
+    sw_hat = sAtilde.dot(sy)
+    w_hat  = sw_hat.toarray()
+
+    #Compute estimation of y based on user model
+    sy_hat = sA.dot(sy)
+    y_hat  = sy_hat.toarray()
+
+    #
+    sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
+    #Convert to numpy array
+    sigma_hat = np.array(sigma_hat)
+
+    return y_hat, sigma_hat, w_hat
 
 
 

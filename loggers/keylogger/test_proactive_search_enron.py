@@ -133,7 +133,6 @@ if args.simulation:
         #Exploration/Exploitation coefficient
         c = 0.0
 
-
         #
         i = 0
         i2= 0
@@ -153,13 +152,14 @@ if args.simulation:
         #List of precisionlist corresponding one file
         precisionlist = []
         precisionlist_old = []
-        for i, dstr in enumerate(wordlist):
+        for iw, dstr in enumerate(wordlist):
+
+            #If number of written words from the current file is bigger than nwritten, break 
+            if iw >= nwritten:
+                break            
 
             #If nth word has been written, do search
-            if i%divn == 0:
-
-                #
-                j2 = j2 + 1
+            if iw%divn == 0:
 
                 #
                 if i2 == 0:
@@ -169,6 +169,10 @@ if args.simulation:
                     filelocatorlist.append(1.0)
                 else:
                     filelocatorlist.append(0.0)
+
+                #
+                j2 = j2 + 1
+
                 dwordlist.append(dstr)
                 dstr2 = dstr2 + ' ' + dstr
                 #print "Currently typed: ", dstr2
@@ -190,16 +194,33 @@ if args.simulation:
                 #print("Keywords used in precision calculation: ",kws)
 
                 #Remove r_old.npy = old version of observed relevance vector
-                #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values
-                
+                #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values                
                 #Maximum fraction threshold
                 frac_thres = 5.0
                 #Number of past values from which the average is computed
                 mvn_avg_n  = 10
                 #frac = 0.0
-                frac = check_history_removal(frac_thres, mvn_avg_n)
+                frac = check_history_removal_vsum(frac_thres, mvn_avg_n)
                 if frac > frac_thres:
-                    dwordlist = []
+                    print("#############################")
+                    print("HISTORY REMOVED!!!!!!!!!")
+                    print("#############################")
+                    #dwordlist = []
+
+                #Remove r_old.npy = old version of observed relevance vector
+                #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values
+                #Maximum fraction threshold
+                frac_thres = 5.0
+                #Number of past values from which the average is computed
+                mvn_avg_n  = 10
+                #frac = 0.0
+                frac = check_history_removal_w_hat(frac_thres, mvn_avg_n)
+                if frac > frac_thres:
+                    print("#############################")
+                    print("HISTORY REMOVED!!!!!!!!!!")
+                    print("#############################")
+                    #dwordlist = []
+
 
                 # 
                 all_kw_scores = []
@@ -258,10 +279,6 @@ if args.simulation:
                 dstr2 = dstr2 + ' ' + dstr
             #
             i2 = i2 + 1
-
-            #If number of written words from the current file is bigger than nwritten, break 
-            if i>nwritten:
-                break
 
         #
         filelocatorlistnp = np.array(filelocatorlist)

@@ -36,7 +36,7 @@ def cossim(x1,x2):
 	pass
 
 #
-def check_history_removal(frac_thres, mvn_avg_n):
+def check_history_removal_vsum(frac_thres, mvn_avg_n):
 
     frac = 0.0
 
@@ -56,6 +56,28 @@ def check_history_removal(frac_thres, mvn_avg_n):
                 os.remove('data/r_old.npy')
 
     return frac
+
+
+def check_history_removal_w_hat(frac_thres, mvn_avg_n):
+
+    frac = 0.0
+
+    if os.path.isfile("data/eucl_dist_w_hat_vec.npy"):
+        cossim_w_hat_vec = np.load('data/eucl_dist_w_hat_vec.npy')
+
+    #Take latest value of cosine similarity between consecutive w_hat-vectors
+    latest_cossim = cossim_w_hat_vec[-1:]
+    #Compute moving average
+    mvng_avg      = cossim_w_hat_vec[-(mvn_avg_n+1):-1].mean()
+    if (1-mvng_avg) > 0.0:
+        frac      = (1-latest_cossim)/(1-mvng_avg)
+        if frac > frac_thres:
+            print("REMOVING HISTORY!")
+            if os.path.isfile('data/r_old.npy'):
+                os.remove('data/r_old.npy')
+
+    return frac
+
 
 
 
