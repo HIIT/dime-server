@@ -101,6 +101,10 @@ parser.add_argument('--histremoval', metavar='X:Y',
                     help='remove history with parameters X and Y')
 parser.add_argument('--removeseenkws', action='store_true',
                     help='remove keywords that appear in input')
+parser.add_argument('--nwritten', metavar='N', action='store', type=int,
+                    default=50, help='number of words to write')
+parser.add_argument('--nclicked', metavar='X:Y',
+                    default=0, help='click X suggested keywords with method Y')
 
 args = parser.parse_args()
 
@@ -124,6 +128,14 @@ if args.histremoval:
     parts = args.histremoval.split(":")
     histremoval_threshold = int(parts[0])
     histremoval_ma_value  = int(parts[1])
+
+nclicked_n = 0
+nclicked_method = 0
+if args.nclicked:
+    print(args.nclicked)
+    parts = args.nclicked.split(":")
+    nclicked_n = int(parts[0])
+    nclicked_method = int(parts[1])
 
 #update_data(srvurl, usrname, password)
 check_update()
@@ -229,7 +241,6 @@ for j,line in enumerate(f):
     j2 = 0
 
     #Maximum number of words written from each file 
-    nwritten = 50
     #Average precision
     sumavgprecision = 0.0
     sumavgprecision_old = 0.0
@@ -267,10 +278,10 @@ for j,line in enumerate(f):
                 print("TEST_WORDLIST:", test_wordlist)
                 new_kws = []
                 new_winds = []
-                for i,kw in enumerate(kws):
+                for iii,kw in enumerate(kws):
                     if kw not in test_wordlist:
-                        new_kws.append(kws[i])
-                        new_winds.append(winds[i])
+                        new_kws.append(kws[iii])
+                        new_winds.append(winds[iii])
                     else:
                         print("KEYWORD", kw, "ALREADY IN INPUT, REMOVE!!")
                 kws = new_kws
@@ -357,7 +368,7 @@ for j,line in enumerate(f):
         i2 = i2 + 1
 
         #If number of written words from the current file is bigger than nwritten, break 
-        if i>nwritten:
+        if i>args.nwritten:
             break
 
     #
