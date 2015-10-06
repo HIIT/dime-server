@@ -42,5 +42,5 @@ for i,m in enumerate(means):
 print("Saved", meanvectorfn)
 np.save(meanvectorfn, meanvector)
 
-plt.plot(meanvector, linewidth=5, color='k')
+plt.plot(np.arange(1,51), meanvector, linewidth=5, color='k')
 plt.show()
