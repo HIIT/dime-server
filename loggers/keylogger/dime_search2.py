@@ -711,6 +711,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
 
     #Make identity matrices needed in further steps
     speye2 = sparse.identity(sXtT.shape[1])
+    speye2 = speye2.tocsc()
 
     #Compute XX^T
     sXtsXtT = sXt.dot(sXtT)
