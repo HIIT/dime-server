@@ -103,32 +103,34 @@ def search_dime(srvurl, username, password, query):
         print('No connection to DiMe server!')
         sys.exit(1)
 
-    try:
-        query_str = query.encode('utf-8')
-    except UnicodeEncodeError:
-        print("<UnicodeEncodeError>")
-        return []
+    #try:
+    #    query_str = query.encode('utf-8')
+    #except UnicodeEncodeError:
+    #    print("<UnicodeEncodeError>")
+    #    return []
 
+    #print("DiMe query string:", query)
     #
-    r = requests.get(server_url + '/search?query={}&limit=5'.format(query_str),
+    r = requests.get(server_url + '/search?query={}&limit=5'.format(query),
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=100)
-    # r = requests.get(server_url + '/search?query={}&limit=60'.format(query_str),
+    # r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
     #                  headers={'content-type': 'application/json'},
     #                  auth=(server_username, server_password),
     #                  timeout=10)
 
-    #print r
+    #print(r.json())
 
     if r.status_code != requests.codes.ok:
         print('No results from DiMe database!')
         return []
     elif len(r.json()) > 0:
             r = r.json()
-            #print 'Search thread: number of data objects: ', len(r)
+            print('Search thread: number of data objects: ', len(r))
             return r
     else: 
+        print('Search thread: number of data objects: 0')
         return []
 
 
