@@ -63,14 +63,14 @@ def check_history_removal_w_hat(frac_thres, mvn_avg_n):
     frac = 0.0
 
     if os.path.isfile("data/eucl_dist_w_hat_vec.npy"):
-        cossim_w_hat_vec = np.load('data/eucl_dist_w_hat_vec.npy')
+        eucl_dist_w_hat_vec = np.load('data/eucl_dist_w_hat_vec.npy')
 
     #Take latest value of cosine similarity between consecutive w_hat-vectors
-    latest_cossim = cossim_w_hat_vec[-1:]
+    latest_eucl_dist = eucl_dist_w_hat_vec[-1:]
     #Compute moving average
-    mvng_avg      = cossim_w_hat_vec[-(mvn_avg_n+1):-1].mean()
-    if (1-mvng_avg) > 0.0:
-        frac      = (1-latest_cossim)/(1-mvng_avg)
+    mvng_avg      = eucl_dist_w_hat_vec[-(mvn_avg_n+1):-1].mean()
+    if mvng_avg > 0.0:
+        frac      = latest_eucl_dist/mvng_avg
         if frac > frac_thres:
             print("REMOVING HISTORY!")
             if os.path.isfile('data/r_old.npy'):

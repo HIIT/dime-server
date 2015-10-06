@@ -338,6 +338,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
                 r[i] = 1.0/float(r[i])
                 #If value is less than thresval, put to zero
                 if float(r[i]) < thresval:
+                    #print("PUTTING TO ZERO!!!!!!")
                     r[i] = 0.0
     else:
         r             = np.zeros([test_vec_full.shape[0],1])
@@ -353,23 +354,38 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     r_hat, sigma_hat, w_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(r, X, mu)
     #print("w_hat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!:", w_hat)
 
+
+    #Compute to norm of sigma_hat
+    norm_sigma_hat = np.linalg.norm(sigma_hat)
+    if os.path.isfile("data/norm_sigma_hat.npy"):
+        norm_sigma_hat_vec = np.load("data/norm_sigma_hat.npy")
+        norm_sigma_hat_vec = np.append(norm_sigma_hat_vec, norm_sigma_hat)
+        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
+    else:
+        norm_sigma_hat_vec = np.array([norm_sigma_hat])
+        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
+
+
+
     #Normalize relevance estimate vector
     if r_hat.sum() > 0.0:
         r_hat     = r_hat/r_hat.sum()
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
     if sigma_hat.sum() > 0.0:
         sigma_hat = sigma_hat/sigma_hat.sum()
-    #Normalize w_hat (user model)
-    if w_hat.sum() > 0.0:
-        w_hat = w_hat/w_hat.sum()
+    #Make unit vector from w_hat (user model)
+    norm_w_hat = np.linalg.norm(w_hat)
+    if norm_w_hat > 0.0:
+        w_hat = w_hat/norm_w_hat
+        norm_w_hat = np.linalg.norm(w_hat)
+        #print("Norm of current w_hat: ", np.linalg.norm(w_hat))
+        #w_hat = w_hat/w_hat.sum()
 
     #Add r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
     vsum = r_hat + c*sigma_hat
     #Normalize vsum
     if vsum.max() > 0.0:
         vsum = vsum/vsum.sum()
-    #Store current vsum-vector to vsum.npy
-    np.save('data/vsum.npy', vsum)        
 
     #Compute sparsities of vectors
     r_hat_spar     = vec_sparsity(r_hat)
@@ -420,21 +436,17 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     eucl_dist_w_hat = 0.0
     eps    = 1e-15
     if os.path.isfile('data/w_hat.npy'):
-        #print "dime_search: Load vsum_old!!"
+        #
         w_hat_old = np.load('data/w_hat.npy')
-        #print(w_hat)
-        #Compute cosine similarity between previous and current vsum -vectors
-        # cossim_w_hat = w_hat_old.T.dot(w_hat)[0.0]
-        # print("Cosine similari!!!!!!!!!!!!!!!!!!: ",cossim_w_hat)
-        # n1 = np.linalg.norm(w_hat)
-        # n2 = np.linalg.norm(w_hat_old)   
-        # print("MAXIMUM: ",max(n1*n2,eps))
-        # cossim_w_hat = cossim/(max(n1*n2,eps))
-        # print("Cosine similari!!!!!!!!!!!!!!!!!!: ",cossim_w_hat)
-
-        diff_w_hat       = w_hat_old-w_hat
+        norm_w_hat_old = np.linalg.norm(w_hat_old)
+        #print("Norm of old w_hat: ", norm_w_hat_old)
+        sum_norms = norm_w_hat + norm_w_hat_old
+        #print("sum of norms!!!!!!!!!!: ", sum_norms)
+        #
+        diff_w_hat = w_hat_old-w_hat
         eucl_dist_w_hat  = np.linalg.norm(diff_w_hat)
-        print("Euclidean distance!!!!!!!!!!!!!!!!!!: ", eucl_dist_w_hat)
+        eucl_dist_w_hat  = eucl_dist_w_hat/sum_norms
+        print("Euclidean distance in unit sphere!: ", eucl_dist_w_hat)
 
     #Compute and store eucl distance between current and previous w_hat
     if os.path.isfile("data/eucl_dist_w_hat_vec.npy"):
@@ -457,6 +469,9 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     #Save current r_hat and sigma_hat, and w_hat
     np.save('data/r_hat.npy',r_hat)
     np.save('data/sigma_hat.npy',sigma_hat)
+    #Store current vsum-vector to vsum.npy
+    np.save('data/vsum.npy', vsum)        
+    #Store current w_hat
     np.save('data/w_hat.npy',w_hat)
 
     #Take take indices of elements of 'vsum' according to ascending order

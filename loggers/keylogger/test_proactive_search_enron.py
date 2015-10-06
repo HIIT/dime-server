@@ -196,30 +196,30 @@ if args.simulation:
                 #Remove r_old.npy = old version of observed relevance vector
                 #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values                
                 #Maximum fraction threshold
-                frac_thres = 5.0
-                #Number of past values from which the average is computed
-                mvn_avg_n  = 10
-                #frac = 0.0
-                frac = check_history_removal_vsum(frac_thres, mvn_avg_n)
-                if frac > frac_thres:
-                    print("#############################")
-                    print("HISTORY REMOVED!!!!!!!!!")
-                    print("#############################")
-                    #dwordlist = []
+                # frac_thres = 5.0
+                # #Number of past values from which the average is computed
+                # mvn_avg_n  = 10
+                # #frac = 0.0
+                # frac = check_history_removal_vsum(frac_thres, mvn_avg_n)
+                # if frac > frac_thres:
+                #     print("#############################")
+                #     print("HISTORY REMOVED!!!!!!!!!")
+                #     print("#############################")
+                #     #dwordlist = []
 
                 #Remove r_old.npy = old version of observed relevance vector
                 #Load cossim_vsum_vec for computing moving average with 10 previous cosine similarity values
                 #Maximum fraction threshold
                 frac_thres = 5.0
                 #Number of past values from which the average is computed
-                mvn_avg_n  = 10
-                #frac = 0.0
-                frac = check_history_removal_w_hat(frac_thres, mvn_avg_n)
+                mvn_avg_n  = 20
+                frac = 0.0
+                #frac = check_history_removal_w_hat(frac_thres, mvn_avg_n)
                 if frac > frac_thres:
                     print("#############################")
                     print("HISTORY REMOVED!!!!!!!!!!")
                     print("#############################")
-                    #dwordlist = []
+                    dwordlist = []
 
 
                 # 
