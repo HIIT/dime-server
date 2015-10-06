@@ -66,12 +66,29 @@ automatically. Hence it may take a bit longer the first time.
 
 ### Configure
 
-If you wish to change the port in which dime-server is running you can
-edit the file `config/application.properties` and modify the
-`server.port`, the default is:
+If you wish to change the default configuration, you need to create a
+file `config/application.properties`. The easiest way is to copy the
+`config/application.properties.example` that is included in this git
+repository. Some of the most common configuration options are
+explained below.
+
+#### TCP port
+
+The default TCP port where the DiMe server runs is 8080, you can
+change this with the `server.port` setting.
 
     server.port=8080
 
+#### Lucene search
+
+If you wish to use Lucene indexing for (much) better text search
+results, you currently have to enable it manually by setting the
+`dime.useLucene` option to `true`. There is also a
+`dime.luceneIndexPath` which is the directory where the index will be
+generated:
+
+    dime.useLucene=true
+    dime.luceneIndexPath=${user.home}/dime-lucene
 
 ### Run
 
