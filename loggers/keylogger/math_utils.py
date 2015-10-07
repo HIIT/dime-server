@@ -5,6 +5,8 @@ from dime_search2 import  *
 #from json import *
 import math
 
+import random
+
 #For computing sparsity of a vector
 def vec_sparsity(v):
     
@@ -184,6 +186,26 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
 
 
     return kw_scores.mean(), kw_scores
+
+
+def pick_random_kw_ind(kw_scores_filecategory):
+    #
+    sum_kw_scores_filecategory = kw_scores_filecategory.sum()
+    print(sum_kw_scores_filecategory)
+    #random value from range [0,1]
+    rv = random.random()
+    rv = rv*sum_kw_scores_filecategory
+    print(rv)
+    #
+    dv = 0
+    for i,v in enumerate(kw_scores_filecategory):
+        dv = dv + kw_scores_filecategory[i]
+        if not rv > dv:
+            print(i)
+            return i
+
+
+
 
 
 if __name__ == "__main__":
