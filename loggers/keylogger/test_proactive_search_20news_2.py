@@ -188,7 +188,7 @@ parser.add_argument('--removeseenkws', action='store_true',
                     help='remove keywords that appear in input')
 parser.add_argument('--nwritten', metavar='N', action='store', type=int,
                     default=50, help='number of words to write')
-parser.add_argument('--nclicked', metavar='X:Y',
+parser.add_argument('--nclicked', metavar='X[:Y]',
                     default=0, help='click X suggested keywords with method Y')
 
 args = parser.parse_args()
@@ -220,7 +220,8 @@ if args.nclicked:
     print(args.nclicked)
     parts = args.nclicked.split(":")
     nclicked_n = int(parts[0])
-    nclicked_method = int(parts[1])
+    if len(parts)>1:
+        nclicked_method = int(parts[1])
 
 #update_data(srvurl, usrname, password)
 check_update()
@@ -337,7 +338,7 @@ for j,line in enumerate(f):
     for i, dstr in enumerate(wordlist):
 
         #If number of written words from the current file is bigger than nwritten, click keywords and then break 
-        if i >= nwritten:
+        if i >= args.nwritten:
 
             #Start clicking keywords
             for ikwclick in range(nclicked_n):
@@ -446,8 +447,8 @@ for j,line in enumerate(f):
         i2 = i2 + 1
 
         #If number of written words from the current file is bigger than nwritten, break 
-        if i>args.nwritten:
-            break
+        #if i>args.nwritten:
+        #    break
 
     #
     filelocatorlistnp = np.array(filelocatorlist)
