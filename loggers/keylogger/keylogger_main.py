@@ -14,21 +14,24 @@ import ctypes as ct
 from ctypes.util import find_library
 
 import os
-import Queue
+import queue
 import threading
 
 #For updating data and other files (dictionary, Document term matrices etc.)
 from update_files import *
 
-from dime_search import *
+from dime_search2 import *
 
 #Includes the definition of clickable label
-from ExtendedQLabel import *
+#from ExtendedQLabel import *
 
 #For getting web page title
 #import lxml.html
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 #from BeautifulSoup import BeautifulSoup
+
+#
+import webbrowser
 
 #
 import re
@@ -44,12 +47,12 @@ import types
 #from not_so_simple_animation import *
 
 #Import loggerthread
-if sys.platform == "linux2":
+if sys.platform == "linux":
   from loggerthread_linux import *
 elif sys.platform == "darwin":
   from loggerthread_osx import *
 else:
-  print "Unsupported platform"
+  print("Unsupported platform")
   sys.exit()
 
 #Import search thread
@@ -74,7 +77,7 @@ class MyApp(QWidget):
 #class MyApp(QMainWindow):
 
  finished = pyqtSignal(int)
- update = pyqtSignal(unicode)
+ update = pyqtSignal(str)
  
  def __init__(self, parent=None):
   QWidget.__init__(self, parent)
@@ -308,7 +311,7 @@ class MyApp(QWidget):
 
  #Runs the Keylogger and Search 
  def test_pressed(self):
-  print 'Main: Test'
+  print('Main: Test')
   #self.startStopButton.setDisabled(True)
   #self.stopButton.setDisabled(False)  
   #self.listwidget.clear()
@@ -325,7 +328,7 @@ class MyApp(QWidget):
  #   self.LoggerThreadObj.stop_logger_loop()
 
  def start_stop_keylogger(self):
-    print 'Start or stop logger!'
+    print('Start or stop logger!')
     #self.stopButton.setDisabled(False)
     if self.startStopButton.text() == "Start":
       self.startStopButton.setText("Stop")
@@ -336,19 +339,19 @@ class MyApp(QWidget):
       self.LoggerThreadObj.stop_logger_loop()
 
  def change_c(self,value):
-    print 'Value: ', value
+    print('Value: ', value)
     #self.emit(QtCore.SIGNAL(''))
 
  def emit_search_command(self):
   #if searchfuncid == 0:
     sender = self.sender()
     sender_text = sender.text()
-    print 'Main: Sending new word from main: ', sender_text , type(sender_text)
+    print('Main: Sending new word from main: ', sender_text , type(sender_text))
     self.update.emit(sender_text)
 
  def choose_search_function1(self):
   #if searchfuncid == 0:
-    print 'Main: Search function is DocSim'
+    print('Main: Search function is DocSim')
     #check_update()
     self.finished.emit(0)
   # elif searchfuncid == 1:
@@ -356,7 +359,7 @@ class MyApp(QWidget):
 
  def choose_search_function2(self):
   #if searchfuncid == 0:
-    print 'Main: Search function is LinRel'
+    print('Main: Search function is LinRel')
     #check_update()
     self.finished.emit(1)
     #elif searchfuncid == 1:
@@ -364,7 +367,7 @@ class MyApp(QWidget):
 
  def choose_search_function3(self):
   #if searchfuncid == 0:
-    print 'Main: Search function is LinRel'
+    print('Main: Search function is LinRel')
     #check_update()
     self.finished.emit(2)
     #elif searchfuncid == 1:
@@ -372,7 +375,7 @@ class MyApp(QWidget):
 
  def choose_search_function4(self):
   #if searchfuncid == 0:
-    print 'Main: Search function is LinRel'
+    print('Main: Search function is LinRel')
     #check_update()
     self.finished.emit(3)
   #elif searchfuncid == 1:
@@ -405,7 +408,7 @@ class MyApp(QWidget):
 
 
  def safe_get_value(self, dicti, key):
-  if dicti.has_key(key):
+  if key in dicti:
    return dicti[key]
   return ''
 
@@ -424,9 +427,9 @@ class MyApp(QWidget):
     j = 0
     k = 0
 
-    if type(urlstrs) is types.ListType:
+    if type(urlstrs) is list:
       if len(urlstrs) > 0:
-        if type(urlstrs[0]) is types.DictType:
+        if type(urlstrs[0]) is dict:
           #Set hidden listWidgetItems that are not used
           for dj in range(self.listWidget1.count()):
             self.listWidget1.item(dj).setHidden(True)    
@@ -439,7 +442,8 @@ class MyApp(QWidget):
           #rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
           for ijson in range( len(urlstrs) ):
                                       #title    = None
-                                      linkstr   = self.unicode_to_str( urlstrs[ijson]["uri"] )
+                                      #linkstr   = self.unicode_to_str( urlstrs[ijson]["uri"] )
+                                      linkstr   = urlstrs[ijson]["uri"]
                                       ctime     = str(urlstrs[ijson]["timeCreated"])
                                       typestr   = str(urlstrs[ijson]["type"])
                                       storedas  = str(urlstrs[ijson]["isStoredAs"])
@@ -493,8 +497,9 @@ class MyApp(QWidget):
                                       elif storedasl in ["MailboxDataObject"]:
                                           #print 'Main: mail ', storedasl
                                           subj = "[no subject]"
-                                          if urlstrs[ijson].has_key("subject"):
-                                            subj = self.unicode_to_str(urlstrs[ijson]["subject"])
+                                          if "subject" in urlstrs[ijson]:
+                                            #subj = self.unicode_to_str(urlstrs[ijson]["subject"])
+                                            subj = urlstrs[ijson]["subject"]
                                           #Create link to DiMe server
                                           dumlink = self.srvurl.split('/')[2]
                                           linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
@@ -554,12 +559,12 @@ class MyApp(QWidget):
     k = 0
     #print 'Main: update_links_and_kwbuttons: urlstrs: ', urlstrs[len(urlstrs)-1]
     #print 'type of el.: ', type(urlstrs[10])
-    if type(keywordlist) is types.ListType:
+    if type(keywordlist) is list:
       if len(keywordlist) > 0:
         #
-        if type(keywordlist[0]) is types.UnicodeType:
-          print 'Main: update_links: got a list of keywords!!!'
-          print 'Main: keyword button labels keywords: ', keywordlist
+        if type(keywordlist[0]) is str:
+          print('Main: update_links: got a list of keywords!!!')
+          print('Main: keyword button labels keywords: ', keywordlist)
           ncols = self.hlayout3.count()
           #print 'Num of widgets ', ncols
           #Remove old buttons
@@ -586,9 +591,10 @@ class MyApp(QWidget):
    return
 
   #
-  f = open('data/test_wordlist.list','r')
-  test_wordlist = pickle.load(f)
-  print test_wordlist
+  #f = open('data/test_wordlist.list','r')
+  #test_wordlist = pickle.load(f)
+  test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
+  print(test_wordlist)
   for i in range(len(self.buttonlist)):
     buttext = self.buttonlist[i].text()
     #print buttext
@@ -675,7 +681,7 @@ class MyApp(QWidget):
         str = ustr.encode('utf-8')
         return ''.join([c for c in str if ord(c) > 31])
     except UnicodeEncodeError:
-        print "Main: UnicodeEncodeError"
+        print("Main: UnicodeEncodeError")
     return ""
 
 

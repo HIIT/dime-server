@@ -59,8 +59,9 @@ def remove_unwanted_words(testlist):
     #Load stopwordlist
     cpath = os.getcwd()
     cpathd= cpath + '/' + 'data/' + 'stopwordlist.list'
-    f = open(cpathd,'r')
-    stoplist = pickle.load(f)
+    #f = open(cpathd,'r')
+    #stoplist = pickle.load(f)
+    stoplist = pickle.load(open(cpathd,'rb'))
 
     chgd = True
     if len(testlist) > 0:
@@ -102,40 +103,43 @@ def search_dime(srvurl, username, password, query):
         print('No connection to DiMe server!')
         sys.exit(1)
 
-    try:
-        query_str = query.encode('utf-8')
-    except UnicodeEncodeError:
-        print "<UnicodeEncodeError>"
-        return []
+    #try:
+    #    query_str = query.encode('utf-8')
+    #except UnicodeEncodeError:
+    #    print("<UnicodeEncodeError>")
+    #    return []
 
+    #print("DiMe query string:", query)
     #
-    r = requests.get(server_url + '/search?query={}&limit=5'.format(query_str),
+    r = requests.get(server_url + '/search?query={}&limit=5'.format(query),
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=100)
-    # r = requests.get(server_url + '/search?query={}&limit=60'.format(query_str),
+    # r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
     #                  headers={'content-type': 'application/json'},
     #                  auth=(server_username, server_password),
     #                  timeout=10)
 
-    #print r
+    #print(r.json())
 
     if r.status_code != requests.codes.ok:
         print('No results from DiMe database!')
         return []
     elif len(r.json()) > 0:
             r = r.json()
-            #print 'Search thread: number of data objects: ', len(r)
+            print('Search thread: number of data objects: ', len(r))
             return r
     else: 
+        print('Search thread: number of data objects: 0')
         return []
 
 
 #Search using gensim's cossim-function (cosine similarity)
 def search_dime_docsim(query, data, index, dictionary):
     #
-    f = open('data/varlist.list','r')
-    varlist = pickle.load(f)
+    #f = open('data/varlist.list','r')
+    #varlist = pickle.load(f)
+    varlist = pickle.load(open('data/varlist.list','rb'))
     nword = varlist[0]
     ndocuments = varlist[1]
     
@@ -147,7 +151,7 @@ def search_dime_docsim(query, data, index, dictionary):
 
     #Map the input words into nearest dictionary words
     for nword, word in enumerate(test_wordlist):
-        correctedword = difflib.get_close_matches(word, dictionary.values())
+        correctedword = difflib.get_close_matches(word, list(dictionary.values()))
         if len(correctedword):
             test_wordlist[nword] = correctedword[0]
         else:
@@ -235,7 +239,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     #c     = Exploitation/Exploration coefficient
 
     #Outputs:
-    #jsons = links to resources
+    #jsons = list jsons corresponding each resource 
     #kws   = keywords computed by LinRel
 
     #
@@ -244,31 +248,28 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
 
     #Convert query into bag of words representation urheilu yle 
     test_vec      = query2bow(query, dictionary)
-    #test_vec_full = 
 
-    #
+    #Get keywords related to input query string 
     winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c)
-    #kws_vec    = dictionary.doc2bow(kws)
 
     #make string of keywords 
-    #kwsstr = ''
-    #for i in range(len(kws)):
-    #    kwsstr = kwsstr + ' ' + kws[i]
-    #print 'Keyword query string: ', kwsstr
-
     query = '%s' % query
-    #query = '"%s"' % query
-    # print srvurl
-    # print username
-    # print password
-    # print query 
 
-    #Search from dime using Dime-servers own search function
+    #Search resources from DiMe using Dime-servers own search function
     jsons = search_dime(srvurl, username, password, query)
 
-    return jsons, kws
+    return jsons, kws, winds
 
+#
 def query2bow(query,dictionary):
+
+    #inputs:
+    #query      = string input
+    #dictionary = gensim dictionary containing words taken from dime data
+
+    #Output:
+    #test_vec   = bag of word representation of query string
+
 
     #Make list of words from the query string
     test_wordlist = query.lower().split()
@@ -277,14 +278,15 @@ def query2bow(query,dictionary):
 
     #Convert the words into nearest dictionary word
     for nword, word in enumerate(test_wordlist):
-        correctedword = difflib.get_close_matches(word, dictionary.values())
+        correctedword = difflib.get_close_matches(word, list(dictionary.values()))
         if len(correctedword):
             test_wordlist[nword] = correctedword[0]
         else:
             test_wordlist[nword] = ' '
-    print "Search thread: Closest dictionary words: ", test_wordlist
-    f = open('data/test_wordlist.list','w')
-    pickle.dump(test_wordlist,f)
+    print(("Search thread: Closest dictionary words: ", test_wordlist))
+    #f = open('data/test_wordlist.list','w')
+    #pickle.dump(test_wordlist,f)
+    pickle.dump(test_wordlist, open('data/test_wordlist.list','wb'))
 
     #Make bag of word vector of the input string taken from keyboard
     test_vec = dictionary.doc2bow(test_wordlist)
@@ -294,31 +296,50 @@ def query2bow(query,dictionary):
 #
 def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c):
 
+    #Inputs:
+    #test_vec   = bag of word representation of the input query string (taken from keyboard)
+    #X          = tfidf matrix of resources
+    #dictionary = gensim dictionary containing words taken from dime data
+    #c          = Exploitation/Exploration coefficient
+
+    #Output:
+    #vsinds     = list of indices of keywords
+    #kws        = list of keywords
+
+    #Number of words in dictionary
     nwords = len(dictionary)
 
+    #Full vector representation of test_vec (i.e. containing all word indices)
     test_vec_full = twotuplelist2fulllist(test_vec, nwords)
-    #print 'test_vec_full: ', test_vec_full.shape
+
+    #Take indices of words occurring in the input
     winds         = np.where(test_vec_full)
     winds         = winds[0]
-    #print 'winds: ', winds
 
-    #
+    #Form observed relevance vector from test_vec_full
+    #If old observed relevance vector exists, add it to new relevance vector
     if os.path.isfile('data/r_old.npy'):
+
+        #Load 
         r             = np.zeros([test_vec_full.shape[0],1])
-        r_old         = np.load('data/r_old.npy')             
+        r_old         = np.load('data/r_old.npy')
         oldwinds      = np.where(r_old)
         r[oldwinds]   = 1.0
+        #Add old observed relevance vector into new one
         r             = r + r_old
         r[winds]      = 1.0
         np.save('data/r_old.npy',r)
 
-        #winds         = np.where(r)[0]
+        #Take inverse of all non-zeros of elements of r = r + r_old
+        thresval = 0.1
         for i in range(len(r)):
-            if r[i] > 0.0:
-                r[i] = 1.0/r[i]
-
-        #print "Shape of r: ", r.shape
-        #print 'r: ', r[np.where(r)[0],:]
+            if float(r[i]) > 0.0:
+                #
+                r[i] = 1.0/float(r[i])
+                #If value is less than thresval, put to zero
+                if float(r[i]) < thresval:
+                    #print("PUTTING TO ZERO!!!!!!")
+                    r[i] = 0.0
     else:
         r             = np.zeros([test_vec_full.shape[0],1])
         r[winds]      = 1.0
@@ -326,28 +347,41 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Regularization paramter
     mu = 1.0
-    #set(winds)
 
-    #
+    #Compute relevance estimate vector r_hat, and sigma_hat (= upper bound vector of st.dev vector of r_hat)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, X, mu)
-    r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc(r, X, mu)
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast_sparse(r,mu)
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_evd(r, mu)
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_auer(r,mu)
-    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_scinet_fast(r,mu)
+    #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc(r, X, mu)
+    r_hat, sigma_hat, w_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(r, X, mu)
+    #print("w_hat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!:", w_hat)
 
-    #Save current r_hat and sigma_hat
-    np.save('data/r_hat.npy',r_hat)
-    np.save('data/sigma_hat.npy',sigma_hat)
+
+    #Compute to norm of sigma_hat
+    norm_sigma_hat = np.linalg.norm(sigma_hat)
+    if os.path.isfile("data/norm_sigma_hat.npy"):
+        norm_sigma_hat_vec = np.load("data/norm_sigma_hat.npy")
+        norm_sigma_hat_vec = np.append(norm_sigma_hat_vec, norm_sigma_hat)
+        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
+    else:
+        norm_sigma_hat_vec = np.array([norm_sigma_hat])
+        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
+
+
 
     #Normalize relevance estimate vector
-    if r_hat.max() > 0.0:
+    if r_hat.sum() > 0.0:
         r_hat     = r_hat/r_hat.sum()
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
-    if sigma_hat.max() > 0.0:
+    if sigma_hat.sum() > 0.0:
         sigma_hat = sigma_hat/sigma_hat.sum()
+    #Make unit vector from w_hat (user model)
+    norm_w_hat = np.linalg.norm(w_hat)
+    if norm_w_hat > 0.0:
+        w_hat = w_hat/norm_w_hat
+        norm_w_hat = np.linalg.norm(w_hat)
+        #print("Norm of current w_hat: ", np.linalg.norm(w_hat))
+        #w_hat = w_hat/w_hat.sum()
 
-    #
+    #Add r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
     vsum = r_hat + c*sigma_hat
     #Normalize vsum
     if vsum.max() > 0.0:
@@ -355,10 +389,29 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Compute sparsities of vectors
     r_hat_spar     = vec_sparsity(r_hat)
-    sigma_hat_spar = vec_sparsity(sigma_hat)
-    vsum_spar = vec_sparsity(vsum)
+    #Store sparsity values of r_hat vector
+    if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
+        r_hat_spar_hist_vec = np.load('data/r_hat_spar_hist_vec.npy')
+        r_hat_spar_hist_vec = np.append(r_hat_spar_hist_vec, r_hat_spar)
+        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
+    else:
+        r_hat_spar_hist_vec = np.array([r_hat_spar])
+        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
 
-    #Load previous vsum -vector and compute cosine similarity
+    sigma_hat_spar = vec_sparsity(sigma_hat)
+    #Store sparsity values of sigma_hat vector
+    if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
+        sigma_hat_spar_hist_vec = np.load('data/sigma_hat_spar_hist_vec.npy')
+        sigma_hat_spar_hist_vec = np.append(sigma_hat_spar_hist_vec, sigma_hat_spar)
+        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+    else:
+        sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
+        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+
+    #
+    vsum_spar      = vec_sparsity(vsum)
+
+    #Load previous vsum -vector, and compute cosine similarity between current vsum and previous vsum vectors
     cossim = 0.0
     eps    = 1e-15
     if os.path.isfile('data/vsum.npy'):
@@ -369,44 +422,57 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         n1 = np.linalg.norm(vsum)
         n2 = np.linalg.norm(vsum_old)   
         cossim = cossim/(max(n1*n2,eps))
-
-    #Store current vsum-vector to vsum.npy
-    np.save('data/vsum.npy', vsum)
-
-    #print "dime_search: Sparsity of r_hat vector: ", r_hat_spar 
-    #print "dime_search: Sparsity of sigma_hat vector: ", sigma_hat_spar 
-    #print "dime_search: Sparsity of vsum vector: ", vsum_spar
-    #print "dime_search: Cosine similarity between old and new vsum: ", cossim
-
-    #Store sparsity values of r_hat vector
-    if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
-        r_hat_spar_hist_vec = np.load('data/r_hat_spar_hist_vec.npy')
-        r_hat_spar_hist_vec = np.append(r_hat_spar_hist_vec, r_hat_spar)
-        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
-    else:
-        r_hat_spar_hist_vec = np.array([r_hat_spar])
-        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
-
-    #Store sparsity values of sigma_hat vector
-    if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
-        sigma_hat_spar_hist_vec = np.load('data/sigma_hat_spar_hist_vec.npy')
-        sigma_hat_spar_hist_vec = np.append(sigma_hat_spar_hist_vec, sigma_hat_spar)
-        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
-    else:
-        sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
-        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
-
-    #Store cosine similarity values into a vector and file
+    #Store cosine similarity between vsum vectors into a vector and file    
     if os.path.isfile("data/cossim_vsum_vec.npy"):
         cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
         cossim_vsum_vec = np.append(cossim_vsum_vec, cossim)
         np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
     else:
         cossim_vsum_vec = np.array([cossim])
-        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
+        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)        
 
-    #Print Exploitation/Exploration coefficient
-    #print 'Search thread: value of c is:', c
+    #Load previous w_hat -vector, and compute cosine similarity between current w_hat and previous w_hat vectors
+    cossim_w_hat = 0.0
+    eucl_dist_w_hat = 0.0
+    eps    = 1e-15
+    if os.path.isfile('data/w_hat.npy'):
+        #
+        w_hat_old = np.load('data/w_hat.npy')
+        norm_w_hat_old = np.linalg.norm(w_hat_old)
+        #print("Norm of old w_hat: ", norm_w_hat_old)
+        sum_norms = norm_w_hat + norm_w_hat_old
+        #print("sum of norms!!!!!!!!!!: ", sum_norms)
+        #
+        diff_w_hat = w_hat_old-w_hat
+        eucl_dist_w_hat  = np.linalg.norm(diff_w_hat)
+        eucl_dist_w_hat  = eucl_dist_w_hat/sum_norms
+        print("Euclidean distance in unit sphere!: ", eucl_dist_w_hat)
+
+    #Compute and store eucl distance between current and previous w_hat
+    if os.path.isfile("data/eucl_dist_w_hat_vec.npy"):
+        eucl_dist_w_hat_vec = np.load('data/eucl_dist_w_hat_vec.npy')
+        eucl_dist_w_hat_vec = np.append(eucl_dist_w_hat_vec, eucl_dist_w_hat)
+        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)
+    else:
+        eucl_dist_w_hat_vec = np.array([eucl_dist_w_hat])
+        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)    
+
+    #Compute and store cosine similarity between current and previous user model
+    # if os.path.isfile("data/cossim_w_hat_vec.npy"):
+    #     cossim_w_hat_vec = np.load('data/cossim_w_hat_vec.npy')
+    #     cossim_w_hat_vec = np.append(cossim_w_hat_vec, cossim_w_hat)
+    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)
+    # else:
+    #     cossim_w_hat_vec = np.array([cossim_w_hat])
+    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)    
+
+    #Save current r_hat and sigma_hat, and w_hat
+    np.save('data/r_hat.npy',r_hat)
+    np.save('data/sigma_hat.npy',sigma_hat)
+    #Store current vsum-vector to vsum.npy
+    np.save('data/vsum.npy', vsum)        
+    #Store current w_hat
+    np.save('data/w_hat.npy',w_hat)
 
     #Take take indices of elements of 'vsum' according to ascending order
     vsinds = np.argsort(vsum[:,0])
@@ -418,7 +484,6 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     vsinds = []
     for i in vsindsrev:
         vsinds.append(i)
-
 
     #Take take indices of elements of 'r_hat' according to ascending order
     kwinds = np.argsort(r_hat[:,0])
@@ -433,10 +498,6 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     #
     kwinds = kwindsd
 
-    #Print argmax(r_hat) and argmax(sigma_hat)
-    #print 'Search thread: Max(r_hat): ', r_hat.max(), ' argmax(r_hat):', r_hat.argmax()
-    #print 'Search thread: Max(sigma_hat): ', sigma_hat.max(), ' argmax(sigma_hat):', sigma_hat.argmax()
-
     #
     if r_hat.max() > 0.0:
         #Initialize list of keywords
@@ -445,7 +506,6 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         for i in range(len(vsinds)):
             #print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i])), vsum[vsinds[i]]
             kws.append(dictionary.get(vsinds[i]))
-            #kws.append(dictionary.get(kwinds[i]))
         #
         return vsinds, kws
     else:
@@ -453,6 +513,16 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
 
 def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
+
+    #Inputs
+    #y = observed relevance vector
+    #sX= tfidf matrix in scipy sparse matrix format
+    #mu= regularization parameter
+
+    #Output
+    #y_hatapp     = estimation of relevance vector 
+    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
 
     #Load document term matrix 
     #sX = load_sparse_csc('data/sX.sparsemat.npz')
@@ -475,27 +545,27 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
             y    = np.zeros([len(inds),1])
             #inds = np.array([[0]])
 
-    #Compute estimation of weight vector (i.e. user model)
-    #print 'Search thread: update_keyword_matrix: Create Xt '
-    #print 'len inds', len(inds)
+    #Take rows from sX corresponding the indices of observed words from (keyboard) input
     sXt   = sX[inds,:]
     sXtT  = sXt.transpose()
+
+    #Make identity matrices needed in further steps
     speye  = sparse.identity(sXtT.shape[0])
     speye2 = sparse.identity(sXtT.shape[1])
 
-    #print 'Compute A'
-    #print sXtT.shape, sXt.shape, speye2.shape
+    #Compute XX^T
     sXtsXtT = sXt.dot(sXtT)
+    #Compute A matrix 
     sdumA = (1/mu)*sXtsXtT + speye2
-    #print sdumA.shape
 
-    #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
+    #
     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
         if sdumA[0,0] > 0.0:
             sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
         else:
             sdumAinv = sparse.csr_matrix([[1.0]])
     else:
+        #Compute inverse of sdumA
         sdumAinv = sparse.linalg.inv(sdumA)
         sdumAinv.tocsr()
 
@@ -505,29 +575,15 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
     sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
     sA       = sX.dot(sAtilde)
 
-    #print 'sy'
+    #
     sy = sparse.csr_matrix(y)
-
-    #
-    #print sy.shape
-    #print sA.shape
-    #sy_hat   = sA.dot(sy)
     sy_hatapp= sA.dot(sy)
-    sw_hat2  = sAtilde*sy
-    w_hat2   = sw_hat2.toarray()
-    
-    #
-    #print 'shape sy_hat: ', sy_hatapp.shape
-
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    #y_hat   = sy_hat.toarray()
     y_hatapp= sy_hatapp.toarray()
 
-    #print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hatapp.shape, ' type: ', type(y_hatapp)
-    #print 'Search thread: update_keyword_matrix: argmax r_hat: ', y_hatapp.argmax()
-    #print 'Search thread: update_keyword_matrix: argmax sigma_hat: ', sigma_hatapp.argmax()
+    #
+    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+    #Convert to numpy array
+    sigma_hatapp= np.array(sigma_hatapp)
 
     return y_hatapp, sigma_hatapp    
 
@@ -535,6 +591,16 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
 
 
 def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
+
+    #Inputs
+    #y = observed relevance vector
+    #sX= tfidf matrix in scipy sparse matrix format
+    #mu= regularization parameter
+
+    #Output
+    #y_hatapp     = estimation of relevance vector 
+    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
 
     #Load document term matrix 
     #sX = load_sparse_csc('data/sX.sparsemat.npz')
@@ -557,29 +623,29 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
             y    = np.zeros([len(inds),1])
             #inds = np.array([[0]])
 
-    #Compute estimation of weight vector (i.e. user model)
-    #print 'Search thread: update_keyword_matrix: Create Xt '
-    #print 'len inds', len(inds)
+    #Take rows from sX corresponding the indices of observed words from (keyboard) input
     sXt   = sX[inds,:]
     sXtT  = sXt.transpose()
+
+    #Make identity matrices needed in further steps
     speye  = sparse.identity(sXtT.shape[0])
     speye2 = sparse.identity(sXtT.shape[1])
 
-    #print 'Compute A'
-    #print sXtT.shape, sXt.shape, speye2.shape
+    #Compute XX^T
     sXtsXtT = sXt.dot(sXtT)
+    #Compute A matrix 
     sdumA = (1/mu)*sXtsXtT + speye2
-    #print sdumA.shape
 
-    #Dvec = vector of eigenvalues, Q = array of corresponding eigenvectors
+    #
     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
         if sdumA[0,0] > 0.0:
             sdumAinv = sparse.csc_matrix([[1.0/sdumA[0,0]]])
         else:
             sdumAinv = sparse.csc_matrix([[1.0]])
     else:
+        #Compute inverse of sdumA
         sdumAinv = sparse.linalg.inv(sdumA)
-        sdumAinv.tocsr()
+        sdumAinv.tocsc()
 
     #print sdumAinv.shape
     muI      = (1/mu)*speye
@@ -587,32 +653,100 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
     sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
     sA       = sX.dot(sAtilde)
 
-    #print 'sy'
+    #
     sy = sparse.csc_matrix(y)
-
-    #
-    #print sy.shape
-    #print sA.shape
-    #sy_hat   = sA.dot(sy)
     sy_hatapp= sA.dot(sy)
-    sw_hat2  = sAtilde*sy
-    w_hat2   = sw_hat2.toarray()
-    
-    #
-    #print 'shape sy_hat: ', sy_hatapp.shape
-
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    #y_hat   = sy_hat.toarray()
     y_hatapp= sy_hatapp.toarray()
 
-    #print 'Search thread: update_keyword_matrix: r_hat shape: ', y_hatapp.shape, ' type: ', type(y_hatapp)
-    #print 'Search thread: update_keyword_matrix: argmax r_hat: ', y_hatapp.argmax()
-    #print 'Search thread: update_keyword_matrix: argmax sigma_hat: ', sigma_hatapp.argmax()
+    #
+    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+    #Convert to numpy array
+    sigma_hatapp= np.array(sigma_hatapp)
 
     return y_hatapp, sigma_hatapp    
 
+
+
+
+
+def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu):
+
+    #Inputs
+    #y = observed relevance vector
+    #sX= tfidf matrix in scipy sparse matrix format
+    #mu= regularization parameter
+
+    #Output
+    #y_hatapp     = estimation of relevance vector 
+    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
+
+    #Load document term matrix 
+    #sX = load_sparse_csc('data/sX.sparsemat.npz')
+    #Make transpose of document term matrix 
+    sX = sX.T
+    sX = sX.tocsc()
+
+    #Take indices of non-zeros of y-vector
+    inds = np.where(y)[0]
+    #print 'inds: ', inds
+
+    #Form new y that has only non-zeros of the original y
+    if len(inds) > 1:
+        y    = y[inds]
+    else:
+        if len(inds) == 0:
+            y    = np.zeros([1,1])
+            inds = np.array([[0]])
+        else:
+            y    = np.zeros([len(inds),1])
+            #inds = np.array([[0]])
+
+    #
+    sy = sparse.csc_matrix(y)
+
+    #Take rows from sX corresponding the indices of observed words from (keyboard) input
+    sXt   = sX[inds,:]
+    sXtT  = sXt.transpose()
+
+    #Make identity matrices needed in further steps
+    speye2 = sparse.identity(sXtT.shape[1])
+    speye2 = speye2.tocsc()
+
+    #Compute XX^T
+    sXtsXtT = sXt.dot(sXtT)
+    #Compute A matrix 
+    sdumA = mu*speye2 + sXtsXtT 
+    #Compute inverse of sdumA
+    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+        if sdumA[0,0] > 0.0:
+            sdumAinv = sparse.csc_matrix([[1.0/sdumA[0,0]]])
+        else:
+            sdumAinv = sparse.csc_matrix([[1.0]])
+    else:
+        #Compute inverse of sdumA
+        sdumAinv = sparse.linalg.inv(sdumA)
+        sdumAinv.tocsc()
+
+    #print sdumAinv.shape
+    sdumAinv2= speye2 - sdumAinv.dot(sXtsXtT)
+    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+    sA       = sX.dot(sAtilde)
+
+    #Compute estimation of user intent model, w_hat
+    sw_hat = sAtilde.dot(sy)
+    w_hat  = sw_hat.toarray()
+
+    #Compute estimation of y based on user model
+    sy_hat = sA.dot(sy)
+    y_hat  = sy_hat.toarray()
+
+    #
+    sigma_hat = np.sqrt(sA.multiply(sA).sum(1)) 
+    #Convert to numpy array
+    sigma_hat = np.array(sigma_hat)
+
+    return y_hat, sigma_hat, w_hat
 
 
 
@@ -623,7 +757,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
 def recompute_keywords(c):
     #print 'c', c
     #Import dictionary
-    dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+    dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 
     #
     r_hat     = np.load('data/r_hat.npy')

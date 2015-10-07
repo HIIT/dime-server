@@ -74,7 +74,7 @@ def read_user_ini():
 #
 def update_all_data():
 	
-	print "Update data!!"
+	print("Update data!!")
 	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
 
 	cpath  = os.getcwd()
@@ -107,19 +107,20 @@ def check_update():
 	
 	#
 	if os.path.exists(cpathd):
-		print 'Search thread: check_update: data/ folder EXISTS!'
+		print('Search thread: check_update: data/ folder EXISTS!')
 
 		if not os.path.isfile('data/json_data.txt'):
 			update_data(srvurl, username, password)
 
-		if not os.path.isfile('/tmp/tmpdict.dict'):
+		if not os.path.isfile('data/tmpdict.dict'):
 			update_dictionary()			
 
 		if not os.path.isfile('data/doctm.data'):
 			update_doctm(cpathd)
 			update_doc_tfidf_list(cpathd)
 
-		if not os.path.isfile('/tmp/similarityvec'):
+		#if not os.path.isfile('/tmp/similarityvec'):
+		if not os.path.isfile('data/similarityvec'):
 			update_docsim_model()
 
 		if not os.path.isfile('data/docindlist.list'):
@@ -132,7 +133,7 @@ def check_update():
 			create_stopwordlist(cpathd)
 
 	else: 
-		print 'Search thread: check_update: data/ DOES NOT EXISTS! CREATE ONE!'
+		print('Search thread: check_update: data/ DOES NOT EXISTS! CREATE ONE!')
 		#Create data folder into the current path
 		os.makedirs(cpathd)
 		#
@@ -149,7 +150,7 @@ def check_update():
 #Update data
 def update_data(srvurl, username, password):
 	### IMPORT DATA from DiMe #######	
-	print "Importing data from DiMe!!"
+	print("Importing data from DiMe!!")
 
 	#------------------------------------------------------------------------------
 
@@ -166,17 +167,18 @@ def update_data(srvurl, username, password):
 		print('No connection to DiMe server!')
 		sys.exit(1)
 
-	r = requests.get(server_url + '/data/informationelement',
+	r = requests.get(server_url + '/data/informationelements',
 	                 headers={'content-type': 'application/json'},
 	                 auth=(server_username, server_password),
 	                 timeout=20)
-	 
+	
+	# 
 	dumdata = r.json()
 	#
 	data = []
-	for i in range(len(dumdata)):
-		if dumdata[i].has_key('plainTextContent'):
-			data.append(dumdata[i])
+	for dd in dumdata:
+		if 'plainTextContent' in dd:
+			data.append(dd)
 	
 	#
 	f = open('data/json_data.txt','w')	
@@ -187,19 +189,19 @@ def update_data(srvurl, username, password):
 # Update dictionary
 def update_dictionary():
 
-	print 'Search thread: update_dictionary: current path:', os.getcwd()
+	print('Search thread: update_dictionary: current path:', os.getcwd())
 
-	print "Search thread: Updating dictionary!"
+	print("Search thread: Updating dictionary!")
 	f = open('data/json_data.txt','r')
 	data = json.load(f)
 
 	#Create list of documents
 	ndocuments = len(data)
-	print 'Search thread: num. of docs: ', ndocuments
+	print('Search thread: num. of docs: ', ndocuments)
 	documentlist = []
 	for i in range(ndocuments):
 		#Check that data object (that is now in python dict-form) has key 'plainTextContent'
-		if data[i].has_key('plainTextContent'):
+		if 'plainTextContent' in data[i]:
 			documentlist.append(data[i]['plainTextContent'])
 
 	# Read list of forbidden words #
@@ -233,11 +235,11 @@ def update_dictionary():
 	dictionary = corpora.Dictionary([wordlist])
 
 	#Save dictionary for future use
-	dictionary.save('/tmp/tmpdict.dict')
+	dictionary.save('data/tmpdict.dict')
 	#dictionaryvalues = dictionary.values()
 
 def create_stopwordlist(destinationfolder):
-	print 'Search thread: Create stop word list'
+	print('Search thread: Create stop word list')
 
 	# Read list of forbidden words #
 	s1 = open('stop-words/stop-words_english_1_en.txt','r')
@@ -255,18 +257,18 @@ def create_stopwordlist(destinationfolder):
 	#Create list of forbidden words
 	stoplist = set(sstr.split())
 
-	f = open(destinationfolder+'/stopwordlist.list','w')
-	pickle.dump(stoplist, f)
+	#f = open(destinationfolder+'/stopwordlist.list','w')
+	pickle.dump(stoplist, open(destinationfolder+'/stopwordlist.list','wb'))
 
 #Update list of bag of word vectors of documents, denoted by 'doctm'
 def update_doctm(destinationfolder):
 
-	print "Updating document term frequency matrix!"
+	print("Updating document term frequency matrix!")
 
 	#Import dictionary
-	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 	nwords = len(dictionary)
-	print "update_doctm: number of words in dictionary:", nwords
+	print("update_doctm: number of words in dictionary:", nwords)
 
 	#Import data
 	f = open('data/json_data.txt','r')
@@ -276,7 +278,7 @@ def update_doctm(destinationfolder):
 	ndocuments = len(data)
 	documentlist = []
 	for i in range(ndocuments):
-		if data[i].has_key('plainTextContent'):
+		if 'plainTextContent' in data[i]:
 			documentlist.append(data[i]['plainTextContent'])
 
 	#Create document term matrix 'doctm'
@@ -289,19 +291,22 @@ def update_doctm(destinationfolder):
 	#Store number of docs
 	ndocs = len(doctm)
 	varlist = [nwords, ndocs]
-	f = open(destinationfolder+'/varlist.list', 'w')
-	pickle.dump(varlist, f)
-	f.close()
+	# f = open(destinationfolder+'/varlist.list', 'w')
+	# pickle.dump(varlist, f)
+	pickle.dump(varlist, open(destinationfolder+'/varlist.list', 'wb'))
+	# f.close()
 
 	#Store the data of doctm
-	f = open(destinationfolder+'/doctm.data','w')
-	pickle.dump(doctm, f)
+	# f = open(destinationfolder+'/doctm.data','w')
+	# pickle.dump(doctm, f)
+	pickle.dump(doctm, open(destinationfolder+'/doctm.data','wb'))
 
 
 def update_tfidf_model(destinationfolder):
 	#Import doctm
-	f = open('data/doctm.data','r')
-	doctm = pickle.load(f)
+	# f = open('data/doctm.data','r')
+	# doctm = pickle.load(f)
+	doctm = pickle.load(open('data/doctm.data','rb'))
 
 	#Learn tfidf model from the document term matrix
 	tfidf = models.TfidfModel(doctm)
@@ -312,13 +317,15 @@ def update_tfidf_model(destinationfolder):
 #and saves the 'doc_tfidf_list also in sparse matrix form (more specifically in scipy sparse csc_matrix form)
 def update_doc_tfidf_list(destinationfolder):
 
-	print "Update doc tfidf list and its corresponding sparse matrix repr.!"
+	print("Update doc tfidf list and its corresponding sparse matrix repr.!")
 
 	#Import dictionary
-	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 
-	f = open('data/doctm.data','r')
-	doctm = pickle.load(f)
+	#
+	# f = open('data/doctm.data','r')
+	# doctm = pickle.load(f)
+	doctm = pickle.load(open('data/doctm.data','rb'))
 	#print 'rows doctm', len(doctm)
 
 	#Learn tfidf model from the document term matrix
@@ -331,28 +338,30 @@ def update_doc_tfidf_list(destinationfolder):
 	    doc_tfidf_list.append(doc_tfidf_dum)
 
 	#
-	f = open(destinationfolder+'/doc_tfidf_list.data','w')
-	pickle.dump(doc_tfidf_list,f)
+	# f = open(destinationfolder+'/doc_tfidf_list.data','w')
+	# pickle.dump(doc_tfidf_list,f)
+	pickle.dump(doc_tfidf_list, open(destinationfolder+'/doc_tfidf_list.data','wb'))
 
 	#Make also sparse matrix representation of doctm and doc_tfidf_list
 	sparsemat = doc_tfidf_list_to_sparsemat(doctm)
-	print 'Search thread: doctm sparsemat shape, ', sparsemat.shape
+	print('Search thread: doctm sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sXdoctm.sparsemat',sparsemat)
 
 	sparsemat = doc_tfidf_list_to_sparsemat(doc_tfidf_list)
-	print 'Search thread: sparsemat shape, ', sparsemat.shape
+	print('Search thread: sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sX.sparsemat',sparsemat)
+
 
 
 #Converts doc_tfidf_list to scipy sparse matrix format (as csc_matrix)
 def doc_tfidf_list_to_sparsemat(doc_tfidf_list):
 	#Import dictionary
-	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 	nwords = len(dictionary)
 
 	nrow = len(doc_tfidf_list)
 	sparsemat = sparse.lil_matrix((nrow, nwords))
-	print sparsemat.shape
+	print(sparsemat.shape)
 	row = 0
 	for d in doc_tfidf_list:
 		for c in d:
@@ -389,30 +398,31 @@ def update_Xt_and_docindlist(docindlist):
 
 	#Save docindlist 
 	if os.path.isfile('data/docindlist.list'):
-		f = open('data/docindlist.list','r')
-		docindlistprev = pickle.load(f)
+		# f = open('data/docindlist.list','r')
+		# docindlistprev = pickle.load(f)
+		docindlistprev = pickle.load(open('data/docindlist.list','rb'))
 		#Merge new and old list of indices
 		docindlist = list(set(docindlist + docindlistprev))
 		docindlist.sort()
-		f = open('data/docindlist.list','w')
+		#f = open('data/docindlist.list','w')
 		#print 'Search thread: Updated docindlist: ', docindlist
-		pickle.dump(docindlist,f)
+		pickle.dump(docindlist,open('data/docindlist.list','wb'))
 	else:
 		#Save docindlist (the list of indices of suggested documents)		
-		f = open('data/docindlist.list','w')
+		#f = open('data/docindlist.list','w')
 		docindlist.sort()
-		print 'Search thread: Updated docindlist first time: ', docindlist
-		pickle.dump(docindlist,f)
+		print('Search thread: Updated docindlist first time: ', docindlist)
+		pickle.dump(docindlist,open('data/docindlist.list','wb'))
 
 	#Save list of indices of omitted documents 
 	if os.path.isfile('data/docindlist.list'):
-		docindlisttot = range(sX.shape[0])
+		docindlisttot = list(range(sX.shape[0]))
 		omittedindlist= np.delete(docindlisttot,docindlist,0)
 		omittedindlist= omittedindlist.tolist()
 
 		#Save list of omitted docs
-		f = open('data/omittedindlist.npy','w')
-		pickle.dump(omittedindlist,f)
+		#f = open('data/omittedindlist.npy','w')
+		pickle.dump(omittedindlist,open('data/omittedindlist.npy','wb'))
 
 
 def doc_tfidf_list_to_array(tfidf_list, nwords):
@@ -444,25 +454,28 @@ def doc_tfidf_list_to_array(tfidf_list, nwords):
 def update_docsim_model():
 
 	#Import dictionary 
-	if os.path.isfile('/tmp/tmpdict.dict'):
-		dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	if os.path.isfile('data/tmpdict.dict'):
+		dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 	else:
 		#cpath  = os.getcwd()
 		#cpathd = cpath + '/' + 'data'
 		#os.chdir(cpathd)
-		print "Search thread: update_docsim_model: updating dictionary!"
+		print("Search thread: update_docsim_model: updating dictionary!")
 		update_dictionary()
-		dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+		dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 		#os.chdir('../')
 
 	#Import document term matrix
-	f = open('data/doctm.data','r')
-	doctm = pickle.load(f)
+	# f = open('data/doctm.data','r')
+	# doctm = pickle.load(f)
+	doctm = pickle.load(open('data/doctm.data','rb'))
 
 	#Build index
-	index = similarities.docsim.Similarity('/tmp/similarityvec',doctm, num_features = len(dictionary), num_best = 20)
+	#index = similarities.docsim.Similarity('/tmp/similarityvec',doctm, num_features = len(dictionary), num_best = 20)
+	index = similarities.docsim.Similarity('data/similarityvec',doctm, num_features = len(dictionary), num_best = 20)
 	index.num_best = 20
-	index.save('/tmp/similarityvec')
+	#index.save('/tmp/similarityvec')
+	index.save('data/similarityvec')
 
 #Updates LinRel matrix, denoted by A 
 def update_A(docinds, y):
@@ -471,16 +484,16 @@ def update_A(docinds, y):
 	#sX = np.load('sX.npy')
 	sX = load_sparse_csc('data/sX.sparsemat.npz')	
 
-	print "Search thread: Updating A"
+	print("Search thread: Updating A")
 
 	#Compute estimation of weight vector (i.e. user model)
-	print 'Search thread: Create Xt '
+	print('Search thread: Create Xt ')
 	sXcsr = sX.tocsr()
-	print 'Search thread: Type of sXcsr: ', type(sXcsr)
+	print('Search thread: Type of sXcsr: ', type(sXcsr))
 	sXtcsr= sXcsr[docinds,:]
 	Xt    = sXtcsr.toarray()
-	print 'Search thread: Xt shape: ', Xt.shape
-	print 'Search thread: y shape: ', y.shape
+	print('Search thread: Xt shape: ', Xt.shape)
+	print('Search thread: y shape: ', y.shape)
 
 	#
 	w = estimate_w(Xt,y)
@@ -498,8 +511,8 @@ def update_A(docinds, y):
 
 	#Update A
 	Atilde = w*yT
-	print 'Search thread: Shape of Atilde: ', Atilde.shape
-	print 'Search thread: Max val of Atilde: ', Atilde.max()
+	print('Search thread: Shape of Atilde: ', Atilde.shape)
+	print('Search thread: Max val of Atilde: ', Atilde.max())
 	sAtilde= sparse.csc_matrix(Atilde)
 	#print 'type sX, ', type(sX), 'shape, ', sX.shape
 	#print 'type sAtilde,', type(sAtilde), 'shape, ', sAtilde.shape
@@ -547,14 +560,14 @@ def make_tfidf_array(tfidf_vec, dictionary):
 #
 def create_topic_model_and_doctid(numoftopics):
 
-	print "Create topic model!"
+	print("Create topic model!")
 
 	#Import data
 	f = open('json_data.txt','r')
 	data = json.load(f)
 
 	#Import dictionary
-	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 
 	#Import document term matrix
 	f = open('doctm.data','r')
@@ -607,14 +620,14 @@ def create_topic_model_and_doctid(numoftopics):
 #
 def update_topic_model_and_doctid():
 
-	print "Updating topic model!"
+	print("Updating topic model!")
 
 	#Import data
 	f = open('json_data.txt','r')
 	data = json.load(f)
 
 	#Import dictionary
-	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 
 	#Import lda model
 	ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
@@ -668,7 +681,7 @@ def update_topic_model_and_doctid():
 def df_word_removal(sXdoctm, dictionary):
 
 	#
-	print "update_files: df_word_removal: Removing common words from dictionary!!"
+	print("update_files: df_word_removal: Removing common words from dictionary!!")
 	sX = sXdoctm
 
 	#Number of documents
@@ -705,7 +718,7 @@ def df_word_removal(sXdoctm, dictionary):
 	nwords_after = len(dictionary)
 
 
-	print "new and old ", nwords_before, nwords_after
+	print("new and old ", nwords_before, nwords_after)
 
 	#
 	dictionary_changed = False
@@ -713,9 +726,9 @@ def df_word_removal(sXdoctm, dictionary):
 		dictionary_changed = True
 
 	if dictionary_changed:
-		print "update_files: df_word_removal: Dictionary changed!"
+		print("update_files: df_word_removal: Dictionary changed!")
 		#Update dictionary dependent data files
-		dictionary.save('/tmp/tmpdict.dict')
+		dictionary.save('data/tmpdict.dict')
 		update_doctm('data/')
 		update_doc_tfidf_list('data/')
 		update_docsim_model()

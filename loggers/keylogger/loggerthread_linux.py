@@ -1,5 +1,7 @@
+# coding=UTF-8
 
-from PyQt4 import QtCore, QtGui
+from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from PyQt5 import QtGui, QtCore
 
 from fetch_keys_linux import *
 
@@ -8,6 +10,9 @@ import datetime
 
 #
 class LoggerThread(QtCore.QThread):
+
+  #update = pyqtSignal(unicode)
+  update = pyqtSignal(str)
 
   def __init__(self):
     QtCore.QThread.__init__(self)
@@ -19,9 +24,14 @@ class LoggerThread(QtCore.QThread):
   def stop_logger_loop(self):
     self.var = False
 
+  def clear_dumstring(self):
+    self.dumstr2 = ''
+    self.wordlist = []
+
+
   #Keylogger 
   def run(self):
-    print 'Logger thread: Run Run'
+    print('Logger thread: Run Run')
 
     #Read user.ini
     srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
@@ -48,7 +58,7 @@ class LoggerThread(QtCore.QThread):
     string_to_send = None
     timestamp = now
 
-    print "Logger thread: Ready for logging"
+    print("Logger thread: Ready for logging")
 
     while self.var:
 
@@ -73,7 +83,8 @@ class LoggerThread(QtCore.QThread):
           keys = ''
           #if cmachtime > timestamp + nokeypress_interval and string_to_send is not None:
           if string_to_send is not None:
-            self.emit( QtCore.SIGNAL('update(QString)'), string_to_send)
+            #self.emit( QtCore.SIGNAL('update(QString)'), string_to_send)
+            self.update.emit(string_to_send)
             string_to_send = None
 
         else:
@@ -90,12 +101,12 @@ class LoggerThread(QtCore.QThread):
               dumstr = "".join(duml)
 
           elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
-            print 'Logger thread: keys: ', keys
-            print 'Logger thread: changed: ', changed[0]
+            print('Logger thread: keys: ', keys)
+            print('Logger thread: changed: ', changed[0])
             #keys = ' '
             wordlist.append(dumstr)
             #print wordlist
-            print 'Logger thread: wordlist:', wordlist[-nwords:]
+            print('Logger thread: wordlist:', wordlist[-nwords:])
             dwordlist = wordlist[-nwords:]
             #dumstr = dumstr + keys
             countspaces = countspaces + 1

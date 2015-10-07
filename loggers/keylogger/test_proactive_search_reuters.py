@@ -9,13 +9,10 @@ from dime_search2 import *
 from update_files import *
 
 #
-import mailbox
+#import mailbox
 
 #
 import pickle
-
-#
-import random
 
 import nltk
 porter = nltk.PorterStemmer()
@@ -23,31 +20,16 @@ porter = nltk.PorterStemmer()
 #------------------------------------------------------------------------------
 
 categoryindices = {
-    "alt.atheism": 0,
-    "comp.graphics": 1,
-    "comp.os.ms-windows.misc": 2,
-    "comp.sys.ibm.pc.hardware": 3,
-    "comp.sys.mac.hardware": 4,
-    "comp.windows.x": 5,
-    "misc.forsale": 6,
-    "rec.autos": 7,
-    "rec.motorcycles": 8,
-    "rec.sport.baseball": 9,
-    "rec.sport.hockey": 10,
-    "sci.crypt": 11,
-    "sci.electronics": 12,
-    "sci.med": 13,
-    "sci.space": 14,
-    "soc.religion.christian": 15,
-    "talk.politics.guns": 16,
-    "talk.politics.mideast": 17,
-    "talk.politics.misc": 18,
-    "talk.religion.misc": 19 }
+    "acq": 0,
+    "crude": 1,
+    "earn": 2,
+    "grain": 3,
+    "interest": 4,
+    "money-fx": 5,
+    "ship": 6,
+    "trade": 7 }
 
 #------------------------------------------------------------------------------
-
-
-#------------------------------
 
 def filter_string(string, do_stem=True):
 
@@ -71,7 +53,7 @@ def filter_string(string, do_stem=True):
 #------------------------------------------------------------------------------
 
 #Compute list of topic ids corresponding each document id
-def compute_doccategorylist_20news(jsons):
+def compute_doccategorylist_reuters(jsons):
 
     doccategorylist = []
     for jsond in jsons:
@@ -80,7 +62,7 @@ def compute_doccategorylist_20news(jsons):
         sublist = []
         for tag in jsond['tags']:
             parts = tag.split('=')
-            if parts[0] == "newsgroup":
+            if parts[0] == "category":
                 category = categoryindices[parts[1]]
                 sublist.append(category)
                 #dstr = dstr + ' ' + str(category)
@@ -107,10 +89,6 @@ parser.add_argument('--histremoval', metavar='X:Y',
                     help='remove history with parameters X and Y')
 parser.add_argument('--removeseenkws', action='store_true',
                     help='remove keywords that appear in input')
-parser.add_argument('--nwritten', metavar='N', action='store', type=int,
-                    default=50, help='number of words to write')
-parser.add_argument('--nclicked', metavar='X[:Y]',
-                    help='click X suggested keywords with method Y')
 
 args = parser.parse_args()
 
@@ -134,15 +112,6 @@ if args.histremoval:
     parts = args.histremoval.split(":")
     histremoval_threshold = int(parts[0])
     histremoval_ma_value  = int(parts[1])
-
-nclicked_n = 0
-nclicked_method = 0
-if args.nclicked:
-    print(args.nclicked)
-    parts = args.nclicked.split(":")
-    nclicked_n = int(parts[0])
-    if len(parts)>1:
-        nclicked_method = int(parts[1])
 
 #update_data(srvurl, usrname, password)
 check_update()
@@ -168,7 +137,7 @@ tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
 index      = similarities.docsim.Similarity.load('data/similarityvec')
 
 #Compute topics of each document
-doccategorylist = compute_doccategorylist_20news(data)
+doccategorylist = compute_doccategorylist_reuters(data)
 
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
@@ -185,47 +154,24 @@ dwordlist = []
 filecategory_old = None
 
 #
-filename = args.queries
-print("Reading simulation queries from file", filename)
+print("Reading simulation queries from file", args.queries)
 
 #
-f = open(filename,'r')
+f = open(args.queries,'r')
+
+qparts = args.queries.rsplit("/",1)
+qfn = qparts[1]
 
 for j,line in enumerate(f):
 
     #dstr = line.read()
     line        = line.rstrip()
-    dlist       = line.split("/")
-    filename    = line
-    filecategory= categoryindices[dlist[1]]
-    #print "filename2: ", dlist[0], dlist[1]
-    #print 'enron_with_categories/'+dlist[0]
-    #dumfile = open('enron_with_categories/'+dlist[0])
+    parts = line.split("\t")
 
-    #print "Message ",j
-    #
-    #mbox = mailbox.mbox(parts[0])
-    mbox = mailbox.mbox(args.querypath+'/'+filename)
-    if len(mbox) != 1:
-        print("ERROR: Multiple emails (", len(mbox), ") found in", filename)
-        break
-    for message in mbox:
-        #json_payload = create_payload(message, i, parts[1], parts[2])
-        subject          = message['subject']
-        #print subject
-        subject = filter_string(subject, not args.nostem)
-        #print subject
-        subject_wordlist = subject.split()
-        #print subject
+    filename    = qfn+'_'+str(j)
+    filecategory= categoryindices[parts[0]]
 
-        msgpayload = message.get_payload()
-        #print msgpayload
-        msgpayload = filter_string(msgpayload, not args.nostem)
-
-        msgpayload_wordlist = msgpayload.split()
-
-        wordlist = subject_wordlist + msgpayload_wordlist
-        #print msgpayload_wordlist
+    wordlist = parts[1].split(" ")
 
     # #Exploration/Exploitation coefficient
     c = 1.0
@@ -237,6 +183,7 @@ for j,line in enumerate(f):
         dwordlist = []
 
     #
+    i = 0
     i2= 0
     #Number of currently typed words
     divn = 1
@@ -247,6 +194,7 @@ for j,line in enumerate(f):
     j2 = 0
 
     #Maximum number of words written from each file 
+    nwritten = 50
     #Average precision
     sumavgprecision = 0.0
     sumavgprecision_old = 0.0
@@ -254,12 +202,7 @@ for j,line in enumerate(f):
     precisionlist = []
     precisionlist_old = []
 
-    kws = []
-
-    wordlist_r = list(reversed(wordlist))
-    i = 0
-    while len(wordlist_r)>0:                
-        dstr = wordlist_r.pop()
+    for i, dstr in enumerate(wordlist):
 
         #If nth word has been written, do search
         if i%divn == 0:
@@ -269,19 +212,16 @@ for j,line in enumerate(f):
 
             #
             if i2 == 0:
-                print("###########################################")
-                print("STARTING NEW MAIL no. ", j)
-                print("###########################################")
+                print("\nMail ", j)
                 filelocatorlist.append(1.0)
             else:
                 filelocatorlist.append(0.0)
-
-            print("Filename:", filename, "j:", j, "i:", i, "dstr:", dstr)
             dwordlist.append(dstr)
             dstr2 = dstr2 + ' ' + dstr
             #print "Currently typed: ", dstr2
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
+            print("Filename:", filename)
             print("Input to search function: ", dstr2)
             jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
             nsuggested_files = len(jsons)
@@ -292,10 +232,10 @@ for j,line in enumerate(f):
                 print("TEST_WORDLIST:", test_wordlist)
                 new_kws = []
                 new_winds = []
-                for iii,kw in enumerate(kws):
+                for iiiii,kw in enumerate(kws):
                     if kw not in test_wordlist:
-                        new_kws.append(kws[iii])
-                        new_winds.append(winds[iii])
+                        new_kws.append(kws[iiiii])
+                        new_winds.append(winds[iiiii])
                     else:
                         print("KEYWORD", kw, "ALREADY IN INPUT, REMOVE!!")
                 kws = new_kws
@@ -310,23 +250,8 @@ for j,line in enumerate(f):
 
             #
             all_kw_scores = []
-            for ii in range(0,20):
-                kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
-                #print("Mean kw scores:",kwm,"kw_scores_topic:",kw_scores_topic)
-                #Take keyword scores for 'filecategory'
-                if ii == filecategory:
-                    if len(kw_scores_topic) > 0:
-                        #print(len(kw_scores_topic))
-                        #print(type(kw_scores_topic))
-                        kw_scores_filecategory = kw_scores_topic
-                        kw_scores_filecategory = np.array(kw_scores_filecategory)
-                        #print(kw_scores_filecategory)
-                        kw_maxind = np.argmax(kw_scores_filecategory)
-                        #
-                        kw_randind = pick_random_kw_ind(kw_scores_filecategory) 
-                        #print("kw_maxind: ", kw_maxind)
-                    else:
-                        kw_maxind = 0
+            for ii in range(0,8):
+                kwm, foo = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
                 all_kw_scores.append(kwm)
             kw_scores = all_kw_scores[filecategory]
             if filecategory_old is not None:
@@ -349,7 +274,7 @@ for j,line in enumerate(f):
                 #Split file -tag for checking category
                 for ti, tag in enumerate(json['tags']):
                     parts = json['tags'][ti].split('=')
-                    if parts[0] == "newsgroup":
+                    if parts[0] == "category":
                         #
                         categoryid = categoryindices[parts[1]]
                         print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
@@ -382,7 +307,7 @@ for j,line in enumerate(f):
             print("Suggested keywords:", kws)
             print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
             print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-            print("  ", all_kw_scores_norm)
+            print("  ", all_kw_scores_norm, '\n')
 
             #
             precisionlist.append([cprecision, avgprecision, kw_scores_norm])
@@ -396,20 +321,9 @@ for j,line in enumerate(f):
         #
         i2 = i2 + 1
 
-        i = i+1
-        if i>=(args.nwritten+nclicked_n):
+        #If number of written words from the current file is bigger than nwritten, break 
+        if i>nwritten:
             break
-        elif i>=(args.nwritten):
-            if nclicked_method == 2:
-                kw_clicked = kws[kw_randind]
-            elif nclicked_method == 1:
-                kw_clicked = kws[kw_maxind]
-            else:
-                kw_clicked = kws[0]
-            print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
-            wordlist_r.append(kw_clicked)
-
-        print()
 
     #
     filelocatorlistnp = np.array(filelocatorlist)
