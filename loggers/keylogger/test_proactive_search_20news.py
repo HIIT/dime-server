@@ -14,6 +14,9 @@ import mailbox
 #
 import pickle
 
+#
+import random
+
 import nltk
 porter = nltk.PorterStemmer()
 
@@ -42,6 +45,9 @@ categoryindices = {
     "talk.religion.misc": 19 }
 
 #------------------------------------------------------------------------------
+
+
+#------------------------------
 
 def filter_string(string, do_stem=True):
 
@@ -316,6 +322,8 @@ for j,line in enumerate(f):
                         kw_scores_filecategory = np.array(kw_scores_filecategory)
                         #print(kw_scores_filecategory)
                         kw_maxind = np.argmax(kw_scores_filecategory)
+                        #
+                        kw_randind = pick_random_kw_ind(kw_scores_filecategory) 
                         #print("kw_maxind: ", kw_maxind)
                     else:
                         kw_maxind = 0
@@ -392,6 +400,8 @@ for j,line in enumerate(f):
         if i>=(args.nwritten+nclicked_n):
             break
         elif i>=(args.nwritten):
+            if nclicked_method == 2:
+                kw_clicked = kws[kw_randind]
             if nclicked_method == 1:
                 kw_clicked = kws[kw_maxind]
             else:
