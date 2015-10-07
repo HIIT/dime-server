@@ -327,6 +327,7 @@ for j,line in enumerate(f):
                         #print("kw_maxind: ", kw_maxind)
                     else:
                         kw_maxind = 0
+                        kw_randind = 0
                 all_kw_scores.append(kwm)
             kw_scores = all_kw_scores[filecategory]
             if filecategory_old is not None:
