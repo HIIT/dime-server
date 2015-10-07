@@ -103,7 +103,7 @@ parser.add_argument('--removeseenkws', action='store_true',
                     help='remove keywords that appear in input')
 parser.add_argument('--nwritten', metavar='N', action='store', type=int,
                     default=50, help='number of words to write')
-parser.add_argument('--nclicked', metavar='X:Y',
+parser.add_argument('--nclicked', metavar='X[:Y]',
                     default=0, help='click X suggested keywords with method Y')
 
 args = parser.parse_args()
@@ -135,7 +135,8 @@ if args.nclicked:
     print(args.nclicked)
     parts = args.nclicked.split(":")
     nclicked_n = int(parts[0])
-    nclicked_method = int(parts[1])
+    if len(parts)>1:
+        nclicked_method = int(parts[1])
 
 #update_data(srvurl, usrname, password)
 check_update()
@@ -230,7 +231,6 @@ for j,line in enumerate(f):
         dwordlist = []
 
     #
-    i = 0
     i2= 0
     #Number of currently typed words
     divn = 1
@@ -248,7 +248,12 @@ for j,line in enumerate(f):
     precisionlist = []
     precisionlist_old = []
 
-    for i, dstr in enumerate(wordlist):
+    kws = []
+
+    wordlist_r = list(reversed(wordlist))
+    i = 0
+    while len(wordlist_r)>0:                
+        dstr = wordlist_r.pop()
 
         #If nth word has been written, do search
         if i%divn == 0:
@@ -258,16 +263,19 @@ for j,line in enumerate(f):
 
             #
             if i2 == 0:
-                print("\nMail ", j)
+                print("###########################################")
+                print("STARTING NEW MAIL no. ", j)
+                print("###########################################")
                 filelocatorlist.append(1.0)
             else:
                 filelocatorlist.append(0.0)
+
+            print("Filename:", filename, "j:", j, "i:", i, "dstr:", dstr)
             dwordlist.append(dstr)
             dstr2 = dstr2 + ' ' + dstr
             #print "Currently typed: ", dstr2
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
-            print("Filename:", filename)
             print("Input to search function: ", dstr2)
             jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
             nsuggested_files = len(jsons)
@@ -353,7 +361,7 @@ for j,line in enumerate(f):
             print("Suggested keywords:", kws)
             print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
             print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-            print("  ", all_kw_scores_norm, '\n')
+            print("  ", all_kw_scores_norm)
 
             #
             precisionlist.append([cprecision, avgprecision, kw_scores_norm])
@@ -367,9 +375,14 @@ for j,line in enumerate(f):
         #
         i2 = i2 + 1
 
-        #If number of written words from the current file is bigger than nwritten, break 
-        if i>args.nwritten:
+        i = i+1
+        if i>=(args.nwritten+nclicked_n):
             break
+        elif i>=(args.nwritten):
+            print("Adding clicked keyword:", kws[0])
+            wordlist_r.append(kws[0])
+
+        print()
 
     #
     filelocatorlistnp = np.array(filelocatorlist)
