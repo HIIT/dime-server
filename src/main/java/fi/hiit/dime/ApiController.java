@@ -108,16 +108,20 @@ public class ApiController extends AuthorizedController {
 	if (query.length() > 0) {
 	    try {
 		List<InformationElement> resultsList;
-		if (dimeConfig.getUseLucene())
+		String searchSystem = "mongodb";
+		if (dimeConfig.getUseLucene()) {
 		    resultsList = searchIndex.textSearch(query, limit, user.id);
-		else
+		    searchSystem = "Lucene";
+		} else {
 		    resultsList = infoElemDAO.textSearch(query, limit, user.id);
+		}
 	    
 		InformationElement[] results = new InformationElement[resultsList.size()];
 		resultsList.toArray(results);	
 		
-		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
-				       query, limit, results.length));
+		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d " +
+				       "results using %s.",
+				       query, limit, results.length, searchSystem));
 
 		return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
 	    } catch (IOException e) {
