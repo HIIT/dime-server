@@ -167,11 +167,11 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #Initialize boolean numpy vector 
     boolvec = np.zeros((len(doccategorylist),), dtype=bool)
     for i,doctopics in enumerate(doccategorylist):
-        print(i,doctopics,writing_topic)
+        #print(i,doctopics,writing_topic)
         if writing_topic in doctopics:
             boolvec[i] = True
         
-    print("MAX", np.max(boolvec)) 
+    #print("MAX", np.max(boolvec))
     if np.max(boolvec) == False:
         return 0, []
     #

@@ -104,7 +104,7 @@ parser.add_argument('--removeseenkws', action='store_true',
 parser.add_argument('--nwritten', metavar='N', action='store', type=int,
                     default=50, help='number of words to write')
 parser.add_argument('--nclicked', metavar='X[:Y]',
-                    default=0, help='click X suggested keywords with method Y')
+                    help='click X suggested keywords with method Y')
 
 args = parser.parse_args()
 
@@ -310,11 +310,11 @@ for j,line in enumerate(f):
                 #Take keyword scores for 'filecategory'
                 if ii == filecategory:
                     if len(kw_scores_topic) > 0:
-                        print(len(kw_scores_topic))
-                        print(type(kw_scores_topic))
+                        #print(len(kw_scores_topic))
+                        #print(type(kw_scores_topic))
                         kw_scores_filecategory = kw_scores_topic
                         kw_scores_filecategory = np.array(kw_scores_filecategory)
-                        print(kw_scores_filecategory)
+                        #print(kw_scores_filecategory)
                         kw_maxind = np.argmax(kw_scores_filecategory)
                         #print("kw_maxind: ", kw_maxind)
                     else:
