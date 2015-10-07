@@ -10,7 +10,7 @@ import zmq
 #
 class LoggerThread(QThread):
 
-  update = pyqtSignal(unicode)
+  update = pyqtSignal(str)
 
   special_keys = {33: 'å', 39: 'ä', 41: 'ö'}
   
@@ -20,7 +20,7 @@ class LoggerThread(QThread):
     self.context = zmq.Context()
     self.socket = self.context.socket(zmq.SUB)
     self.socket.connect("tcp://127.0.0.1:5000")
-    self.socket.setsockopt(zmq.SUBSCRIBE, "")
+    self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
     self.dumstr2 = ''
     self.wordlist = []
@@ -38,7 +38,7 @@ class LoggerThread(QThread):
 
   #Keylogger 
   def run(self):
-    print 'Logger thread: Run Run'
+    print('Logger thread: Run Run')
 
     #Read user.ini
     srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
@@ -65,13 +65,16 @@ class LoggerThread(QThread):
     string_to_send = None
     timestamp = now
 
-    print "Logger thread: Ready for logging"
+    print("Logger thread: Ready for logging")
 
     while self.var:
 
       #time.sleep(sleep_interval)
       #changed, modifiers, keys = socket.recv()
       key_kc = self.socket.recv()
+      key_kc = key_kc.decode("utf-8")
+      
+      print(type(key_kc))
       #The keys is a string of the form "keyvalue:keycode"
       keys = "?"
       try:
@@ -83,10 +86,10 @@ class LoggerThread(QThread):
       except ValueError:
         kc = -1
 
-      if self.special_keys.has_key(kc):
+      if kc in self.special_keys:
         keys = self.special_keys[kc]
         
-      print 'keys: ', keys, 'kc: ', kc
+      print('keys: ', keys, 'kc: ', kc)
 
       #print modifiers
       #print changed, modifiers, keys
@@ -114,14 +117,14 @@ class LoggerThread(QThread):
 
           #elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
           elif kc in [36, 48, 49]:
-            print 'Keycodes: ', kc
-            print 'Logger thread: keys: ', keys
+            print('Keycodes: ', kc)
+            print('Logger thread: keys: ', keys)
             #print 'Logger thread: changed: ', changed[0]
             #keys = ' '
             if len(dumstr)>0:
               self.wordlist.append(dumstr)
             #print wordlist
-            print 'Logger thread: wordlist:', self.wordlist[-nwords:]
+            print('Logger thread: wordlist:', self.wordlist[-nwords:])
             dwordlist = self.wordlist[-nwords:]
             #dumstr = dumstr + keys
             countspaces = countspaces + 1
