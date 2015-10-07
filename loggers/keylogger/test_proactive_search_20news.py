@@ -402,7 +402,7 @@ for j,line in enumerate(f):
         elif i>=(args.nwritten):
             if nclicked_method == 2:
                 kw_clicked = kws[kw_randind]
-            if nclicked_method == 1:
+            elif nclicked_method == 1:
                 kw_clicked = kws[kw_maxind]
             else:
                 kw_clicked = kws[0]
