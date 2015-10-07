@@ -305,7 +305,20 @@ for j,line in enumerate(f):
             #
             all_kw_scores = []
             for ii in range(0,20):
-                kwm, foo = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
+                kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
+                #print("Mean kw scores:",kwm,"kw_scores_topic:",kw_scores_topic)
+                #Take keyword scores for 'filecategory'
+                if ii == filecategory:
+                    if len(kw_scores_topic) > 0:
+                        print(len(kw_scores_topic))
+                        print(type(kw_scores_topic))
+                        kw_scores_filecategory = kw_scores_topic
+                        kw_scores_filecategory = np.array(kw_scores_filecategory)
+                        print(kw_scores_filecategory)
+                        kw_maxind = np.argmax(kw_scores_filecategory)
+                        #print("kw_maxind: ", kw_maxind)
+                    else:
+                        kw_maxind = 0
                 all_kw_scores.append(kwm)
             kw_scores = all_kw_scores[filecategory]
             if filecategory_old is not None:
@@ -379,8 +392,12 @@ for j,line in enumerate(f):
         if i>=(args.nwritten+nclicked_n):
             break
         elif i>=(args.nwritten):
-            print("Adding clicked keyword:", kws[0])
-            wordlist_r.append(kws[0])
+            if nclicked_method == 1:
+                kw_clicked = kws[kw_maxind]
+            else:
+                kw_clicked = kws[0]
+            print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
+            wordlist_r.append(kw_clicked)
 
         print()
 

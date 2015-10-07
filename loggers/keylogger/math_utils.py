@@ -155,9 +155,7 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #
     #output:
     #kw_scores.mean() = list of topic related mean of tfidf values of suggested keywords
-    #
-    # if len(keywordindlist)==0:
-    #     return 0, [0]
+
     if len(keywordindlist)==0:
         return 0, []
 
@@ -169,14 +167,21 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     #Initialize boolean numpy vector 
     boolvec = np.zeros((len(doccategorylist),), dtype=bool)
     for i,doctopics in enumerate(doccategorylist):
+        print(i,doctopics,writing_topic)
         if writing_topic in doctopics:
             boolvec[i] = True
-    
+        
+    print("MAX", np.max(boolvec)) 
+    if np.max(boolvec) == False:
+        return 0, []
+    #
     sub_tfidf_matrix = sub_tfidf_matrix[boolvec, :]
-    #print(sub_tfidf_matrix.shape)
 
-    #kw_scores = sub_tfidf_matrix.sum(0)
+    #
     kw_scores = sub_tfidf_matrix.mean(0)
+
+    #Compute scores of keywords for writing_topic
+
 
     return kw_scores.mean(), kw_scores
 
