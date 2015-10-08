@@ -14,6 +14,9 @@ from update_files import *
 #
 import pickle
 
+#
+import random
+
 import nltk
 porter = nltk.PorterStemmer()
 
@@ -89,6 +92,10 @@ parser.add_argument('--histremoval', metavar='X:Y',
                     help='remove history with parameters X and Y')
 parser.add_argument('--removeseenkws', action='store_true',
                     help='remove keywords that appear in input')
+parser.add_argument('--nwritten', metavar='N', action='store', type=int,
+                    default=50, help='number of words to write')
+parser.add_argument('--nclicked', metavar='X[:Y]',
+                    help='click X suggested keywords with method Y')
 
 args = parser.parse_args()
 
@@ -112,6 +119,15 @@ if args.histremoval:
     parts = args.histremoval.split(":")
     histremoval_threshold = int(parts[0])
     histremoval_ma_value  = int(parts[1])
+
+nclicked_n = 0
+nclicked_method = 0
+if args.nclicked:
+    print(args.nclicked)
+    parts = args.nclicked.split(":")
+    nclicked_n = int(parts[0])
+    if len(parts)>1:
+        nclicked_method = int(parts[1])
 
 #update_data(srvurl, usrname, password)
 check_update()
@@ -183,7 +199,6 @@ for j,line in enumerate(f):
         dwordlist = []
 
     #
-    i = 0
     i2= 0
     #Number of currently typed words
     divn = 1
@@ -202,7 +217,12 @@ for j,line in enumerate(f):
     precisionlist = []
     precisionlist_old = []
 
-    for i, dstr in enumerate(wordlist):
+    kws = []
+
+    wordlist_r = list(reversed(wordlist))
+    i = 0
+    while len(wordlist_r)>0:                
+        dstr = wordlist_r.pop()
 
         #If nth word has been written, do search
         if i%divn == 0:
@@ -212,16 +232,19 @@ for j,line in enumerate(f):
 
             #
             if i2 == 0:
-                print("\nMail ", j)
+                print("###########################################")
+                print("STARTING NEW ARTICLE no. ", j)
+                print("###########################################")
                 filelocatorlist.append(1.0)
             else:
                 filelocatorlist.append(0.0)
+
+            print("Filename:", filename, "j:", j, "i:", i, "dstr:", dstr)
             dwordlist.append(dstr)
             dstr2 = dstr2 + ' ' + dstr
             #print "Currently typed: ", dstr2
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
-            print("Filename:", filename)
             print("Input to search function: ", dstr2)
             jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
             nsuggested_files = len(jsons)
@@ -250,8 +273,24 @@ for j,line in enumerate(f):
 
             #
             all_kw_scores = []
+            kw_maxind = 0
+            kw_randind = 0
             for ii in range(0,8):
-                kwm, foo = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
+                kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
+                if ii == filecategory:
+                    if len(kw_scores_topic) > 0:
+                        #print(len(kw_scores_topic))
+                        #print(type(kw_scores_topic))
+                        kw_scores_filecategory = kw_scores_topic
+                        kw_scores_filecategory = np.array(kw_scores_filecategory)
+                        #print(kw_scores_filecategory)
+                        kw_maxind = np.argmax(kw_scores_filecategory)
+                        #
+                        kw_randind = pick_random_kw_ind(kw_scores_filecategory) 
+                        #print("kw_maxind: ", kw_maxind)
+                    else:
+                        kw_maxind = 0
+                        kw_randind = 0
                 all_kw_scores.append(kwm)
             kw_scores = all_kw_scores[filecategory]
             if filecategory_old is not None:
@@ -307,7 +346,7 @@ for j,line in enumerate(f):
             print("Suggested keywords:", kws)
             print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
             print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-            print("  ", all_kw_scores_norm, '\n')
+            print("  ", all_kw_scores_norm)
 
             #
             precisionlist.append([cprecision, avgprecision, kw_scores_norm])
@@ -321,9 +360,27 @@ for j,line in enumerate(f):
         #
         i2 = i2 + 1
 
-        #If number of written words from the current file is bigger than nwritten, break 
-        if i>nwritten:
+        i = i+1
+        if i>=(args.nwritten+nclicked_n):
             break
+        elif i>=(args.nwritten):
+            try:
+                if nclicked_method == 2:
+                    print("XXX", kw_randind)
+                    if kw_randind>len(kws)-1:
+                        kw_randind = kw_maxind
+                    kw_clicked = kws[kw_randind]
+                elif nclicked_method == 1:
+                    kw_clicked = kws[kw_maxind]
+                else:
+                    kw_clicked = kws[0]
+                print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
+                wordlist_r.append(kw_clicked)
+            except IndexError:
+                print("Adding clicked keyword failed, breaking out")
+                break
+
+        print()
 
     #
     filelocatorlistnp = np.array(filelocatorlist)
