@@ -405,7 +405,7 @@ for j,line in enumerate(f):
         elif i>=(args.nwritten):
             try:
                 if nclicked_method == 3:
-                    kw_randind2 = random.randint(0,9)
+                    kw_randind2 = random.randint(0,len(kws)-1)
                     kw_clicked  = kws[kw_randind2]
                 elif nclicked_method == 2:
                     if kw_randind>len(kws)-1:
