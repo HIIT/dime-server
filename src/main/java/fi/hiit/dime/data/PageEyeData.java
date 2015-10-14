@@ -40,9 +40,17 @@ public class PageEyeData {
      */
     public double[] Ps;
 
-    /** Timempoints as milliseconds since epoch.
+    /** Times of fixation start in microseconds.
      */
-    public long[] timepoints;
+    public long[] startTimes;
+
+    /** Times of fixation end in microseconds.
+     */
+    public long[] endTimes;
+
+    /** Fixation durations in microseconds.
+     */
+    public long[] durations;
 
     /** Page index for this block of data.
      */
