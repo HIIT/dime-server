@@ -25,8 +25,11 @@
 
         <span th:if="${event.location}">
             <b>Location</b><br/>
-            <b>Coordinates:</b> <span th:text="${#numbers.formatDecimal(event.location.latitude, 0, 'COMMA', 3, 'POINT')}"></span>
-          , <span th:text="${#numbers.formatDecimal(event.location.longitude, 0, 'COMMA', 3, 'POINT')}"></span>
+            <b>Coordinates:</b> <a th:href="@{https://www.google.com/maps/} + '?' + 'q=' + 
+                                            ${#numbers.formatDecimal(event.location.latitude, 0, 'COMMA', 4, 'POINT')} + ',' + 
+                                            ${#numbers.formatDecimal(event.location.longitude, 0, 'COMMA', 4, 'POINT')}">
+                <span th:text="${#numbers.formatDecimal(event.location.latitude, 0, 'COMMA', 4, 'POINT')}"></span>
+                , <span th:text="${#numbers.formatDecimal(event.location.longitude, 0, 'COMMA', 4, 'POINT')}"></span></a>
           . <b>Description:</b> <span th:text="${event.location.descriptionLine}"></span>
         </span>
 	    <br/>
