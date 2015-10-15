@@ -24,38 +24,41 @@
 
 package fi.hiit.dime.data;
 
-import java.util.Date;
-
 /**
-   Abstract class for all events.
+   Class representing a location on the planet Earth (usually).
 */
-public abstract class Event extends DiMeData {
-    /** The program that produced the event, e.g. "Firefox".
+public class Location {
+    /** Latitude in degrees
      */
-    public String actor;
+    public double latitude;
 
-    /** Typically the host name of the computer where the event was generated.
+    /** Longitude in degrees
      */
-    public String origin;
+    public double longitude;
 
-    /** Place where the event happened.
+    /** Altitude in metres.
      */
-    public Location location;
+    public double altitude;
 
-    /** Detailed type of event, using the Semantic Desktop ontology, see:
-	http://www.semanticdesktop.org/ontologies/2010/01/25/nuao
+    /** Horizontal accuracy, in metres.
      */
-    public String type;
+    public double horizAccuracy;
 
-    /** Time stamp when the event was started. Format example: 2015-08-11T12:56:53Z
+    /** Vertical accuracy, in metres.
      */
-    public Date start;
+    public double vertAccuracy;
 
-    /** Time stamp when the event ended - DiMe can fill this if duration was supplied.
+    /** Bearing in degrees, east of north (0: north, 90: east, 180: south, 270: west).
      */
-    public Date end;
+    public double bearing;
 
-    /** Duration of event in seconds - DiMe can fill this if end time was supplied.
+    /** Speed in metres per second
      */
-    public double duration;
+    public double speed;
+
+    /** A (relatively) long line of text that quickly describes the location to a human.
+     * Example: "Country: Finland, Locality: Helsinki, Neighborhood: Kumpula, Steet: Gadolininkatu
+     */
+    public String descriptionLine;
+
 }
