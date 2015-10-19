@@ -47,7 +47,7 @@ public class Message extends InformationElement {
     public String rawMessage;
 
     @Override
-    public void processUploaded() {
+    public void autoFill() {
 	if (subject != null && subject.length() > 0)
 	    plainTextContent = 
 		subject + "\n\n" + plainTextContent;

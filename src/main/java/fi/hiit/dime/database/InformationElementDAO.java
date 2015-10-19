@@ -59,6 +59,12 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	return "informationElement";
     }
 
+    @Override
+    public void save(InformationElement obj) {
+	obj.autoFill();
+	super.save(obj);
+    }
+
     /**
        Find a single InformationElement by its unique id.
 
