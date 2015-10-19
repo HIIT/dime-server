@@ -34,6 +34,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
@@ -337,4 +340,79 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("info elems filtered by tag", infoElemsRes);
     }
+
+    protected SearchEvent mkSearchEvent(Date start, Date end, double duration) {
+	SearchEvent event = new SearchEvent();
+	event.query = "dummy search query";
+	event.actor = "TestActor";
+
+	if (start != null)
+	    event.start = start;
+	if (end != null)
+	    event.end = end;
+	if (duration >= 0.0)
+	    event.duration = duration;
+
+	return event;
+    }
+
+    /**
+       Tests behaviour of start, end and duration
+    */
+    @Test
+    public void testEventTimes() throws Exception {
+	Calendar cal = Calendar.getInstance();
+	Date end = cal.getTime();
+	int dur = 10;
+	cal.add(Calendar.SECOND, -dur);
+	Date start = cal.getTime();
+
+	SearchEvent[] events = new SearchEvent[5];
+	events[0] = mkSearchEvent(start, null, -1.0);
+	events[1] = mkSearchEvent(null, end, -1.0);
+	events[2] = mkSearchEvent(start, end, -1.0);
+	events[3] = mkSearchEvent(start, null, dur);
+	events[4] = mkSearchEvent(null, end, dur);
+
+	dumpData("List of events to be uploaded to " + eventsApi, events);
+
+	// Upload to DiMe
+	ResponseEntity<SearchEvent[]> uploadRes = 
+	    getRest().postForEntity(eventsApi, events, SearchEvent[].class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes);
+
+	// Checks to ensure returned object is the same as uploaded
+	SearchEvent[] outEvents = uploadRes.getBody();
+	assertEquals(events.length, outEvents.length);
+
+	// end should have been set to equal start
+	assert(outEvents[0].start.equals(start));
+	assert(outEvents[0].end.equals(start));
+	assertEquals(outEvents[0].duration, 0.0, DELTA);
+
+	// start should have been set to equal end
+	assert(outEvents[1].start.equals(end));
+	assert(outEvents[1].end.equals(end));
+	assertEquals(outEvents[1].duration, 0.0, DELTA);
+
+	// duration should be set to end-start
+	assert(outEvents[2].start.equals(start));
+	assert(outEvents[2].end.equals(end));
+	assertEquals(outEvents[2].duration, dur, DELTA);
+
+	// should set end as start+duration
+	assert(outEvents[3].start.equals(start));
+	assert(outEvents[3].end.equals(end));
+	assertEquals(outEvents[3].duration, dur, DELTA);
+
+	// should set start to end-duration
+	assertTrue(outEvents[4].start + "!=" + start,
+		   outEvents[4].start.equals(start));
+	assert(outEvents[4].end.equals(end));
+	assertEquals(outEvents[4].duration, dur, DELTA);
+    }
+
+
 }

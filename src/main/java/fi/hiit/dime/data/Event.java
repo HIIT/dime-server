@@ -24,6 +24,7 @@
 
 package fi.hiit.dime.data;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -58,4 +59,25 @@ public abstract class Event extends DiMeData {
     /** Duration of event in seconds - DiMe can fill this if end time was supplied.
      */
     public double duration;
+
+    /** Make sure start, end and duration times are consistent. 
+     */
+    @Override
+    public void autoFill() {
+	Calendar cal = Calendar.getInstance();
+	int dur = (int)(duration*1000.0);
+
+	if (start == null && end != null) {
+	    cal.setTime(end);
+	    cal.add(Calendar.MILLISECOND, -dur);
+	    start = cal.getTime();
+	} else if (start != null && end == null) {
+	    cal.setTime(start);
+	    cal.add(Calendar.MILLISECOND, dur);
+	    end = cal.getTime();
+	} else if (start != null && !start.equals(end)) {
+	    duration = (end.getTime() - start.getTime())/1000.0;
+	}
+    } 
+
 }
