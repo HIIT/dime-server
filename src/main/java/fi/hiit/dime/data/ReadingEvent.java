@@ -34,6 +34,17 @@ public class ReadingEvent extends DesktopEvent {
     */
     public Boolean multiPage;
 
+    /** Summary events are sent at the end of the reading session, and contain all information that can only be finalised after reading terminated.
+     * For example, seen (gazed at) paragraphs are computed at the end of the reading session.
+     */
+    public Boolean isSummary;
+
+    /** The proportion of the document currently being displayed on screen, not necessary if this is a summary event.
+     * For example, 0.25, 0.50 means that we are seeing from the first quarter until half the document (if a document has 4 pages then it means we are
+     * seeing page 2) although numbers wouldn't generally be so nicely rounded. 
+     */
+    public Range proportion;
+
     /** A vector representing the page numbers currently being displayed (number within PDF document).
      * A number representing the page number in the given document, starting from 0.
      * These should be in the same order as visiblePageLabels and pageRects. */
@@ -49,12 +60,6 @@ public class ReadingEvent extends DesktopEvent {
      * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points.
      * These should be in the same order as visiblePageNumbers and visiblePageLabels. */
     public ArrayList<Rect> pageRects;
-
-    /** The proportion of the document currently being displayed on screen.
-     For example, 0.25, 0.50 means that we are seeing from the first quarter until half the document (if a document has 4 pages then it means we are
-     seeing page 2) although numbers wouldn't generally be so nicely rounded. 
-     */
-    public Range proportion;
 
     /** The scale factor currently being used (1 = 100% size, 2 = 200%, etc).
      */
