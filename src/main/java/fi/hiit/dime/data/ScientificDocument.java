@@ -28,7 +28,6 @@ import java.util.List;
 
 public class ScientificDocument extends Document {
     public List<Person> authors;
-    public String title;
     public String booktitle;
     public List<String> keywords;
     public int firstPage;
