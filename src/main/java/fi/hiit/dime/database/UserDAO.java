@@ -27,9 +27,8 @@ package fi.hiit.dime.database;
 
 import fi.hiit.dime.authentication.User;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
 
 import java.util.List;
 
@@ -39,28 +38,28 @@ import java.util.List;
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
 @Repository
-public class UserDAO extends BaseDAO<User> {
+public class UserDAO {
 
-    @Override
-    public String collectionName() { 
-	return "user";
+    @Autowired
+    private UserRepository repo;
+
+    public void save(User obj) {
+	repo.save(obj);
     }
 
     public User findById(String id) {
-    	return operations.findById(id, User.class, collectionName());
+    	return repo.findOne(id);
     }
 
     public User findByUsername(String username) {
-    	return operations.findOne(query(where("username").is(username)),
-				  User.class, collectionName());
+    	return repo.findOneByUsername(username);
     }
 
     public List<User> findAll() {
-    	return operations.findAll(User.class, collectionName());
+    	return repo.findAll();
     }
 
-    public int remove(String id) {
-	return operations.remove(query(where("id").is(id)),
-				 User.class, collectionName()).getN();
+    public void remove(String id) {
+	repo.delete(id);
     }
 }

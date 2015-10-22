@@ -107,13 +107,11 @@ public class ApiController extends AuthorizedController {
 
 	if (query.length() > 0) {
 	    try {
-		List<InformationElement> resultsList;
-		String searchSystem = "mongodb";
+		List<InformationElement> resultsList = null;
+		String searchSystem = "none";
 		if (dimeConfig.getUseLucene()) {
-		    resultsList = searchIndex.textSearch(query, limit, user.id);
+		    resultsList = searchIndex.textSearch(query, limit, user.getId());
 		    searchSystem = "Lucene";
-		} else {
-		    resultsList = infoElemDAO.textSearch(query, limit, user.id);
 		}
 	    
 		InformationElement[] results = new InformationElement[resultsList.size()];

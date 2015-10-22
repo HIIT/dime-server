@@ -24,9 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Embeddable;
+
 /**
    Class representing a rectangle in a two dimensions (maps to the ReadingRect struct in PeyeDF).
 */
+@Embeddable
 public class Rect {
     /** Position of the origin of this rectangle (origin: bottom left).
      */

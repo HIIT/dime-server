@@ -24,9 +24,11 @@
 
 package fi.hiit.dime.data;
 
-//------------------------------------------------------------------------------
+import javax.persistence.Entity;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 
-public class Person extends DiMeData {
+@Entity
+public class Person extends AbstractPersistable<String> {
     public String firstName;
     public String surName;
     public String emailAccount;  // e.g. "foo.bar@hiit.fi"

@@ -24,9 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Embeddable;
+
 /**
    Class representing a size in a two dimensional space.
 */
+@Embeddable
 public class Size {
     /** Width of this item.
      */

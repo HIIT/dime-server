@@ -22,46 +22,24 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.database;
 
-import java.util.Date;
+
+import fi.hiit.dime.authentication.User;
+
+import org.springframework.data.repository.CrudRepository;
+
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
 /**
-   Class representing an electronic message, such as an email.
-*/
-@Entity
-public class Message extends InformationElement {
-    public Date date;
-    public String subject;
-    //
-    public String fromString;
-    @ManyToOne
-    public Person from;
-    //
-    public String toString;
-    @OneToMany
-    public List<Person> to;
-    //
-    public String ccString;
-    @OneToMany
-    public List<Person> cc;
-    //
-    @OneToMany
-    public List<InformationElement> attachments;
-    
-    @Column(columnDefinition="varchar")
-    public String rawMessage;
+ * Data access object for managing User objects.
+ *
+ * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
+ */
+public interface UserRepository extends CrudRepository<User, String> {
+    User findOne(String id);
 
-    @Override
-    public void autoFill() {
-	if (subject != null && subject.length() > 0)
-	    plainTextContent = 
-		subject + "\n\n" + plainTextContent;
-    }
+    User findOneByUsername(String username);
+
+    List<User> findAll();
 }

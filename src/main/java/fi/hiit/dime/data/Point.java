@@ -24,9 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Embeddable;
+
 /**
    Class representing a point in a two-dimensional space.
 */
+@Embeddable
 public class Point {
     /** Horizontal (x) coordinate
      */

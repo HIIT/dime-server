@@ -24,9 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Embeddable;
+
 /**
    Class representing a range of floating point values.
 */
+@Embeddable
 public class Range {
     /** The minimum value.
      */

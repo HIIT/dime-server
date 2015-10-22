@@ -111,10 +111,10 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public boolean removeAllForUserId(String id) {
-	int ud = userDAO.remove(id);
 	eventDAO.removeForUser(id);
 	infoElemDAO.removeForUser(id);
-	return ud>0;
+	userDAO.remove(id);
+	return true;
     }
 
 }

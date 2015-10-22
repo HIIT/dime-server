@@ -43,7 +43,7 @@ public class CurrentUser extends
     }
 
     public String getId() {
-	return user.id;
+	return user.getId();
     }
 
     public Role getRole() {

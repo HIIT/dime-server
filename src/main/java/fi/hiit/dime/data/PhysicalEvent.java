@@ -24,10 +24,13 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Entity;
+
 /**
    Class representing physical events, i.e. series of physical
    measurements.
 */
+@Entity
 public class PhysicalEvent extends Event {
     /**
        Sample rate of the measurement in Hz (i.e. measurements per second).

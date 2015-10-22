@@ -24,45 +24,28 @@
 
 package fi.hiit.dime.database;
 
-import fi.hiit.dime.data.*;
+import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.authentication.User;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.CommandResult;
-import com.mongodb.DBObject;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.query.*;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.Assert;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 @Repository
-public class InformationElementDAO extends BaseDAO<InformationElement> {
+public class InformationElementDAO {
     private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
 
-    @Override
-    public String collectionName() { 
-	return "informationElement";
-    }
+    @Autowired
+    private InfoElemRepository repo;
 
-    @Override
     public void save(InformationElement obj) {
 	obj.autoFill();
-	super.save(obj);
+	repo.save(obj);
     }
 
     /**
@@ -72,79 +55,8 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
        @return The InformationElement object found.
     */
     public InformationElement findById(String id) {
-    	return operations.findById(id, InformationElement.class, collectionName());
-    }
-
-    /**
-       Perform a text search.
-
-       @param query Text query string
-       @param limit Limit results list to this many objects
-       @param userId Id of user to search from
-
-       @return list of InformationElement objects found in search
-    */
-    public List<InformationElement> textSearch(String query, int limit, String userId) {
-	ensureTextIndex("plainTextContent");
-
-	int[] version = getMongoVersion();
-
-	// Filter out other users
-	Criteria filterCriteria = where("user._id").is(new ObjectId(userId));
-
-	// For mongodb versions >= 2.6, we can use the new TextQuery
-	// interface
-	if (version[0] >= 3 || (version[0] >= 2 && version[1] >= 6)) {
-	    Query dbQuery = new TextQuery(query)
-		.sortByScore()
-		.addCriteria(filterCriteria);
-	    
-	    if (limit != -1)
-		dbQuery = dbQuery.with(new PageRequest(0, limit));
-
-	    return operations.find(dbQuery, InformationElement.class, collectionName());
-
-
-	} else if (version[0] == 2 && version[1] >= 4) {
-	    LOG.warn("Using deprecated mongodb 2.4 interface for text query.");
-
-	   // For version 2.4 we use the raw mongodb command, e.g.
-	   // db.zgSubject.runCommand( "text", { search: "SEARCH QUERY" } )
-	   // http://docs.mongodb.org/v2.4/reference/command/text/#dbcmd.text
-
-	    DBObject command = new BasicDBObject();
-	    command.put("text", collectionName());
-	    command.put("search", query);
-	    command.put("filter", query(filterCriteria).getQueryObject());
-	    // command.put("limit", n);
-	    // command.put("project", new BasicDBObject("_id", 1));
-
-	    CommandResult commandResult = operations.executeCommand(command);
-
-	    // Construct List<InformationElements> to return out of the
-	    // CommandResult
-	    List<InformationElement> results =
-		new ArrayList<InformationElement>();
-
-	    BasicDBList resultList = (BasicDBList)commandResult.get("results");
-	    if (resultList == null) // return empty list if there are no results
-		return results;
-
-	    Iterator<Object> it = resultList.iterator();
-	    while (it.hasNext()) {
-		BasicDBObject resultContainer = (BasicDBObject)it.next();
-		BasicDBObject resultObject = (BasicDBObject)resultContainer.get("obj");
-		
-		InformationElement sub = operations.getConverter().
-		    read(InformationElement.class, resultObject);
-		
-		results.add(sub);
-	    }
-
-	    return results;
-	} else {
-	    return new ArrayList<InformationElement>();
-	}
+	return repo.findOne(id);
+    	// return operations.findById(id, InformationElement.class, collectionName());
     }
 
     /**
@@ -154,49 +66,10 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
        @param filterParams Filtering parameters
        @return List of matching information elements
     */
-    public List<InformationElement> find(String userId, Map<String, String> filterParams) {
-	ensureIndex("start");
-
-	Criteria search = where("user._id").is(new ObjectId(userId));
-
-	for (Map.Entry<String, String> param : filterParams.entrySet()) {
-	    String name = param.getKey().toLowerCase();
-	    String value = param.getValue();
-
-	    switch (name) {
-	    case "tag":
-		name = "tags";
-		break;
-	    case "uri":
-	    case "plaintextcontent":
-	    case "isstoredas":
-	    case "type":
-	    case "mimetype":
-	    case "title":
-	    // case "":
-		break;
-	    default:
-		throw new IllegalArgumentException(name);
-	    }
-	    search = search.and(name).is(value);
-	}
-
-	return operations.find(query(search).
-			       with(new Sort(Sort.Direction.DESC, "start")),
-			       InformationElement.class, collectionName());
-    }
-
-    /**
-       Helper function that returns the mongodb query for non-indexed documents.
-
-       @return Mongodb query for getting non-indexed documents
-    */
-    protected Query notIndexedQuery() {
-	int numFixed = fixMissingField("isIndexed", false);
-	if (numFixed > 0)
-	    LOG.info("Fixed " + numFixed + " old objects with missing isIndexed fields.");
-
-	return query(where("isIndexed").is(false));
+    public List<InformationElement> find(String userId,
+					 Map<String, String> filterParams) 
+    {
+	return repo.find(User.makeUser(userId), filterParams);
     }
 
     /**
@@ -206,8 +79,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
        @return Number of not indexed objects
     */
     public long countNotIndexed() {
-	return operations.count(notIndexedQuery(), InformationElement.class,
-				collectionName());
+	return repo.countByIsIndexed(false);
     }
 
     /**
@@ -217,15 +89,14 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
        @return Number of not indexed objects
     */
     public List<InformationElement> findNotIndexed() {
-	return operations.find(notIndexedQuery(), InformationElement.class,
-			       collectionName());
+	return repo.findByIsIndexed(false);
     }
 
     /**
        Returns all InformationElement objects.
     */
-    public List<InformationElement> findAll() {
-	return operations.findAll(InformationElement.class, collectionName());
+    public Iterable<InformationElement> findAll() {
+    	return repo.findAll();
     }
 
     /**
@@ -235,8 +106,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
        @return List of all InformationElement objects for user
     */
     public List<InformationElement> elementsForUser(String id) {
-	return operations.find(query(where("user._id").is(new ObjectId(id))),
-			       InformationElement.class, collectionName());
+	return repo.findByUser(User.makeUser(id));
     }
 
     /**
@@ -245,9 +115,8 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
        @param id User id
        @return Number of items removed.
     */
-    public int removeForUser(String id) {
-	return operations.remove(query(where("user._id").is(new ObjectId(id))),
-				 InformationElement.class, collectionName()).getN();
+    public long removeForUser(String id) {
+ 	return repo.deleteByUser(User.makeUser(id));
     }
 }
 

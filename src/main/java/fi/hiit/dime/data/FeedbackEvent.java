@@ -24,17 +24,20 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Entity;
+
 /**
    An event representing an explicit feedback by the user, e.g.
    ranking a document as relevant.
 */
+@Entity
 public class FeedbackEvent extends ResourcedEvent { 
 
     /**
        A related event, e.g. the SearchEvent that introduced the
        document.
     */
-    public Event relatedEvent;
+    // public Event relatedEvent;
 
     /**
        The feedback value, e.g. the relevance of the document.

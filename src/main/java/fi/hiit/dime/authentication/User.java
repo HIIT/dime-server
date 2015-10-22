@@ -24,22 +24,32 @@
 
 package fi.hiit.dime.authentication;
 
+import fi.hiit.dime.data.*;
+
 import org.springframework.data.annotation.Id;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.Date;
+import java.util.Set;
+
+import javax.persistence.Entity;
 
 /**
    Class for storing users and associated information for this DiMe.
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
-public class User {
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Entity
+public class User extends AbstractPersistable<String> {
+    public static User makeUser(String id) {
+	User user = new User();
+	user.setId(id);
+	return user;
+    }
 
-    /** Unique identifier in the database */
-    @Id
-    public String id;
-    
     /** Unique username */
     public String username;
     

@@ -24,13 +24,24 @@
 
 package fi.hiit.dime.data;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
 /**
    Abstract class representing events that link to an
    InformationElement.
 */
+@Entity
 public abstract class ResourcedEvent extends Event {
     /**
        The InformationElement object that is targetted by this event.
     */
+    @ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name = "resource_id")
     public InformationElement targettedResource;
 }

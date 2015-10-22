@@ -22,46 +22,30 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.data;
+package fi.hiit.dime.database;
 
-import java.util.Date;
-import java.util.List;
+import java.util.Map;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 
-/**
-   Class representing an electronic message, such as an email.
-*/
-@Entity
-public class Message extends InformationElement {
-    public Date date;
-    public String subject;
-    //
-    public String fromString;
-    @ManyToOne
-    public Person from;
-    //
-    public String toString;
-    @OneToMany
-    public List<Person> to;
-    //
-    public String ccString;
-    @OneToMany
-    public List<Person> cc;
-    //
-    @OneToMany
-    public List<InformationElement> attachments;
-    
-    @Column(columnDefinition="varchar")
-    public String rawMessage;
+class BaseRepository {
+    @PersistenceContext
+    private EntityManager em;
 
-    @Override
-    public void autoFill() {
-	if (subject != null && subject.length() > 0)
-	    plainTextContent = 
-		subject + "\n\n" + plainTextContent;
+    <T> TypedQuery<T> makeQuery(String q, Map<String, String> params,
+				Class<T> resultClass) 
+    {
+        TypedQuery<T> query = em.createQuery(q, resultClass);
+
+	System.out.println("Find query: " + q);
+
+	for (Map.Entry<String, String> p : params.entrySet()) {
+	    System.out.println("  param: " + p.getKey() + " = " + p.getValue());
+	    query = query.setParameter(p.getKey(), p.getValue());
+	}
+
+	return query;
     }
 }

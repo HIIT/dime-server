@@ -135,18 +135,19 @@ public class SearchIndex {
 	long count = 0;
 
 	if (forceAll || infoElemDAO.countNotIndexed() > 0) {
-	    LOG.info("Updating Lucene index ....");
+	    LOG.info("Updating Lucene index .... {}", forceAll);
 	    try {
 		IndexWriter writer = getIndexWriter();
 		int skipped = 0;
 
-		List<InformationElement> toIndex;
+		Iterable<InformationElement> toIndex;
 		if (forceAll) 
 		    toIndex = infoElemDAO.findAll();
 		else
 		    toIndex = infoElemDAO.findNotIndexed();
 
 		for (InformationElement elem : toIndex) {
+		    System.out.println("ELEM");
 		    if (!indexElement(writer, elem))
 			skipped += 1;
 		}
@@ -187,20 +188,20 @@ public class SearchIndex {
 	if (elem.plainTextContent == null || elem.plainTextContent.isEmpty())
 	    return false;
 
-	LOG.debug("Indexing document {}", elem.id);
+	LOG.debug("Indexing document {}", elem.getId());
 
 	Document doc = new Document(); // NOTE: Lucene Document!
 
-	doc.add(new StringField(idField, elem.id, Field.Store.YES));
+	doc.add(new StringField(idField, elem.getId(), Field.Store.YES));
 
-	doc.add(new StringField(userIdField, elem.user.id, Field.Store.YES));
+	doc.add(new StringField(userIdField, elem.user.getId(), Field.Store.YES));
 
 	doc.add(new TextField(textQueryField, elem.plainTextContent,
 			      Field.Store.NO));
 
 	// doc.add(new LongField("modified", lastModified, Field.Store.NO));
 
-	writer.updateDocument(new Term(idField, elem.id), doc);
+	writer.updateDocument(new Term(idField, elem.getId()), doc);
 	return true;
     }
 
@@ -254,10 +255,10 @@ public class SearchIndex {
 		InformationElement elem = infoElemDAO.findById(docId);
 		if (elem == null) 
 		    LOG.error("Bad doc id: "+ docId);
-		else if (elem.user.id.equals(userId))
+		else if (elem.user.getId().equals(userId))
 		    elems.add(elem);
 		else
-		    LOG.warn("Lucene returned result for wrong user: " + elem.id);
+		    LOG.warn("Lucene returned result for wrong user: " + elem.getId());
 	    }
 	} catch (QueryNodeException e) {
 	     LOG.error("Exception: " + e);

@@ -23,9 +23,12 @@ repositories {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
     compile("org.springframework.boot:spring-boot-starter-thymeleaf")
     compile("org.springframework.boot:spring-boot-starter-security")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("com.h2database:h2")
+    // compile("org.hsqldb:hsqldb")
+    // compile("mysql:mysql-connector-java")
     compile("com.fasterxml.jackson.core:jackson-annotations")
     compile("org.apache.lucene:lucene-core:5.3.0")
     compile("org.apache.lucene:lucene-analyzers-common:5.3.0")

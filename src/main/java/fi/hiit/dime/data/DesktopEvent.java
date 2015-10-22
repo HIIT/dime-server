@@ -24,9 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Entity;
+
 /**
    A desktop event, such as opening a document in the computer
    graphical environment.
 */
+@Entity
 public class DesktopEvent extends ResourcedEvent {
 }

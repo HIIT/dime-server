@@ -28,7 +28,6 @@ import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserService;
-import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Message;
 import fi.hiit.dime.util.RandomPassword;
 
@@ -100,7 +99,7 @@ public abstract class RestTest {
 
     @After
     public void shutdown() {
-	userService.removeAllForUserId(testUser.id);
+	userService.removeAllForUserId(testUser.getId());
     }
 
     /**
@@ -167,7 +166,7 @@ public abstract class RestTest {
     /**
      * Helper method to print out the content of a DiMeData object.
      */
-    protected void dumpData(String message, DiMeData data) {
+    protected void dumpData(String message, Object data) {
 	try {
 	    System.out.println(message + "\n" +
 			       objectMapper.writerWithDefaultPrettyPrinter().
@@ -179,7 +178,7 @@ public abstract class RestTest {
     /**
      * Helper method to print out the content of an array of DiMeData objects.
      */
-    protected void dumpData(String message, DiMeData[] data) {
+    protected void dumpData(String message, Object[] data) {
 	try {
 	    for (int i=0; i<data.length; i++) {
 		String dataStr = objectMapper.

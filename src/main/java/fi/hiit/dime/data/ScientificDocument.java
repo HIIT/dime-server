@@ -26,10 +26,18 @@ package fi.hiit.dime.data;
 
 import java.util.List;
 
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+
+@Entity
 public class ScientificDocument extends Document {
+    @OneToMany
     public List<Person> authors;
-    public String title;
+
     public String booktitle;
+
+    @ElementCollection(targetClass = String.class)
     public List<String> keywords;
     public int firstPage;
     public int lastPage;

@@ -24,8 +24,11 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Entity;
+
 /** Class representing a document, e.g. PDF or word-processing document.
  */
+@Entity
 public class Document extends InformationElement {
     /** Mime type of the document, see:
 	https://en.wikipedia.org/wiki/MIME#Content-Type

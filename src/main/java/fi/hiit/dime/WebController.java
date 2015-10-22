@@ -115,7 +115,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	Event event = eventDAO.findById(eventId);
 
-	if (event.user.id.equals(userId))
+	if (event.user.getId().equals(userId))
 	    model.addAttribute("event", event);
         return "event";
     }
@@ -127,7 +127,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	InformationElement elem = infoElemDAO.findById(elemId);
 
-	if (elem.user.id.equals(userId)) {
+	if (elem.user.getId().equals(userId)) {
 	    model.addAttribute("elem", elem);
 	    model.addAttribute("long", true);
 	}
@@ -142,7 +142,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	Message elem = (Message)infoElemDAO.findById(elemId);
 
-	if (elem.user.id.equals(userId))
+	if (elem.user.getId().equals(userId))
 	    model.addAttribute("elem", elem);
         return "message";
     }
@@ -167,8 +167,6 @@ public class WebController extends WebMvcConfigurerAdapter {
 		    LOG.warn("Lucene search failed [" + e + "].");
 		    model.addAttribute("error", e);
 		}
-	    } else {
-		results = infoElemDAO.textSearch(query, -1, userId);
 	    }
 
 	    model.addAttribute("results", results);

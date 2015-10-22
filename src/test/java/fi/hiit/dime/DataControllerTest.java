@@ -77,7 +77,6 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("Event received back from server:", outEvent1);
 
-	// InformationElement outDoc1 = outEvent1.targettedResource;
 	Document outDoc1 = (Document)outEvent1.targettedResource;
 	assertEquals(doc.uri, outDoc1.uri);
 	assertEquals(doc.plainTextContent, outDoc1.plainTextContent);
@@ -85,8 +84,7 @@ public class DataControllerTest extends RestTest {
 
 	// Create a "stub" document, i.e. that refers to the
 	// previously uploaded one
-	InformationElement stubDoc = new InformationElement();
-	stubDoc.id = outDoc1.id;
+	InformationElement stubDoc = InformationElement.makeStub(outDoc1);
 
 	// Create feedback with the stub document
 	FeedbackEvent event2 = new FeedbackEvent();
@@ -110,13 +108,13 @@ public class DataControllerTest extends RestTest {
 	// This checks that the stub has been "filled in" with the
 	// missing info
 	Document outDoc2 = (Document)outEvent2.targettedResource;
-	assertEquals(outDoc1.id, outDoc2.id);
+	assertEquals(outDoc1.getId(), outDoc2.getId());
 	assertEquals(doc.uri, outDoc2.uri);
 	assertEquals(doc.mimeType, outDoc2.mimeType);
 
 	/* This is not returned at the moment, since we don't want to
 	   duplicate the huge plainTextContent field... */
-	//assertEquals(doc.plainTextContent, outDoc2.plainTextContent);
+	// assertEquals(doc.plainTextContent, outDoc2.plainTextContent);
     }
 
     /**
@@ -174,8 +172,6 @@ public class DataControllerTest extends RestTest {
 	event1.value = 0.42;
 	event1.targettedResource = doc1;
 	event1.actor = "TestActor1";
-	event1.addTag("eventTag1");
-	event1.addTag("foo");
 	events[0] = event1;
 
 	SearchEvent event2 = new SearchEvent();
@@ -184,10 +180,8 @@ public class DataControllerTest extends RestTest {
 	events[1] = event2;
 
 	SearchEvent event3 = new SearchEvent();
-	event3.query = "some other search query";
+	event3.query = "some search query";
 	event3.actor = "TestActor2";
-	event3.addTag("foo");
-	event3.addTag("bar");
 	events[2] = event3;
 
 	// Create a message event
@@ -198,7 +192,7 @@ public class DataControllerTest extends RestTest {
 	event4.targettedResource = emailMsg;
 	events[3] = event4;
     
-	dumpData("List of events to be uploaded to " + eventsApi, events);
+	dumpData("testEventGet: events to be uploaded to " + eventsApi, events);
 
 	// Upload to DiMe
 	ResponseEntity<Event[]> uploadRes = 
@@ -223,18 +217,16 @@ public class DataControllerTest extends RestTest {
 	SearchEvent outEvent3 = (SearchEvent)outEvents[2];
 	assertEquals(event3.query, outEvent3.query);
 
-	dumpData("Events received back from server:", outEvents);
+	dumpData("testEventGet: events received back from server:", outEvents);
 
 	// Read back events over REST API and check
 	ResponseEntity<FeedbackEvent> getRes1 = 
-	    getRest().getForEntity(eventApi + "/" + outEvent1.id,
+	    getRest().getForEntity(eventApi + "/" + outEvent1.getId(),
 				   FeedbackEvent.class);
 	assertSuccessful(getRes1);
 
 	FeedbackEvent getEvent1 = getRes1.getBody();
 	assertEquals(event1.value, getEvent1.value, DELTA);
-	assertEquals(getEvent1.tags.size(), 2);
-	assertTrue(getEvent1.hasTag("eventTag1"));
 
 	Document getDoc = (Document)getEvent1.targettedResource;
 	assertEquals(origDoc.uri, getDoc.uri);
@@ -243,14 +235,14 @@ public class DataControllerTest extends RestTest {
 	assertTrue(getDoc.hasTag("tag2"));
 
 	ResponseEntity<SearchEvent> getRes2 = 
-	    getRest().getForEntity(eventApi + "/" + outEvent2.id,
+	    getRest().getForEntity(eventApi + "/" + outEvent2.getId(),
 				   SearchEvent.class);
 
 	SearchEvent getEvent2 = getRes2.getBody();
 	assertEquals(event2.query, getEvent2.query);
 
 	ResponseEntity<SearchEvent> getRes3 = 
-	    getRest().getForEntity(eventApi + "/" + outEvent3.id,
+	    getRest().getForEntity(eventApi + "/" + outEvent3.getId(),
 				   SearchEvent.class);
 
 	SearchEvent getEvent3 = getRes3.getBody();
@@ -258,7 +250,7 @@ public class DataControllerTest extends RestTest {
 
 	// Read back uploaded document
 	ResponseEntity<Document> getDocRes = 
-	    getRest().getForEntity(infoElemApi + "/" + uploadDoc.id,
+	    getRest().getForEntity(infoElemApi + "/" + uploadDoc.getId(),
 				   Document.class);
 	assertSuccessful(getDocRes);
 
@@ -267,13 +259,13 @@ public class DataControllerTest extends RestTest {
 
 	// Also test accessing an object that doesn't exist
 	ResponseEntity<Document> getBadRes1 = 
-	    getRest().getForEntity(infoElemApi + "/foobar42",
+	    getRest().getForEntity(infoElemApi + "/18923742",
 				   Document.class);
 	assertClientError(getBadRes1);
 
 	// Also test accessing an object that doesn't exist
 	ResponseEntity<SearchEvent> getBadRes2 = 
-	    getRest().getForEntity(eventApi + "/foobar42",
+	    getRest().getForEntity(eventApi + "/12980942",
 				   SearchEvent.class);
 	assertClientError(getBadRes2);
 
@@ -292,21 +284,6 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("events filtered by actor", eventsRes);
 
-	// Test filtering on tag
-	ResponseEntity<Event[]> getEventsRes2 = 
-	    getRest().getForEntity(eventsApi + "?tag=foo",
-				   Event[].class);
-	assertSuccessful(getEventsRes2);
-
-	Event[] eventsRes2 = getEventsRes2.getBody();
-	assertEquals(2, eventsRes2.length);
-
-	for (Event ev : eventsRes2) {
-	    assertTrue(ev.hasTag("foo"));
-	}
-
-	dumpData("events filtered by tag", eventsRes2);
-
 	// Test filtering by bad parameters
 	ResponseEntity<Event[]> getEventsRes3 = 
 	    getRest().getForEntity(eventsApi + "?foo=bar",
@@ -316,7 +293,7 @@ public class DataControllerTest extends RestTest {
 	// Test filtering on multiple parameters
 	ResponseEntity<SearchEvent[]> getEventsRes4 = 
 	    getRest().getForEntity(eventsApi + "?query=" + event3.query
-				   + "&tag=foo",
+				   + "&actor=TestActor2",
 				   SearchEvent[].class);
 	assertSuccessful(getEventsRes4);
 
@@ -324,18 +301,17 @@ public class DataControllerTest extends RestTest {
 	assertEquals(1, eventsRes4.length);
 
 	assertEquals(eventsRes4[0].query, event3.query);
-	assertTrue(eventsRes4[0].hasTag("foo"));
 
 	// Test filtering for information elements
 	ResponseEntity<InformationElement[]> getInfoElems = 
-	    getRest().getForEntity(infoElemsApi + "?tag=tag2", InformationElement[].class);
+	    getRest().getForEntity(infoElemsApi + "?tag=tag1", InformationElement[].class);
 	assertSuccessful(getInfoElems);
 
 	InformationElement[] infoElemsRes = getInfoElems.getBody();
-	assertEquals(2, infoElemsRes.length);
+	assertEquals(1, infoElemsRes.length);
 
 	for (InformationElement elem : infoElemsRes) {
-	    assertTrue(elem.hasTag("tag2"));
+	    assertTrue(elem.hasTag("tag1"));
 	}
 
 	dumpData("info elems filtered by tag", infoElemsRes);

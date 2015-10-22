@@ -24,9 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Embeddable;
+
 /**
    Class representing points read on a specific page (in page space coordinates).
 */
+@Embeddable
 public class PageEyeData {
     /** Horizontal (x) coordinates
      */

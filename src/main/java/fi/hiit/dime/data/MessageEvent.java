@@ -24,5 +24,8 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Entity;
+
+@Entity
 public class MessageEvent extends ResourcedEvent {
 }

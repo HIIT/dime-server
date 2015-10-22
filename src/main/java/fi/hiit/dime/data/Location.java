@@ -24,9 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import javax.persistence.Embeddable;
+
 /**
    Class representing a location on the planet Earth (usually).
 */
+@Embeddable
 public class Location {
     /** Latitude in degrees
      */

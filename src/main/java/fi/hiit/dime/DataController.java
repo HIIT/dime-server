@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -77,6 +78,7 @@ public class DataController extends AuthorizedController {
 	    LOG.info("JSON: " +
 		     objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
 	} catch (IOException e) {
+	    LOG.warn("IOException when trying to JSONify object: " + e);
 	}
     }
 
@@ -130,7 +132,7 @@ public class DataController extends AuthorizedController {
 		elem.user = user;
 		infoElemDAO.save(elem);
 	    } else { // expand if only a stub elem was included
-		InformationElement expandedElem = infoElemDAO.findById(elem.id);	
+		InformationElement expandedElem = infoElemDAO.findById(elem.getId());	
 		if (expandedElem != null) {
 		    LOG.info("Expanded InformationElement for " + expandedElem.uri);
 		    // don't copy the text, takes too much space
@@ -168,7 +170,7 @@ public class DataController extends AuthorizedController {
 		//     infoElemDAO.save(cc);
 
 	    } else { // expand if only a stub msg was included
-		Message expandedMsg = (Message)infoElemDAO.findById(msg.id);	
+		Message expandedMsg = (Message)infoElemDAO.findById(msg.getId());
 		if (expandedMsg != null) {
 		    LOG.info("Expanded Message for " + expandedMsg.uri);
 		    // don't copy the text, takes too much space
@@ -197,9 +199,9 @@ public class DataController extends AuthorizedController {
 	    InformationElement elem = revent.targettedResource;
 
 	    if (elem instanceof Message)
-		elem = expandMessage((Message)elem, user);
+	    	elem = expandMessage((Message)elem, user);
 	    else
-		elem = expandInformationElement(elem, user);
+	    	elem = expandInformationElement(elem, user);
 
 	    revent.targettedResource = elem;
 	}
@@ -232,7 +234,7 @@ public class DataController extends AuthorizedController {
 	if (event == null)
 	    return new ResponseEntity<Event>(HttpStatus.NOT_FOUND);
 
-	if (!event.user.id.equals(user.id))
+	if (!event.user.getId().equals(user.getId()))
 	    return new ResponseEntity<Event>(HttpStatus.UNAUTHORIZED);
 
 	return new ResponseEntity<Event>(event, HttpStatus.OK);
@@ -262,13 +264,13 @@ public class DataController extends AuthorizedController {
 	User user = getUser(auth);
 
 	try {
-	    List<Event> events = eventDAO.find(user.id, params);
+	    List<Event> events = eventDAO.find(user.getId(), params);
 
 	    Event[] eventsArray = new Event[events.size()];
 	    events.toArray(eventsArray);	
 
 	    return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
-	} catch (IllegalArgumentException e) {
+	} catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
 	    return new ResponseEntity<Event[]>(HttpStatus.BAD_REQUEST);
 	}
     }	
@@ -284,7 +286,7 @@ public class DataController extends AuthorizedController {
 	if (elem == null)
 	    return new ResponseEntity<InformationElement>(HttpStatus.NOT_FOUND);
 
-	if (!elem.user.id.equals(user.id))
+	if (!elem.user.getId().equals(user.getId()))
 	    return new ResponseEntity<InformationElement>(HttpStatus.UNAUTHORIZED);
 
 	return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
@@ -299,7 +301,7 @@ public class DataController extends AuthorizedController {
 	User user = getUser(auth);
 
 	try {
-	    List<InformationElement> infoElems = infoElemDAO.find(user.id, params);
+	    List<InformationElement> infoElems = infoElemDAO.find(user.getId(), params);
 
 	    InformationElement[] infoElemsArray = new InformationElement[infoElems.size()];
 	    infoElems.toArray(infoElemsArray);	

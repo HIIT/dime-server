@@ -25,10 +25,14 @@ package fi.hiit.dime.data;
 
 import java.util.ArrayList;
 
+import javax.persistence.Entity;
+import javax.persistence.Embedded;
+
 /**
    A detailed reading event.
    Also see https://github.com/HIIT/PeyeDF/wiki/Data-Format/.
 */
+@Entity
 public class ReadingEvent extends DesktopEvent {
     /** Boolean indicating if the event refers to multiple pages.
     */
@@ -43,7 +47,8 @@ public class ReadingEvent extends DesktopEvent {
      * For example, 0.25, 0.50 means that we are seeing from the first quarter until half the document (if a document has 4 pages then it means we are
      * seeing page 2) although numbers wouldn't generally be so nicely rounded. 
      */
-    public Range proportion;
+    // @Embedded
+    // public Range proportion;
 
     /** A vector representing the page numbers currently being displayed (number within PDF document).
      * A number representing the page number in the given document, starting from 0.

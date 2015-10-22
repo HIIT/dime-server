@@ -26,9 +26,12 @@ package fi.hiit.dime.data;
 
 import java.util.Date;
 
+import javax.persistence.Entity;
+
 /**
    A search event, i.e. the user doing a text query.
 */
+@Entity
 public class SearchEvent extends Event {
     /**
        The text of the query.
