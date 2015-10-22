@@ -67,8 +67,11 @@ def read_user_ini():
             if stringlist[i] == "nokeypress_interval:":
             		dum_string = stringlist[i+1]
             		nokeypress_interval = float(dum_string)
+            if stringlist[i] == "mu:":
+            		dum_string = stringlist[i+1]
+            		mu = float(dum_string)            		
 
-    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval
+    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval, mu
 
 
 #
@@ -99,7 +102,7 @@ def check_update():
 
 	#
 	#srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
-	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu = read_user_ini()
 	
 	#Get current path
 	cpath  = os.getcwd()
