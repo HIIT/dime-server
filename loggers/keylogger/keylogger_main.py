@@ -86,7 +86,7 @@ class MyApp(QWidget):
   #self.setCentralWidget(widget)
   
   #Read user.ini file
-  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu = read_user_ini()
+  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
   self.data = []
   self.keywords = ''
 

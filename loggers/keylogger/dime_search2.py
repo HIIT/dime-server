@@ -86,7 +86,7 @@ def remove_unwanted_words(testlist):
 ################################################################
 
 #Search using DiMe-server's own search function
-def search_dime(srvurl, username, password, query):
+def search_dime(srvurl, username, password, query, n_results):
     #------------------------------------------------------------------------------
 
     #server_url = 'http://localhost:8080/api'
@@ -110,17 +110,24 @@ def search_dime(srvurl, username, password, query):
     #    return []
 
     #print("DiMe query string:", query)
-    #
-    r = requests.get(server_url + '/search?query={}&limit=5'.format(query),
+
+    #Number of results from DiMe 
+    n_results = str(n_results)
+    
+    #print("Number of results set to: ", n_results, "type: ", type(n_results))
+
+    #Query for DiMe server
+    query_string = server_url + '/search?query={}&limit=%s' % n_results
+    r = requests.get(query_string.format(query),
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=100)
+
     # r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
     #                  headers={'content-type': 'application/json'},
     #                  auth=(server_username, server_password),
-    #                  timeout=10)
+    #                  timeout=100)
 
-    #print(r.json())
 
     if r.status_code != requests.codes.ok:
         print('No results from DiMe database!')
@@ -229,7 +236,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function, 'search_dime'
-def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password):
+def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
 
     #Inputs:
     #query = string from keyboard
@@ -256,7 +263,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     query = '%s' % query
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, query)
+    jsons = search_dime(srvurl, username, password, query, n_results)
 
     return jsons, kws, winds
 

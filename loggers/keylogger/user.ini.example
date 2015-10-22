@@ -5,10 +5,13 @@ password: password
 
 #Keylogger settings
 time_interval: 30.0
+#time_interval: 0.5
 nspaces: 5
 numwords: 10
-data_update_interval: 3600
+data_update_interval: 600
 updating_interval: 300.0
 nokeypress_interval: 1.0
 #LinRel settings
 mu: 10.0
+#DiMe search settings
+n_results: 60
