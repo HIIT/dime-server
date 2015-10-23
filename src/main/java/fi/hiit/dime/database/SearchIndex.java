@@ -69,9 +69,8 @@ public class SearchIndex {
     private static final String textQueryField = "plainTextContent";
 
     private FSDirectory fsDir;
-
     private DirectoryReader reader = null;
-    private IndexSearcher searcher;
+    private IndexSearcher searcher = null;
     private StandardQueryParser parser;
 
     @Autowired
@@ -129,10 +128,12 @@ public class SearchIndex {
 	return writer;
     }
 
-    public Set<String> indexedIds(IndexWriter writer) throws IOException {
+    /**
+       Get the set of indexed object ids.
+    */
+    protected Set<String> indexedIds(IndexReader reader) throws IOException {
 	Set<String> ids = new HashSet<String>();
 
-	IndexReader reader = DirectoryReader.open(writer, true);
 	Set<String> fields = new HashSet<String>();
 	fields.add(idField);
 	
@@ -160,7 +161,7 @@ public class SearchIndex {
 	    int skipped = 0;
 
 	    // Get a set of already indexed ids
-	    Set<String> inLucene = indexedIds(writer);
+	    Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
 
 	    // Loop over all elements in the database
 	    for (InformationElement elem : infoElemDAO.findAll()) {
