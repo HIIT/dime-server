@@ -103,7 +103,7 @@ public class DiMeData {
 	to clean up user provided data, or perform some house keeping
 	before storing in the database.
     */
-    public void processUploaded() {} 
+    public void autoFill() {} 
 
     /** Add a free-form tag to the object.
 	@param tag The tag to add

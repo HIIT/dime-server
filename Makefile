@@ -6,12 +6,12 @@ SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 
 DOCKER_DB_DIR = ~/dime-db
 
-all:	build
+all:	assemble
 
-build:  $(TARGET)
+assemble:  $(TARGET)
 
 $(TARGET): $(SOURCES)
-	$(GRADLE) build
+	$(GRADLE) assemble
 
 run:    $(TARGET)
 	java -jar $(TARGET)

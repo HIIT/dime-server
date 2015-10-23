@@ -24,32 +24,41 @@
 
 package fi.hiit.dime.data;
 
-import java.util.Date;
-import java.util.List;
-
 /**
-   Class representing an electronic message, such as an email.
+   Class representing a location on the planet Earth (usually).
 */
-public class Message extends InformationElement {
-    public Date date;
-    public String subject;
-    //
-    public String fromString;
-    public Person from;
-    //
-    public String toString;
-    public List<Person> to;
-    //
-    public String ccString;
-    public List<Person> cc;
-    //
-    public List<InformationElement> attachments;
-    public String rawMessage;
+public class Location {
+    /** Latitude in degrees
+     */
+    public double latitude;
 
-    @Override
-    public void autoFill() {
-	if (subject != null && subject.length() > 0)
-	    plainTextContent = 
-		subject + "\n\n" + plainTextContent;
-    }
+    /** Longitude in degrees
+     */
+    public double longitude;
+
+    /** Altitude in metres.
+     */
+    public double altitude;
+
+    /** Horizontal accuracy, in metres.
+     */
+    public double horizAccuracy;
+
+    /** Vertical accuracy, in metres.
+     */
+    public double vertAccuracy;
+
+    /** Bearing in degrees, east of north (0: north, 90: east, 180: south, 270: west).
+     */
+    public double bearing;
+
+    /** Speed in metres per second
+     */
+    public double speed;
+
+    /** A (relatively) long line of text that quickly describes the location to a human.
+     * Example: "Country: Finland, Locality: Helsinki, Neighborhood: Kumpula, Steet: Gadolininkatu
+     */
+    public String descriptionLine;
+
 }

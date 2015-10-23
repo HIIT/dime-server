@@ -157,7 +157,6 @@ public class DataController extends AuthorizedController {
 	if (msg != null) {
 	    if (!msg.isStub()) {
 		msg.user = user;
-		msg.processUploaded();
 		infoElemDAO.save(msg);
 
 		// infoElemDAO.save(msg.from);

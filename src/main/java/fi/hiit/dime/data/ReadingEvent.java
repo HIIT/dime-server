@@ -34,27 +34,22 @@ public class ReadingEvent extends DesktopEvent {
     */
     public Boolean multiPage;
 
-    /** A vector representing the page numbers currently being displayed (number within PDF document).
+    /** A vector representing the page numbers currently being considered (number within PDF document).
+     * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
      * A number representing the page number in the given document, starting from 0.
      * These should be in the same order as visiblePageLabels and pageRects. */
-    public int[] visiblePageNumbers;
+    public int[] pageNumbers;
     
-    /** A vector representing the page numbers currently being displayed (ORIGINAL page number).
+    /** A vector representing the page numbers currently being considered (ORIGINAL page number).
+     * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
      * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example.
      * These should be in the same order as visiblePageNumbers and pageRects. */
-    public ArrayList<String> visiblePageLabels;
+    public ArrayList<String> pageLabels;
     
-    /** A list of rectangles representing where the viewport is placed for each page. 
+    /** A list of rectangles representing where the relevant (viewport, seen, interesting, etc.) paragraphs are. 
      * All the rects should fit within the page. Rect dimensions refer to points in a 72 dpi space where the bottom left is the origin,
-     * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points.
-     * These should be in the same order as visiblePageNumbers and visiblePageLabels. */
+     * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points. */
     public ArrayList<Rect> pageRects;
-
-    /** The proportion of the document currently being displayed on screen.
-     For example, 0.25, 0.50 means that we are seeing from the first quarter until half the document (if a document has 4 pages then it means we are
-     seeing page 2) although numbers wouldn't generally be so nicely rounded. 
-     */
-    public Range proportion;
 
     /** The scale factor currently being used (1 = 100% size, 2 = 200%, etc).
      */

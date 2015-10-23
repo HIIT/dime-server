@@ -67,15 +67,21 @@ def read_user_ini():
             if stringlist[i] == "nokeypress_interval:":
             		dum_string = stringlist[i+1]
             		nokeypress_interval = float(dum_string)
+            if stringlist[i] == "mu:":
+            		dum_string = stringlist[i+1]
+            		mu = float(dum_string)            		
+            if stringlist[i] == "n_results:":
+            		dum_string = stringlist[i+1]
+            		n_results = int(dum_string)               		
 
-    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval
+    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results
 
 
 #
 def update_all_data():
 	
 	print("Update data!!")
-	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
 
 	cpath  = os.getcwd()
 	cpathd = cpath + '/' + 'data'	
@@ -98,8 +104,7 @@ def update_all_data():
 def check_update():
 
 	#
-	#srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
-	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
 	
 	#Get current path
 	cpath  = os.getcwd()

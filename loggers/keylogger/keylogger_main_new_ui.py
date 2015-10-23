@@ -86,7 +86,7 @@ class MyApp(QWidget):
   #self.setCentralWidget(widget)
   
   #Read user.ini file
-  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval = read_user_ini()
+  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
   self.data = []
   self.keywords = ''
 
@@ -237,9 +237,9 @@ class MyApp(QWidget):
   #self.vlayout4.addWidget(self.clearButton)
 
   #self.subhlayout2= QHBoxLayout()
-  self.vlayout4.addWidget(self.eesliderl1)
-  self.vlayout4.addWidget(self.eeslider)
   self.vlayout4.addWidget(self.eesliderl2)
+  self.vlayout4.addWidget(self.eeslider)
+  self.vlayout4.addWidget(self.eesliderl1)
   #Align the slider to center
   self.vlayout4.itemAt(2).setAlignment(Qt.AlignCenter)
   self.vlayout4.itemAt(3).setAlignment(Qt.AlignCenter)

@@ -59,6 +59,12 @@ public class EventDAO extends BaseDAO<Event> {
 	return "event";
     }
 
+    @Override
+    public void save(Event obj) {
+	obj.autoFill();
+	super.save(obj);
+    }
+
     public List<EventCount> eventHist(String groupBy, Date fromDate, Date toDate,
 				      boolean percentage) {
 	/* This should do the same as the following mongodb code:

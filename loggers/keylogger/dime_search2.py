@@ -86,7 +86,7 @@ def remove_unwanted_words(testlist):
 ################################################################
 
 #Search using DiMe-server's own search function
-def search_dime(srvurl, username, password, query):
+def search_dime(srvurl, username, password, query, n_results):
     #------------------------------------------------------------------------------
 
     #server_url = 'http://localhost:8080/api'
@@ -110,17 +110,24 @@ def search_dime(srvurl, username, password, query):
     #    return []
 
     #print("DiMe query string:", query)
-    #
-    r = requests.get(server_url + '/search?query={}&limit=5'.format(query),
+
+    #Number of results from DiMe 
+    n_results = str(n_results)
+    
+    #print("Number of results set to: ", n_results, "type: ", type(n_results))
+
+    #Query for DiMe server
+    query_string = server_url + '/search?query={}&limit=%s' % n_results
+    r = requests.get(query_string.format(query),
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=100)
+
     # r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
     #                  headers={'content-type': 'application/json'},
     #                  auth=(server_username, server_password),
-    #                  timeout=10)
+    #                  timeout=100)
 
-    #print(r.json())
 
     if r.status_code != requests.codes.ok:
         print('No results from DiMe database!')
@@ -181,7 +188,7 @@ def search_dime_docsim(query, data, index, dictionary):
 
 #Function that computes keywords using LinRel and makes search using
 #'search_dime_docsim'
-def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, c):
+def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, c, mu):
 
     #Inputs:
     #query = string from keyboard
@@ -202,7 +209,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
     test_vec      = query2bow(query, dictionary)
 
     #
-    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c)
+    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c, mu)
     kws_vec    = dictionary.doc2bow(kws)
 
     #make string of keywords 
@@ -229,7 +236,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function, 'search_dime'
-def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, srvurl, username, password):
+def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
 
     #Inputs:
     #query = string from keyboard
@@ -250,13 +257,13 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     test_vec      = query2bow(query, dictionary)
 
     #Get keywords related to input query string 
-    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c)
+    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
 
     #make string of keywords 
     query = '%s' % query
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, query)
+    jsons = search_dime(srvurl, username, password, query, n_results)
 
     return jsons, kws, winds
 
@@ -294,7 +301,7 @@ def query2bow(query,dictionary):
     return test_vec
 
 #
-def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c):
+def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu):
 
     #Inputs:
     #test_vec   = bag of word representation of the input query string (taken from keyboard)
@@ -345,8 +352,9 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         r[winds]      = 1.0
         np.save('data/r_old.npy',r)
 
-    #Regularization paramter
-    mu = 1.0
+    #Check that regularization paramter is not 0 or below
+    if mu <= 0.0:
+        mu = 1.0
 
     #Compute relevance estimate vector r_hat, and sigma_hat (= upper bound vector of st.dev vector of r_hat)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, X, mu)
@@ -524,6 +532,8 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
     #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
 
 
+
+
     #Load document term matrix 
     #sX = load_sparse_csc('data/sX.sparsemat.npz')
     #Make transpose of document term matrix 
@@ -680,6 +690,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
     #y_hatapp     = estimation of relevance vector 
     #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
 
+    print("VALUE OF MU!!!", mu)
 
     #Load document term matrix 
     #sX = load_sparse_csc('data/sX.sparsemat.npz')
