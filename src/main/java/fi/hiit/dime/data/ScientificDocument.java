@@ -34,7 +34,6 @@ import javax.persistence.OneToMany;
 public class ScientificDocument extends Document {
     @OneToMany
     public List<Person> authors;
-
     public String booktitle;
 
     @ElementCollection(targetClass = String.class)

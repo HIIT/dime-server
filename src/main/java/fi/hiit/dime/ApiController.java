@@ -110,6 +110,7 @@ public class ApiController extends AuthorizedController {
 		List<InformationElement> resultsList = null;
 		String searchSystem = "none";
 		if (dimeConfig.getUseLucene()) {
+		    searchIndex.updateIndex(true);
 		    resultsList = searchIndex.textSearch(query, limit, user.getId());
 		    searchSystem = "Lucene";
 		}

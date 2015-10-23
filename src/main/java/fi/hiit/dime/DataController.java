@@ -90,9 +90,25 @@ public class DataController extends AuthorizedController {
      * @param input     The event object that was uploaded
      * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String  eventName, User user, Event input, Boolean dumpJson) {
+    protected void eventLog(String eventName, User user, Event input, boolean dumpJson) {
 	LOG.info("{} for user {} from {} at {}, with actor {}",
 		 eventName, user.username, input.origin, new Date(), input.actor);
+	if (dumpJson)
+	    dumpJson(input);
+    }
+
+    /**
+     * Helper method to log each information element uploaded.
+     *
+     * @param elemName  Name of information element class
+     * @param user      User object
+     * @param input     The information element that was uploaded
+     * @param dumpJson  Whether to also print the JSON of the event object
+     */
+    protected void elementLog(String elemName, User user, InformationElement input,
+			      boolean dumpJson) {
+	LOG.info("{} for user {} at {}",
+		 elemName, user.username, new Date());
 	if (dumpJson)
 	    dumpJson(input);
     }
@@ -105,10 +121,28 @@ public class DataController extends AuthorizedController {
      * @param input     The array of event objects that were uploaded
      * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String eventName, User user, Event[] input, Boolean dumpJson) {
+    protected void eventLog(String eventName, User user, Event[] input, boolean dumpJson) {
 	if (input.length > 0) {
 	    LOG.info("{} for user {} from {} at {}, with actor {}",
 		     eventName, user.username, input[0].origin, new Date(), input[0].actor);
+	    if (dumpJson)
+		dumpJson(input);
+	}
+    }
+
+    /**
+     * Helper method to log an array of uploaded information elements.
+     *
+     * @param elemName  Name of information element class
+     * @param user      User object
+     * @param input     The array of event objects that were uploaded
+     * @param dumpJson  Whether to also print the JSON of the event object
+     */
+    protected void elementLog(String elemName, User user, InformationElement[] input,
+			      boolean dumpJson) {
+	if (input.length > 0) {
+	    LOG.info("{} for user {} at {}",
+		     elemName, user.username, new Date());
 	    if (dumpJson)
 		dumpJson(input);
 	}
@@ -184,6 +218,23 @@ public class DataController extends AuthorizedController {
     }
 
     /**
+     * Helper method to store an information element, and possibly expand its
+     * content if needed.
+     *
+     * @param input InformationElement to store
+     * @param user current authenticated user
+     * @return The element as stored
+     */
+    private InformationElement storeElement(InformationElement elem, User user) {
+	if (elem instanceof Message)
+	    elem = expandMessage((Message)elem, user);
+	else
+	    elem = expandInformationElement(elem, user);
+	return elem;
+    }
+
+
+    /**
      * Helper method to store an event, and possibly expand its
      * information element if needed.
      *
@@ -198,12 +249,7 @@ public class DataController extends AuthorizedController {
 	    ResourcedEvent revent = (ResourcedEvent)input;
 	    InformationElement elem = revent.targettedResource;
 
-	    if (elem instanceof Message)
-	    	elem = expandMessage((Message)elem, user);
-	    else
-	    	elem = expandInformationElement(elem, user);
-
-	    revent.targettedResource = elem;
+	    revent.targettedResource = storeElement(elem, user);
 	}
 	eventDAO.save(input);
 
@@ -273,6 +319,34 @@ public class DataController extends AuthorizedController {
 	} catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
 	    return new ResponseEntity<Event[]>(HttpStatus.BAD_REQUEST);
 	}
+    }	
+
+    /** HTTP end point for uploading a single information element. */    
+    @RequestMapping(value="/informationelement", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement>
+	informationElement(Authentication auth, @RequestBody InformationElement input) {
+	User user = getUser(auth);
+
+	input = storeElement(input, user);
+
+	elementLog("InformationElement", user, input, true);
+
+	return new ResponseEntity<InformationElement>(input, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for uploading multiple information elements. */    
+    @RequestMapping(value="/informationelements", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement[]>
+	informationElement(Authentication auth, @RequestBody InformationElement[] input) {
+	User user = getUser(auth);
+
+	for (int i=0; i<input.length; i++) {
+	    input[i] = storeElement(input[i], user);
+	}
+
+	elementLog("InformationElements", user, input, true);
+
+	return new ResponseEntity<InformationElement[]>(input, HttpStatus.OK);
     }	
 
     /** HTTP end point for accessing a single informationelement. */    

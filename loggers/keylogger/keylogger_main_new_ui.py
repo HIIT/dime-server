@@ -86,7 +86,7 @@ class MyApp(QWidget):
   #self.setCentralWidget(widget)
   
   #Read user.ini file
-  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval = read_user_ini()
+  self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
   self.data = []
   self.keywords = ''
 
@@ -237,9 +237,9 @@ class MyApp(QWidget):
   #self.vlayout4.addWidget(self.clearButton)
 
   #self.subhlayout2= QHBoxLayout()
-  self.vlayout4.addWidget(self.eesliderl1)
-  self.vlayout4.addWidget(self.eeslider)
   self.vlayout4.addWidget(self.eesliderl2)
+  self.vlayout4.addWidget(self.eeslider)
+  self.vlayout4.addWidget(self.eesliderl1)
   #Align the slider to center
   self.vlayout4.itemAt(2).setAlignment(Qt.AlignCenter)
   self.vlayout4.itemAt(3).setAlignment(Qt.AlignCenter)
@@ -308,7 +308,7 @@ class MyApp(QWidget):
   self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
   self.setStyleSheet('font-size: 10pt')
   screen = QDesktopWidget().screenGeometry()
-  self.setGeometry(screen.width()-1024, 0, 1024, 180)
+  self.setGeometry(screen.width()-1024, 0, 1024, 200)
 
  def stop_animation(self):
   self.animlabel.setMovie(None)
@@ -452,11 +452,11 @@ class MyApp(QWidget):
           for ijson in range( len(urlstrs) ):
                                       #title    = None
                                       #linkstr   = self.unicode_to_str( urlstrs[ijson]["uri"] )
-                                      linkstr   = urlstrs[ijson]["uri"]
-                                      ctime     = str(urlstrs[ijson]["timeCreated"])
-                                      typestr   = str(urlstrs[ijson]["type"])
-                                      storedas  = str(urlstrs[ijson]["isStoredAs"])
-                                      dataid    = str(urlstrs[ijson]["id"])
+                                      linkstr   = self.safe_get_value(urlstrs[ijson], "uri")
+                                      ctime     = str(self.safe_get_value(urlstrs[ijson], "timeCreated"))
+                                      typestr   = str(self.safe_get_value(urlstrs[ijson], "type"))
+                                      storedas  = str(self.safe_get_value(urlstrs[ijson], "isStoredAs"))
+                                      dataid    = str(self.safe_get_value(urlstrs[ijson], "id"))
                                       storedasl = storedas.split('#')[1]
 
 

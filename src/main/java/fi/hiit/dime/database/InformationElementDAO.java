@@ -33,8 +33,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class InformationElementDAO {
@@ -42,11 +45,27 @@ public class InformationElementDAO {
 
     @Autowired
     private InfoElemRepository repo;
+    private static Set<InformationElement> notIndexed =	new HashSet<InformationElement>();
 
     public void save(InformationElement obj) {
 	obj.autoFill();
+	notIndexed.add(obj);
 	repo.save(obj);
     }
+
+    public boolean hasUnIndexed() {
+	return !notIndexed.isEmpty();
+    }
+
+    public Set<InformationElement> getNotIndexed() {
+	return notIndexed;
+    }
+
+    public void setIndexed(InformationElement elem) {
+	elem.isIndexed = true;
+	notIndexed.remove(elem);
+    }
+
 
     /**
        Find a single InformationElement by its unique id.

@@ -135,14 +135,14 @@ public abstract class RestTest {
     }
 
     protected Message createTestEmail() {
-	return createTestEmail("Hello, world");
+	return createTestEmail("Hello, world", "Hello DiMe!");
     }
 
-    protected Message createTestEmail(String content) {
+    protected Message createTestEmail(String content, String subject) {
 	// Create a message
 	Message msg = new Message();
 	msg.date = new Date(); // current date
-	msg.subject = "Hello DiMe";
+	msg.subject = subject;
 	msg.fromString = "Mats Sjöberg <mats.sjoberg@helsinki.fi>";
 	msg.toString = "Mats Sjöberg <mats.sjoberg@hiit.fi>";
 	msg.ccString = "Mats Sjöberg <mats.sjoberg@cs.helsinki.fi>";

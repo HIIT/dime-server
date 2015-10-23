@@ -2,7 +2,7 @@
 # cocoa_keypress_monitor.py by Bjarte Johansen is licensed under a 
 # License: http://ljos.mit-license.org/
 
-from AppKit import NSApplication, NSApp
+from AppKit import NSApplication, NSApp, NSWorkspace
 from Foundation import NSObject, NSLog
 from Cocoa import NSEvent, NSKeyDownMask
 from PyObjCTools import AppHelper
@@ -26,7 +26,7 @@ def handler(event):
         #NSLog(u"%@", event)
         #print event
         #print event.keyCode()
-        print event.characters(), type (event.characters()), event.keyCode()
+        #print event.characters(), type (event.characters()), event.keyCode()
 
         char = "?"
         keycode = event.keyCode()
@@ -35,8 +35,9 @@ def handler(event):
                 char = str(event.characters())
             except UnicodeEncodeError:
                 print "<UnicodeEncodeError>"
-        socket.send_string(char+':'+str(keycode))
-        #print event.characters()
+        activeAppName = NSWorkspace.sharedWorkspace().activeApplication()['NSApplicationName']
+        print '[', char, ']', keycode, activeAppName
+        socket.send_string(char+':'+str(keycode)+':'+activeAppName)
         
     except KeyboardInterrupt:
         AppHelper.stopEventLoop()

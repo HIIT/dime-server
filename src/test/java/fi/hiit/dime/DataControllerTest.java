@@ -390,5 +390,74 @@ public class DataControllerTest extends RestTest {
 	assertEquals(outEvents[4].duration, dur, DELTA);
     }
 
+    @Test
+    public void testElemChange() throws Exception {
+	String content1 = "foobar";
+	String content2 = "hello";
+	
+	Message msg = createTestEmail(content1, "");
+	MessageEvent event = new MessageEvent();
+	event.targettedResource = msg;
 
+	// Upload to DiMe
+	ResponseEntity<MessageEvent> uploadRes = 
+	    getRest().postForEntity(eventApi, event, MessageEvent.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes);
+
+	// check that content is still the same
+	MessageEvent outEvent = uploadRes.getBody();
+	assertEquals(outEvent.targettedResource.plainTextContent, content1);
+	String msgId = outEvent.targettedResource.id;
+
+	// Change message
+	outEvent.targettedResource.plainTextContent = content2;
+	
+	// Upload the changed message
+	ResponseEntity<MessageEvent> uploadRes2 = 
+	    getRest().postForEntity(eventApi, outEvent, MessageEvent.class);
+	
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes2);
+
+	// check that content is the changed one
+	MessageEvent outEvent2 = uploadRes2.getBody();
+	assertEquals(outEvent2.targettedResource.plainTextContent, content2);
+	assertEquals(msgId, outEvent2.targettedResource.id);
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem);
+
+	Message msg2 = getElem.getBody();
+	assertEquals(msg2.plainTextContent, content2);
+    }
+
+    @Test
+    public void testElemUpload() throws Exception {
+	String content1 = "foobar";
+	Message msg = createTestEmail(content1, "");
+
+	// Upload to DiMe
+	ResponseEntity<Message> uploadRes =
+	    getRest().postForEntity(infoElemApi, msg, Message.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes);
+
+	// check that content is still the same
+	Message outMsg = uploadRes.getBody();
+	assertEquals(outMsg.plainTextContent, content1);
+	String msgId = outMsg.id;
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem);
+
+	Message msg2 = getElem.getBody();
+	assertEquals(msg2.plainTextContent, content1);
+    }
 }

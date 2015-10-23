@@ -27,9 +27,12 @@ package fi.hiit.dime.data;
 import fi.hiit.dime.authentication.User;
 
 import com.fasterxml.jackson.annotation.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.jpa.domain.AbstractPersistable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.mongodb.core.index.TextIndexed;
+import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -99,6 +102,7 @@ public class InformationElement extends AbstractPersistable<Long> {
     public String type;
 
     @JsonIgnore
+    @Transient
     public boolean isIndexed = false;
 
     /** Determines if this element is a stub, i.e. contains only the

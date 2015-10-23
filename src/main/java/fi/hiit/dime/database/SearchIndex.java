@@ -33,6 +33,7 @@ import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -51,10 +52,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.file.Paths;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
    Class that encapsulates the search index.
@@ -67,9 +70,8 @@ public class SearchIndex {
     private static final String textQueryField = "plainTextContent";
 
     private FSDirectory fsDir;
-
     private DirectoryReader reader = null;
-    private IndexSearcher searcher;
+    private IndexSearcher searcher = null;
     private StandardQueryParser parser;
 
     @Autowired
@@ -128,51 +130,77 @@ public class SearchIndex {
     }
 
     /**
+       Get the set of indexed object ids.
+    */
+    protected Set<String> indexedIds(IndexReader reader) throws IOException {
+	Set<String> ids = new HashSet<String>();
+
+	Set<String> fields = new HashSet<String>();
+	fields.add(idField);
+	
+	for (int i=0; i<reader.maxDoc(); i++) {
+	    Document doc = reader.document(i, fields);
+	    String docId = doc.get(idField);
+	    
+	    ids.add(docId);
+	}
+
+	return ids;
+    }
+
+    /**
        Call to update index, e.g. after adding new information elements.
 
        @return Number of elements that were newly indexed
     */
-    public long updateIndex(boolean forceAll) {
+    public long updateIndex(boolean quickUpdate) {
+	if (quickUpdate && !infoElemDAO.hasUnIndexed())
+	    return 0;
+	
 	long count = 0;
 
-	if (forceAll || infoElemDAO.countNotIndexed() > 0) {
-	    LOG.info("Updating Lucene index .... {}", forceAll);
-	    try {
-		IndexWriter writer = getIndexWriter();
-		int skipped = 0;
+	LOG.info("Updating Lucene index ....");
+	try {
+	    IndexWriter writer = getIndexWriter();
+	    int skipped = 0;
 
-		Iterable<InformationElement> toIndex;
-		if (forceAll) 
-		    toIndex = infoElemDAO.findAll();
-		else
-		    toIndex = infoElemDAO.findNotIndexed();
+	    List<InformationElement> toIndex = new ArrayList<InformationElement>();
 
-		for (InformationElement elem : toIndex) {
-		    System.out.println("ELEM");
-		    if (!indexElement(writer, elem))
-			skipped += 1;
+	    if (quickUpdate) {
+		// Just use our internal book keeping of new objects
+		toIndex.addAll(infoElemDAO.getNotIndexed());
+	    } else {
+		// Get the set of already indexed ids from Lucene
+		Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
+
+		// Loop over all elements in the database
+		for (InformationElement elem : infoElemDAO.findAll()) {
+		    // Update those which have not yet been indexed
+		    if (!inLucene.contains(elem.id))
+			toIndex.add(elem);
 		}
-
-		writer.close();
-
-		for (InformationElement elem : toIndex) {
-		    // NOTE: we are also marking those which were
-		    // skipped as "isIndexed" since otherwise DiMe
-		    // would repeatedly try to index them again...
-
-		    elem.isIndexed = true;
-		    infoElemDAO.save(elem);
-		    count += 1;
-		}
-
-		LOG.info("Indexed {} information elements.", count);
-		if (skipped > 0)
-		    LOG.info("Skipped {} elements with empty content.", skipped);
-
-	    } catch (IOException e) {
-		LOG.error("Exception while updating search index: " + e);
 	    }
+
+	    for (InformationElement elem : toIndex) {
+		if (indexElement(writer, elem))
+		    count += 1;
+		else
+		    skipped += 1;
+
+		infoElemDAO.setIndexed(elem);
+	    }
+
+	    LOG.debug("Writing Lucene index to disk ...");
+	    writer.close();
+
+	    LOG.info("Indexed {} information elements.", count);
+	    if (skipped > 0)
+		LOG.info("Skipped {} elements with empty content.", skipped);
+	    
+	} catch (IOException e) {
+	    LOG.error("Exception while updating search index: " + e);
 	}
+
 	return count;
     }
 

@@ -9,8 +9,8 @@ import json
 #------------------------------------------------------------------------------
 
 server_url = 'http://localhost:8080/api'
-server_username = 'mvsjober'
-server_password = 'tBaiTwIIAjB+YGg24F59zH9p'
+server_username = 'testuser'
+server_password = 'testuser123'
 
 #------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ payload = {
         'plainTextContent': """
 Hi,
 I share with you a summary of the suggestions I collected since the last 
-Big Meeting.
+Big Meeting. sikrit
 
 Patrik""",
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#MailboxDataObject',

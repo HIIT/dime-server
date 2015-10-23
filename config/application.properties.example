@@ -18,3 +18,7 @@ spring.jpa.hibernate.ddl-auto = update
 
 # Useful for debugging SQL
 #spring.jpa.show-sql=true
+
+# To see debugging output
+# logging.level.fi.hiit.dime=DEBUG
+

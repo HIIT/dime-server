@@ -173,7 +173,7 @@ def search_dime_docsim(query, data, index, dictionary):
 
 #Function that computes keywords using LinRel and makes search using
 #'search_dime_docsim'
-def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, c):
+def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, c, mu):
 
     #Inputs:
     #query = string from keyboard
@@ -194,7 +194,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
     test_vec      = query2bow(query, dictionary)
 
     #
-    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c)
+    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c, mu)
     kws_vec    = dictionary.doc2bow(kws)
 
     #make string of keywords 
@@ -221,7 +221,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function, 'search_dime'
-def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, srvurl, username, password):
+def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password):
 
     #Inputs:
     #query = string from keyboard
@@ -243,7 +243,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     #test_vec_full = 
 
     #
-    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c)
+    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
     #kws_vec    = dictionary.doc2bow(kws)
 
     #make string of keywords 
@@ -288,7 +288,7 @@ def query2bow(query,dictionary):
     return test_vec
 
 #
-def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c):
+def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu):
 
     nwords = len(dictionary)
 
@@ -320,8 +320,11 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         r[winds]      = 1.0
         np.save('data/r_old.npy',r)
 
-    #Regularization paramter
-    mu = 1.0
+    #Check that regularization paramter is not zero or below
+    if mu <= 0:
+        mu = 1.0
+
+    #mu = 1.0
     #set(winds)
 
     #
