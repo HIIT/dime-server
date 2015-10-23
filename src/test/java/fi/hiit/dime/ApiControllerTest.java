@@ -103,7 +103,7 @@ public class ApiControllerTest extends RestTest {
 	    if (idxToFind.contains(i)) 
 		content += " " + magicWord;
 	    content += " " + rand.getPassword(10, false, false);
-	    Message msg = createTestEmail(content);
+	    Message msg = createTestEmail(content, "Hello");
 	    MessageEvent event = new MessageEvent();
 	    event.targettedResource = msg;
 
