@@ -97,11 +97,15 @@ def search_dime(srvurl, username, password, query, n_results):
     #------------------------------------------------------------------------------
 
     # ping server (not needed, but fun to do :-)
-    r = requests.post(server_url + '/ping')
+    try:
+        r = requests.post(server_url + '/ping')
+    except requests.exceptions.ConnectionError:
+        print('Ping failed: requests.exceptions.ConnectionError')
+        return []
 
     if r.status_code != requests.codes.ok:
-        print('No connection to DiMe server!')
-        sys.exit(1)
+        print('Ping failed: no connection to DiMe server', r.status_code)
+        return []
 
     #try:
     #    query_str = query.encode('utf-8')
@@ -130,7 +134,7 @@ def search_dime(srvurl, username, password, query, n_results):
 
 
     if r.status_code != requests.codes.ok:
-        print('No results from DiMe database!')
+        print('Query failed: no connection to DiMe server', r.status_code)
         return []
     elif len(r.json()) > 0:
             r = r.json()
