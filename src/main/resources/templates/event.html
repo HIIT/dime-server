@@ -15,13 +15,13 @@
 			    th:text="${#strings.substringAfter(event.type,'#')}"></a><br/>
 	    <b>Time:</b> <span th:text="${event.start}"></span><br/>
 
-	    <span th:if="${event.tags}">
-	      <b>Tags:</b> 
-	      <span th:each="tag : ${event.tags}"
-		    th:text="${tag}"
-		    class="label label-default">
-	      </span><br/>
-	    </span>
+	    <!-- <span th:if="${event.tags}"> -->
+	    <!--   <b>Tags:</b>  -->
+	    <!--   <span th:each="tag : ${event.tags}" -->
+	    <!-- 	    th:text="${tag}" -->
+	    <!-- 	    class="label label-default"> -->
+	    <!--   </span><br/> -->
+	    <!-- </span> -->
 
         <span th:if="${event.location}">
             <b>Location</b><br/>

@@ -48,7 +48,7 @@ public class EventDAO {
 	repo.save(obj);
     }
 
-    public Event findById(String id) {
+    public Event findById(Long id) {
 	return repo.findOne(id);
     }
 
@@ -59,20 +59,20 @@ public class EventDAO {
        @param filterParams Filtering parameters
        @return List of matching events
     */
-    public List<Event> find(String userId, Map<String, String> filterParams) {
+    public List<Event> find(Long userId, Map<String, String> filterParams) {
 	return repo.find(User.makeUser(userId), filterParams);
     }
 
-    public List<Event> eventsForUser(String userId) {
+    public List<Event> eventsForUser(Long userId) {
 	return repo.findByUserOrderByStartDesc(User.makeUser(userId));
     }
 
-    public long count(String id) {
+    public long count(Long id) {
 	return repo.countByUser(User.makeUser(id));
     }
 
     @Transactional
-    public long removeForUser(String id) {
+    public long removeForUser(Long id) {
 	return repo.deleteByUser(User.makeUser(id));
     }
     

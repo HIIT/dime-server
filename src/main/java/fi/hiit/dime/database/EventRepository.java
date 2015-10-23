@@ -93,9 +93,9 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
     }
 }
 
-public interface EventRepository extends CrudRepository<Event, String>,
+public interface EventRepository extends CrudRepository<Event, Long>,
 					 EventRepositoryCustom {
-    Event findOne(String id);
+    Event findOne(Long id);
 
     List<Event> findByUserOrderByStartDesc(User user);
 

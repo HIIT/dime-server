@@ -42,7 +42,7 @@ public class CurrentUser extends
 	return user;
     }
 
-    public String getId() {
+    public Long getId() {
 	return user.getId();
     }
 

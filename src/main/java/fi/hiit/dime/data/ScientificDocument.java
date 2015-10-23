@@ -39,6 +39,7 @@ public class ScientificDocument extends Document {
 
     @ElementCollection(targetClass = String.class)
     public List<String> keywords;
+
     public int firstPage;
     public int lastPage;
     public int year;

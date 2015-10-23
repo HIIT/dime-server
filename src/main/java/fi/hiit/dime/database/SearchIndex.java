@@ -29,6 +29,7 @@ import fi.hiit.dime.data.InformationElement;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
@@ -36,8 +37,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
+import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
@@ -192,16 +193,18 @@ public class SearchIndex {
 
 	Document doc = new Document(); // NOTE: Lucene Document!
 
-	doc.add(new StringField(idField, elem.getId(), Field.Store.YES));
+	String elemId = elem.getId().toString();
 
-	doc.add(new StringField(userIdField, elem.user.getId(), Field.Store.YES));
+	doc.add(new StringField(idField, elemId, Field.Store.YES));
+
+	doc.add(new StringField(userIdField, elem.user.getId().toString(), Field.Store.YES));
 
 	doc.add(new TextField(textQueryField, elem.plainTextContent,
 			      Field.Store.NO));
 
 	// doc.add(new LongField("modified", lastModified, Field.Store.NO));
 
-	writer.updateDocument(new Term(idField, elem.getId()), doc);
+	writer.updateDocument(new Term(idField, elemId), doc);
 	return true;
     }
 
@@ -213,7 +216,7 @@ public class SearchIndex {
        @param userId DiMe user id.
     */
     public List<InformationElement> textSearch(String query, int limit,
-					       String userId)
+					       Long userId)
 	throws IOException
     {
 	if (limit < 0)
@@ -241,7 +244,7 @@ public class SearchIndex {
 	    Query textQuery = parser.parse(query, textQueryField);
 	    queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
 
-	    Query userQuery = new TermQuery(new Term(userIdField, userId));
+	    Query userQuery = new TermQuery(new Term(userIdField, userId.toString()));
 	    queryBuilder.add(userQuery, BooleanClause.Occur.FILTER);
 
 	    TopDocs results = searcher.search(queryBuilder.build(), limit);
@@ -250,15 +253,21 @@ public class SearchIndex {
 	    for (int i=0; i<hits.length; i++) {
 		Document doc = searcher.doc(hits[i].doc);
 		float score = hits[i].score;
-		String docId = doc.get(idField);
-		
-		InformationElement elem = infoElemDAO.findById(docId);
-		if (elem == null) 
-		    LOG.error("Bad doc id: "+ docId);
-		else if (elem.user.getId().equals(userId))
-		    elems.add(elem);
-		else
-		    LOG.warn("Lucene returned result for wrong user: " + elem.getId());
+		String idString = doc.get(idField);
+		try {
+		    Long docId = Long.parseLong(idString);
+
+		    InformationElement elem = infoElemDAO.findById(docId);
+		    if (elem == null) 
+			LOG.error("Bad doc id: "+ docId);
+		    else if (elem.user.getId().equals(userId))
+			elems.add(elem);
+		    else
+			LOG.warn("Lucene returned result for wrong user: " + elem.getId());
+		} catch (NumberFormatException ex) {
+		    LOG.error("Lucene returned invalid id: {}", idString);
+		}
+	
 	    }
 	} catch (QueryNodeException e) {
 	     LOG.error("Exception: " + e);

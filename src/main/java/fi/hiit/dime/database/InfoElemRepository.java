@@ -88,9 +88,9 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
     }
 }
 
-public interface InfoElemRepository extends CrudRepository<InformationElement, String>,
+public interface InfoElemRepository extends CrudRepository<InformationElement, Long>,
 					    InfoElemRepositoryCustom {
-    InformationElement findOne(String id);
+    InformationElement findOne(Long id);
 
     Long countByIsIndexed(boolean isIndexed);
 

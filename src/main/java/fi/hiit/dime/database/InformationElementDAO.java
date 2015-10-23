@@ -54,9 +54,8 @@ public class InformationElementDAO {
        @param id Unique id of InformationElement object.
        @return The InformationElement object found.
     */
-    public InformationElement findById(String id) {
+    public InformationElement findById(Long id) {
 	return repo.findOne(id);
-    	// return operations.findById(id, InformationElement.class, collectionName());
     }
 
     /**
@@ -66,7 +65,7 @@ public class InformationElementDAO {
        @param filterParams Filtering parameters
        @return List of matching information elements
     */
-    public List<InformationElement> find(String userId,
+    public List<InformationElement> find(Long userId,
 					 Map<String, String> filterParams) 
     {
 	return repo.find(User.makeUser(userId), filterParams);
@@ -105,7 +104,7 @@ public class InformationElementDAO {
        @param id User id
        @return List of all InformationElement objects for user
     */
-    public List<InformationElement> elementsForUser(String id) {
+    public List<InformationElement> elementsForUser(Long id) {
 	return repo.findByUser(User.makeUser(id));
     }
 
@@ -115,7 +114,7 @@ public class InformationElementDAO {
        @param id User id
        @return Number of items removed.
     */
-    public long removeForUser(String id) {
+    public long removeForUser(Long id) {
  	return repo.deleteByUser(User.makeUser(id));
     }
 }

@@ -58,7 +58,7 @@ import javax.persistence.ManyToOne;
 })
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-public abstract class Event extends AbstractPersistable<String> {
+public abstract class Event extends AbstractPersistable<Long> {
     // @Id
     // public String id;
 
@@ -79,8 +79,8 @@ public abstract class Event extends AbstractPersistable<String> {
 
     /** Place where the event happened.
      */
-    // @Embedded
-    // public Location location;
+    @Embedded
+    public Location location;
 
     /** Detailed type of event, using the Semantic Desktop ontology, see:
 	http://www.semanticdesktop.org/ontologies/2010/01/25/nuao

@@ -102,7 +102,7 @@ public class WebController extends WebMvcConfigurerAdapter {
     /* Show log of all data */
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
-	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
         model.addAttribute("events", eventDAO.eventsForUser(userId));
 	model.addAttribute("count", eventDAO.count(userId));
         return "log";
@@ -111,8 +111,8 @@ public class WebController extends WebMvcConfigurerAdapter {
     /* Show a specific event */
     @RequestMapping("/event")
     public String event(Authentication authentication, Model model,
-		      @RequestParam(value="id") String eventId) {
-	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+		      @RequestParam(value="id") Long eventId) {
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	Event event = eventDAO.findById(eventId);
 
 	if (event.user.getId().equals(userId))
@@ -123,8 +123,8 @@ public class WebController extends WebMvcConfigurerAdapter {
     /* Show a specific information element */
     @RequestMapping("/infoelem")
     public String infoElem(Authentication authentication, Model model,
-			   @RequestParam(value="id") String elemId) {
-	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+			   @RequestParam(value="id") Long elemId) {
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	InformationElement elem = infoElemDAO.findById(elemId);
 
 	if (elem.user.getId().equals(userId)) {
@@ -138,8 +138,8 @@ public class WebController extends WebMvcConfigurerAdapter {
     /* Show a specific message object */
     @RequestMapping("/message")
     public String message(Authentication authentication, Model model,
-			  @RequestParam(value="id") String elemId) {
-	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+			  @RequestParam(value="id") Long elemId) {
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	Message elem = (Message)infoElemDAO.findById(elemId);
 
 	if (elem.user.getId().equals(userId))
@@ -153,7 +153,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 			 Authentication authentication,
 			 Model model) {
 
-	String userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	model.addAttribute("info", "");
 
 	String query = search.getQuery();

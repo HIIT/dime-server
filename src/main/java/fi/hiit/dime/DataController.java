@@ -226,7 +226,7 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for accessing single event. */    
     @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
     public ResponseEntity<Event>
-	event(Authentication auth, @PathVariable String id) {
+	event(Authentication auth, @PathVariable Long id) {
 	User user = getUser(auth);
 
 	Event event = eventDAO.findById(id);
@@ -278,7 +278,7 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for accessing a single informationelement. */    
     @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
     public ResponseEntity<InformationElement>
-	informationElement(Authentication auth, @PathVariable String id) {
+	informationElement(Authentication auth, @PathVariable Long id) {
 	User user = getUser(auth);
 
 	InformationElement elem = infoElemDAO.findById(id);

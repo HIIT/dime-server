@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -59,8 +60,8 @@ import javax.persistence.OneToMany;
 })
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-public class InformationElement extends AbstractPersistable<String> {
-    public static InformationElement makeStub(String id) {
+public class InformationElement extends AbstractPersistable<Long> {
+    public static InformationElement makeStub(Long id) {
 	InformationElement elem = new InformationElement();
 	elem.setId(id);
 	return elem;
@@ -84,6 +85,7 @@ public class InformationElement extends AbstractPersistable<String> {
     /** Plain text content of the information element. This is indexed
        for text search.
     */
+    @Column(columnDefinition="text")
     public String plainTextContent;
 
     /** Form of storage according to the Semantic Desktop ontology:

@@ -47,7 +47,7 @@ public class UserDAO {
 	repo.save(obj);
     }
 
-    public User findById(String id) {
+    public User findById(Long id) {
     	return repo.findOne(id);
     }
 
@@ -59,7 +59,7 @@ public class UserDAO {
     	return repo.findAll();
     }
 
-    public void remove(String id) {
+    public void remove(Long id) {
 	repo.delete(id);
     }
 }

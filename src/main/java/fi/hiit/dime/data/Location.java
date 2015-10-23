@@ -33,31 +33,31 @@ import javax.persistence.Embeddable;
 public class Location {
     /** Latitude in degrees
      */
-    public double latitude;
+    public Double latitude;
 
     /** Longitude in degrees
      */
-    public double longitude;
+    public Double longitude;
 
     /** Altitude in metres.
      */
-    public double altitude;
+    public Double altitude;
 
     /** Horizontal accuracy, in metres.
      */
-    public double horizAccuracy;
+    public Double horizAccuracy;
 
     /** Vertical accuracy, in metres.
      */
-    public double vertAccuracy;
+    public Double vertAccuracy;
 
     /** Bearing in degrees, east of north (0: north, 90: east, 180: south, 270: west).
      */
-    public double bearing;
+    public Double bearing;
 
     /** Speed in metres per second
      */
-    public double speed;
+    public Double speed;
 
     /** A (relatively) long line of text that quickly describes the location to a human.
      * Example: "Country: Finland, Locality: Helsinki, Neighborhood: Kumpula, Steet: Gadolininkatu

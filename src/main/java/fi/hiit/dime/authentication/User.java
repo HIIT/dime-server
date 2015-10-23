@@ -43,8 +43,8 @@ import javax.persistence.Entity;
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
-public class User extends AbstractPersistable<String> {
-    public static User makeUser(String id) {
+public class User extends AbstractPersistable<Long> {
+    public static User makeUser(Long id) {
 	User user = new User();
 	user.setId(id);
 	return user;

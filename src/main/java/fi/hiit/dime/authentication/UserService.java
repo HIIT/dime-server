@@ -38,7 +38,7 @@ public interface UserService {
      * @param id User id
      * @return User with the given id
      */
-    User getUserById(String id);
+    User getUserById(Long id);
 
     /**
      * Return user by username.
@@ -68,5 +68,5 @@ public interface UserService {
      * @param id User id of the user to be removed
      * @return True if a user was successfully removed
      */
-    boolean removeAllForUserId(String id);
+    boolean removeAllForUserId(Long id);
 }

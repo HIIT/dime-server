@@ -36,8 +36,8 @@ import java.util.List;
  *
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
-public interface UserRepository extends CrudRepository<User, String> {
-    User findOne(String id);
+public interface UserRepository extends CrudRepository<User, Long> {
+    User findOne(Long id);
 
     User findOneByUsername(String username);
 

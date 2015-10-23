@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getUserById(String id) {
+    public User getUserById(Long id) {
 	return userDAO.findById(id);
     }
 
@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public boolean removeAllForUserId(String id) {
+    public boolean removeAllForUserId(Long id) {
 	eventDAO.removeForUser(id);
 	infoElemDAO.removeForUser(id);
 	userDAO.remove(id);
