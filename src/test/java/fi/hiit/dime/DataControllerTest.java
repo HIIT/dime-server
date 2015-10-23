@@ -459,4 +459,29 @@ public class DataControllerTest extends RestTest {
 	assertEquals(msg2.plainTextContent, content2);
     }
 
+    @Test
+    public void testElemUpload() throws Exception {
+	String content1 = "foobar";
+	Message msg = createTestEmail(content1, "");
+
+	// Upload to DiMe
+	ResponseEntity<Message> uploadRes =
+	    getRest().postForEntity(infoElemApi, msg, Message.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes);
+
+	// check that content is still the same
+	Message outMsg = uploadRes.getBody();
+	assertEquals(outMsg.plainTextContent, content1);
+	String msgId = outMsg.id;
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem);
+
+	Message msg2 = getElem.getBody();
+	assertEquals(msg2.plainTextContent, content1);
+    }
 }
