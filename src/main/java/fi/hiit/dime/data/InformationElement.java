@@ -25,6 +25,7 @@
 package fi.hiit.dime.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.TextScore;
 
@@ -59,6 +60,7 @@ public /*abstract*/ class InformationElement extends DiMeData {
     public Float score;
 
     @JsonIgnore
+    @Transient
     public boolean isIndexed = false;
 
     /** Determines if this element is a stub, i.e. contains only the

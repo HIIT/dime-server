@@ -32,6 +32,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -50,10 +51,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.file.Paths;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
    Class that encapsulates the search index.
@@ -126,6 +129,23 @@ public class SearchIndex {
 	return writer;
     }
 
+    public Set<String> indexedIds(IndexWriter writer) throws IOException {
+	Set<String> ids = new HashSet<String>();
+
+	IndexReader reader = DirectoryReader.open(writer, true);
+	Set<String> fields = new HashSet<String>();
+	fields.add(idField);
+	
+	for (int i=0; i<reader.maxDoc(); i++) {
+	    Document doc = reader.document(i, fields);
+	    String docId = doc.get(idField);
+	    
+	    ids.add(docId);
+	}
+
+	return ids;
+    }
+
     /**
        Call to update index, e.g. after adding new information elements.
 
@@ -134,46 +154,39 @@ public class SearchIndex {
     public long updateIndex(boolean forceAll) {
 	long count = 0;
 
-	if (forceAll || infoElemDAO.countNotIndexed() > 0) {
-	    LOG.info("Updating Lucene index ....");
-	    try {
-		IndexWriter writer = getIndexWriter();
-		int skipped = 0;
+	LOG.info("Updating Lucene index ....");
+	try {
+	    IndexWriter writer = getIndexWriter();
+	    int skipped = 0;
 
-		List<InformationElement> toIndex;
-		if (forceAll) 
-		    toIndex = infoElemDAO.findAll();
-		else
-		    toIndex = infoElemDAO.findNotIndexed();
+	    // Get a set of already indexed ids
+	    Set<String> inLucene = indexedIds(writer);
 
-		for (InformationElement elem : toIndex) {
-		    if (!indexElement(writer, elem))
+	    // Loop over all elements in the database
+	    for (InformationElement elem : infoElemDAO.findAll()) {
+		// Update those which have not yet been indexed
+		if (forceAll || !inLucene.contains(elem.id)) {
+		    if (indexElement(writer, elem))
+			count += 1;
+		    else
 			skipped += 1;
-		}
-
-		LOG.debug("Writing Lucene index to disk ...");
-		writer.close();
-
-		LOG.debug("Updating indexed status to database ...");
-		for (InformationElement elem : toIndex) {
-		    // NOTE: we are also marking those which were
-		    // skipped as "isIndexed" since otherwise DiMe
-		    // would repeatedly try to index them again...
-
-		    LOG.debug("Updating to database {}", elem.id);
+		    
 		    elem.isIndexed = true;
-		    infoElemDAO.save(elem);
-		    count += 1;
+		    //     infoElemDAO.save(elem);
 		}
-
-		LOG.info("Indexed {} information elements.", count);
-		if (skipped > 0)
-		    LOG.info("Skipped {} elements with empty content.", skipped);
-
-	    } catch (IOException e) {
-		LOG.error("Exception while updating search index: " + e);
 	    }
+
+	    LOG.debug("Writing Lucene index to disk ...");
+	    writer.close();
+
+	    LOG.info("Indexed {} information elements.", count);
+	    if (skipped > 0)
+		LOG.info("Skipped {} elements with empty content.", skipped);
+	    
+	} catch (IOException e) {
+	    LOG.error("Exception while updating search index: " + e);
 	}
+
 	return count;
     }
 

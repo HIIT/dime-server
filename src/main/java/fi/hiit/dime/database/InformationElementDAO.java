@@ -187,41 +187,6 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
     }
 
     /**
-       Helper function that returns the mongodb query for non-indexed documents.
-
-       @return Mongodb query for getting non-indexed documents
-    */
-    protected Query notIndexedQuery() {
-	int numFixed = fixMissingField("isIndexed", false);
-	if (numFixed > 0)
-	    LOG.info("Fixed " + numFixed + " old objects with missing isIndexed fields.");
-
-	return query(where("isIndexed").is(false));
-    }
-
-    /**
-       Returns number of InformationElement objects which haven't been
-       indexed yet.
-       
-       @return Number of not indexed objects
-    */
-    public long countNotIndexed() {
-	return operations.count(notIndexedQuery(), InformationElement.class,
-				collectionName());
-    }
-
-    /**
-       Returns number of InformationElement objects which haven't been
-       indexed yet.
-       
-       @return Number of not indexed objects
-    */
-    public List<InformationElement> findNotIndexed() {
-	return operations.find(notIndexedQuery(), InformationElement.class,
-			       collectionName());
-    }
-
-    /**
        Returns all InformationElement objects.
     */
     public List<InformationElement> findAll() {
