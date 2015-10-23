@@ -119,10 +119,28 @@ public class DataController extends AuthorizedController {
      * @param input     The array of event objects that were uploaded
      * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String eventName, User user, Event[] input, Boolean dumpJson) {
+    protected void eventLog(String eventName, User user, Event[] input, boolean dumpJson) {
 	if (input.length > 0) {
 	    LOG.info("{} for user {} from {} at {}, with actor {}",
 		     eventName, user.username, input[0].origin, new Date(), input[0].actor);
+	    if (dumpJson)
+		dumpJson(input);
+	}
+    }
+
+    /**
+     * Helper method to log an array of uploaded information elements.
+     *
+     * @param elemName  Name of information element class
+     * @param user      User object
+     * @param input     The array of event objects that were uploaded
+     * @param dumpJson  Whether to also print the JSON of the event object
+     */
+    protected void elementLog(String elemName, User user, InformationElement[] input,
+			      boolean dumpJson) {
+	if (input.length > 0) {
+	    LOG.info("{} for user {} at {}",
+		     elemName, user.username, new Date());
 	    if (dumpJson)
 		dumpJson(input);
 	}
@@ -312,6 +330,21 @@ public class DataController extends AuthorizedController {
 	elementLog("InformationElement", user, input, true);
 
 	return new ResponseEntity<InformationElement>(input, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for uploading multiple information elements. */    
+    @RequestMapping(value="/informationelements", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement[]>
+	informationElement(Authentication auth, @RequestBody InformationElement[] input) {
+	User user = getUser(auth);
+
+	for (int i=0; i<input.length; i++) {
+	    input[i] = storeElement(input[i], user);
+	}
+
+	elementLog("InformationElements", user, input, true);
+
+	return new ResponseEntity<InformationElement[]>(input, HttpStatus.OK);
     }	
 
     /** HTTP end point for accessing a single informationelement. */    
