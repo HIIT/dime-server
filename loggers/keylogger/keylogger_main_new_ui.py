@@ -308,7 +308,7 @@ class MyApp(QWidget):
   self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
   self.setStyleSheet('font-size: 10pt')
   screen = QDesktopWidget().screenGeometry()
-  self.setGeometry(screen.width()-1024, 0, 1024, 180)
+  self.setGeometry(screen.width()-1024, 0, 1024, 200)
 
  def stop_animation(self):
   self.animlabel.setMovie(None)
