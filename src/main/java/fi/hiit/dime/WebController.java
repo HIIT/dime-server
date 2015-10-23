@@ -161,7 +161,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	    List<InformationElement> results = null;
 	    if (dimeConfig.getUseLucene()) {
 		try {
-		    searchIndex.updateIndex(false);
+		    searchIndex.updateIndex(true);
 		    results = searchIndex.textSearch(query, 100, userId);
 		    model.addAttribute("info", "(Lucene)");
 		} catch (IOException e) {

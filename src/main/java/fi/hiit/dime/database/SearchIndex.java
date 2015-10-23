@@ -152,7 +152,10 @@ public class SearchIndex {
 
        @return Number of elements that were newly indexed
     */
-    public long updateIndex(boolean forceAll) {
+    public long updateIndex(boolean quickUpdate) {
+	if (quickUpdate && !infoElemDAO.hasUnIndexed())
+	    return 0;
+	
 	long count = 0;
 
 	LOG.info("Updating Lucene index ....");
@@ -160,21 +163,30 @@ public class SearchIndex {
 	    IndexWriter writer = getIndexWriter();
 	    int skipped = 0;
 
-	    // Get a set of already indexed ids
-	    Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
+	    List<InformationElement> toIndex = new ArrayList<InformationElement>();
 
-	    // Loop over all elements in the database
-	    for (InformationElement elem : infoElemDAO.findAll()) {
-		// Update those which have not yet been indexed
-		if (forceAll || !inLucene.contains(elem.id)) {
-		    if (indexElement(writer, elem))
-			count += 1;
-		    else
-			skipped += 1;
-		    
-		    elem.isIndexed = true;
-		    //     infoElemDAO.save(elem);
+	    if (quickUpdate) {
+		// Just use our internal book keeping of new objects
+		toIndex.addAll(infoElemDAO.getNotIndexed());
+	    } else {
+		// Get the set of already indexed ids from Lucene
+		Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
+
+		// Loop over all elements in the database
+		for (InformationElement elem : infoElemDAO.findAll()) {
+		    // Update those which have not yet been indexed
+		    if (!inLucene.contains(elem.id))
+			toIndex.add(elem);
 		}
+	    }
+
+	    for (InformationElement elem : toIndex) {
+		if (indexElement(writer, elem))
+		    count += 1;
+		else
+		    skipped += 1;
+
+		infoElemDAO.setIndexed(elem);
 	    }
 
 	    LOG.debug("Writing Lucene index to disk ...");

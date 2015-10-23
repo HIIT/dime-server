@@ -46,13 +46,17 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class InformationElementDAO extends BaseDAO<InformationElement> {
     private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
+
+    private static Set<InformationElement> notIndexed =	new HashSet<InformationElement>();
 
     @Override
     public String collectionName() { 
@@ -62,8 +66,24 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
     @Override
     public void save(InformationElement obj) {
 	obj.autoFill();
+	notIndexed.add(obj);
+
 	super.save(obj);
     }
+
+    public boolean hasUnIndexed() {
+	return !notIndexed.isEmpty();
+    }
+
+    public Set<InformationElement> getNotIndexed() {
+	return notIndexed;
+    }
+
+    public void setIndexed(InformationElement elem) {
+	elem.isIndexed = true;
+	notIndexed.remove(elem);
+    }
+
 
     /**
        Find a single InformationElement by its unique id.

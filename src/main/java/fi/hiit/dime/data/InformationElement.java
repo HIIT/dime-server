@@ -33,7 +33,7 @@ import org.springframework.data.mongodb.core.mapping.TextScore;
    Base class for all information elements, e.g. documents, messages
    etc that are involved in events.
 */
-public /*abstract*/ class InformationElement extends DiMeData {
+public class InformationElement extends DiMeData {
     /** URI of the information element, e.g. path on computer or web URL.
      */
     public String uri;
