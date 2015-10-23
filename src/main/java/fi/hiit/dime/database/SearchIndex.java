@@ -160,6 +160,7 @@ public class SearchIndex {
 		    // skipped as "isIndexed" since otherwise DiMe
 		    // would repeatedly try to index them again...
 
+		    LOG.debug("Updating to database {}", elem.id);
 		    elem.isIndexed = true;
 		    infoElemDAO.save(elem);
 		    count += 1;
