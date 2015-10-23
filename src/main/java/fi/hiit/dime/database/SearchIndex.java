@@ -151,8 +151,10 @@ public class SearchIndex {
 			skipped += 1;
 		}
 
+		LOG.debug("Writing Lucene index to disk ...");
 		writer.close();
 
+		LOG.debug("Updating indexed status to database ...");
 		for (InformationElement elem : toIndex) {
 		    // NOTE: we are also marking those which were
 		    // skipped as "isIndexed" since otherwise DiMe
