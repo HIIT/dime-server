@@ -41,8 +41,8 @@ class LoggerThread(QThread):
     print('Logger thread: Run Run')
 
     #Read user.ini
-    srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
-    settingsl = [srvurl, username, password, time_interval, nspaces, nwords, updateinterval]
+    srvurl, username, password, time_interval, nspaces, nwords, updateinterval, _ignoredapps = read_user_ini()
+    settingsl = [srvurl, username, password, time_interval, nspaces, nwords, updateinterval, _ignoredapps]
 
     #Number 
     numoftopics = 10
@@ -61,9 +61,11 @@ class LoggerThread(QThread):
     now = time.time()
     dumstr = ''
     self.wordlist = []
-    
+
     string_to_send = None
     timestamp = now
+
+    ignoredapps = _ignoredapps.split(';')
 
     print("Logger thread: Ready for logging")
 
@@ -73,12 +75,13 @@ class LoggerThread(QThread):
       #changed, modifiers, keys = socket.recv()
       key_kc = self.socket.recv()
       key_kc = key_kc.decode("utf-8")
-      
+
       print(type(key_kc))
       #The keys is a string of the form "keyvalue:keycode"
       keys = "?"
+      application = "?"
       try:
-        keys, kc = key_kc.split(":")
+        keys, kc, application = key_kc.split(":")
       except ValueError:
         kc = -1
       try:
@@ -88,13 +91,17 @@ class LoggerThread(QThread):
 
       if kc in self.special_keys:
         keys = self.special_keys[kc]
-        
+
       print('keys: ', keys, 'kc: ', kc)
+
+      if application in ignoredapps:
+        print('Ignoring key pressed in an ignored application:', application)
+        continue
 
       #print modifiers
       #print changed, modifiers, keys
       keys  = str(keys)
-      
+
       #Take care that ctrl is not pressed at the same time
       if True: #not (modifiers['left ctrl'] or modifiers['right ctrl']):
           #Take current time
@@ -176,5 +183,7 @@ def read_user_ini():
             if stringlist[i] == "updating_interval:":
                     dum_string = stringlist[i+1]
                     updateinterval = float(dum_string)  
+            if stringlist[i] == "ignored_applications:":
+                    ignoredapps = stringlist[i+1]
 
-    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
+    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, ignoredapps
