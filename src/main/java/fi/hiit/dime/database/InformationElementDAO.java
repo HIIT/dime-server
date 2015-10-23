@@ -46,13 +46,17 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class InformationElementDAO extends BaseDAO<InformationElement> {
     private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
+
+    private static Set<InformationElement> notIndexed =	new HashSet<InformationElement>();
 
     @Override
     public String collectionName() { 
@@ -62,8 +66,24 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
     @Override
     public void save(InformationElement obj) {
 	obj.autoFill();
+	notIndexed.add(obj);
+
 	super.save(obj);
     }
+
+    public boolean hasUnIndexed() {
+	return !notIndexed.isEmpty();
+    }
+
+    public Set<InformationElement> getNotIndexed() {
+	return notIndexed;
+    }
+
+    public void setIndexed(InformationElement elem) {
+	elem.isIndexed = true;
+	notIndexed.remove(elem);
+    }
+
 
     /**
        Find a single InformationElement by its unique id.
@@ -184,41 +204,6 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	return operations.find(query(search).
 			       with(new Sort(Sort.Direction.DESC, "start")),
 			       InformationElement.class, collectionName());
-    }
-
-    /**
-       Helper function that returns the mongodb query for non-indexed documents.
-
-       @return Mongodb query for getting non-indexed documents
-    */
-    protected Query notIndexedQuery() {
-	int numFixed = fixMissingField("isIndexed", false);
-	if (numFixed > 0)
-	    LOG.info("Fixed " + numFixed + " old objects with missing isIndexed fields.");
-
-	return query(where("isIndexed").is(false));
-    }
-
-    /**
-       Returns number of InformationElement objects which haven't been
-       indexed yet.
-       
-       @return Number of not indexed objects
-    */
-    public long countNotIndexed() {
-	return operations.count(notIndexedQuery(), InformationElement.class,
-				collectionName());
-    }
-
-    /**
-       Returns number of InformationElement objects which haven't been
-       indexed yet.
-       
-       @return Number of not indexed objects
-    */
-    public List<InformationElement> findNotIndexed() {
-	return operations.find(notIndexedQuery(), InformationElement.class,
-			       collectionName());
     }
 
     /**
