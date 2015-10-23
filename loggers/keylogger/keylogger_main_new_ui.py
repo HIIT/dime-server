@@ -452,11 +452,11 @@ class MyApp(QWidget):
           for ijson in range( len(urlstrs) ):
                                       #title    = None
                                       #linkstr   = self.unicode_to_str( urlstrs[ijson]["uri"] )
-                                      linkstr   = urlstrs[ijson]["uri"]
-                                      ctime     = str(urlstrs[ijson]["timeCreated"])
-                                      typestr   = str(urlstrs[ijson]["type"])
-                                      storedas  = str(urlstrs[ijson]["isStoredAs"])
-                                      dataid    = str(urlstrs[ijson]["id"])
+                                      linkstr   = self.safe_get_value(urlstrs[ijson], "uri")
+                                      ctime     = str(self.safe_get_value(urlstrs[ijson], "timeCreated"))
+                                      typestr   = str(self.safe_get_value(urlstrs[ijson], "type"))
+                                      storedas  = str(self.safe_get_value(urlstrs[ijson], "isStoredAs"))
+                                      dataid    = str(self.safe_get_value(urlstrs[ijson], "id"))
                                       storedasl = storedas.split('#')[1]
 
 
