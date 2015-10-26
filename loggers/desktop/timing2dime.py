@@ -327,29 +327,7 @@ if __name__ == '__main__':
         text, title  = '', ''
 
         if os.path.isfile(item_path):
-            mimetype = common.get_mimetype(item_path)
-
-            if mimetype == 'application/pdf':
-                document_type = common.o('nfo_paginatedtextdocument')
-                if config.has_key('pdftotext_timing') and config['pdftotext_timing']:
-                    text = common.pdf_to_text(item_path)
-            if mimetype == 'application/zip':
-                extension = os.path.splitext(item_path)[1]
-                if (config.has_key('ext_to_mimetype') and
-                    extension in config['ext_to_mimetype']):
-                    mimetype = config['ext_to_mimetype'][extension]
-                if (config.has_key('ext_to_type') and
-                    extension in config['ext_to_type']):
-                    document_type = eval("config['" +
-                                                  config['ext_to_type'][extension] +
-                                                  "']")
-            elif 'text/' in mimetype:
-                if mimetype == 'text/x-python':
-                    document_type = common.o('nfo_sourcecode')
-                else:
-                    document_type = common.o('nfo_plaintextdocument')
-                with open (item_path, "r") as myfile:
-                    text = myfile.read()
+            mimetype, document_type, text = common.analyze_file(item_path, 'timing')
 
         elif item_appl == u'Evernote':
             uri_prefix = 'evernote://'
