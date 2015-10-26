@@ -105,21 +105,21 @@ class Browserlogger:
                         'isStoredAs': common.o('document_isa_browser'),
                         'mimeType':   mimetype}
 
-            document['id'] = common.to_json_sha1(document)
+            document['appId'] = common.to_json_sha1(document)
             payload['targettedResource'] = {}
-            payload['targettedResource']['id'] = document['id']
+            payload['targettedResource']['appId'] = document['appId']
             payload['targettedResource']['@type'] = document['@type']
-            payload['id'] = common.to_json_sha1(payload)
+            payload['appId'] = common.to_json_sha1(payload)
 
-            if payload['id'] in self.events:
+            if payload['appId'] in self.events:
                 print "Match found in known events, skipping"
                 continue
             else:
-                self.events.add(payload['id'])
+                self.events.add(payload['appId'])
 
-            if not document['id'] in self.documents:
+            if not document['appId'] in self.documents:
                 print "Not found in known documents, sending full data"
-                self.documents.add(document['id'])
+                self.documents.add(document['appId'])
 
                 if ('text/' in mimetype and config.has_key('fulltext')
                     and config['fulltext']):

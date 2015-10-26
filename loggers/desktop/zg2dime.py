@@ -100,16 +100,16 @@ def send_event(event):
                 'mimeType':         event.subjects[0].mimetype,
                 'plainTextContent': event.subjects[0].text}
 
-    document['id'] = common.to_json_sha1(document)
+    document['appId'] = common.to_json_sha1(document)
     payload['targettedResource'] = {}
-    payload['targettedResource']['id'] = document['id']
+    payload['targettedResource']['appId'] = document['appId']
     payload['targettedResource']['@type'] = document['@type']
-    payload['id'] = common.to_json_sha1(payload)
+    payload['appId'] = common.to_json_sha1(payload)
 
     full_data = False
-    if not document['id'] in documents:
+    if not document['appId'] in documents:
         print "Not found in known documents, sending full data"
-        documents.add(document['id'])
+        documents.add(document['appId'])
         full_data = True
 
     if payload['type'] == config['nuao_modificationevent']:

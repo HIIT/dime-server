@@ -25,6 +25,7 @@
 package fi.hiit.dime;
 
 import fi.hiit.dime.data.*;
+import fi.hiit.dime.util.RandomPassword;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,11 +52,14 @@ public class DataControllerTest extends RestTest {
     */
     @Test
     public void testEventUpload() throws Exception {
+	RandomPassword rand = new RandomPassword();
+
 	// Create a document
 	Document doc = new Document();
 	doc.uri = "http://www.example.com/hello.txt";
 	doc.plainTextContent = "Hello, world";
 	doc.mimeType = "text/plain";
+	doc.appId = rand.getPassword(20, false, false);
 
 	// Create feedback, with document embedded
 	FeedbackEvent event1 = new FeedbackEvent();
@@ -112,9 +116,39 @@ public class DataControllerTest extends RestTest {
 	assertEquals(doc.uri, outDoc2.uri);
 	assertEquals(doc.mimeType, outDoc2.mimeType);
 
-	/* This is not returned at the moment, since we don't want to
-	   duplicate the huge plainTextContent field... */
-	// assertEquals(doc.plainTextContent, outDoc2.plainTextContent);
+	// Test using stub with appId
+
+	// Create a "stub" document, i.e. that refers to the
+	// previously uploaded one
+	InformationElement stubDoc2 = new InformationElement();
+	stubDoc2.appId = doc.appId;
+
+	// Create feedback with the stub document
+	FeedbackEvent event3 = new FeedbackEvent();
+	event3.value = 0.56;
+	event3.targettedResource = stubDoc2;
+
+	dumpData("Event with appId stub to be uploaded to " + eventApi, event3);
+	
+	ResponseEntity<FeedbackEvent> res3 = 
+	    getRest().postForEntity(eventApi, event3, FeedbackEvent.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(res3);
+
+	// Checks to ensure returned object is the same as uploaded
+	FeedbackEvent outEvent3 = res3.getBody();
+	assertEquals(event3.value, outEvent3.value, DELTA);
+
+	dumpData("Second event received back from server:", outEvent2);
+
+	// This checks that the appId-based stub has been "filled in"
+	// with the missing info
+	Document outDoc3 = (Document)outEvent3.targettedResource;
+	assertEquals(outDoc1.getId(), outDoc3.getId());
+	assertEquals(doc.appId, outDoc3.appId);
+	assertEquals(doc.uri, outDoc3.uri);
+	assertEquals(doc.mimeType, outDoc3.mimeType);
     }
 
     /**

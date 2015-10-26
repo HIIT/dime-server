@@ -166,7 +166,7 @@ public class DataController extends AuthorizedController {
 		elem.user = user;
 		infoElemDAO.save(elem);
 	    } else { // expand if only a stub elem was included
-		InformationElement expandedElem = infoElemDAO.findById(elem.getId());	
+		InformationElement expandedElem = infoElemDAO.expandStub(elem);	
 		if (expandedElem != null) {
 		    LOG.info("Expanded InformationElement for " + expandedElem.uri);
 		    // don't copy the text, takes too much space
@@ -204,7 +204,7 @@ public class DataController extends AuthorizedController {
 		//     infoElemDAO.save(cc);
 
 	    } else { // expand if only a stub msg was included
-		Message expandedMsg = (Message)infoElemDAO.findById(msg.getId());
+		Message expandedMsg = (Message)infoElemDAO.expandStub(msg);
 		if (expandedMsg != null) {
 		    LOG.info("Expanded Message for " + expandedMsg.uri);
 		    // don't copy the text, takes too much space

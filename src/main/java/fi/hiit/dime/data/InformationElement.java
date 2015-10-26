@@ -31,8 +31,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.jpa.domain.AbstractPersistable;
-import org.springframework.data.mongodb.core.index.TextIndexed;
-import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -64,6 +62,8 @@ import javax.persistence.OneToMany;
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public class InformationElement extends AbstractPersistable<Long> {
+    public String appId;
+
     public static InformationElement makeStub(Long id) {
 	InformationElement elem = new InformationElement();
 	elem.setId(id);

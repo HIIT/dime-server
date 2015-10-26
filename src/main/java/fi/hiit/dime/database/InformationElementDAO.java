@@ -67,6 +67,18 @@ public class InformationElementDAO {
 	notIndexed.remove(elem);
     }
 
+     public InformationElement expandStub(InformationElement e) {
+	if (!e.isStub())
+	    return e;
+
+	if (e.getId() != null)
+	    return findById(e.getId());
+
+	if (e.appId != null)
+	    return repo.findOneByAppId(e.appId);
+
+	return e;
+    }
 
     /**
        Find a single InformationElement by its unique id.
