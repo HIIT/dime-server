@@ -176,7 +176,7 @@ public class SearchIndex {
 		// Loop over all elements in the database
 		for (InformationElement elem : infoElemDAO.findAll()) {
 		    // Update those which have not yet been indexed
-		    if (!inLucene.contains(elem.id))
+		    if (!inLucene.contains(elem.getId()))
 			toIndex.add(elem);
 		}
 	    }

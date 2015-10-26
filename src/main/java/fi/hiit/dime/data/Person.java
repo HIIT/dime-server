@@ -33,7 +33,7 @@ import java.util.List;
 public class Person extends AbstractPersistable<Long> {
     public String firstName;
     public String lastName;
-    public List<String> middleNames;  // middle names or middle initials, if any
+    public String middleNames;  // middle names or middle initials, if any
     public String emailAccount;  // e.g. "foo.bar@hiit.fi"
     public String dimeAccount;   // e.g. "foobar@dime.hiit.fi"
 }

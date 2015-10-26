@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -133,6 +134,7 @@ public class InformationElementDAO {
        @param id User id
        @return Number of items removed.
     */
+    @Transactional
     public long removeForUser(Long id) {
  	return repo.deleteByUser(User.makeUser(id));
     }

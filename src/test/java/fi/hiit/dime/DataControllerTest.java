@@ -409,7 +409,7 @@ public class DataControllerTest extends RestTest {
 	// check that content is still the same
 	MessageEvent outEvent = uploadRes.getBody();
 	assertEquals(outEvent.targettedResource.plainTextContent, content1);
-	String msgId = outEvent.targettedResource.id;
+	Long msgId = outEvent.targettedResource.getId();
 
 	// Change message
 	outEvent.targettedResource.plainTextContent = content2;
@@ -424,7 +424,7 @@ public class DataControllerTest extends RestTest {
 	// check that content is the changed one
 	MessageEvent outEvent2 = uploadRes2.getBody();
 	assertEquals(outEvent2.targettedResource.plainTextContent, content2);
-	assertEquals(msgId, outEvent2.targettedResource.id);
+	assertEquals(msgId, outEvent2.targettedResource.getId());
 
 	// Read back infoelement over REST API and check
 	ResponseEntity<Message> getElem = 
@@ -450,7 +450,7 @@ public class DataControllerTest extends RestTest {
 	// check that content is still the same
 	Message outMsg = uploadRes.getBody();
 	assertEquals(outMsg.plainTextContent, content1);
-	String msgId = outMsg.id;
+	Long msgId = outMsg.getId();
 
 	// Read back infoelement over REST API and check
 	ResponseEntity<Message> getElem = 
@@ -460,4 +460,24 @@ public class DataControllerTest extends RestTest {
 	Message msg2 = getElem.getBody();
 	assertEquals(msg2.plainTextContent, content1);
     }
+
+    // private class SearchEvent {
+    // 	String id;
+    // 	String query;
+    // }
+
+    // @Test
+    // public void testCustomId() throws Exception {
+	
+    // 	SearchEvent event = new SearchEvent();
+    // 	event.query = "hello";
+	
+    // 	// Upload to DiMe
+    // 	ResponseEntity<FeedbackEvent> res = 
+    // 	    getRest().postForEntity(eventApi, event1, FeedbackEvent.class);
+
+    // 	// Check that HTTP was successful
+    // 	assertSuccessful(res);
+    // }
+
 }
