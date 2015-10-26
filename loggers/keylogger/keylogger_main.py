@@ -190,12 +190,12 @@ class MyApp(QWidget):
   #Radio buttons for choosing search function
   self.radiobutton1= QRadioButton("DocSim")
   self.radiobutton1.released.connect(self.choose_search_function1)
-  self.radiobutton1.click()
 
   self.radiobutton2= QRadioButton("LinRel + DiMe search")
   self.radiobutton2.released.connect(self.choose_search_function2)
+  self.radiobutton2.click()
 
-  self.radiobutton3= QRadioButton("LinRel (omitting history)")
+  self.radiobutton3= QRadioButton("Weighted DiMe search")
   self.radiobutton3.released.connect(self.choose_search_function3)
 
   self.radiobutton4= QRadioButton("LinRel + DocSim")
@@ -241,8 +241,8 @@ class MyApp(QWidget):
   self.vlayout5 = QVBoxLayout()
   self.vlayout5.addWidget(self.radiobutton1)
   self.vlayout5.addWidget(self.radiobutton2)
-  #self.vlayout5.addWidget(self.radiobutton3)
-  self.vlayout5.addWidget(self.radiobutton4)
+  self.vlayout5.addWidget(self.radiobutton3)
+  #self.vlayout5.addWidget(self.radiobutton4)
 
   #Groupbox for radiobuttons
   self.mygroupbox = QGroupBox('Search Method')
@@ -367,7 +367,7 @@ class MyApp(QWidget):
 
  def choose_search_function3(self):
   #if searchfuncid == 0:
-    print('Main: Search function is LinRel')
+    print('Main: Search function is Lucene with added LinRel keywords and weights')
     #check_update()
     self.finished.emit(2)
     #elif searchfuncid == 1:

@@ -204,20 +204,24 @@ class SearchThread(QThread):
         jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
         print('Search thread: Ready for new search!')
       elif self.searchfuncid == 1:
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+        #Create/update relevant data files if necessary and store into 'data/' folder in current path 
         #jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
-        jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+        jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
         print('Search thread: Ready for new search!')
         print(len(jsons))
         if len(jsons) > 0:
           #Return keyword list
           self.send_keywords.emit(kws)
       elif self.searchfuncid == 2:
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
-        jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
+        #Create/update relevant data files if necessary and store into 'data/' folder in current path 
+        jsons, kws, winds = search_dime_using_linrel_keywords(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+        #jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
+        if len(jsons) > 0:
+          #Return keyword list
+          self.send_keywords.emit(kws)        
         print('Search thread: Ready for new search!')   
       elif self.searchfuncid == 3:
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path batman 
+        #Create/update relevant data files if necessary and store into 'data/' folder in current path 
         #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.tfidf, self.dictionary, self.c)
         jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.tfidf, self.dictionary, self.c, self.mu)
         if len(jsons) > 0:

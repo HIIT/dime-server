@@ -7,6 +7,10 @@ import math
 
 import random
 
+#
+#Some additional functions that are used in various places, e.g. in functions of dime_search.py
+#
+
 #For computing sparsity of a vector
 def vec_sparsity(v):
     
@@ -203,6 +207,87 @@ def pick_random_kw_ind(kw_scores_filecategory):
         if not rv > dv:
             print(i)
             return i
+
+
+
+
+
+
+#
+def query2bow(query,dictionary):
+
+    #inputs:
+    #query      = string input
+    #dictionary = gensim dictionary containing words taken from dime data
+
+    #Output:
+    #test_vec   = bag of word representation of query string
+
+
+    #Make list of words from the query string
+    test_wordlist = query.lower().split()
+    #Remove unwanted words from query
+    test_wordlist = remove_unwanted_words(test_wordlist)
+
+    #Convert the words into nearest dictionary word
+    for nword, word in enumerate(test_wordlist):
+        correctedword = difflib.get_close_matches(word, list(dictionary.values()))
+        if len(correctedword):
+            test_wordlist[nword] = correctedword[0]
+        else:
+            test_wordlist[nword] = ' '
+    print(("Search thread: Closest dictionary words: ", test_wordlist))
+    #f = open('data/test_wordlist.list','w')
+    #pickle.dump(test_wordlist,f)
+    pickle.dump(test_wordlist, open('data/test_wordlist.list','wb'))
+
+    #Make bag of word vector of the input string taken from keyboard
+    test_vec = dictionary.doc2bow(test_wordlist)
+
+    return test_vec
+
+
+#
+def twotuplelist2fulllist(tuplelist, nfeatures):
+    if len(tuplelist) == 0:
+        vec = [0]*nfeatures
+        #pass
+    else:
+        #
+        vec = [0]*nfeatures
+        nel = len(tuplelist[0])
+        #print 'Num. of el.:', nel
+        for i in range(len(tuplelist)):
+            vec[tuplelist[i][0]] = tuplelist[i][1]
+
+    vec = np.array(vec)
+    #print 'Length of wordlist: ', len(vec)
+    return vec
+
+#Remove unwanted words
+def remove_unwanted_words(testlist):
+    #Load stopwordlist
+    cpath = os.getcwd()
+    cpathd= cpath + '/' + 'data/' + 'stopwordlist.list'
+    #f = open(cpathd,'r')
+    #stoplist = pickle.load(f)
+    stoplist = pickle.load(open(cpathd,'rb'))
+
+    chgd = True
+    if len(testlist) > 0:
+        for iword, word in enumerate(testlist):
+            while chgd:
+                if not iword > len(testlist)-1:
+                    if testlist[iword] in stoplist:
+                        del testlist[iword]
+                        chgd = True
+                    else:
+                        chgd = False
+                else:
+                    break
+            chgd = True
+
+    return testlist
 
 
 
