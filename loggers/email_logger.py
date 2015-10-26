@@ -6,8 +6,6 @@ from textblob import TextBlob as tb
 import sys
 import quotequail
 import re
-#Emails class stores all the info regarding emails
-# __repr__, __eq__ and __hash__ are over ridden to implement the set data structure
 from bs4 import BeautifulSoup
 import html2text
 h = html2text.HTML2Text()
