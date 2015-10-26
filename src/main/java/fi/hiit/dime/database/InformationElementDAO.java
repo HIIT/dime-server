@@ -35,25 +35,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.*;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class InformationElementDAO extends BaseDAO<InformationElement> {
     private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
 
+    private static Set<InformationElement> notIndexed =	new HashSet<InformationElement>();
+
     @Override
     public String collectionName() { 
 	return "informationElement";
     }
+
+    @Override
+    public void save(InformationElement obj) {
+	obj.autoFill();
+	notIndexed.add(obj);
+
+	super.save(obj);
+    }
+
+    public boolean hasUnIndexed() {
+	return !notIndexed.isEmpty();
+    }
+
+    public Set<InformationElement> getNotIndexed() {
+	return notIndexed;
+    }
+
+    public void setIndexed(InformationElement elem) {
+	elem.isIndexed = true;
+	notIndexed.remove(elem);
+    }
+
 
     /**
        Find a single InformationElement by its unique id.
@@ -85,8 +115,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	// For mongodb versions >= 2.6, we can use the new TextQuery
 	// interface
 	if (version[0] >= 3 || (version[0] >= 2 && version[1] >= 6)) {
-	    Query dbQuery = TextQuery.queryText(new TextCriteria()
-						.matchingPhrase(query))
+	    Query dbQuery = new TextQuery(query)
 		.sortByScore()
 		.addCriteria(filterCriteria);
 	    
@@ -136,6 +165,52 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	} else {
 	    return new ArrayList<InformationElement>();
 	}
+    }
+
+    /**
+       Filtered search for a given user's objects.
+
+       @param userId User id
+       @param filterParams Filtering parameters
+       @return List of matching information elements
+    */
+    public List<InformationElement> find(String userId, Map<String, String> filterParams) {
+	ensureIndex("start");
+
+	Criteria search = where("user._id").is(new ObjectId(userId));
+
+	for (Map.Entry<String, String> param : filterParams.entrySet()) {
+	    String name = param.getKey().toLowerCase();
+	    String value = param.getValue();
+
+	    switch (name) {
+	    case "tag":
+		name = "tags";
+		break;
+	    case "uri":
+	    case "plaintextcontent":
+	    case "isstoredas":
+	    case "type":
+	    case "mimetype":
+	    case "title":
+	    // case "":
+		break;
+	    default:
+		throw new IllegalArgumentException(name);
+	    }
+	    search = search.and(name).is(value);
+	}
+
+	return operations.find(query(search).
+			       with(new Sort(Sort.Direction.DESC, "start")),
+			       InformationElement.class, collectionName());
+    }
+
+    /**
+       Returns all InformationElement objects.
+    */
+    public List<InformationElement> findAll() {
+	return operations.findAll(InformationElement.class, collectionName());
     }
 
     /**

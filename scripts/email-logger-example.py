@@ -37,7 +37,7 @@ payload = {
         'plainTextContent': """
 Hi,
 I share with you a summary of the suggestions I collected since the last 
-Big Meeting.
+Big Meeting. sikrit
 
 Patrik""",
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#MailboxDataObject',
@@ -45,6 +45,7 @@ Patrik""",
         'subject':    '[Reknow-principal-researchers] Suggestions for how to improve the Re:Know Big Meetings',
         'fromString': 'Patrik Floreen <patrik.floreen@cs.helsinki.fi>',
         'toString':   'reknow-principal-researchers@hiit.fi',
+        'tags': ['email', 'reknow'],
         #'ccString': [],
         #'attachments': [],
         #'rawMessage': '' # the full raw message here...

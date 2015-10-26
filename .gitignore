@@ -7,3 +7,8 @@ HOWTO
 /loggers/desktop/*.plist
 /loggers/desktop/*.json
 /loggers/desktop/imr
+/loggers/keylogger/data/
+/loggers/keylogger/suggested_pages.txt
+/loggers/keylogger/typedwords.txt
+/loggers/keylogger/user.ini
+/config/application.properties

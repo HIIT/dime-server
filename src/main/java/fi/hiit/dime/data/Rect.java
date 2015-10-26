@@ -25,14 +25,71 @@
 package fi.hiit.dime.data;
 
 /**
-   Class representing a rectangle in a two dimension (similar to very basic NSRect).
+   Class representing a rectangle in a two dimensions (maps to the ReadingRect struct in PeyeDF).
 */
 public class Rect {
-    /** The minimum value.
+    /** Position of the origin of this rectangle (origin: bottom left).
      */
     public Point origin;
 
-    /** The maximum value.
+    /** Size of this rectangle.
      */
     public Size size;
+
+    /** Page (starting from 0) on which this rectangle appears.
+     */
+    public int pageIndex;
+
+    /** Reading class of this rectangle, or why is it marked (refer to the CLASS_* constants, Importance enum in PeyeDF).
+     */
+    public int readingClass;
+
+    /** Source of classification for this rectangle, or what marked it (refer to the CLASSSOURCE_* constants, ClassSource enum in PeyeDF.
+     */
+    public int classSource;
+
+    /** Unspecified reading class
+     */
+    public static final int CLASS_UNSET = 0;
+
+    /** Class for reading viewport rectangles (standard without eye tracking).
+     */
+    public static final int CLASS_VIEWPORT = 10;
+
+    /** A paragraph (probably) exists at this point, can overlap with other paragraph rectangles.
+     */
+    public static final int CLASS_PARAGRAPH_FLOATING = 13;
+
+    /** A paragraph (probably) exists at this point, tries to cover a whole paragraph (no overlapping).
+     */
+    public static final int CLASS_PARAGRAPH_UNITED = 14;
+
+    /** Class for eye tracking read text.
+     */
+    public static final int CLASS_READ = 20;
+
+    /** Class for eye tracking "interesting" rectangles.
+     */
+    public static final int CLASS_INTERESTING = 30;
+
+    /** Class for eye tracking "critical" rectangles.
+     */
+    public static final int CLASS_CRITICAL = 40;
+
+    /** Class source for rectangles marked from an unkown source.
+     */ 
+    public static final int CLASSSOURCE_UNSET = 0;
+    
+    /** Class source for rectangles marked by the UI as viewports.
+     */ 
+    public static final int CLASSSOURCE_VIEWPORT = 1;
+
+    /** Class source for rectangles marked by click.
+     */
+    public static final int CLASSSOURCE_CLICK = 2;
+    
+    /** Class source for rectangles marked by eye tracking.
+     */
+    public static final int CLASSSOURCE_EYE = 3;
+
 }

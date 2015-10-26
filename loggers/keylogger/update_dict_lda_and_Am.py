@@ -65,7 +65,28 @@ def read_user_ini():
     return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval
 
 
+#
+def update_all_data():
+	
+	print "Update data!!"
+	srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
 
+	cpath  = os.getcwd()
+	cpathd = cpath + '/' + 'data'	
+
+	if not os.path.isdir(cpathd):
+		os.makedirs(cpathd)
+	#os.chdir(cpathd)
+	#print 'Path: ', os.getcwd()
+	#
+	update_data(srvurl, username, password)
+	update_dictionary()			
+	update_doctm(cpathd)
+	update_doc_tfidf_list(cpathd)
+	update_docsim_model()
+	update_Xt_and_docindlist([0])
+	update_tfidf_model(cpathd)
+	create_stopwordlist(cpathd)	
 
 #Check whether to update data files
 def check_update():
@@ -85,7 +106,7 @@ def check_update():
 		if not os.path.isfile('data/json_data.txt'):
 			update_data(srvurl, username, password)
 
-		if not os.path.isfile('/tmp/dictionary.dict'):
+		if not os.path.isfile('/tmp/tmpdict.dict'):
 			update_dictionary()			
 
 		if not os.path.isfile('data/doctm.data'):
@@ -220,7 +241,7 @@ def update_dictionary():
 		#pass
 		for word in doc.lower().split():
 			#Check if the string consist of alphabetic characters only
-			if word.isalpha() and (word not in stoplist):
+			if word.isalpha() and (word not in stoplist) and (len(word) > 2):
 				wordlist.append(word)
 
 	#Create dictionary
@@ -260,6 +281,7 @@ def update_doctm(destinationfolder):
 	#Import dictionary
 	dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 	nwords = len(dictionary)
+	print "update_doctm: number of words in dictionary:", nwords
 
 	#Import data
 	f = open('data/json_data.txt','r')
@@ -345,6 +367,7 @@ def doc_tfidf_list_to_sparsemat(doc_tfidf_list):
 
 	nrow = len(doc_tfidf_list)
 	sparsemat = sparse.lil_matrix((nrow, nwords))
+	print sparsemat.shape
 	row = 0
 	for d in doc_tfidf_list:
 		for c in d:
@@ -442,6 +465,7 @@ def update_docsim_model():
 		#cpath  = os.getcwd()
 		#cpathd = cpath + '/' + 'data'
 		#os.chdir(cpathd)
+		print "Search thread: update_docsim_model: updating dictionary!"
 		update_dictionary()
 		dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 		#os.chdir('../')

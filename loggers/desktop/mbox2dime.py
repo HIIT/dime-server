@@ -40,7 +40,7 @@ def create_payload(message, i):
     
     targettedResource = {
         '@type':      'Message',
-        'uri': 'Message-ID:558A8F73.20602@cs.helsinki.fi',
+        'uri': 'Message-ID:'+message['Message-ID'],
         'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#Email',
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#MailboxDataObject',
         'date': message['date'],

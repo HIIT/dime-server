@@ -111,11 +111,11 @@ def ping_server(verbose=False):
 
 # -----------------------------------------------------------------------
 
-def post_json(payload, event="desktopevent"):
+def post_json(payload, datatype="desktopevent"):
     """HTTP POST JSON-format payload to DiMe."""
     headers = {'content-type': 'application/json'}
     try:
-        return requests.post(config['server_url']+"/data/event",
+        return requests.post(config['server_url']+"/data/"+datatype,
                              data=payload,
                              headers=headers,
                              auth=(config['username'],
@@ -126,18 +126,18 @@ def post_json(payload, event="desktopevent"):
 
 # -----------------------------------------------------------------------
 
-def post_payload(payload, event="desktopevent"):
+def post_payload(payload, datatype="desktopevent"):
     """Send payload to DiMe and check response.
 
     Use this if DiMe response is not needed for anything else.
     """
-    res = _post_payload(payload, event)
+    res = _post_payload(payload, datatype)
     print "---###---###---###---###---###---###---###---###---###---###---"
     print ""
     return res
 
-def _post_payload(payload, event="desktopevent"):
-    r = post_json(payload, event)
+def _post_payload(payload, datatype="desktopevent"):
+    r = post_json(payload, datatype)
     return check_response(r)
 
 # -----------------------------------------------------------------------
@@ -207,13 +207,19 @@ def pdf_to_text(fn):
 def uri_to_text(uri, alt_text=''):
 
     temp = tempfile.NamedTemporaryFile()
-
-    urllib.urlretrieve(uri, temp.name)
+    try:
+      urllib.urlretrieve(uri, temp.name)
+    except IOError:
+      return "", ""
 
     title = ""
-    soup = BeautifulSoup(temp)
-    if soup.title is not None:
-        title = soup.title.string
+    try:
+        soup = BeautifulSoup(temp)
+        if soup.title is not None:
+            title = soup.title.string
+    except UnicodeEncodeError:
+        pass
+
     #print 'Page title: ', title
 
     lynx_command = config['fulltext_command'] % temp.name
@@ -241,6 +247,38 @@ def get_mimetype(fn):
         return mimetype.rstrip()
     except subprocess.CalledProcessError:
         return "unknown"
+
+# -----------------------------------------------------------------------
+
+def analyze_file(fn, loggerstr):
+
+    mimetype = get_mimetype(fn)
+    document_type = o('nfo_document')
+    text = ''
+
+    if mimetype == 'application/pdf':
+        document_type = o('nfo_paginatedtextdocument')
+        if config.has_key('pdftotext_'+loggerstr) and config['pdftotext_'+loggerstr]:
+            text = pdf_to_text(fn)
+    if mimetype == 'application/zip':
+        extension = os.path.splitext(fn)[1]
+        if (config.has_key('ext_to_mimetype') and
+            extension in config['ext_to_mimetype']):
+            mimetype = config['ext_to_mimetype'][extension]
+        if (config.has_key('ext_to_type') and
+            extension in config['ext_to_type']):
+            document_type = eval("config['" +
+                                          config['ext_to_type'][extension] +
+                                          "']")
+    elif 'text/' in mimetype:
+        if mimetype == 'text/x-python':
+            document_type = o('nfo_sourcecode')
+        else:
+            document_type = o('nfo_plaintextdocument')
+        with open (fn, "r") as myfile:
+            text = myfile.read()
+
+    return mimetype, document_type, text
 
 # -----------------------------------------------------------------------
 

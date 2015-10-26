@@ -31,6 +31,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
    Base class for all DiMe data objects, i.e. data items uploaded to be stored.
@@ -86,9 +88,45 @@ public class DiMeData {
     */
     public User user;
 
+    /** List of user-specified tags, interpretation depends on the
+	application. 
+    */
+    public Set<String> tags;
+
     public DiMeData() {
 	// Set to current date and time
 	timeCreated = new Date();
 	timeModified = new Date();
     }	
+
+    /** Method to call when ever a new object has been uploaded, e.g.
+	to clean up user provided data, or perform some house keeping
+	before storing in the database.
+    */
+    public void autoFill() {} 
+
+    /** Add a free-form tag to the object.
+	@param tag The tag to add
+    */
+    public void addTag(String tag) {
+	if (tags == null)
+	    tags = new HashSet<String>();
+	tags.add(tag);
+    }
+
+    /** Remove a tag from the object.
+	@param tag The tag to remove
+    */
+    public void removeTag(String tag) {
+	if (tags != null)
+	    tags.remove(tag);
+    }
+
+    /** Checks if the object contains a given tag.
+	@param tag Tag to check for
+	@return true if tag found, otherwise false
+    */
+    public boolean hasTag(String tag) {
+	return tags != null && tags.contains(tag);
+    }
 }

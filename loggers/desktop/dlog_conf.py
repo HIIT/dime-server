@@ -7,7 +7,7 @@ from dlog_globals import config
 
 # -----------------------------------------------------------------------
 
-def process_config_item(parser, section, option, key, mode, verbose):
+def process_config_item(parser, section, option, key, mode, v=True):
     if parser.has_section(section) and parser.has_option(section, option):
         if mode == 'int':
             val = parser.getint(section, option)
@@ -18,25 +18,28 @@ def process_config_item(parser, section, option, key, mode, verbose):
         else:
             valstr = val = parser.get(section, option)
         config[key] = val
-        if verbose:
+        if v:
             print "  Setting " + key + "=" + valstr
         return True
     return False
 
 # -----------------------------------------------------------------------
 
-def process_config_path(p, s, o, key, verbose=True):
-    res = process_config_item(p, s, o, key, 'string', False)
-    if config.has_key(key):    
+def process_config_string(p, s, o, key, v=True, pathmode=False):
+    vv = v
+    if pathmode:
+        vv = False
+    res = process_config_item(p, s, o, key, 'string', vv)
+    if pathmode and config.has_key(key):    
         config[key] = os.path.expanduser(config[key])
-        if verbose:
+        if v:
             print "  Setting " + key + "=" + config[key]
     return res
-
+    
 # -----------------------------------------------------------------------
 
-def process_config_string(p, s, o, k, v=True):
-    return process_config_item(p, s, o, k, 'string', v)
+def process_config_path(p, s, o, k, v=True):
+    return process_config_string(p, s, o, k, v, pathmode=True)
 
 # -----------------------------------------------------------------------
 
@@ -50,18 +53,18 @@ def process_config_boolean(p, s, o, k, v=True):
 
 # -----------------------------------------------------------------------
 
-def process_config_all_string(parser, section, verbose=True):
+def process_config_all_string(parser, section, v=True):
     if parser.has_section(section):
         items = parser.items(section)
         for it in items:
             config[it[0]] = it[1]
-            if verbose:
+            if v:
                 print "  Setting " + it[0] + "=" + it[1]
 
 # -----------------------------------------------------------------------
 
 def process_config_dict(parser, section, opt_to_read, opt_to_write,
-                        verbose=True):
+                        v=True):
     if process_config_string(parser, section, opt_to_read, 'tmp', False):
         #print config['tmp']
         item_list = config['tmp'].split(';')
@@ -75,7 +78,7 @@ def process_config_dict(parser, section, opt_to_read, opt_to_write,
                 if not config.has_key(opt_to_write):
                     config[opt_to_write] = {}
                 config[opt_to_write][item_kv[0]]=item_kv[1]                
-                if verbose and first:
+                if v and first:
                     print "  Setting " + opt_to_write + "=<type 'dict'>"
                 first = False
             else:
@@ -87,33 +90,35 @@ def process_config_dict(parser, section, opt_to_read, opt_to_write,
 
 # -----------------------------------------------------------------------
 
-def process_blacklist(parser, section, suffix, verbose=True):
-    if (process_config_string(parser, section, 'blacklist', 'tmp', False)):
-        bl = config['tmp'].split(';')
-        first = True
-        for bl_item in bl:
-            bl_item = bl_item.strip()
-            if not config.has_key('blacklist_'+suffix):
-                config['blacklist_'+suffix] = set()
-            config['blacklist_'+suffix].add(bl_item)
-            if verbose and first:
-                print "  Setting blacklist_" + suffix + "=<type 'set'>"
-            first = False
-        config.pop('tmp')
+# def process_blacklist(parser, section, suffix, verbose=True):
+#     if (process_config_string(parser, section, 'blacklist', 'tmp', False)):
+#         bl = config['tmp'].split(';')
+#         first = True
+#         for bl_item in bl:
+#             bl_item = bl_item.strip()
+#             if not config.has_key('blacklist_'+suffix):
+#                 config['blacklist_'+suffix] = set()
+#             config['blacklist_'+suffix].add(bl_item)
+#             if verbose and first:
+#                 print "  Setting blacklist_" + suffix + "=<type 'set'>"
+#             first = False
+#         config.pop('tmp')
 
 # -----------------------------------------------------------------------
 
-def process_timing_applist(parser, applist, verbose=True):
-    if (process_config_string(parser, 'Timing', applist, 'tmp', False)):
-        al = config['tmp'].split(';')
+def process_config_stringlist(parser, s, o, key, v=True, pathmode=False):
+    if (process_config_string(parser, s, o, 'tmp', False)):
+        tmpl = config['tmp'].split(';')
         first = True
-        for al_item in al:
-            al_item = al_item.strip()
-            if not config.has_key(applist+'_timing'):
-                config[applist+'_timing'] = set()
-            config[applist+'_timing'].add(al_item)
-            if verbose and first:
-                print "  Setting " + applist + "_timing=<type 'set'>"
+        for tmp_item in tmpl:
+            tmp_item = tmp_item.strip()
+            if pathmode:
+                tmp_item = os.path.expanduser(tmp_item)
+            if not config.has_key(key):
+                config[key] = set()
+            config[key].add(tmp_item)
+            if v and first:
+                print "  Setting " + key + "=<type 'set'>"
             first = False
         config.pop('tmp')
         
@@ -127,7 +132,7 @@ def process_browser(parser, section, suffix, v=True):
     process_config_path(parser, section, 'history_file', 'history_file_'+suffix, v)
     process_config_path(parser, section, 'tmpfile', 'tmpfile_'+suffix, v)
     process_config_int(parser, section, 'nevents', 'nevents_'+suffix, v)
-    process_blacklist(parser, section, suffix, v)
+    process_config_stringlist(parser, section, 'blacklist', 'blacklist_'+suffix, v)
                 
 # -----------------------------------------------------------------------
 
@@ -175,7 +180,7 @@ def process_config(config_file, v=True):
 
     process_config_dict(parser, 'Zeitgeist', 'other_actors', 'actors', v)
 
-    process_blacklist(parser, 'Zeitgeist', 'zeitgeist', v)
+    process_config_stringlist(parser, 'Zeitgeist', 'blacklist', 'blacklist_zeitgeist', v)
 
     # [Browsers]:
 
@@ -213,21 +218,31 @@ def process_config(config_file, v=True):
     process_config_int(parser,     'Timing', 'logger_interval', 'logger_interval', v)
     process_config_int(parser,     'Timing', 'status_interval', 'status_interval', v)
     
-    process_timing_applist(parser, 'usage_apps', v)
-    process_timing_applist(parser, 'modify_apps', v)
+    process_config_stringlist(parser, 'Timing', 'usage_apps', 'usage_apps_timing', v)
+    process_config_stringlist(parser, 'Timing', 'modify_apps', 'modify_apps_timing', v)
 
-    process_blacklist(parser, 'Timing', 'timing', v)
+    process_config_stringlist(parser, 'Timing', 'blacklist', 'blacklist_timing', v)
         
+    # [Files]:
+
+    process_config_stringlist(parser, 'Files', 'root_paths', 'root_paths_files', v,
+                              pathmode=True)
+    process_config_stringlist(parser, 'Files', 'exclusions', 'exclusions_files', v,
+                              pathmode=True)
+    process_config_stringlist(parser, 'Files', 'extensions', 'extensions_files', v)
+    process_config_stringlist(parser, 'Files', 'blacklist', 'blacklist_files', v)
+    process_config_boolean(parser, 'Files', 'pdftotext', 'pdftotext_files', v)
+    
     return True
 
 # -----------------------------------------------------------------------
 
-def configure(verbose=True):
+def configure(verbose=True, inifile="user.ini"):
 
     config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
 
     process_config("default.ini", verbose)
-    process_config("user.ini", verbose)
+    process_config(inifile, verbose)
 
     return True
 

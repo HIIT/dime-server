@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import javax.servlet.ServletRequest;
@@ -55,11 +56,16 @@ import javax.servlet.ServletRequest;
 @RestController
 @RequestMapping("/api")
 public class ApiController extends AuthorizedController {
-    private static final Logger LOG = 
-	LoggerFactory.getLogger(ApiController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ApiController.class);
 
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
+
+    @Autowired
+    private DiMeProperties dimeConfig;
+
+    @Autowired
+    SearchIndex searchIndex;
 
     @Autowired
     ApiController(EventDAO eventDAO,
@@ -93,20 +99,41 @@ public class ApiController extends AuthorizedController {
     }
 
     @RequestMapping(value="/search", method = RequestMethod.GET)
-    public ResponseEntity<List<InformationElement>>
+    public ResponseEntity<InformationElement[]>
 	search(Authentication auth, 
 	       @RequestParam String query,
 	       @RequestParam(defaultValue="-1") int limit) {
 	User user = getUser(auth);
 
-	List<InformationElement> results = new ArrayList<InformationElement>();
+	if (query.length() > 0) {
+	    try {
+		List<InformationElement> resultsList;
+		String searchSystem = "mongodb";
+		if (dimeConfig.getUseLucene()) {
+		    searchIndex.updateIndex(true);
+		    resultsList = searchIndex.textSearch(query, limit, user.id);
+		    searchSystem = "Lucene";
+		} else {
+		    resultsList = infoElemDAO.textSearch(query, limit, user.id);
+		}
+	    
+		InformationElement[] results = new InformationElement[resultsList.size()];
+		resultsList.toArray(results);	
+		
+		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d " +
+				       "results using %s.",
+				       query, limit, results.length, searchSystem));
 
-	if (query.length() > 0)
-	    results = infoElemDAO.textSearch(query, limit, user.id);
+		return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
+	    } catch (IOException e) {
+		return new ResponseEntity<InformationElement[]>
+		    (HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
 
-	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
-			       query, limit, results.size()));
-	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
+	return new ResponseEntity<InformationElement[]>(new InformationElement[0],
+							HttpStatus.OK);
+
     }
 
 }

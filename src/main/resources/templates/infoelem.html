@@ -15,7 +15,7 @@
 			     th:text="${elem.uri}"></a><br/>
 	      <span th:if="${elem.type}">
 		<b>Type:</b> <a th:href="${elem.type}" 
-				th:text="${#strings.substringAfter(elem.type,'#')}"></a>
+				th:text="${#strings.substringAfter(elem.type,'#')}"></a><br/>
 	      </span>
 	      <span th:if="${elem.isStoredAs}">
 		<b>Stored as:</b> <a th:href="${elem.isStoredAs}" 
@@ -25,6 +25,14 @@
 	      <span th:if="${elem instanceof T(fi.hiit.dime.data.Document)}">
 		<b>Title:</b> <span th:text="${elem.title}"></span><br/>
 		<b>Mimetype:</b> <span th:text="${elem.mimeType}"></span><br/>
+	      </span>
+
+	      <span th:if="${elem.tags}">
+		<b>Tags:</b> 
+		<span th:each="tag : ${elem.tags}"
+		      th:text="${tag}"
+		      class="label label-default">
+		</span><br />
 	      </span>
 
 	      <span th:if="${elem instanceof T(fi.hiit.dime.data.Message)}">

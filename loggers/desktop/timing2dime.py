@@ -324,32 +324,10 @@ if __name__ == '__main__':
 
         mimetype = 'unknown'
         uri_prefix = 'file://'
-        text = ''
+        text, title  = '', ''
 
         if os.path.isfile(item_path):
-            mimetype = common.get_mimetype(item_path)
-
-            if mimetype == 'application/pdf':
-                document_type = common.o('nfo_paginatedtextdocument')
-                if config.has_key('pdftotext_timing') and config['pdftotext_timing']:
-                    text = common.pdf_to_text(item_path)
-            if mimetype == 'application/zip':
-                extension = os.path.splitext(item_path)[1]
-                if (config.has_key('ext_to_mimetype') and
-                    extension in config['ext_to_mimetype']):
-                    mimetype = config['ext_to_mimetype'][extension]
-                if (config.has_key('ext_to_type') and
-                    extension in config['ext_to_type']):
-                    document_type = eval("config['" +
-                                                  config['ext_to_type'][extension] +
-                                                  "']")
-            elif 'text/' in mimetype:
-                if mimetype == 'text/x-python':
-                    document_type = common.o('nfo_sourcecode')
-                else:
-                    document_type = common.o('nfo_plaintextdocument')
-                with open (item_path, "r") as myfile:
-                    text = myfile.read()
+            mimetype, document_type, text = common.analyze_file(item_path, 'timing')
 
         elif item_appl == u'Evernote':
             uri_prefix = 'evernote://'
@@ -357,7 +335,7 @@ if __name__ == '__main__':
         elif item_appl == u'Google Chrome' or item_appl == u'Chrome' or item_appl == u'Safari':
             document_isa  = common.o('nfo_remotefiledataobject')
             uri_prefix = ''
-            text = common.uri_to_text(item_path)
+            text, title = common.uri_to_text(item_path)
 
         if (config['maxtextlength_timing']>0 and
             len(text)>config['maxtextlength_timing']):
@@ -385,6 +363,7 @@ if __name__ == '__main__':
         payload['targettedResource']['@type'] = document['@type']
         payload['id'] = common.to_json_sha1(payload)
         document['plainTextContent'] = text
+        document['title'] = title
         payload['targettedResource'] = document.copy()
 
         i = i+1

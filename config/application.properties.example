@@ -1,0 +1,7 @@
+spring.mvc.favicon.enabled=false
+server.port=8080
+dime.useLucene=false
+dime.luceneIndexPath=${user.home}/dime-lucene
+
+# To see debugging output
+# logging.level.fi.hiit.dime=DEBUG

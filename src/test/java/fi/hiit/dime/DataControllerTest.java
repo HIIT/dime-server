@@ -26,7 +26,7 @@ package fi.hiit.dime;
 
 import fi.hiit.dime.data.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -46,35 +43,6 @@ import java.util.ArrayList;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DataControllerTest extends RestTest {
     private static final double DELTA = 1e-10;
-
-    @Autowired 
-    private ObjectMapper objectMapper;
-
-    /**
-     * Helper method to print out the content of a DiMeData object.
-     */
-    private void dumpData(String message, DiMeData data) {
-	try {
-	    System.out.println(message + "\n" +
-			       objectMapper.writerWithDefaultPrettyPrinter().
-			       writeValueAsString(data));
-	} catch (IOException e) {
-	}
-    }
-
-    /**
-     * Helper method to print out the content of an array of DiMeData objects.
-     */
-    private void dumpData(String message, DiMeData[] data) {
-	try {
-	    for (int i=0; i<data.length; i++) {
-		String dataStr = objectMapper.
-		    writerWithDefaultPrettyPrinter().writeValueAsString(data[i]);
-		System.out.println(String.format("%s [%d]: %s", message, i, dataStr));
-	    }
-	} catch (IOException e) {
-	}
-    }
 
     /**
        Tests uploading event
@@ -94,13 +62,11 @@ public class DataControllerTest extends RestTest {
 	event1.value = 0.42;
 	event1.targettedResource = doc;
 
-	String apiEndpoint = apiUrl("/data/event");
-	dumpData("Event to be uploaded to " + apiEndpoint, event1);
+	dumpData("Event to be uploaded to " + eventApi, event1);
 
 	// Upload to DiMe
 	ResponseEntity<FeedbackEvent> res1 = 
-	    getRest().postForEntity(apiEndpoint, event1,
-				    FeedbackEvent.class);
+	    getRest().postForEntity(eventApi, event1, FeedbackEvent.class);
 
 	// Check that HTTP was successful
 	assertSuccessful(res1);
@@ -127,11 +93,10 @@ public class DataControllerTest extends RestTest {
 	event2.value = 0.89;
 	event2.targettedResource = stubDoc;
 
-	dumpData("Event with stub to be uploaded to " + apiEndpoint, event2);
+	dumpData("Event with stub to be uploaded to " + eventApi, event2);
 	
 	ResponseEntity<FeedbackEvent> res2 = 
-	    getRest().postForEntity(apiEndpoint, event2,
-				    FeedbackEvent.class);
+	    getRest().postForEntity(eventApi, event2, FeedbackEvent.class);
 
 	// Check that HTTP was successful
 	assertSuccessful(res2);
@@ -159,38 +124,16 @@ public class DataControllerTest extends RestTest {
      */
     @Test
     public void testMessageEvent() throws Exception {
-	// Create a message
-	Message msg = new Message();
-	msg.date = new Date(); // current date
-	msg.subject = "Hello DiMe";
-	msg.fromString = "Mats Sjöberg <mats.sjoberg@helsinki.fi>";
-	msg.toString = "Mats Sjöberg <mats.sjoberg@hiit.fi>";
-	msg.ccString = "Mats Sjöberg <mats.sjoberg@cs.helsinki.fi>";
-	msg.plainTextContent = "Hello, world";
-
-	SimpleDateFormat format =
-	    new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
-
-	msg.rawMessage = 
-	    "From: " + msg.fromString + "\n" +
-	    "To: " + msg.toString + "\n" +
-	    "Cc: " + msg.ccString + "\n" + 
-	    "Subject: " + msg.subject + "\n" +
-	    "Date: " + format.format(msg.date) +
-	    "Message-ID: <43254843985749@helsinki.fi>\n" + 
-	    "\n\n" + msg.plainTextContent;
-
 	// Create a message event
+	Message msg = createTestEmail();
 	MessageEvent event1 = new MessageEvent();
 	event1.targettedResource = msg;
 
-	String apiEndpoint = apiUrl("/data/event");
-	dumpData("Event to be uploaded to " + apiEndpoint, event1);
+	dumpData("Event to be uploaded to " + eventApi, event1);
 
 	// Upload to DiMe
 	ResponseEntity<MessageEvent> res1 = 
-	    getRest().postForEntity(apiEndpoint, event1,
-				    MessageEvent.class);
+	    getRest().postForEntity(eventApi, event1, MessageEvent.class);
 	
 	// Check that HTTP was successful
 	assertSuccessful(res1);
@@ -212,56 +155,333 @@ public class DataControllerTest extends RestTest {
     }
 
     /**
-       Tests uploading multiple events in one go
+       Tests uploading multiple heterogeneous events, 
+       tests event reading interface
     */
     @Test
-    public void testMultipleUpload() throws Exception {
-	// List<Document> docs = new ArrayList<Document>();
-	final int numEvents = 3;
-	FeedbackEvent[] events = new FeedbackEvent[numEvents];
+    public void testEventGet() throws Exception {
+	// First upload three events of different types
+	Event[] events = new Event[4];
 
-	for (int i=0; i<numEvents; i++) {
-	    // Create a document
-	    Document doc = new Document();
-	    doc.uri = String.format("http://www.example.com/hello%d.txt", i);
-	    doc.plainTextContent = String.format("Hello, world %d", i);
-	    doc.mimeType = "text/plain";
+	Document doc1 = new Document();
+	doc1.uri = "http://www.example.com/hello.txt";
+	doc1.plainTextContent = "Hello, world";
+	doc1.mimeType = "text/plain";
+	doc1.addTag("tag1");
+	doc1.addTag("tag2");
+	doc1.addTag("tag1");
+	FeedbackEvent event1 = new FeedbackEvent();
+	event1.value = 0.42;
+	event1.targettedResource = doc1;
+	event1.actor = "TestActor1";
+	event1.addTag("eventTag1");
+	event1.addTag("foo");
+	events[0] = event1;
 
-	    // docs.add(doc);
+	SearchEvent event2 = new SearchEvent();
+	event2.query = "some search query";
+	event2.actor = "TestActor1";
+	events[1] = event2;
 
-	    // Create feedback, with document embedded
-	    FeedbackEvent event = new FeedbackEvent();
-	    event.value = 0.1*i;
-	    event.targettedResource = doc;
+	SearchEvent event3 = new SearchEvent();
+	event3.query = "some other search query";
+	event3.actor = "TestActor2";
+	event3.addTag("foo");
+	event3.addTag("bar");
+	events[2] = event3;
 
-	    events[i] = event;
-	}
-	    
-	String apiEndpoint = apiUrl("/data/events");
-	dumpData("List of events to be uploaded to " + apiEndpoint, events);
+	// Create a message event
+	Message emailMsg = createTestEmail();
+	emailMsg.addTag("tag2");
+	
+	MessageEvent event4 = new MessageEvent();
+	event4.targettedResource = emailMsg;
+	events[3] = event4;
+    
+	dumpData("List of events to be uploaded to " + eventsApi, events);
 
 	// Upload to DiMe
-	ResponseEntity<FeedbackEvent[]> res = 
-	    getRest().postForEntity(apiEndpoint, events,
-				    FeedbackEvent[].class);
+	ResponseEntity<Event[]> uploadRes = 
+	    getRest().postForEntity(eventsApi, events, Event[].class);
 
 	// Check that HTTP was successful
-	assertSuccessful(res);
+	assertSuccessful(uploadRes);
 
 	// Checks to ensure returned object is the same as uploaded
-	FeedbackEvent[] outEvents = res.getBody();
+	Event[] outEvents = uploadRes.getBody();
 	assertEquals(events.length, outEvents.length);
 
-	for (int i=0; i<numEvents; i++) {
-	    assertEquals(events[i].value, outEvents[i].value, DELTA);
-	    Document d1 = (Document)events[i].targettedResource;
-	    Document d2 = (Document)outEvents[i].targettedResource;
-	    assertEquals(d1.uri, d2.uri);
-	    assertEquals(d1.plainTextContent, d2.plainTextContent);
-	    assertEquals(d1.mimeType, d2.mimeType);
-	    assertEquals(d1.mimeType, "text/plain");
-	}
+	FeedbackEvent outEvent1 = (FeedbackEvent)outEvents[0];
+	assertEquals(event1.value, outEvent1.value, DELTA);
+	Document origDoc = (Document)event1.targettedResource;
+	Document uploadDoc = (Document)outEvent1.targettedResource;
+	assertEquals(origDoc.uri, uploadDoc.uri);
+
+	SearchEvent outEvent2 = (SearchEvent)outEvents[1];
+	assertEquals(event2.query, outEvent2.query);
+	
+	SearchEvent outEvent3 = (SearchEvent)outEvents[2];
+	assertEquals(event3.query, outEvent3.query);
+
 	dumpData("Events received back from server:", outEvents);
+
+	// Read back events over REST API and check
+	ResponseEntity<FeedbackEvent> getRes1 = 
+	    getRest().getForEntity(eventApi + "/" + outEvent1.id,
+				   FeedbackEvent.class);
+	assertSuccessful(getRes1);
+
+	FeedbackEvent getEvent1 = getRes1.getBody();
+	assertEquals(event1.value, getEvent1.value, DELTA);
+	assertEquals(getEvent1.tags.size(), 2);
+	assertTrue(getEvent1.hasTag("eventTag1"));
+
+	Document getDoc = (Document)getEvent1.targettedResource;
+	assertEquals(origDoc.uri, getDoc.uri);
+	assertEquals(getDoc.tags.size(), 2);
+	assertTrue(getDoc.hasTag("tag1"));
+	assertTrue(getDoc.hasTag("tag2"));
+
+	ResponseEntity<SearchEvent> getRes2 = 
+	    getRest().getForEntity(eventApi + "/" + outEvent2.id,
+				   SearchEvent.class);
+
+	SearchEvent getEvent2 = getRes2.getBody();
+	assertEquals(event2.query, getEvent2.query);
+
+	ResponseEntity<SearchEvent> getRes3 = 
+	    getRest().getForEntity(eventApi + "/" + outEvent3.id,
+				   SearchEvent.class);
+
+	SearchEvent getEvent3 = getRes3.getBody();
+	assertEquals(event3.query, getEvent3.query);
+
+	// Read back uploaded document
+	ResponseEntity<Document> getDocRes = 
+	    getRest().getForEntity(infoElemApi + "/" + uploadDoc.id,
+				   Document.class);
+	assertSuccessful(getDocRes);
+
+	Document getDirectDoc = getDocRes.getBody();
+	assertEquals(getDirectDoc.uri, origDoc.uri);
+
+	// Also test accessing an object that doesn't exist
+	ResponseEntity<Document> getBadRes1 = 
+	    getRest().getForEntity(infoElemApi + "/foobar42",
+				   Document.class);
+	assertClientError(getBadRes1);
+
+	// Also test accessing an object that doesn't exist
+	ResponseEntity<SearchEvent> getBadRes2 = 
+	    getRest().getForEntity(eventApi + "/foobar42",
+				   SearchEvent.class);
+	assertClientError(getBadRes2);
+
+	// Test filtering on actor
+	ResponseEntity<Event[]> getEventsRes = 
+	    getRest().getForEntity(eventsApi + "?actor=TestActor1",
+				   Event[].class);
+	assertSuccessful(getEventsRes);
+
+	Event[] eventsRes = getEventsRes.getBody();
+	assertEquals(2, eventsRes.length);
+
+	for (Event ev : eventsRes) {
+	    assertEquals(ev.actor, "TestActor1");
+	}
+
+	dumpData("events filtered by actor", eventsRes);
+
+	// Test filtering on tag
+	ResponseEntity<Event[]> getEventsRes2 = 
+	    getRest().getForEntity(eventsApi + "?tag=foo",
+				   Event[].class);
+	assertSuccessful(getEventsRes2);
+
+	Event[] eventsRes2 = getEventsRes2.getBody();
+	assertEquals(2, eventsRes2.length);
+
+	for (Event ev : eventsRes2) {
+	    assertTrue(ev.hasTag("foo"));
+	}
+
+	dumpData("events filtered by tag", eventsRes2);
+
+	// Test filtering by bad parameters
+	ResponseEntity<Event[]> getEventsRes3 = 
+	    getRest().getForEntity(eventsApi + "?foo=bar",
+				   Event[].class);
+	assertClientError(getEventsRes3);
+
+	// Test filtering on multiple parameters
+	ResponseEntity<SearchEvent[]> getEventsRes4 = 
+	    getRest().getForEntity(eventsApi + "?query=" + event3.query
+				   + "&tag=foo",
+				   SearchEvent[].class);
+	assertSuccessful(getEventsRes4);
+
+	SearchEvent[] eventsRes4 = getEventsRes4.getBody();
+	assertEquals(1, eventsRes4.length);
+
+	assertEquals(eventsRes4[0].query, event3.query);
+	assertTrue(eventsRes4[0].hasTag("foo"));
+
+	// Test filtering for information elements
+	ResponseEntity<InformationElement[]> getInfoElems = 
+	    getRest().getForEntity(infoElemsApi + "?tag=tag2", InformationElement[].class);
+	assertSuccessful(getInfoElems);
+
+	InformationElement[] infoElemsRes = getInfoElems.getBody();
+	assertEquals(2, infoElemsRes.length);
+
+	for (InformationElement elem : infoElemsRes) {
+	    assertTrue(elem.hasTag("tag2"));
+	}
+
+	dumpData("info elems filtered by tag", infoElemsRes);
     }
 
+    protected SearchEvent mkSearchEvent(Date start, Date end, double duration) {
+	SearchEvent event = new SearchEvent();
+	event.query = "dummy search query";
+	event.actor = "TestActor";
+
+	if (start != null)
+	    event.start = start;
+	if (end != null)
+	    event.end = end;
+	if (duration >= 0.0)
+	    event.duration = duration;
+
+	return event;
+    }
+
+    /**
+       Tests behaviour of start, end and duration
+    */
+    @Test
+    public void testEventTimes() throws Exception {
+	Calendar cal = Calendar.getInstance();
+	Date end = cal.getTime();
+	int dur = 10;
+	cal.add(Calendar.SECOND, -dur);
+	Date start = cal.getTime();
+
+	SearchEvent[] events = new SearchEvent[5];
+	events[0] = mkSearchEvent(start, null, -1.0);
+	events[1] = mkSearchEvent(null, end, -1.0);
+	events[2] = mkSearchEvent(start, end, -1.0);
+	events[3] = mkSearchEvent(start, null, dur);
+	events[4] = mkSearchEvent(null, end, dur);
+
+	dumpData("List of events to be uploaded to " + eventsApi, events);
+
+	// Upload to DiMe
+	ResponseEntity<SearchEvent[]> uploadRes = 
+	    getRest().postForEntity(eventsApi, events, SearchEvent[].class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes);
+
+	// Checks to ensure returned object is the same as uploaded
+	SearchEvent[] outEvents = uploadRes.getBody();
+	assertEquals(events.length, outEvents.length);
+
+	// end should have been set to equal start
+	assert(outEvents[0].start.equals(start));
+	assert(outEvents[0].end.equals(start));
+	assertEquals(outEvents[0].duration, 0.0, DELTA);
+
+	// start should have been set to equal end
+	assert(outEvents[1].start.equals(end));
+	assert(outEvents[1].end.equals(end));
+	assertEquals(outEvents[1].duration, 0.0, DELTA);
+
+	// duration should be set to end-start
+	assert(outEvents[2].start.equals(start));
+	assert(outEvents[2].end.equals(end));
+	assertEquals(outEvents[2].duration, dur, DELTA);
+
+	// should set end as start+duration
+	assert(outEvents[3].start.equals(start));
+	assert(outEvents[3].end.equals(end));
+	assertEquals(outEvents[3].duration, dur, DELTA);
+
+	// should set start to end-duration
+	assertTrue(outEvents[4].start + "!=" + start,
+		   outEvents[4].start.equals(start));
+	assert(outEvents[4].end.equals(end));
+	assertEquals(outEvents[4].duration, dur, DELTA);
+    }
+
+    @Test
+    public void testElemChange() throws Exception {
+	String content1 = "foobar";
+	String content2 = "hello";
+	
+	Message msg = createTestEmail(content1, "");
+	MessageEvent event = new MessageEvent();
+	event.targettedResource = msg;
+
+	// Upload to DiMe
+	ResponseEntity<MessageEvent> uploadRes = 
+	    getRest().postForEntity(eventApi, event, MessageEvent.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes);
+
+	// check that content is still the same
+	MessageEvent outEvent = uploadRes.getBody();
+	assertEquals(outEvent.targettedResource.plainTextContent, content1);
+	String msgId = outEvent.targettedResource.id;
+
+	// Change message
+	outEvent.targettedResource.plainTextContent = content2;
+	
+	// Upload the changed message
+	ResponseEntity<MessageEvent> uploadRes2 = 
+	    getRest().postForEntity(eventApi, outEvent, MessageEvent.class);
+	
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes2);
+
+	// check that content is the changed one
+	MessageEvent outEvent2 = uploadRes2.getBody();
+	assertEquals(outEvent2.targettedResource.plainTextContent, content2);
+	assertEquals(msgId, outEvent2.targettedResource.id);
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem);
+
+	Message msg2 = getElem.getBody();
+	assertEquals(msg2.plainTextContent, content2);
+    }
+
+    @Test
+    public void testElemUpload() throws Exception {
+	String content1 = "foobar";
+	Message msg = createTestEmail(content1, "");
+
+	// Upload to DiMe
+	ResponseEntity<Message> uploadRes =
+	    getRest().postForEntity(infoElemApi, msg, Message.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes);
+
+	// check that content is still the same
+	Message outMsg = uploadRes.getBody();
+	assertEquals(outMsg.plainTextContent, content1);
+	String msgId = outMsg.id;
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem);
+
+	Message msg2 = getElem.getBody();
+	assertEquals(msg2.plainTextContent, content1);
+    }
 }

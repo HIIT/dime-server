@@ -24,26 +24,45 @@
 
 package fi.hiit.dime;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.database.SearchIndex;
 
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
-import org.springframework.context.annotation.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-//------------------------------------------------------------------------------
+import java.io.File;
 
 @Configuration
 public class AppConfig {
+    private static final Logger LOG = LoggerFactory.getLogger(AppConfig.class);
+
     public static final String DB_NAME = "dime";
 
+    @Autowired
+    private DiMeProperties dimeConfig;
 
-    public @Bean Mongo mongo() throws Exception {
+    @Bean
+    public Mongo mongo() throws Exception {
 	return new MongoClient("localhost");
     }
     
-    public @Bean MongoTemplate mongoTemplate() throws Exception {
+    @Bean
+    public MongoTemplate mongoTemplate() throws Exception {
 	return new MongoTemplate(mongo(), DB_NAME);
+    }
+
+    @Bean
+    public SearchIndex searchIndex() throws Exception {
+	if (dimeConfig.getUseLucene())
+	    return new SearchIndex(dimeConfig.getLuceneIndexPath());
+	else 
+	    return null;
     }
 }

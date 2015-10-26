@@ -12,12 +12,60 @@
 	    <b>Origin:</b> <span th:text="${event.origin}"></span>
 	    <b>Actor:</b> <span th:text="${event.actor}"></span><br/>
 	    <b>Type:</b> <a th:href="${event.type}" 
-			    th:text="${#strings.substringAfter(event.type,'#')}"></a>
-	    <b>Time:</b> <span th:text="${event.start}"></span><br/><br/>
+			    th:text="${#strings.substringAfter(event.type,'#')}"></a><br/>
+	    <b>Time:</b> <span th:text="${event.start}"></span><br/>
+
+	    <span th:if="${event.tags}">
+	      <b>Tags:</b> 
+	      <span th:each="tag : ${event.tags}"
+		    th:text="${tag}"
+		    class="label label-default">
+	      </span><br/>
+	    </span>
+
+        <span th:if="${event.location}">
+            <b>Location</b><br/>
+            <b>Coordinates:</b> <a th:href="@{https://www.google.com/maps/} + '?' + 'q=' + 
+                                            ${#numbers.formatDecimal(event.location.latitude, 0, 'COMMA', 4, 'POINT')} + ',' + 
+                                            ${#numbers.formatDecimal(event.location.longitude, 0, 'COMMA', 4, 'POINT')}">
+                <span th:text="${#numbers.formatDecimal(event.location.latitude, 0, 'COMMA', 4, 'POINT')}"></span>
+                , <span th:text="${#numbers.formatDecimal(event.location.longitude, 0, 'COMMA', 4, 'POINT')}"></span></a>
+          . <b>Description:</b> <span th:text="${event.location.descriptionLine}"></span>
+        </span>
+	    <br/>
 
 	    <span th:if="${event instanceof T(fi.hiit.dime.data.SearchEvent)}">
 	      <b>Query:</b> <span th:text="${event.query}"></span><br/><br/>
 	    </span>
+
+        <span th:if="${event instanceof T(fi.hiit.dime.data.ReadingEvent)}">
+          <b>Start Time:</b> <span th:text="${event.start}"></span>, <b>End Time:</b> <span th:text="${event.end}"></span><br/><br/>
+          <b>Scale factor:</b> <span th:text="${event.scaleFactor}"></span><br/><br/>
+          <b>Text content:</b> <pre th:text="${event.plainTextContent}"></pre><br/>
+          <b>Rectangles:</b>
+            <table class="table">
+                <thead><tr>
+                        <th>Page no.</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Width</th>
+                        <th>Height</th>
+                        <th>Class</th>
+                        <th>Class source</th>
+                </tr></thead>
+              <tbody>
+                  <tr th:each="rect, iterationStatus : ${event.pageRects}">
+                      <td th:text="${rect.pageIndex}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.origin.x, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.origin.y, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.size.width, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.size.height, 0, 'COMMA', 2, 'POINT')}"></td>
+                      <td th:text="${rect.readingClass}"></td>
+                      <td th:text="${rect.classSource}"></td>
+                  </tr>
+              </tbody>
+            </table>
+        </span>
 
 	    <span th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
 	      <p th:replace="infoelem :: infoelemview (${event.targettedResource})"></p>

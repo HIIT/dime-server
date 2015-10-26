@@ -1,15 +1,16 @@
 # simple code by Krystian Samp - krychu (samp[dot]krystian[monkey]gmail.com), November 2006
 
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem
 
 from math import *
 
-class MyView(QtGui.QGraphicsView):
+class MyView(QGraphicsView):
     def __init__(self):
-        QtGui.QGraphicsView.__init__(self)
+        QGraphicsView.__init__(self)
 
-        self.scene = QtGui.QGraphicsScene(self)
+        self.scene = QGraphicsScene(self)
         #self.scene.setSceneRect(10.5,5,10,5)
 
         #self.scene.setStyleSheet("border: 0px")
@@ -23,8 +24,8 @@ class MyView(QtGui.QGraphicsView):
             y = (2.0/log(float(i+2)))*r*sin(i*angleinterval)
             d1= (2.0/log(float(i+2)))*15
             d2= (2.0/log(float(i+2)))*15
-            #self.item = QtGui.QGraphicsEllipseItem(50, 0, 15, 15)
-            ellipse = QtGui.QGraphicsEllipseItem(x,y,d1,d2)
+            #self.item = QGraphicsEllipseItem(50, 0, 15, 15)
+            ellipse = QGraphicsEllipseItem(x,y,d1,d2)
             ellipse.setBrush(QtGui.QColor("black"))
             self.item.append(ellipse)
 
@@ -39,15 +40,15 @@ class MyView(QtGui.QGraphicsView):
         self.tl = QtCore.QTimeLine(1000)
         self.tl.setFrameRange(0, 100)
 
-        self.a = []
-        for i in range(len(self.item)):
-            self.a.append(QtGui.QGraphicsItemAnimation())
-
-        for i in range(len(self.item)):
-            self.a[i].setItem(self.item[i])
-            self.a[i].setTimeLine(self.tl)
-            #self.a[i].setPosAt(0, QtCore.QPointF(0, -10))
-            self.a[i].setRotationAt(1, 360)
+        #self.a = []
+        #for i in range(len(self.item)):
+        #    self.a.append(QtGui.QGraphicsItemAnimation())
+        #
+        #for i in range(len(self.item)):
+        #    self.a[i].setItem(self.item[i])
+        #    self.a[i].setTimeLine(self.tl)
+        #    #self.a[i].setPosAt(0, QtCore.QPointF(0, -10))
+        #    self.a[i].setRotationAt(1, 360)
 
         # Each method determining an animation state (e.g. setPosAt, setRotationAt etc.)
         # takes as a first argument a step which is a value between 0 (the beginning of the

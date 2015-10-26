@@ -36,22 +36,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.io.IOException;
 
 /**
  * Controller for /data REST API, for writing and reading data objects. 
- *
- * Each new object type needs its own endpoint here. The convention is
- * to name the endpoint as the class but in lower case, e.g. for
- * <code>SearchEvent</code> the REST endpoint is
- * <code>/data/searchevent</code>.
  *
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
@@ -90,9 +88,25 @@ public class DataController extends AuthorizedController {
      * @param input     The event object that was uploaded
      * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String  eventName, User user, Event input, Boolean dumpJson) {
+    protected void eventLog(String eventName, User user, Event input, boolean dumpJson) {
 	LOG.info("{} for user {} from {} at {}, with actor {}",
 		 eventName, user.username, input.origin, new Date(), input.actor);
+	if (dumpJson)
+	    dumpJson(input);
+    }
+
+    /**
+     * Helper method to log each information element uploaded.
+     *
+     * @param elemName  Name of information element class
+     * @param user      User object
+     * @param input     The information element that was uploaded
+     * @param dumpJson  Whether to also print the JSON of the event object
+     */
+    protected void elementLog(String elemName, User user, InformationElement input,
+			      boolean dumpJson) {
+	LOG.info("{} for user {} at {}",
+		 elemName, user.username, new Date());
 	if (dumpJson)
 	    dumpJson(input);
     }
@@ -105,10 +119,28 @@ public class DataController extends AuthorizedController {
      * @param input     The array of event objects that were uploaded
      * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String eventName, User user, Event[] input, Boolean dumpJson) {
+    protected void eventLog(String eventName, User user, Event[] input, boolean dumpJson) {
 	if (input.length > 0) {
 	    LOG.info("{} for user {} from {} at {}, with actor {}",
 		     eventName, user.username, input[0].origin, new Date(), input[0].actor);
+	    if (dumpJson)
+		dumpJson(input);
+	}
+    }
+
+    /**
+     * Helper method to log an array of uploaded information elements.
+     *
+     * @param elemName  Name of information element class
+     * @param user      User object
+     * @param input     The array of event objects that were uploaded
+     * @param dumpJson  Whether to also print the JSON of the event object
+     */
+    protected void elementLog(String elemName, User user, InformationElement[] input,
+			      boolean dumpJson) {
+	if (input.length > 0) {
+	    LOG.info("{} for user {} at {}",
+		     elemName, user.username, new Date());
 	    if (dumpJson)
 		dumpJson(input);
 	}
@@ -159,9 +191,6 @@ public class DataController extends AuthorizedController {
 	if (msg != null) {
 	    if (!msg.isStub()) {
 		msg.user = user;
-		if (msg.subject.length() > 0)
-		    msg.plainTextContent = 
-			msg.subject + "\n\n" + msg.plainTextContent;
 		infoElemDAO.save(msg);
 
 		// infoElemDAO.save(msg.from);
@@ -186,6 +215,31 @@ public class DataController extends AuthorizedController {
 	return msg;
     }
 
+    /**
+     * Helper method to store an information element, and possibly expand its
+     * content if needed.
+     *
+     * @param input InformationElement to store
+     * @param user current authenticated user
+     * @return The element as stored
+     */
+    private InformationElement storeElement(InformationElement elem, User user) {
+	if (elem instanceof Message)
+	    elem = expandMessage((Message)elem, user);
+	else
+	    elem = expandInformationElement(elem, user);
+	return elem;
+    }
+
+
+    /**
+     * Helper method to store an event, and possibly expand its
+     * information element if needed.
+     *
+     * @param input Event to store
+     * @param user current authenticated user
+     * @return The event as stored
+     */
     private Event storeEvent(Event input, User user) {
 	input.user = user;
 
@@ -193,18 +247,14 @@ public class DataController extends AuthorizedController {
 	    ResourcedEvent revent = (ResourcedEvent)input;
 	    InformationElement elem = revent.targettedResource;
 
-	    if (elem instanceof Message)
-		elem = expandMessage((Message)elem, user);
-	    else
-		elem = expandInformationElement(elem, user);
-
-	    revent.targettedResource = elem;
+	    revent.targettedResource = storeElement(elem, user);
 	}
 	eventDAO.save(input);
 
 	return input;
     }
 
+    /** HTTP end point for uploading a single event. */    
     @RequestMapping(value="/event", method = RequestMethod.POST)
     public ResponseEntity<Event>
 	event(Authentication auth, @RequestBody Event input) {
@@ -217,9 +267,27 @@ public class DataController extends AuthorizedController {
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	
 
+    /** HTTP end point for accessing single event. */    
+    @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
+    public ResponseEntity<Event>
+	event(Authentication auth, @PathVariable String id) {
+	User user = getUser(auth);
+
+	Event event = eventDAO.findById(id);
+
+	if (event == null)
+	    return new ResponseEntity<Event>(HttpStatus.NOT_FOUND);
+
+	if (!event.user.id.equals(user.id))
+	    return new ResponseEntity<Event>(HttpStatus.UNAUTHORIZED);
+
+	return new ResponseEntity<Event>(event, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for uploading multiple events. */    
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
-	event(Authentication auth, @RequestBody Event[] input) {
+	events(Authentication auth, @RequestBody Event[] input) {
 	User user = getUser(auth);
 
 	for (int i=0; i<input.length; i++) {
@@ -231,13 +299,89 @@ public class DataController extends AuthorizedController {
 	return new ResponseEntity<Event[]>(input, HttpStatus.OK);
     }	
 
-    @RequestMapping(value="/informationelement", method = RequestMethod.GET)
-    public ResponseEntity<List<InformationElement>> 
-	informationElement(Authentication auth) {
+    /** HTTP end point for accessing multiple events via a filtering
+     * interface. */    
+    @RequestMapping(value="/events", method = RequestMethod.GET)
+    public ResponseEntity<Event[]>
+	events(Authentication auth, @RequestParam Map<String, String> params) {
+
 	User user = getUser(auth);
 
-	List<InformationElement> results = infoElemDAO.elementsForUser(user.id);
+	try {
+	    List<Event> events = eventDAO.find(user.id, params);
 
-	return new ResponseEntity<List<InformationElement>>(results, HttpStatus.OK);
-    }
+	    Event[] eventsArray = new Event[events.size()];
+	    events.toArray(eventsArray);	
+
+	    return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
+	} catch (IllegalArgumentException e) {
+	    return new ResponseEntity<Event[]>(HttpStatus.BAD_REQUEST);
+	}
+    }	
+
+    /** HTTP end point for uploading a single information element. */    
+    @RequestMapping(value="/informationelement", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement>
+	informationElement(Authentication auth, @RequestBody InformationElement input) {
+	User user = getUser(auth);
+
+	input = storeElement(input, user);
+
+	elementLog("InformationElement", user, input, true);
+
+	return new ResponseEntity<InformationElement>(input, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for uploading multiple information elements. */    
+    @RequestMapping(value="/informationelements", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement[]>
+	informationElement(Authentication auth, @RequestBody InformationElement[] input) {
+	User user = getUser(auth);
+
+	for (int i=0; i<input.length; i++) {
+	    input[i] = storeElement(input[i], user);
+	}
+
+	elementLog("InformationElements", user, input, true);
+
+	return new ResponseEntity<InformationElement[]>(input, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for accessing a single informationelement. */    
+    @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
+    public ResponseEntity<InformationElement>
+	informationElement(Authentication auth, @PathVariable String id) {
+	User user = getUser(auth);
+
+	InformationElement elem = infoElemDAO.findById(id);
+
+	if (elem == null)
+	    return new ResponseEntity<InformationElement>(HttpStatus.NOT_FOUND);
+
+	if (!elem.user.id.equals(user.id))
+	    return new ResponseEntity<InformationElement>(HttpStatus.UNAUTHORIZED);
+
+	return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
+    }	
+
+    /** HTTP end point for accessing multiple information elements via
+     * a filtering interface. */    
+    @RequestMapping(value="/informationelements", method = RequestMethod.GET)
+    public ResponseEntity<InformationElement[]>
+	informationElements(Authentication auth,
+			    @RequestParam Map<String, String> params) {
+	User user = getUser(auth);
+
+	try {
+	    List<InformationElement> infoElems = infoElemDAO.find(user.id, params);
+
+	    InformationElement[] infoElemsArray = new InformationElement[infoElems.size()];
+	    infoElems.toArray(infoElemsArray);	
+
+	    return new ResponseEntity<InformationElement[]>(infoElemsArray, HttpStatus.OK);
+	} catch (IllegalArgumentException e) {
+	    return new ResponseEntity<InformationElement[]>(HttpStatus.BAD_REQUEST);
+	}
+    }	
+
 }

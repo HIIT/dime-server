@@ -19,8 +19,10 @@
 	  <button type="submit" class="btn btn-primary">Search</button>
 	</form>
 
+	<div th:if="${error}" th:text="${error}" class="alert alert-danger" role="alert"></div>
+
 	<div th:if="${results}">
-	  <p th:text="'Found ' + ${results.size()} + ' results.'"></p>
+	  <p th:text="'Found ' + ${results.size()} + ' results. ' + ${info}"></p>
 	  <span th:each="targettedResource,iterStat : ${results}">
 	    <hr/>
 	      <p th:replace="infoelem :: infoelemview (${targettedResource})"></p>

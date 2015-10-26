@@ -24,21 +24,29 @@
 
 package fi.hiit.dime;
 
+import fi.hiit.dime.ApiController.ApiMessage;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
-import fi.hiit.dime.ApiController.ApiMessage;
+import fi.hiit.dime.util.RandomPassword;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ApiControllerTest extends RestTest {
+    @Autowired
+    SearchIndex searchIndex;
+
     @Test
     public void testPing() throws Exception {
 	ResponseEntity<ApiMessage> res = 
@@ -50,11 +58,80 @@ public class ApiControllerTest extends RestTest {
 
     @Test
     public void testEmptySearch() throws Exception {
-	ResponseEntity<String> res = 
-	    getRest().getForEntity(apiUrl("/search?query="), String.class);
+	ResponseEntity<InformationElement[]> res = 
+	    getRest().getForEntity(apiUrl("/search?query="),
+				   InformationElement[].class);
 
 	assertSuccessful(res);
 
-	// FIXME: should also check that the returned JSON is an empty list
+	InformationElement[] elems = res.getBody();
+	assertEquals(0, elems.length);
+    }
+
+    private InformationElement[] doSearch(String query) {
+	ResponseEntity<InformationElement[]> res = 
+	    getRest().getForEntity(apiUrl("/search?query=" + query),
+				   InformationElement[].class);
+
+	assertSuccessful(res);
+
+	return res.getBody();
+    }
+
+    @Test
+    public void testSearch() throws Exception {
+	final String magicWord = "foobar";
+
+	// Search without events should return zero
+	InformationElement[] searchResEmpty = doSearch(magicWord);
+    	assertEquals(0, searchResEmpty.length);
+
+	// Create some events with messages
+	int numEvents = 10;
+	Event[] events = new Event[numEvents];
+
+	Set<Integer> idxToFind = new HashSet<Integer>();
+	idxToFind.add(2);
+	idxToFind.add(5);
+	idxToFind.add(6);
+	idxToFind.add(9);
+
+	RandomPassword rand = new RandomPassword();
+
+	for (int i=0; i<numEvents; i++) {
+	    String content = rand.getPassword(10, false, false);
+	    if (idxToFind.contains(i)) 
+		content += " " + magicWord;
+	    content += " " + rand.getPassword(10, false, false);
+	    Message msg = createTestEmail(content, "Hello");
+	    MessageEvent event = new MessageEvent();
+	    event.targettedResource = msg;
+
+	    events[i] = event;
+	}
+
+	// Upload them to DiMe
+	ResponseEntity<Event[]> res = 
+	    getRest().postForEntity(eventsApi, events, Event[].class);
+
+	// Check that HTTP was successful
+	assertSuccessful(res);
+
+	// Refresh Lucene index
+	if (searchIndex != null)
+	    searchIndex.updateIndex(false);
+
+	// Now try searching for the ones in idxToFind
+	InformationElement[] searchRes = doSearch(magicWord);
+
+	dumpData("searchRes", searchRes);
+
+    	assertEquals(idxToFind.size(), searchRes.length);
+	
+    	for (InformationElement elem : searchRes) {
+    	    assertTrue(elem.plainTextContent.contains(magicWord));
+    	}
+
+	//FIXME: also compare to idxToFind
     }
 }

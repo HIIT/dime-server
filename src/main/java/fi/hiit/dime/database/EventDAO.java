@@ -37,6 +37,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
+import org.springframework.data.mongodb.core.query.Criteria;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -44,7 +45,9 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import com.mongodb.WriteResult;
 
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class EventDAO extends BaseDAO<Event> {
@@ -54,6 +57,12 @@ public class EventDAO extends BaseDAO<Event> {
     @Override
     public String collectionName() { 
 	return "event";
+    }
+
+    @Override
+    public void save(Event obj) {
+	obj.autoFill();
+	super.save(obj);
     }
 
     public List<EventCount> eventHist(String groupBy, Date fromDate, Date toDate,
@@ -100,10 +109,43 @@ public class EventDAO extends BaseDAO<Event> {
     	return operations.findById(id, Event.class, collectionName());
     }
 
-    public List<Event> eventsForUser(String id) {
+    public List<Event> find(String userId, Map<String, String> filterParams) {
 	ensureIndex("start");
 
-	return operations.find(query(where("user._id").is(new ObjectId(id))).
+	Criteria search = where("user._id").is(new ObjectId(userId));
+
+	for (Map.Entry<String, String> param : filterParams.entrySet()) {
+	    String name = param.getKey();
+	    String value = param.getValue();
+
+	    switch (name) {
+	    case "tag":
+		name = "tags";
+		break;
+	    case "actor":
+	    case "origin":
+	    case "type":
+	    // case "start":
+	    // case "end":
+	    // case "duration":
+	    case "query":
+	    // case "":
+		break;
+	    default:
+		throw new IllegalArgumentException(name);
+	    }
+	    search = search.and(name).is(value);
+	}
+
+	return operations.find(query(search).
+			       with(new Sort(Sort.Direction.DESC, "start")),
+			       Event.class, collectionName());
+    }
+
+    public List<Event> eventsForUser(String userId) {
+	ensureIndex("start");
+
+	return operations.find(query(where("user._id").is(new ObjectId(userId))).
 			       with(new Sort(Sort.Direction.DESC, "start")).
 			       limit(100),
 			       Event.class, collectionName());
