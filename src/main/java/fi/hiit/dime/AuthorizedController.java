@@ -28,6 +28,8 @@ import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.authentication.User;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.HttpStatus;
 
 /**
  * Base class for controllers that need user authentication.
@@ -39,4 +41,26 @@ public class AuthorizedController {
 	CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
 	return currentUser.getUser();
     }
+
+    @ResponseStatus(value=HttpStatus.UNAUTHORIZED, reason="Not Authorized")
+    public class NotAuthorizedException extends Exception {
+	public NotAuthorizedException(String msg) {
+	    super(msg);
+	}
+    }
+
+    @ResponseStatus(value=HttpStatus.BAD_REQUEST, reason="Bad Request")
+    public class BadRequestException extends Exception {
+    	public BadRequestException(String msg) {
+    	    super(msg);
+    	}
+    }
+
+    @ResponseStatus(value=HttpStatus.NOT_FOUND, reason="Not Found")
+    public class NotFoundException extends Exception {
+	public NotFoundException(String msg) {
+	    super(msg);
+	}
+    }
+
 }

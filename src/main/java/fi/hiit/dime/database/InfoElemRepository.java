@@ -92,7 +92,9 @@ public interface InfoElemRepository extends CrudRepository<InformationElement, L
 					    InfoElemRepositoryCustom {
     InformationElement findOne(Long id);
 
-    InformationElement findOneByAppId(String appId);
+    InformationElement findOneByIdAndUser(Long id, User user);
+
+    InformationElement findOneByAppIdAndUser(String appId, User user);
 
     Long countByIsIndexed(boolean isIndexed);
 

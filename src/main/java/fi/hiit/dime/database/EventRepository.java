@@ -97,6 +97,8 @@ public interface EventRepository extends CrudRepository<Event, Long>,
 					 EventRepositoryCustom {
     Event findOne(Long id);
 
+    Event findOneByIdAndUser(Long id, User user);
+
     List<Event> findByUserOrderByStartDesc(User user);
 
     Long countByUser(User user);

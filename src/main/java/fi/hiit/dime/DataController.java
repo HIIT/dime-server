@@ -160,21 +160,40 @@ public class DataController extends AuthorizedController {
      * @return The expanded InformationElement
      */
     protected InformationElement 
-	expandInformationElement(InformationElement elem, User user) {
-	if (elem != null) {
-	    if (!elem.isStub()) {
-		elem.user = user;
-		infoElemDAO.save(elem);
-	    } else { // expand if only a stub elem was included
-		InformationElement expandedElem = infoElemDAO.expandStub(elem);	
-		if (expandedElem != null) {
-		    LOG.info("Expanded InformationElement for " + expandedElem.uri);
-		    // don't copy the text, takes too much space
-		    expandedElem.plainTextContent = null; 
-		    elem = expandedElem;
-		}
-	    }
-	} 
+	expandInformationElement(InformationElement elem, User user) 
+	throws NotFoundException, BadRequestException {
+	if (elem == null)
+	    return null;
+	
+	InformationElement expandedElem = null; 
+	if (elem.getId() != null) {
+	    expandedElem = infoElemDAO.findById(elem.getId(), user);
+
+	    // Error if id doesn't exist 
+	    if (expandedElem == null)
+		throw new NotFoundException("id not found");
+	    
+	    // Check that appId is consistent (if given)
+	    if (elem.appId != null && elem.appId != expandedElem.appId)
+		throw new BadRequestException("appId not consistent");
+	    
+	} else if (elem.appId != null) {
+	    expandedElem = infoElemDAO.findByAppId(elem.appId, user);
+	}
+	
+	// If this is a stub element, expand it 
+	if (elem.isStub() && expandedElem != null) {
+	    LOG.info("Expanded InformationElement for " + expandedElem.uri);
+	    // don't copy the text, takes too much space
+	    expandedElem.plainTextContent = null; 
+	    return expandedElem;
+	} else {
+	    LOG.warn("Uploaded stub, but unable to expand!");
+	}
+
+	// Otherwise, just save it as a new object
+	elem.user = user;
+	infoElemDAO.save(elem);
 	return elem;
     }
 
@@ -189,33 +208,33 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The expanded Message
      */
-    protected Message expandMessage(Message msg, User user) {
-	if (msg != null) {
-	    if (!msg.isStub()) {
-		msg.user = user;
-		infoElemDAO.save(msg);
+    // protected Message expandMessage(Message msg, User user) {
+    // 	if (msg != null) {
+    // 	    if (!msg.isStub()) {
+    // 		msg.user = user;
+    // 		infoElemDAO.save(msg);
 
-		// infoElemDAO.save(msg.from);
+    // 		// infoElemDAO.save(msg.from);
 
-		// for (Person to : msg.to)
-		//     infoElemDAO.save(to);
+    // 		// for (Person to : msg.to)
+    // 		//     infoElemDAO.save(to);
 
-		// for (Person cc : msg.cc)
-		//     infoElemDAO.save(cc);
+    // 		// for (Person cc : msg.cc)
+    // 		//     infoElemDAO.save(cc);
 
-	    } else { // expand if only a stub msg was included
-		Message expandedMsg = (Message)infoElemDAO.expandStub(msg);
-		if (expandedMsg != null) {
-		    LOG.info("Expanded Message for " + expandedMsg.uri);
-		    // don't copy the text, takes too much space
-		    expandedMsg.plainTextContent = null; 
-		    msg = expandedMsg;
-		}
-	    }
-	} 
+    // 	    } else { // expand if only a stub msg was included
+    // 		Message expandedMsg = (Message)infoElemDAO.expandStub(msg);
+    // 		if (expandedMsg != null) {
+    // 		    LOG.info("Expanded Message for " + expandedMsg.uri);
+    // 		    // don't copy the text, takes too much space
+    // 		    expandedMsg.plainTextContent = null; 
+    // 		    msg = expandedMsg;
+    // 		}
+    // 	    }
+    // 	} 
 
-	return msg;
-    }
+    // 	return msg;
+    // }
 
     /**
      * Helper method to store an information element, and possibly expand its
@@ -225,11 +244,12 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The element as stored
      */
-    private InformationElement storeElement(InformationElement elem, User user) {
-	if (elem instanceof Message)
-	    elem = expandMessage((Message)elem, user);
-	else
-	    elem = expandInformationElement(elem, user);
+    private InformationElement storeElement(InformationElement elem, User user) 
+	throws NotFoundException, BadRequestException {
+	// if (elem instanceof Message)
+	//     elem = expandMessage((Message)elem, user);
+	// else
+	elem = expandInformationElement(elem, user);
 	return elem;
     }
 
@@ -242,8 +262,14 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The event as stored
      */
-    private Event storeEvent(Event input, User user) {
+    private Event storeEvent(Event input, User user) 
+	throws NotFoundException, BadRequestException {
 	input.user = user;
+
+	if (input.getId() != null) {
+	    if (eventDAO.findById(input.getId(), user) == null)
+		throw new BadRequestException("Application not allowed to supply id.");
+	}
 
 	if (input instanceof ResourcedEvent) {
 	    ResourcedEvent revent = (ResourcedEvent)input;
@@ -259,12 +285,16 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for uploading a single event. */    
     @RequestMapping(value="/event", method = RequestMethod.POST)
     public ResponseEntity<Event>
-	event(Authentication auth, @RequestBody Event input) {
+	event(Authentication auth, @RequestBody Event input)  
+	throws NotFoundException, BadRequestException
+    {
 	User user = getUser(auth);
+
+	eventLog("Event (before)", user, input, true);
 
 	input = storeEvent(input, user);
 
-	eventLog("Event", user, input, true);
+	eventLog("Event (after)", user, input, true);
 
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	
@@ -289,7 +319,9 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for uploading multiple events. */    
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
-	events(Authentication auth, @RequestBody Event[] input) {
+	events(Authentication auth, @RequestBody Event[] input) 
+	throws NotFoundException, BadRequestException
+    {
 	User user = getUser(auth);
 
 	for (int i=0; i<input.length; i++) {
@@ -324,7 +356,9 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for uploading a single information element. */    
     @RequestMapping(value="/informationelement", method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
-	informationElement(Authentication auth, @RequestBody InformationElement input) {
+	informationElement(Authentication auth, @RequestBody InformationElement input)
+	throws NotFoundException, BadRequestException
+    {
 	User user = getUser(auth);
 
 	input = storeElement(input, user);
@@ -337,7 +371,9 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for uploading multiple information elements. */    
     @RequestMapping(value="/informationelements", method = RequestMethod.POST)
     public ResponseEntity<InformationElement[]>
-	informationElement(Authentication auth, @RequestBody InformationElement[] input) {
+	informationElement(Authentication auth, @RequestBody InformationElement[] input) 
+	throws NotFoundException, BadRequestException 
+    {
 	User user = getUser(auth);
 
 	for (int i=0; i<input.length; i++) {

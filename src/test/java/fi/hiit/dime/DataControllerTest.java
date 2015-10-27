@@ -27,6 +27,7 @@ package fi.hiit.dime;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.util.RandomPassword;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -447,6 +448,8 @@ public class DataControllerTest extends RestTest {
 
 	// Change message
 	outEvent.targettedResource.plainTextContent = content2;
+
+	dumpData("Changed message", outEvent);
 	
 	// Upload the changed message
 	ResponseEntity<MessageEvent> uploadRes2 = 
@@ -495,23 +498,30 @@ public class DataControllerTest extends RestTest {
 	assertEquals(msg2.plainTextContent, content1);
     }
 
-    // private class SearchEvent {
-    // 	String id;
-    // 	String query;
-    // }
-
-    // @Test
-    // public void testCustomId() throws Exception {
+    @Test
+    public void testCustomId() throws Exception {
+	class FakeEvent {
+	    public Long id;
+	    public String query;
+	    
+	    @JsonProperty("@type")
+	    public String type = "SearchEvent";
+	}
 	
-    // 	SearchEvent event = new SearchEvent();
-    // 	event.query = "hello";
-	
-    // 	// Upload to DiMe
-    // 	ResponseEntity<FeedbackEvent> res = 
-    // 	    getRest().postForEntity(eventApi, event1, FeedbackEvent.class);
+    	FakeEvent event = new FakeEvent();
+	event.id = 12903812L;
+    	event.query = "hello";
 
-    // 	// Check that HTTP was successful
-    // 	assertSuccessful(res);
-    // }
+	dumpData("Uploading fake id", event);
+	
+    	// Upload to DiMe
+    	ResponseEntity<String> res = 
+    	    getRest().postForEntity(eventApi, event, String.class);
+	
+	System.out.println("RES=" + res);
+
+    	// Check that HTTP was successful
+	assertClientError(res);
+    }
 
 }

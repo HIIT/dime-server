@@ -67,19 +67,6 @@ public class InformationElementDAO {
 	notIndexed.remove(elem);
     }
 
-     public InformationElement expandStub(InformationElement e) {
-	if (!e.isStub())
-	    return e;
-
-	if (e.getId() != null)
-	    return findById(e.getId());
-
-	if (e.appId != null)
-	    return repo.findOneByAppId(e.appId);
-
-	return e;
-    }
-
     /**
        Find a single InformationElement by its unique id.
 
@@ -88,6 +75,28 @@ public class InformationElementDAO {
     */
     public InformationElement findById(Long id) {
 	return repo.findOne(id);
+    }
+
+    /**
+       Find a single InformationElement by its unique id, and user.
+
+       @param id Unique id of InformationElement object.
+       @param user User
+       @return The InformationElement object found.
+    */
+    public InformationElement findById(Long id, User user) {
+	return repo.findOneByIdAndUser(id, user);
+    }
+
+    /**
+       Find a single InformationElement by its appId.
+
+       @param appId Appliction id
+       @param user User
+       @return The InformationElement object found.
+    */
+    public InformationElement findByAppId(String appId, User user) {
+	return repo.findOneByAppIdAndUser(appId, user);
     }
 
     /**

@@ -52,6 +52,10 @@ public class EventDAO {
 	return repo.findOne(id);
     }
 
+    public Event findById(Long id, User user) {
+	return repo.findOneByIdAndUser(id, user);
+    }
+
     /**
        Filtered search for a given user's events.
 
