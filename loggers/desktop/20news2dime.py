@@ -139,7 +139,7 @@ if __name__ == "__main__":
                 print "PAYLOAD:\n" + json_payload
 
                 if not args.dryrun:
-                    common.post_payload(json_payload, "messageevent")
+                    common.post_payload(json_payload, "event")
 
             if args.limit>0 and i >= args.limit:
                 break
