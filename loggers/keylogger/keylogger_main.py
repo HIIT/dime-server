@@ -563,7 +563,6 @@ class MyApp(QWidget):
       if len(keywordlist) > 0:
         #
         if type(keywordlist[0]) is str:
-          print('Main: update_links: got a list of keywords!!!')
           print('Main: keyword button labels keywords: ', keywordlist)
           ncols = self.hlayout3.count()
           #print 'Num of widgets ', ncols

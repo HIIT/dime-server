@@ -820,6 +820,9 @@ def recompute_keywords(c):
     vsinds= np.argsort(vsum[:,0])
     kwinds= np.argsort(r_hat[:,0])
 
+    #Initialize list of keywords
+    kws = []
+
     if r_hat.max() > 0.0:
         kwinds = kwinds[-20:]
         vsinds = vsinds[-20:]
@@ -831,8 +834,6 @@ def recompute_keywords(c):
             kwindsd.append(i)
         #
         kwinds = kwindsd
-        #Initialize list of keywords
-        kws = []
         #print 'Indices of estimated keywords: ', kwinds
         #kwinds= docinds.tolist()
         for i in range(len(kwinds)):

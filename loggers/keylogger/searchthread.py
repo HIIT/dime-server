@@ -98,9 +98,11 @@ class SearchThread(QThread):
   self.c = math.log(value+1)
 
  def recompute_keywords(self,value):
-  print(value)
+  #print(value)
   self.c = math.log(value+1)
-  kws = recompute_keywords(math.log(value+1))
+  print("Exploration/Exploitation value: ",self.c)
+  #kws = recompute_keywords(math.log(value+1))
+  kws = recompute_keywords(self.c)
   self.send_keywords.emit(kws)
 
  def get_new_word(self, newquery):
