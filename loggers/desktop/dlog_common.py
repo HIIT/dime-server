@@ -111,9 +111,14 @@ def ping_server(verbose=False):
 
 # -----------------------------------------------------------------------
 
-def post_json(payload, datatype="desktopevent"):
+def post_json(payload, datatype="event"):
     """HTTP POST JSON-format payload to DiMe."""
     headers = {'content-type': 'application/json'}
+
+    if datatype not in ["event", "informationelement"]:
+        print "ERROR: Unsupported datatype", datatype, "in post_json()"
+        return None
+
     try:
         return requests.post(config['server_url']+"/data/"+datatype,
                              data=payload,
@@ -126,7 +131,7 @@ def post_json(payload, datatype="desktopevent"):
 
 # -----------------------------------------------------------------------
 
-def post_payload(payload, datatype="desktopevent"):
+def post_payload(payload, datatype="event"):
     """Send payload to DiMe and check response.
 
     Use this if DiMe response is not needed for anything else.
@@ -136,7 +141,7 @@ def post_payload(payload, datatype="desktopevent"):
     print ""
     return res
 
-def _post_payload(payload, datatype="desktopevent"):
+def _post_payload(payload, datatype="event"):
     r = post_json(payload, datatype)
     return check_response(r)
 
@@ -155,7 +160,7 @@ def check_response(r):
         print "<UnicodeEncodeError>"
 
     if r.status_code != requests.codes.ok:
-        print ("Post to DiMe failed: "
+        print ("ERROR: Post to DiMe failed: "
                "error=[%s], message=[%s]") % (r.json()['error'],
                                               r.json()['message'])
         return False
