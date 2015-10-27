@@ -83,6 +83,7 @@ public class InformationElement extends AbstractPersistable<Long> {
 
     /** URI of the information element, e.g. path on computer or web URL.
      */
+    @Column(columnDefinition="text")
     public String uri;
 
     /** Plain text content of the information element. This is indexed
