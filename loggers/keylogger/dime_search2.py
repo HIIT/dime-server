@@ -307,9 +307,6 @@ def search_dime_using_linrel_keywords(query, X, tfidf, dictionary, c, mu, srvurl
     #Get keywords related to input query string 
     winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
 
-    #make a query string consisting of n typed words and 10 keywords suggested by LinRel
-    print(vsum[0:10], kws[0:10])
-    
     #Convert input from keyboard to list of words
     word_list = query.split()
     #Add weights (in this case all are 1)
@@ -791,11 +788,6 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
     sigma_hat = np.array(sigma_hat)
 
     return y_hat, sigma_hat, w_hat
-
-
-
-
-
 
 #
 def recompute_keywords(c):
