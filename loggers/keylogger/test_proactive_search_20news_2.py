@@ -14,6 +14,9 @@ import mailbox
 #
 import pickle
 
+#
+import random
+
 import nltk
 porter = nltk.PorterStemmer()
 
@@ -43,90 +46,8 @@ categoryindices = {
 
 #------------------------------------------------------------------------------
 
-#Computes document precisions
-def compute_cprecision_avgprecision_and_sumavgprecision(jsons, sumavgprecision, num_of_queries_so_far):
-    #Number of files having same category
-    nsamecategory = 0.0
-    nsamecategory_old = 0.0
 
-    #Print all tags of jsons
-    for json in jsons:
-        print("Tags: ", json['tags']) 
-        #Split file -tag for checking category
-        for ti, tag in enumerate(json['tags']):
-            parts = json['tags'][ti].split('=')
-            if parts[0] == "newsgroup":
-                #
-                categoryid = categoryindices[parts[1]]
-                print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
-                #
-                if categoryid == filecategory:
-                    print("GOT SAME CATEGORY AS CURRENT!")
-                    nsamecategory = nsamecategory + 1.0
-                elif categoryid == filecategory_old:
-                    print("GOT SAME CATEGORY AS OLD!")
-                    nsamecategory_old = nsamecategory_old + 1.0
-
-    #Current precision
-    if nsuggested_files > 0:
-        cprecision = float(nsamecategory)/float(nsuggested_files)
-        cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
-    else:
-        cprecision = 0
-        cprecision_old = 0
-
-    #Average precision so far
-    sumavgprecision = sumavgprecision + cprecision
-    sumavgprecision_old = sumavgprecision_old + cprecision_old
-    if j2 > 0:
-        avgprecision = float(sumavgprecision)/float(j2)
-        avgprecision_old = float(sumavgprecision_old)/float(j2)
-    else:
-        avgprecision = 0
-        avgprecision_old = 0
-
-    #
-    return cprecision, avgprecision, sumavgprecision
-
-#Computes keyword scores/precisions
-def compute_kw_scores(kws, winds, sXarray, doccategorylist, filecategory):
-    #
-    all_kw_scores = []
-    for ii in range(0,20):
-        kwm, foo = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
-        all_kw_scores.append(kwm)
-    #
-    kw_scores = all_kw_scores[filecategory]
-    #
-    if filecategory_old is not None:
-        kw_scores_old = all_kw_scores[filecategory_old]
-    else:
-        kw_scores_old = kw_scores
-    #
-    sum_of_all_kw_scores = max(sum(all_kw_scores),0.0000000001)
-    kw_scores_norm = kw_scores/sum_of_all_kw_scores
-    kw_scores_norm_old = kw_scores_old/sum_of_all_kw_scores
-    all_kw_scores_norm = [x / sum_of_all_kw_scores for x in all_kw_scores]
-
-    return kw_scores, kw_scores_norm, kw_scores_old, kw_scores_norm_old, all_kw_scores_norm
-
-
-def remove_keywords_occurring_in_input(kws,winds):
-    #Remove keywords occurring already in input
-    test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
-    print("TEST_WORDLIST:", test_wordlist)
-    new_kws = []
-    new_winds = []
-    for kwi,kw in enumerate(kws):
-        if kw not in test_wordlist:
-            new_kws.append(kws[kwi])
-            new_winds.append(winds[kwi])
-        else:
-            print("KEYWORD", kw, "ALREADY IN INPUT, REMOVE!!")
-    kws = new_kws
-    winds = new_winds    
-
-    return kws, winds
+#------------------------------
 
 def filter_string(string, do_stem=True):
 
@@ -189,12 +110,16 @@ parser.add_argument('--removeseenkws', action='store_true',
 parser.add_argument('--nwritten', metavar='N', action='store', type=int,
                     default=50, help='number of words to write')
 parser.add_argument('--nclicked', metavar='X[:Y]',
-                    default=0, help='click X suggested keywords with method Y')
+                    help='click X suggested keywords with method Y')
+# parser.add_argument('--n_results', metavar='N', action='store', type=int,  
+#                     default=20, help='Number of documents returned from DiMe')
 
+#
 args = parser.parse_args()
 
 #User ini
-srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
+srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
+#srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
 #
 numwords = args.numwords
 
@@ -223,7 +148,8 @@ if args.nclicked:
     if len(parts)>1:
         nclicked_method = int(parts[1])
 
-#update_data(srvurl, usrname, password)
+
+#Update all necessary data files
 check_update()
 #Load necessary data files 
 json_data = open('data/json_data.txt')
@@ -316,7 +242,6 @@ for j,line in enumerate(f):
         dwordlist = []
 
     #
-    i = 0
     i2= 0
     #Number of currently typed words
     divn = 1
@@ -334,62 +259,12 @@ for j,line in enumerate(f):
     precisionlist = []
     precisionlist_old = []
 
-    #Start writing the file
-    for i, dstr in enumerate(wordlist):
+    kws = []
 
-        #If number of written words from the current file is bigger than nwritten, click keywords and then break 
-        if i >= args.nwritten:
-
-            #Start clicking keywords
-            for ikwclick in range(nclicked_n):
-
-                #Increase number of search queries
-                j2 = j2 + 1
-
-                #
-                print("CLICKING KEYWORDS!!!!!", ikwclick)
-                #Take first keyword from the list
-                clicked_kws = kws[0]
-
-                dwordlist.append(clicked_kws)
-                dstr2 = dwordlist[-numwords:]
-                print(dstr2)
-                dstr2 = ' '.join(dstr2)
-                print("Input to search function: ", dstr2)
-                #Do additional search by clicked keywords
-                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password) 
-                #Remove keywords occurring already in input
-                kws, winds = remove_keywords_occurring_in_input(kws,winds)
-
-                #Compute scores of all keywords
-                all_kw_scores = []
-                for ti in range(1,13):
-                    kw_scores_mean, kw_scores = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ti)
-                    #all_kw_scores.append(compute_topic_keyword_scores(sXarray, winds, doccategorylist, i))          
-                    all_kw_scores.append(kw_scores_mean)     
-
-                #
-                if args.histremoval:                
-                    histremoval_val = check_history_removal(histremoval_threshold, histremoval_ma_value)
-                    if histremoval_val > histremoval_threshold:
-                        dwordlist = dwordlist[-3:]                
-                #Compute document precision
-                cprecision, avgprecision, sumavgprecision = compute_cprecision_avgprecision_and_sumavgprecision(jsons, sumavgprecision, j2)
-                #Compute keyword precision
-                kw_scores, kw_scores_norm, kw_scores_old, kw_scores_norm_old, all_kw_scores_norm = compute_kw_scores(kws, winds, sXarray, doccategorylist, filecategory)
-                #
-                print("Suggested keywords:", kws)
-                print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
-                print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-                print("  ", all_kw_scores_norm, '\n')                
-                #
-                precisionlist.append([cprecision, avgprecision, kw_scores_norm])
-                precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
-                #
-                dstr2 = ''
-
-            #Break the writing of current document
-            break             
+    wordlist_r = list(reversed(wordlist))
+    i = 0
+    while len(wordlist_r)>0:                
+        dstr = wordlist_r.pop()
 
         #If nth word has been written, do search
         if i%divn == 0:
@@ -399,22 +274,39 @@ for j,line in enumerate(f):
 
             #
             if i2 == 0:
-                print("\nMail ", j)
+                print("###########################################")
+                print("STARTING NEW MAIL no. ", j)
+                print("###########################################")
                 filelocatorlist.append(1.0)
             else:
                 filelocatorlist.append(0.0)
+
+            print("Filename:", filename, "j:", j, "i:", i, "dstr:", dstr)
             dwordlist.append(dstr)
             dstr2 = dstr2 + ' ' + dstr
             #print "Currently typed: ", dstr2
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
-            print("Filename:", filename)
             print("Input to search function: ", dstr2)
-            jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
+            #jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
+            jsons, kws, winds = search_dime_using_linrel_keywords(dstr, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
             nsuggested_files = len(jsons)
 
             #
-            kws, winds = remove_keywords_occurring_in_input(kws,winds)
+            if args.removeseenkws:
+                test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
+                print("TEST_WORDLIST:", test_wordlist)
+                new_kws = []
+                new_winds = []
+                for iii,kw in enumerate(kws):
+                    if kw not in test_wordlist:
+                        new_kws.append(kws[iii])
+                        new_winds.append(winds[iii])
+                    else:
+                        print("KEYWORD", kw, "ALREADY IN INPUT, REMOVE!!")
+                kws = new_kws
+                winds = new_winds
+                print("KWS AFTER REMOVAL:", kws)
 
             #
             if args.histremoval:                
@@ -423,22 +315,89 @@ for j,line in enumerate(f):
                     dwordlist = dwordlist[-3:]
 
             #
-            cprecision, avgprecision, sumavgprecision = compute_cprecision_avgprecision_and_sumavgprecision(jsons, sumavgprecision, j2)
+            all_kw_scores = []
+            kw_maxind = 0
+            kw_randind = 0
+            for ii in range(0,20):
+                kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
+                #print("Mean kw scores:",kwm,"kw_scores_topic:",kw_scores_topic)
+                #Take keyword scores for 'filecategory'
+                if ii == filecategory:
+                    if len(kw_scores_topic) > 0:
+                        #print(len(kw_scores_topic))
+                        #print(type(kw_scores_topic))
+                        kw_scores_filecategory = kw_scores_topic
+                        kw_scores_filecategory = np.array(kw_scores_filecategory)
+                        #print(kw_scores_filecategory)
+                        kw_maxind = np.argmax(kw_scores_filecategory)
+                        #
+                        kw_randind = pick_random_kw_ind(kw_scores_filecategory) 
+                        #print("kw_maxind: ", kw_maxind)
+                    else:
+                        kw_maxind = 0
+                        kw_randind = 0
+                all_kw_scores.append(kwm)
+            kw_scores = all_kw_scores[filecategory]
+            if filecategory_old is not None:
+                kw_scores_old = all_kw_scores[filecategory_old]
+            else:
+                kw_scores_old = kw_scores
 
-            #
-            kw_scores, kw_scores_norm, kw_scores_old, kw_scores_norm_old, all_kw_scores_norm = compute_kw_scores(kws, winds, sXarray, doccategorylist, filecategory)
+            sum_of_all_kw_scores = max(sum(all_kw_scores),0.0000000001)
+            kw_scores_norm = kw_scores/sum_of_all_kw_scores
+            kw_scores_norm_old = kw_scores_old/sum_of_all_kw_scores
+            all_kw_scores_norm = [x / sum_of_all_kw_scores for x in all_kw_scores]
 
+            #Number of files having same category
+            nsamecategory = 0.0
+            nsamecategory_old = 0.0
+
+            #Print all tags of jsons
+            for json in jsons:
+                print("Tags: ", json['tags']) 
+                #Split file -tag for checking category
+                for ti, tag in enumerate(json['tags']):
+                    parts = json['tags'][ti].split('=')
+                    if parts[0] == "newsgroup":
+                        #
+                        categoryid = categoryindices[parts[1]]
+                        print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
+                        #
+                        if categoryid == filecategory:
+                            print("GOT SAME CATEGORY AS CURRENT!")
+                            nsamecategory = nsamecategory + 1.0
+                        elif categoryid == filecategory_old:
+                            print("GOT SAME CATEGORY AS OLD!")
+                            nsamecategory_old = nsamecategory_old + 1.0
+
+            #Current precision
+            if nsuggested_files > 0:
+                cprecision = float(nsamecategory)/float(nsuggested_files)
+                cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
+            else:
+                cprecision = 0
+                cprecision_old = 0
+
+            #Average precision so far
+            sumavgprecision = sumavgprecision + cprecision
+            sumavgprecision_old = sumavgprecision_old + cprecision_old
+            if j2 > 0:
+                avgprecision = float(sumavgprecision)/float(j2)
+                avgprecision_old = float(sumavgprecision_old)/float(j2)
+            else:
+                avgprecision = 0
+                avgprecision_old = 0
             #
             print("Suggested keywords:", kws)
             print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
             print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-            print("  ", all_kw_scores_norm, '\n')
+            print("  ", all_kw_scores_norm)
 
             #
             precisionlist.append([cprecision, avgprecision, kw_scores_norm])
             precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
 
-            #Empty the query string
+            #
             dstr2 = ''
         else:
             dwordlist.append(dstr)
@@ -446,9 +405,29 @@ for j,line in enumerate(f):
         #
         i2 = i2 + 1
 
-        #If number of written words from the current file is bigger than nwritten, break 
-        #if i>args.nwritten:
-        #    break
+        i = i+1
+        if i>=(args.nwritten+nclicked_n):
+            break
+        elif i>=(args.nwritten):
+            try:
+                if nclicked_method == 3:
+                    kw_randind2 = random.randint(0,len(kws)-1)
+                    kw_clicked  = kws[kw_randind2]
+                elif nclicked_method == 2:
+                    if kw_randind>len(kws)-1:
+                        kw_randind = kw_maxind
+                    kw_clicked = kws[kw_randind]
+                elif nclicked_method == 1:
+                    kw_clicked = kws[kw_maxind]
+                else:
+                    kw_clicked = kws[0]
+                print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
+                wordlist_r.append(kw_clicked)
+            except IndexError:
+                print("Adding clicked keyword failed, breaking out")
+                break
+
+        print()
 
     #
     filelocatorlistnp = np.array(filelocatorlist)
