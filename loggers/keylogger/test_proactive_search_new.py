@@ -121,7 +121,16 @@ def process_input_file_reuters(line, j, qfn):
 #------------------------------------------------------------------------------
 
 def process_input_file_ohsumed(line, j, qfn):
-    return "", "", ""
+
+    dlist       = line.split("/")
+    filename    = line
+    filecategory= categoryindices[dlist[0]]
+
+    with open (args.querypath+'/'+filename, "r") as myfile:
+        abstext = myfile.read()
+    wordlist = abstext.split()
+
+    return filename, filecategory, wordlist
 
 #------------------------------------------------------------------------------
 
