@@ -16,6 +16,7 @@ import pickle
 
 #
 import random
+random.seed(42)
 
 import nltk
 porter = nltk.PorterStemmer()
@@ -198,6 +199,8 @@ parser.add_argument('--nwritten', metavar='N', action='store', type=int,
                     default=50, help='number of words to write')
 parser.add_argument('--nclicked', metavar='X[:Y]',
                     help='click X suggested keywords with method Y')
+parser.add_argument('--randomstart', action='store_true',
+                    help='start from a random position instead of beginning')
 
 args = parser.parse_args()
 
@@ -303,6 +306,10 @@ for j,line in enumerate(f):
     filename, filecategory, wordlist = process_input_file(line, j, qfn)
     if filename is None:
         break
+
+    if args.randomstart:
+        newfirst = random.randrange(len(wordlist))
+        wordlist = wordlist[newfirst:] + wordlist[:newfirst]
 
     # #Exploration/Exploitation coefficient
     c = 1.0
