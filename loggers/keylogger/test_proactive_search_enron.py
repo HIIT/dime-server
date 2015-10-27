@@ -216,12 +216,12 @@ if args.simulation:
         j2 = 0
         
         #Maximum number of words written from each file 
-        #nwritten = 50
-        nwritten = 20
+        nwritten = 50
+        #nwritten = 20
         #number of keywords clicked at one time
-        n_clicked_keywords = 1
+        n_clicked_keywords = 0
         #Number of keyword clicks
-        n_clicks = 5
+        n_clicks = 0
         #Average precision
         sumavgprecision = 0.0
         sumavgprecision_old = 0.0

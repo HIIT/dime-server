@@ -405,8 +405,11 @@ for j,line in enumerate(f):
         elif i>=(args.nwritten):
             try:
                 if nclicked_method == 3:
-                    kw_randind2 = random.randint(0,len(kws)-1)
-                    kw_clicked  = kws[kw_randind2]
+                    if len(kws)>0:
+                        kw_randind2 = random.randint(0,len(kws)-1)
+                        kw_clicked  = kws[kw_randind2]
+                    else:
+                        kw_clicked = kws[0]
                 elif nclicked_method == 2:
                     if kw_randind>len(kws)-1:
                         kw_randind = kw_maxind
