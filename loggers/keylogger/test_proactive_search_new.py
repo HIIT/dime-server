@@ -482,14 +482,26 @@ for j,line in enumerate(f):
         if i>=(args.nwritten+nclicked_n):
             break
         elif i>=(args.nwritten):
-            if nclicked_method == 2:
-                kw_clicked = kws[kw_randind]
-            elif nclicked_method == 1:
-                kw_clicked = kws[kw_maxind]
-            else:
-                kw_clicked = kws[0]
-            print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
-            wordlist_r.append(kw_clicked)
+            try:
+                if nclicked_method == 3:
+                    if len(kws)>0:
+                        kw_randind2 = random.randint(0,len(kws)-1)
+                        kw_clicked  = kws[kw_randind2]
+                    else:
+                        kw_clicked = kws[0]
+                elif nclicked_method == 2:
+                    if kw_randind>len(kws)-1:
+                        kw_randind = kw_maxind
+                    kw_clicked = kws[kw_randind]
+                elif nclicked_method == 1:
+                    kw_clicked = kws[kw_maxind]
+                else:
+                    kw_clicked = kws[0]
+                print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
+                wordlist_r.append(kw_clicked)
+            except IndexError:
+                print("Adding clicked keyword failed, breaking out")
+                break
 
         print()
 
