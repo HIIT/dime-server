@@ -293,15 +293,15 @@ public class DataControllerTest extends RestTest {
 	assertEquals(getDirectDoc.uri, origDoc.uri);
 
 	// Also test accessing an object that doesn't exist
-	ResponseEntity<Document> getBadRes1 = 
+	ResponseEntity<String> getBadRes1 = 
 	    getRest().getForEntity(infoElemApi + "/18923742",
-				   Document.class);
+				   String.class);
 	assertClientError(getBadRes1);
 
 	// Also test accessing an object that doesn't exist
-	ResponseEntity<SearchEvent> getBadRes2 = 
+	ResponseEntity<String> getBadRes2 = 
 	    getRest().getForEntity(eventApi + "/12980942",
-				   SearchEvent.class);
+				   String.class);
 	assertClientError(getBadRes2);
 
 	// Test filtering on actor
@@ -320,9 +320,9 @@ public class DataControllerTest extends RestTest {
 	dumpData("events filtered by actor", eventsRes);
 
 	// Test filtering by bad parameters
-	ResponseEntity<Event[]> getEventsRes3 = 
+	ResponseEntity<String> getEventsRes3 = 
 	    getRest().getForEntity(eventsApi + "?foo=bar",
-				   Event[].class);
+				   String.class);
 	assertClientError(getEventsRes3);
 
 	// Test filtering on multiple parameters

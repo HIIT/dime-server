@@ -182,13 +182,15 @@ public class DataController extends AuthorizedController {
 	}
 	
 	// If this is a stub element, expand it 
-	if (elem.isStub() && expandedElem != null) {
-	    LOG.info("Expanded InformationElement for " + expandedElem.uri);
-	    // don't copy the text, takes too much space
-	    expandedElem.plainTextContent = null; 
-	    return expandedElem;
-	} else {
-	    LOG.warn("Uploaded stub, but unable to expand!");
+	if (elem.isStub()) {
+	    if (expandedElem != null) {
+		LOG.info("Expanded InformationElement for " + expandedElem.uri);
+		// don't copy the text, takes too much space
+		expandedElem.plainTextContent = null; 
+		return expandedElem;
+	    } else {
+		LOG.warn("Uploaded stub, but unable to expand!");
+	    }
 	}
 
 	// Otherwise, just save it as a new object
@@ -302,16 +304,15 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for accessing single event. */    
     @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
     public ResponseEntity<Event>
-	event(Authentication auth, @PathVariable Long id) {
+	event(Authentication auth, @PathVariable Long id) 
+	throws NotFoundException
+    {
 	User user = getUser(auth);
 
-	Event event = eventDAO.findById(id);
+	Event event = eventDAO.findById(id, user);
 
-	if (event == null)
-	    return new ResponseEntity<Event>(HttpStatus.NOT_FOUND);
-
-	if (!event.user.getId().equals(user.getId()))
-	    return new ResponseEntity<Event>(HttpStatus.UNAUTHORIZED);
+	if (event == null || !event.user.getId().equals(user.getId()))
+	    throw new NotFoundException("Event not found");
 
 	return new ResponseEntity<Event>(event, HttpStatus.OK);
     }	
@@ -337,8 +338,9 @@ public class DataController extends AuthorizedController {
      * interface. */    
     @RequestMapping(value="/events", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
-	events(Authentication auth, @RequestParam Map<String, String> params) {
-
+	events(Authentication auth, @RequestParam Map<String, String> params) 
+	throws BadRequestException
+    {
 	User user = getUser(auth);
 
 	try {
@@ -349,7 +351,7 @@ public class DataController extends AuthorizedController {
 
 	    return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
 	} catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
-	    return new ResponseEntity<Event[]>(HttpStatus.BAD_REQUEST);
+	    throw new BadRequestException("Invalid arguments");
 	}
     }	
 
@@ -388,16 +390,15 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for accessing a single informationelement. */    
     @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
     public ResponseEntity<InformationElement>
-	informationElement(Authentication auth, @PathVariable Long id) {
+	informationElement(Authentication auth, @PathVariable Long id) 
+	throws NotFoundException
+    {
 	User user = getUser(auth);
 
-	InformationElement elem = infoElemDAO.findById(id);
+	InformationElement elem = infoElemDAO.findById(id, user);
 
-	if (elem == null)
-	    return new ResponseEntity<InformationElement>(HttpStatus.NOT_FOUND);
-
-	if (!elem.user.getId().equals(user.getId()))
-	    return new ResponseEntity<InformationElement>(HttpStatus.UNAUTHORIZED);
+	if (elem == null || !elem.user.getId().equals(user.getId()))
+	    throw new NotFoundException("Element not found");
 
 	return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }	
@@ -407,7 +408,9 @@ public class DataController extends AuthorizedController {
     @RequestMapping(value="/informationelements", method = RequestMethod.GET)
     public ResponseEntity<InformationElement[]>
 	informationElements(Authentication auth,
-			    @RequestParam Map<String, String> params) {
+			    @RequestParam Map<String, String> params) 
+	throws BadRequestException
+    {
 	User user = getUser(auth);
 
 	try {
@@ -418,7 +421,7 @@ public class DataController extends AuthorizedController {
 
 	    return new ResponseEntity<InformationElement[]>(infoElemsArray, HttpStatus.OK);
 	} catch (IllegalArgumentException e) {
-	    return new ResponseEntity<InformationElement[]>(HttpStatus.BAD_REQUEST);
+	    throw new BadRequestException("Invalid arguments");
 	}
     }	
 
