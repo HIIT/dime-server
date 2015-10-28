@@ -10,6 +10,9 @@ import rfc822
 import pprint
 import nltk
 
+import random
+random.seed(42)
+
 import xml.etree.ElementTree as ET
 
 from dlog_globals import config
@@ -153,6 +156,8 @@ if __name__ == "__main__":
                         default=0, help='process only N first abstracts')
     parser.add_argument('--nostem', action='store_true',
                         help='disable Porter stemming of tokens')
+    parser.add_argument('--probskip', action='store', type=float,
+                        default=-1.0, help='probability of skipping an abstract')
 
     args = parser.parse_args()
 
@@ -178,8 +183,14 @@ if __name__ == "__main__":
     print "Parsing XML done"
 
     i=0
-    for doc in root:
-        print "Processing", doc
+    skipped = []
+    for j, doc in enumerate(root):
+        if random.random()<args.probskip:
+            print "Skipping", j, doc
+            skipped.append(j)
+            continue
+
+        print "Processing", j, doc
 
         json_payload = create_payload(doc, i, not args.nostem)
         if json_payload is None:
@@ -194,5 +205,6 @@ if __name__ == "__main__":
         i=i+1
 
     print "Processed %d entries" % i
-    
+    print "Skipped:", skipped
+
 #------------------------------------------------------------------------------
