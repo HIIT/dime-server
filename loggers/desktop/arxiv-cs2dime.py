@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Sends Arxiv.org CS data to DiMe.')
 
-    parser.add_argument('msgfile', metavar='FILE',
+    parser.add_argument('xmlfile', metavar='FILE',
                         help='list of abstracts to be processed')
     parser.add_argument('--dryrun', action='store_true',
                         help='do not actually send anything')
@@ -173,11 +173,11 @@ if __name__ == "__main__":
             sys.exit()
 
     print "Parsing XML, this may take a while"
-    tree = ET.parse('solr-test.xml')
+    tree = ET.parse(args.xmlfile)
     root = tree.getroot()
     print "Parsing XML done"
 
-    i=1
+    i=0
     for doc in root:
         print "Processing", doc
 
