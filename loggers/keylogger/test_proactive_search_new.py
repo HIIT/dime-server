@@ -16,7 +16,6 @@ import pickle
 
 #
 import random
-random.seed(42)
 
 import nltk
 porter = nltk.PorterStemmer()
@@ -308,6 +307,7 @@ for j,line in enumerate(f):
         break
 
     if args.randomstart:
+        random.seed(j)
         newfirst = random.randrange(len(wordlist))
         wordlist = wordlist[newfirst:] + wordlist[:newfirst]
 
