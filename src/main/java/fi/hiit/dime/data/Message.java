@@ -55,7 +55,7 @@ public class Message extends InformationElement {
     @OneToMany
     public List<InformationElement> attachments;
     
-    @Column(columnDefinition="blob")
+    @Column(columnDefinition="text")
     public String rawMessage;
 
     @Override
