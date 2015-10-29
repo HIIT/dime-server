@@ -44,6 +44,7 @@ categoryindices_20news = {
     "talk.politics.misc": 18,
     "talk.religion.misc": 19 }
 gt_tag_20news = "newsgroup"
+usrname_20news = password_20news = "20news-nostem"
 
 categoryindices_reuters = {
     "acq": 0,
@@ -55,6 +56,7 @@ categoryindices_reuters = {
     "ship": 6,
     "trade": 7 }
 gt_tag_reuters = "category"
+usrname_reuters = password_reuters = "reuters-r8-all"
 
 categoryindices_ohsumed = {
     "C01": 0,
@@ -82,6 +84,7 @@ categoryindices_ohsumed = {
     "C23": 22
 }
 gt_tag_ohsumed = "category"
+usrname_ohsumed = password_ohsumed = "ohsumed"
 
 #------------------------------------------------------------------------------
 
@@ -200,11 +203,13 @@ parser.add_argument('--nclicked', metavar='X[:Y]',
                     help='click X suggested keywords with method Y')
 parser.add_argument('--randomstart', action='store_true',
                     help='start from a random position instead of beginning')
+parser.add_argument('--writeold', metavar='X:Y',
+                    help='write X words from old document at position Y')
 
 args = parser.parse_args()
 
 #User ini
-srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
+srvurl, usrname_disabled, password_disabled, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
 #
 numwords = args.numwords
 
@@ -212,14 +217,20 @@ if args.dataset == "20news":
     categoryindices = categoryindices_20news
     gt_tag = gt_tag_20news
     process_input_file = process_input_file_20news
+    usrname = usrname_20news
+    password = password_20news
 elif args.dataset == "reuters":
     categoryindices = categoryindices_reuters
     gt_tag = gt_tag_reuters
     process_input_file = process_input_file_reuters
+    usrname = usrname_reuters
+    password = password_reuters
 elif args.dataset == "ohsumed":
     categoryindices = categoryindices_ohsumed
     gt_tag = gt_tag_ohsumed
     process_input_file = process_input_file_ohsumed
+    usrname = usrname_ohsumed
+    password = password_ohsumed
 else:
     print("Unsupported dataset:", args.dataset)
     sys.exit()
@@ -248,6 +259,15 @@ if args.nclicked:
     nclicked_n = int(parts[0])
     if len(parts)>1:
         nclicked_method = int(parts[1])
+
+writeold_n = 0
+writeold_pos = 0
+if args.writeold:
+    print(args.writeold)
+    parts = args.writeold.split(":")
+    writeold_n = int(parts[0])
+    if len(parts)>1:
+        writeold_pos = int(parts[1])
 
 #update_data(srvurl, usrname, password)
 check_update()
@@ -289,6 +309,8 @@ dwordlist = []
 
 filecategory_old = None
 
+wordlist_old = []
+
 #
 print("Reading simulation queries from file", args.queries)
 
@@ -310,6 +332,13 @@ for j,line in enumerate(f):
         random.seed(j)
         newfirst = random.randrange(len(wordlist))
         wordlist = wordlist[newfirst:] + wordlist[:newfirst]
+
+    wordlist_r = list(reversed(wordlist[:writeold_pos]+wordlist_old[:writeold_n]+wordlist[writeold_pos:]))
+    #print(wordlist)
+    #print(wordlist_old)
+    #print(wordlist_r)
+
+    wordlist_old = wordlist.copy()
 
     # #Exploration/Exploitation coefficient
     c = 1.0
@@ -340,7 +369,6 @@ for j,line in enumerate(f):
 
     kws = []
 
-    wordlist_r = list(reversed(wordlist))
     i = 0
     while len(wordlist_r)>0:                
         dstr = wordlist_r.pop()
