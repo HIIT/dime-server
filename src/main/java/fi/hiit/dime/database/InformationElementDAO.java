@@ -30,7 +30,7 @@ import fi.hiit.dime.authentication.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Repository
+@Service
 public class InformationElementDAO {
     private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
 
@@ -48,10 +48,17 @@ public class InformationElementDAO {
     private InfoElemRepository repo;
     private static Set<InformationElement> notIndexed =	new HashSet<InformationElement>();
 
+    @Transactional
     public void save(InformationElement obj) {
 	obj.autoFill();
 	notIndexed.add(obj);
 	repo.save(obj);
+    }
+
+    @Transactional
+    public InformationElement replace(InformationElement oldObj, 
+				      InformationElement newObj) {
+	return repo.replace(oldObj, newObj);
     }
 
     public boolean hasUnIndexed() {
@@ -63,7 +70,6 @@ public class InformationElementDAO {
     }
 
     public void setIndexed(InformationElement elem) {
-	elem.isIndexed = true;
 	notIndexed.remove(elem);
     }
 
@@ -73,6 +79,7 @@ public class InformationElementDAO {
        @param id Unique id of InformationElement object.
        @return The InformationElement object found.
     */
+    @Transactional(readOnly = true)
     public InformationElement findById(Long id) {
 	return repo.findOne(id);
     }
@@ -84,6 +91,7 @@ public class InformationElementDAO {
        @param user User
        @return The InformationElement object found.
     */
+    @Transactional(readOnly = true)
     public InformationElement findById(Long id, User user) {
 	return repo.findOneByIdAndUser(id, user);
     }
@@ -95,6 +103,7 @@ public class InformationElementDAO {
        @param user User
        @return The InformationElement object found.
     */
+    @Transactional(readOnly = true)
     public InformationElement findByAppId(String appId, User user) {
 	return repo.findOneByAppIdAndUser(appId, user);
     }
@@ -106,6 +115,7 @@ public class InformationElementDAO {
        @param filterParams Filtering parameters
        @return List of matching information elements
     */
+    @Transactional(readOnly = true)
     public List<InformationElement> find(Long userId,
 					 Map<String, String> filterParams) 
     {
@@ -113,28 +123,9 @@ public class InformationElementDAO {
     }
 
     /**
-       Returns number of InformationElement objects which haven't been
-       indexed yet.
-       
-       @return Number of not indexed objects
-    */
-    public long countNotIndexed() {
-	return repo.countByIsIndexed(false);
-    }
-
-    /**
-       Returns number of InformationElement objects which haven't been
-       indexed yet.
-       
-       @return Number of not indexed objects
-    */
-    public List<InformationElement> findNotIndexed() {
-	return repo.findByIsIndexed(false);
-    }
-
-    /**
        Returns all InformationElement objects.
     */
+    @Transactional(readOnly = true)
     public Iterable<InformationElement> findAll() {
     	return repo.findAll();
     }
@@ -145,6 +136,7 @@ public class InformationElementDAO {
        @param id User id
        @return List of all InformationElement objects for user
     */
+    @Transactional(readOnly = true)
     public List<InformationElement> elementsForUser(Long id) {
 	return repo.findByUser(User.makeUser(id));
     }

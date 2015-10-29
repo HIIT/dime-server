@@ -32,12 +32,12 @@ import javax.persistence.TypedQuery;
 
 class BaseRepository {
     @PersistenceContext
-    private EntityManager em;
+    protected EntityManager entityManager;
 
     <T> TypedQuery<T> makeQuery(String q, Map<String, String> params,
 				Class<T> resultClass) 
     {
-        TypedQuery<T> query = em.createQuery(q, resultClass);
+        TypedQuery<T> query = entityManager.createQuery(q, resultClass);
 
 	System.out.println("Find query: " + q);
 

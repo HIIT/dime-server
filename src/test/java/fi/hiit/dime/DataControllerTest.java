@@ -429,8 +429,10 @@ public class DataControllerTest extends RestTest {
     public void testElemChange() throws Exception {
 	String content1 = "foobar";
 	String content2 = "hello";
+	String content3 = "xyz";
 	
 	Message msg = createTestEmail(content1, "");
+	msg.appId = "iuerhfieruhf";
 	MessageEvent event = new MessageEvent();
 	event.targettedResource = msg;
 
@@ -443,24 +445,28 @@ public class DataControllerTest extends RestTest {
 
 	// check that content is still the same
 	MessageEvent outEvent = uploadRes.getBody();
-	assertEquals(outEvent.targettedResource.plainTextContent, content1);
+	assertEquals(content1, outEvent.targettedResource.plainTextContent);
 	Long msgId = outEvent.targettedResource.getId();
 
-	// Change message
-	outEvent.targettedResource.plainTextContent = content2;
 
-	dumpData("Changed message", outEvent);
+	// copy if from uploaded message
+	msg.copyIdFrom(outEvent.targettedResource);
+
+	// change content
+	msg.plainTextContent = content2;
+
+	dumpData("Changed message (id)", event);
 	
 	// Upload the changed message
 	ResponseEntity<MessageEvent> uploadRes2 = 
-	    getRest().postForEntity(eventApi, outEvent, MessageEvent.class);
+	    getRest().postForEntity(eventApi, event, MessageEvent.class);
 	
 	// Check that HTTP was successful
 	assertSuccessful(uploadRes2);
 
 	// check that content is the changed one
 	MessageEvent outEvent2 = uploadRes2.getBody();
-	assertEquals(outEvent2.targettedResource.plainTextContent, content2);
+	assertEquals(content2, outEvent2.targettedResource.plainTextContent);
 	assertEquals(msgId, outEvent2.targettedResource.getId());
 
 	// Read back infoelement over REST API and check
@@ -469,13 +475,49 @@ public class DataControllerTest extends RestTest {
 	assertSuccessful(getElem);
 
 	Message msg2 = getElem.getBody();
-	assertEquals(msg2.plainTextContent, content2);
+	assertEquals(content2, msg2.plainTextContent);
+
+
+	// Next, try changing using appId instead of id
+	msg.resetId();
+	msg.plainTextContent = content3;
+	assertEquals(msg.getId(), null);
+	// event.targettedResource = msg;
+	// outEvent2.targettedResource.resetId();
+	// outEvent2.targettedResource.plainTextContent = content3;
+
+	dumpData("Changed message (appId)", event);
+
+	// Upload the changed message
+	ResponseEntity<MessageEvent> uploadRes3 = 
+	    getRest().postForEntity(eventApi, event, MessageEvent.class);
+	
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes3);
+
+	// check that content is the changed one
+	MessageEvent outEvent3 = uploadRes3.getBody();
+	assertEquals(content3, outEvent3.targettedResource.plainTextContent);
+	assertEquals(msgId, outEvent3.targettedResource.getId());
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem2 = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem2);
+
+	Message msg3 = getElem2.getBody();
+	dumpData("Got back", msg3);
+
+	assertEquals(content3, msg3.plainTextContent);
     }
 
     @Test
     public void testElemUpload() throws Exception {
 	String content1 = "foobar";
+	String content2 = "barfoo";
+	String content3 = "appIdfoo";
 	Message msg = createTestEmail(content1, "");
+	msg.appId = "hfpiewhfi";
 
 	// Upload to DiMe
 	ResponseEntity<Message> uploadRes =
@@ -496,6 +538,57 @@ public class DataControllerTest extends RestTest {
 
 	Message msg2 = getElem.getBody();
 	assertEquals(msg2.plainTextContent, content1);
+
+
+	// Copy id from uploaded msg and change content
+	msg.copyIdFrom(outMsg);
+	msg.plainTextContent = content2;
+
+	// Upload to DiMe
+	ResponseEntity<Message> uploadRes2 =
+	    getRest().postForEntity(infoElemApi, msg, Message.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes2);
+	
+	// check that content is the new one
+	Message outMsg2 = uploadRes2.getBody();
+	assertEquals(content2, outMsg2.plainTextContent);
+	assertEquals(msgId, outMsg2.getId());
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem2 = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem2);
+
+	Message msg3 = getElem2.getBody();
+	assertEquals(msg3.plainTextContent, content2);
+
+
+	// Reset id and try appId instead
+	msg.resetId();
+	msg.plainTextContent = content3;
+
+	// Upload to DiMe
+	ResponseEntity<Message> uploadRes3 =
+	    getRest().postForEntity(infoElemApi, msg, Message.class);
+
+	// Check that HTTP was successful
+	assertSuccessful(uploadRes3);
+	
+	// check that content is the new one
+	Message outMsg3 = uploadRes3.getBody();
+	assertEquals(content3, outMsg3.plainTextContent);
+	assertEquals(msgId, outMsg3.getId());
+	assertEquals(msg.appId, outMsg3.appId);
+
+	// Read back infoelement over REST API and check
+	ResponseEntity<Message> getElem3 = 
+	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
+	assertSuccessful(getElem3);
+
+	Message msg4 = getElem3.getBody();
+	assertEquals(msg4.plainTextContent, content3);
     }
 
     @Test

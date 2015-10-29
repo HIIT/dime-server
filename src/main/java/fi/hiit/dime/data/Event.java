@@ -27,7 +27,6 @@ package fi.hiit.dime.data;
 import fi.hiit.dime.authentication.User;
 
 import com.fasterxml.jackson.annotation.*;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.Calendar;
@@ -46,7 +45,7 @@ import javax.persistence.ManyToOne;
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @JsonSubTypes({
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.FeedbackEvent.class, name="FeedbackEvent"),
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),

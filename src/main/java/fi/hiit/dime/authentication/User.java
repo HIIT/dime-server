@@ -41,7 +41,7 @@ import javax.persistence.Entity;
    Class for storing users and associated information for this DiMe.
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @Entity
 public class User extends AbstractPersistable<Long> {
     public static User makeUser(Long id) {

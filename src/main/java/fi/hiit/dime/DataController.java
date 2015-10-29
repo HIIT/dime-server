@@ -174,11 +174,19 @@ public class DataController extends AuthorizedController {
 		throw new NotFoundException("id not found");
 	    
 	    // Check that appId is consistent (if given)
-	    if (elem.appId != null && elem.appId != expandedElem.appId)
+	    if (elem.appId != null && !elem.appId.equals(expandedElem.appId)) {
+		LOG.error("appId not consistent: {} != {}", elem.appId, expandedElem.appId);
 		throw new BadRequestException("appId not consistent");
+	    }
 	    
 	} else if (elem.appId != null) {
-	    expandedElem = infoElemDAO.findByAppId(elem.appId, user);
+	    InformationElement foo = infoElemDAO.findByAppId(elem.appId, user);
+	    if (foo != null) {
+		expandedElem = infoElemDAO.findById(foo.getId(), user);
+		LOG.debug("appId given, expanded to id={}", expandedElem.getId());
+	    } else {
+		LOG.debug("appId given, unable to expand");
+	    }
 	}
 	
 	// If this is a stub element, expand it 
@@ -186,57 +194,27 @@ public class DataController extends AuthorizedController {
 	    if (expandedElem != null) {
 		LOG.info("Expanded InformationElement for " + expandedElem.uri);
 		// don't copy the text, takes too much space
-		expandedElem.plainTextContent = null; 
+		// expandedElem.plainTextContent = null; 
 		return expandedElem;
 	    } else {
-		LOG.warn("Uploaded stub, but unable to expand!");
+		LOG.error("Uploaded stub, but unable to expand!");
+		throw new BadRequestException("unable to expand stub");
+	    }
+	} else {
+	    // If this is not a stub, but we found an existing
+	    // element, replace it with the new one
+	    if (expandedElem != null) {
+		elem.user = user;
+		elem = infoElemDAO.replace(expandedElem, elem);
+	    } else {
+		// Otherwise, this is just a new object, so store it
+		elem.user = user;
+		elem.autoFill();
 	    }
 	}
 
-	// Otherwise, just save it as a new object
-	elem.user = user;
-	infoElemDAO.save(elem);
 	return elem;
     }
-
-    /**
-     * Helper method to expand stub Message objects.
-     *
-     * Stub objects are those which only include the id with the
-     * assumption that the original full object already exists in the
-     * database.
-     *
-     * @param msg Message to expand
-     * @param user current authenticated user
-     * @return The expanded Message
-     */
-    // protected Message expandMessage(Message msg, User user) {
-    // 	if (msg != null) {
-    // 	    if (!msg.isStub()) {
-    // 		msg.user = user;
-    // 		infoElemDAO.save(msg);
-
-    // 		// infoElemDAO.save(msg.from);
-
-    // 		// for (Person to : msg.to)
-    // 		//     infoElemDAO.save(to);
-
-    // 		// for (Person cc : msg.cc)
-    // 		//     infoElemDAO.save(cc);
-
-    // 	    } else { // expand if only a stub msg was included
-    // 		Message expandedMsg = (Message)infoElemDAO.expandStub(msg);
-    // 		if (expandedMsg != null) {
-    // 		    LOG.info("Expanded Message for " + expandedMsg.uri);
-    // 		    // don't copy the text, takes too much space
-    // 		    expandedMsg.plainTextContent = null; 
-    // 		    msg = expandedMsg;
-    // 		}
-    // 	    }
-    // 	} 
-
-    // 	return msg;
-    // }
 
     /**
      * Helper method to store an information element, and possibly expand its
@@ -248,10 +226,8 @@ public class DataController extends AuthorizedController {
      */
     private InformationElement storeElement(InformationElement elem, User user) 
 	throws NotFoundException, BadRequestException {
-	// if (elem instanceof Message)
-	//     elem = expandMessage((Message)elem, user);
-	// else
 	elem = expandInformationElement(elem, user);
+	infoElemDAO.save(elem);
 	return elem;
     }
 
@@ -276,9 +252,9 @@ public class DataController extends AuthorizedController {
 	if (input instanceof ResourcedEvent) {
 	    ResourcedEvent revent = (ResourcedEvent)input;
 	    InformationElement elem = revent.targettedResource;
-
 	    revent.targettedResource = storeElement(elem, user);
 	}
+
 	eventDAO.save(input);
 
 	return input;
@@ -292,11 +268,7 @@ public class DataController extends AuthorizedController {
     {
 	User user = getUser(auth);
 
-	eventLog("Event (before)", user, input, true);
-
 	input = storeEvent(input, user);
-
-	eventLog("Event (after)", user, input, true);
 
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	

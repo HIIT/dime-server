@@ -60,8 +60,8 @@ public class Message extends InformationElement {
 
     @Override
     public void autoFill() {
-	if (subject != null && subject.length() > 0)
-	    plainTextContent = 
-		subject + "\n\n" + plainTextContent;
+	if (subject != null && subject.length() > 0 && 
+	    !plainTextContent.startsWith(subject))
+	    plainTextContent = subject + "\n\n" + plainTextContent;
     }
 }

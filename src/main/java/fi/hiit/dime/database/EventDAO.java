@@ -30,28 +30,31 @@ import fi.hiit.dime.authentication.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 
-@Repository
+@Service
 public class EventDAO {
     private static final Logger LOG = LoggerFactory.getLogger(EventDAO.class);
 
     @Autowired
     private EventRepository repo;
 
+    @Transactional
     public void save(Event obj) {
 	obj.autoFill();
 	repo.save(obj);
     }
 
+    @Transactional(readOnly = true)
     public Event findById(Long id) {
 	return repo.findOne(id);
     }
 
+    @Transactional(readOnly = true)
     public Event findById(Long id, User user) {
 	return repo.findOneByIdAndUser(id, user);
     }
@@ -63,14 +66,17 @@ public class EventDAO {
        @param filterParams Filtering parameters
        @return List of matching events
     */
+    @Transactional(readOnly = true)
     public List<Event> find(Long userId, Map<String, String> filterParams) {
 	return repo.find(User.makeUser(userId), filterParams);
     }
 
+    @Transactional(readOnly = true)
     public List<Event> eventsForUser(Long userId) {
 	return repo.findByUserOrderByStartDesc(User.makeUser(userId));
     }
 
+    @Transactional(readOnly = true)
     public long count(Long id) {
 	return repo.countByUser(User.makeUser(id));
     }
