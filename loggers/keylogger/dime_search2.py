@@ -99,62 +99,6 @@ def search_dime(srvurl, username, password, query, n_results):
         return []
 
 
-#Search using DiMe-server's own search function
-def search_dime_with_word_weights(srvurl, username, password, query, word_weights, n_results):
-    #------------------------------------------------------------------------------
-
-    #server_url = 'http://localhost:8080/api'
-    server_url = str(srvurl)
-    server_username = str(username)
-    server_password = str(password)
-
-    #------------------------------------------------------------------------------
-
-    # ping server (not needed, but fun to do :-)
-    try:
-        r = requests.post(server_url + '/ping')
-    except requests.exceptions.ConnectionError:
-        print('Ping failed: requests.exceptions.ConnectionError')
-        return []
-
-    if r.status_code != requests.codes.ok:
-        print('Ping failed: no connection to DiMe server', r.status_code)
-        return []
-
-    #try:
-    #    query_str = query.encode('utf-8')
-    #except UnicodeEncodeError:
-    #    print("<UnicodeEncodeError>")
-    #    return []
-
-    #print("DiMe query string:", query)
-
-    #Number of results from DiMe 
-    n_results = str(n_results)
-
-    #
-
-
-    #Query for DiMe server
-    query_string = server_url + '/search?query={}&limit=%s' % n_results
-    #
-    r = requests.get(query_string.format(query),
-                     headers={'content-type': 'application/json'},
-                     auth=(server_username, server_password),
-                     timeout=100)
-
-    if r.status_code != requests.codes.ok:
-        print('Query failed: no connection to DiMe server', r.status_code)
-        return []
-    elif len(r.json()) > 0:
-            r = r.json()
-            print('Search thread: number of data objects: ', len(r))
-            return r
-    else: 
-        print('Search thread: number of data objects: 0')
-        return []
-
-
 #Search using gensim's cossim-function (cosine similarity)
 def search_dime_docsim(query, data, index, dictionary):
     #
@@ -285,17 +229,20 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function 'search_dime_with_word_weights'
-def search_dime_using_linrel_keywords(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
+def search_dime_using_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
 
     #INPUTS:
     #query = string from keyboard
+    #n_kws = number of LinRel keywords added automatically to query-string
     #X     = document term matrix as tfidf form
     #tfidf = tfidf -model by which the query is transformed into a tfidf vector
     #dictionary = list of words and their indices ['word    ']
     #c     = Exploitation/Exploration coefficient
+    #mu    = Tikhonov regularization parameter
     #OUTPUTS:
     #jsons = list of jsons corresponding each resource 
     #kws   = keywords computed by LinRel
+    #winds = indices of the LinRel keywords
 
     #
     ndocuments = X.shape[0]
@@ -317,11 +264,14 @@ def search_dime_using_linrel_keywords(query, X, tfidf, dictionary, c, mu, srvurl
         dum_query = dum_query + dumstr
 
     #Add weights to suggested keywords (in this case the corresponding values of vsum )
+    n_kw = 1
     for i,word in enumerate(kws):
         if word in word_list:
-            continue 
-        dumstr = word+'^%f ' % vsum[i]
-        dum_query = dum_query + dumstr
+            continue
+        if n_kw <= n_kws:
+            dumstr = word+'^%f ' % vsum[i]
+            dum_query = dum_query + dumstr
+            n_kw = n_kw + 1
 
     #query = dum_word_list.join()
     print(dum_query)
@@ -332,6 +282,7 @@ def search_dime_using_linrel_keywords(query, X, tfidf, dictionary, c, mu, srvurl
     jsons = search_dime(srvurl, username, password, dum_query, n_results)
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
 
+    #
     return jsons, kws, winds
 
 #
@@ -514,8 +465,9 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Take take indices of elements of 'vsum' according to ascending order
     vsinds = np.argsort(vsum[:,0])
-    #Take last 20 indices from vsinds
-    vsinds = vsinds[-20:]
+    #Take last 20 indices from vsinds, i.e. choose 20 keywords
+    #vsinds = vsinds[-20:]
+    vsinds = vsinds[-100:]
     #Make reversed list of vsinds
     vsindsrev = reversed(vsinds)
     #Reverse

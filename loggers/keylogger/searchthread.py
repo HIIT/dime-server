@@ -53,7 +53,7 @@ class SearchThread(QThread):
   self.c          = 0.0
 
   #DiMe server path, username and password
-  self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
+  self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results, self.n_query_kws = read_user_ini()
   self.dataupdateinterval = 600
 
   #
@@ -216,7 +216,8 @@ class SearchThread(QThread):
           self.send_keywords.emit(kws)
       elif self.searchfuncid == 2:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path 
-        jsons, kws, winds = search_dime_using_linrel_keywords(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+        n_kws = 10
+        jsons, kws, winds = search_dime_using_linrel_keywords(dstr, n_kws, self.sX, self.tfidf, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
         #jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
         if len(jsons) > 0:
           #Return keyword list
