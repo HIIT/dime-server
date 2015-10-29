@@ -21,4 +21,5 @@ spring.jpa.hibernate.ddl-auto = update
 
 # To see general debugging output
 # logging.level.fi.hiit.dime=DEBUG
+# logging.level.org.hibernate=TRACE
 

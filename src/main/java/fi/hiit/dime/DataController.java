@@ -75,7 +75,7 @@ public class DataController extends AuthorizedController {
 
     private void dumpJson(Object input) {
 	try {
-	    LOG.info("JSON: " +
+	    LOG.debug("JSON: " +
 		     objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
 	} catch (IOException e) {
 	    LOG.warn("IOException when trying to JSONify object: " + e);
@@ -269,6 +269,8 @@ public class DataController extends AuthorizedController {
 	User user = getUser(auth);
 
 	input = storeEvent(input, user);
+
+	eventLog("Event", user, input, true);
 
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	

@@ -433,6 +433,8 @@ public class DataControllerTest extends RestTest {
 	
 	Message msg = createTestEmail(content1, "");
 	msg.appId = "iuerhfieruhf";
+	msg.addTag("mytag");
+	msg.addTag("anothertag");
 	MessageEvent event = new MessageEvent();
 	event.targettedResource = msg;
 
@@ -476,15 +478,15 @@ public class DataControllerTest extends RestTest {
 
 	Message msg2 = getElem.getBody();
 	assertEquals(content2, msg2.plainTextContent);
+	assertEquals(2, msg2.tags.size());
+	assertTrue(msg2.hasTag("mytag"));
+	assertTrue(msg2.hasTag("anothertag"));
 
 
 	// Next, try changing using appId instead of id
 	msg.resetId();
 	msg.plainTextContent = content3;
 	assertEquals(msg.getId(), null);
-	// event.targettedResource = msg;
-	// outEvent2.targettedResource.resetId();
-	// outEvent2.targettedResource.plainTextContent = content3;
 
 	dumpData("Changed message (appId)", event);
 
@@ -509,6 +511,9 @@ public class DataControllerTest extends RestTest {
 	dumpData("Got back", msg3);
 
 	assertEquals(content3, msg3.plainTextContent);
+	assertEquals(2, msg3.tags.size());
+	assertTrue(msg3.hasTag("mytag"));
+	assertTrue(msg3.hasTag("anothertag"));
     }
 
     @Test
