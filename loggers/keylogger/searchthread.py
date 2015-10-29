@@ -53,7 +53,7 @@ class SearchThread(QThread):
   self.c          = 0.0
 
   #DiMe server path, username and password
-  self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results, self.n_query_kws = read_user_ini()
+  self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
   self.dataupdateinterval = 600
 
   #
