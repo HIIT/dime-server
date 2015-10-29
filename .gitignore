@@ -11,4 +11,4 @@ HOWTO
 /loggers/keylogger/suggested_pages.txt
 /loggers/keylogger/typedwords.txt
 /loggers/keylogger/user.ini
-/config/application.properties
+/config/application-local.properties
