@@ -20,71 +20,9 @@ import random
 import nltk
 porter = nltk.PorterStemmer()
 
-#------------------------------------------------------------------------------
+import xml.etree.ElementTree as ET
 
-categoryindices_20news = {
-    "alt.atheism": 0,
-    "comp.graphics": 1,
-    "comp.os.ms-windows.misc": 2,
-    "comp.sys.ibm.pc.hardware": 3,
-    "comp.sys.mac.hardware": 4,
-    "comp.windows.x": 5,
-    "misc.forsale": 6,
-    "rec.autos": 7,
-    "rec.motorcycles": 8,
-    "rec.sport.baseball": 9,
-    "rec.sport.hockey": 10,
-    "sci.crypt": 11,
-    "sci.electronics": 12,
-    "sci.med": 13,
-    "sci.space": 14,
-    "soc.religion.christian": 15,
-    "talk.politics.guns": 16,
-    "talk.politics.mideast": 17,
-    "talk.politics.misc": 18,
-    "talk.religion.misc": 19 }
-gt_tag_20news = "newsgroup"
-usrname_20news = password_20news = "20news-nostem"
-
-categoryindices_reuters = {
-    "acq": 0,
-    "crude": 1,
-    "earn": 2,
-    "grain": 3,
-    "interest": 4,
-    "money-fx": 5,
-    "ship": 6,
-    "trade": 7 }
-gt_tag_reuters = "category"
-usrname_reuters = password_reuters = "reuters-r8-all"
-
-categoryindices_ohsumed = {
-    "C01": 0,
-    "C02": 1,
-    "C03": 2,
-    "C04": 3,
-    "C05": 4,
-    "C06": 5,
-    "C07": 6,
-    "C08": 7,
-    "C09": 8,
-    "C10": 9,
-    "C11": 10,
-    "C12": 11,
-    "C13": 12,
-    "C14": 13,
-    "C15": 14,
-    "C16": 15,
-    "C17": 16,
-    "C18": 17,
-    "C19": 18,
-    "C20": 19,
-    "C21": 20,
-    "C22": 21,
-    "C23": 22
-}
-gt_tag_ohsumed = "category"
-usrname_ohsumed = password_ohsumed = "ohsumed"
+from dataset_definitions import *
 
 #------------------------------------------------------------------------------
 
@@ -137,6 +75,26 @@ def process_input_file_ohsumed(line, j, qfn):
 
 #------------------------------------------------------------------------------
 
+def process_input_file_arxivcs(line, j, qfn):
+
+    doc = root[int(line)]
+
+    for field in doc:
+        text = field.text
+        if not field.attrib.has_key('name'):
+            continue
+        nameattr = field.attrib['name']
+        if nameattr == 'id':
+            filename = text
+        elif nameattr == 'abstract':
+            wordlist = text.split()
+        elif nameattr == 'subject' and text2cat_arxivcs.has_key(text):
+            filecategory = text2cat_arxivcs[text]
+
+    return filename, filecategory, wordlist
+
+#------------------------------------------------------------------------------
+
 def filter_string(string, do_stem=True):
 
     #tokens = nltk.word_tokenize(string)
@@ -182,7 +140,7 @@ def compute_doccategorylist(jsons):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dataset", metavar = "DATASET", 
-                    help="used dataset: 20news,reuters,ohsumed")
+                    help="used dataset: 20news,reuters,ohsumed,arxivcs")
 parser.add_argument("--queries", metavar = "FILE", 
                     help="list of queries to process")
 parser.add_argument("--querypath", metavar = "PATH", 
@@ -205,6 +163,8 @@ parser.add_argument('--randomstart', action='store_true',
                     help='start from a random position instead of beginning')
 parser.add_argument('--writeold', metavar='X:Y',
                     help='write X words from old document at position Y')
+parser.add_argument("--xmlfile", metavar = "XMLFILE", 
+                    help="XML file to read, needed by arxivcs")
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -219,6 +179,12 @@ args = parser.parse_args()
 srvurl, usrname_disabled, password_disabled, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
 #
 numwords = args.numwords
+
+if args.xmlfile:
+    print("Parsing XML, this may take a while")
+    tree = ET.parse(args.xmlfile)
+    root = tree.getroot()
+    print("Parsing XML done")
 
 if args.dataset == "20news":
     categoryindices = categoryindices_20news
@@ -238,6 +204,12 @@ elif args.dataset == "ohsumed":
     process_input_file = process_input_file_ohsumed
     usrname = usrname_ohsumed
     password = password_ohsumed
+elif args.dataset == "arxivcs":
+    categoryindices = categoryindices_arxivcs
+    gt_tag = gt_tag_arxivcs
+    process_input_file = process_input_file_arxivcs
+    usrname = usrname_arxivcs
+    password = password_arxivcs
 else:
     print("Unsupported dataset:", args.dataset)
     sys.exit()
@@ -567,6 +539,7 @@ for j,line in enumerate(f):
     #Save precisionlist
     filename = filename.replace('/','_')
     filename = filename.replace('.','_')
+    filename = filename.replace(':','_')
     pickle.dump(precisionlist, open('data/precisionlist_'+filename+'.list','wb'))
     if filecategory != filecategory_old and filecategory_old is not None:
         pickle.dump(precisionlist_old, open('data/precisionlistold_'+filename+'.list','wb'))
