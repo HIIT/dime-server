@@ -285,6 +285,56 @@ def search_dime_using_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu,
     #
     return jsons, kws, winds
 
+
+#
+def search_dime_using_only_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
+
+    #INPUTS:
+    #query = string from keyboard
+    #n_kws = number of LinRel keywords added automatically to query-string
+    #X     = document term matrix as tfidf form
+    #tfidf = tfidf -model by which the query is transformed into a tfidf vector
+    #dictionary = list of words and their indices ['word    ']
+    #c     = Exploitation/Exploration coefficient
+    #mu    = Tikhonov regularization parameter
+    #OUTPUTS:
+    #jsons = list of jsons corresponding each resource 
+    #kws   = keywords computed by LinRel
+    #winds = indices of the LinRel keywords
+
+    #
+    ndocuments = X.shape[0]
+    nwords     = len(dictionary)
+
+    #Convert query into bag of words representation
+    test_vec      = query2bow(query, dictionary)
+
+    #Get keywords related to input query string 
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
+
+    #Add weights to suggested keywords (in this case the corresponding values of vsum )
+    dum_query = ''
+    n_kw = 1
+    for i,word in enumerate(kws):
+        if n_kw <= n_kws:
+            dumstr = word+'^%f ' % vsum[i]
+            dum_query = dum_query + dumstr
+            n_kw = n_kw + 1
+
+    #query = dum_word_list.join()
+    print(dum_query)
+    #query = '%s' % query
+    #print(dum_word_list)
+
+    #Search resources from DiMe using Dime-servers own search function
+    jsons = search_dime(srvurl, username, password, dum_query, n_results)
+    #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
+
+    #
+    return jsons, kws, winds
+
+
+
 #
 def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu):
 
@@ -371,6 +421,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         #w_hat = w_hat/w_hat.sum()
 
     #Add r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
+    print("VALUE OF c: ",c)
     vsum = r_hat + c*sigma_hat
     #Normalize vsum
     if vsum.max() > 0.0:
