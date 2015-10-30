@@ -79,6 +79,7 @@ def process_input_file_arxivcs(line, j, qfn):
 
     doc = root[int(line)]
 
+    filename, filecategory, wordlist = None, None, []
     for field in doc:
         text = field.text
         if not 'name' in field.attrib:
@@ -306,6 +307,8 @@ for j,line in enumerate(f):
     filename, filecategory, wordlist = process_input_file(line, j, qfn)
     if filename is None:
         break
+    if filecategory is None:
+        continue
 
     if args.randomstart:
         random.seed(j)
