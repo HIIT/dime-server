@@ -206,5 +206,8 @@ if __name__ == "__main__":
 
     print "Processed %d entries" % i
     print "Skipped:", skipped
+    with open("skipped.txt", 'w') as file:
+        for item in skipped:
+            file.write("%d\n" % item)
 
 #------------------------------------------------------------------------------
