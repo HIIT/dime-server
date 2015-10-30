@@ -94,10 +94,14 @@ if __name__ == "__main__":
 	        before_date = sys.argv[4]
         	if( before_date == ''):
 	            before_date = '28-JUL-2015'
-		folders = conn.list()
-		n = len(folders[1])
+		rv,folders = conn.list()
+		n = len(folders)
 		for  i in range(1,n):
-			folder = folders[1][i].split("\"")[3] # getting the names of the folders which are separated by quotes
+			sp = folders[i].split("\"") # getting the names of the folders which are separated by quotes
+			if(len(sp) == 5):
+				folder = sp[3]
+			elif(len(sp) == 3):
+				folder = sp[2]
 			status = conn.select(folder, readonly=True)
 			if(status[0]=='NO'):
 				continue
