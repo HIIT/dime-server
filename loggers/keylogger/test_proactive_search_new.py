@@ -166,6 +166,13 @@ parser.add_argument('--writeold', metavar='X:Y',
 parser.add_argument("--xmlfile", metavar = "XMLFILE", 
                     help="XML file to read, needed by arxivcs")
 
+#
+parser.add_argument('--c', metavar='N', action='store', type=float,
+                    default=1.0, help='Exploration/Exploitation coeff.')
+parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
+                    default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
+
+
 args = parser.parse_args()
 
 #User ini
@@ -313,7 +320,7 @@ for j,line in enumerate(f):
     wordlist_old = wordlist.copy()
 
     # #Exploration/Exploitation coefficient
-    c = 1.0
+    c = args.c
 
     #Remove r_old.npy = old version of observed relevance vector
     if not args.norestart:    
@@ -367,7 +374,21 @@ for j,line in enumerate(f):
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
             print("Input to search function: ", dstr2)
-            jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+
+            #jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            #Search docs from DiMe and compute keywords
+            if args.dime_search_method == 1:
+                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            elif args.dime_search_method == 2:
+                #Number of keywords added to query
+                n_kws = 10
+                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            elif args.dime_search_method == 3:
+                #Number of keywords added to query
+                n_kws = 10
+                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            
+
             nsuggested_files = len(jsons)
 
             #
@@ -391,7 +412,13 @@ for j,line in enumerate(f):
                 histremoval_val = check_history_removal(histremoval_threshold, histremoval_ma_value)
                 if histremoval_val > histremoval_threshold:
                     dwordlist = dwordlist[-3:]
-
+                    
+            #Number of keywords appearing in GUI
+            n_kws = 10
+            kws = kws[0:n_kws]
+            #
+            winds = winds[0:n_kws]
+            #Compute keyword scores here for the n_kws keywords
             #
             all_kw_scores = []
             for ii in range(0,len(categoryindices)):

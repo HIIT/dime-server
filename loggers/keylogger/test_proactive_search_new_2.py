@@ -204,7 +204,7 @@ parser.add_argument('--randomstart', action='store_true',
 parser.add_argument('--c', metavar='N', action='store', type=float,
                     default=1.0, help='Exploration/Exploitation coeff.')
 parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
-                    default=1.0, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords')
+                    default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
 
 
 args = parser.parse_args()
@@ -317,7 +317,7 @@ for j,line in enumerate(f):
         wordlist = wordlist[newfirst:] + wordlist[:newfirst]
 
     # #Exploration/Exploitation coefficient
-    c = 1.0
+    c = args.c
 
     #Remove r_old.npy = old version of observed relevance vector
     if not args.norestart:    
@@ -380,6 +380,11 @@ for j,line in enumerate(f):
                 #Number of keywords added to query
                 n_kws = 10
                 jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            elif args.dime_search_method == 3:
+                #Number of keywords added to query
+                n_kws = 10
+                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+
 
             nsuggested_files = len(jsons)
 
