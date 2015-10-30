@@ -20,34 +20,80 @@ import random
 import nltk
 porter = nltk.PorterStemmer()
 
-#------------------------------------------------------------------------------
+import xml.etree.ElementTree as ET
 
-categoryindices = {
-    "alt.atheism": 0,
-    "comp.graphics": 1,
-    "comp.os.ms-windows.misc": 2,
-    "comp.sys.ibm.pc.hardware": 3,
-    "comp.sys.mac.hardware": 4,
-    "comp.windows.x": 5,
-    "misc.forsale": 6,
-    "rec.autos": 7,
-    "rec.motorcycles": 8,
-    "rec.sport.baseball": 9,
-    "rec.sport.hockey": 10,
-    "sci.crypt": 11,
-    "sci.electronics": 12,
-    "sci.med": 13,
-    "sci.space": 14,
-    "soc.religion.christian": 15,
-    "talk.politics.guns": 16,
-    "talk.politics.mideast": 17,
-    "talk.politics.misc": 18,
-    "talk.religion.misc": 19 }
+from dataset_definitions import *
 
 #------------------------------------------------------------------------------
 
+def process_input_file_20news(line, j, qfn):
 
-#------------------------------
+    dlist       = line.split("/")
+    filename    = line
+    filecategory= categoryindices[dlist[1]]
+
+    mbox = mailbox.mbox(args.querypath+'/'+filename)
+    if len(mbox) != 1:
+        print("ERROR: Multiple emails (", len(mbox), ") found in", filename)
+        return None, None, None
+    for message in mbox:
+        subject          = message['subject']
+        subject = filter_string(subject, not args.nostem)
+        subject_wordlist = subject.split()
+
+        msgpayload = message.get_payload()
+        msgpayload = filter_string(msgpayload, not args.nostem)
+        msgpayload_wordlist = msgpayload.split()
+
+        wordlist = subject_wordlist + msgpayload_wordlist        
+
+    return filename, filecategory, wordlist
+
+#------------------------------------------------------------------------------
+
+def process_input_file_reuters(line, j, qfn):
+    parts = line.split("\t")
+    filename = qfn+'_'+str(j)
+    filecategory= categoryindices[parts[0]]
+    wordlist = parts[1].split(" ")
+
+    return filename, filecategory, wordlist
+
+#------------------------------------------------------------------------------
+
+def process_input_file_ohsumed(line, j, qfn):
+
+    dlist       = line.split("/")
+    filename    = line
+    filecategory= categoryindices[dlist[0]]
+
+    with open (args.querypath+'/'+filename, "r") as myfile:
+        abstext = myfile.read()
+    wordlist = abstext.split()
+
+    return filename, filecategory, wordlist
+
+#------------------------------------------------------------------------------
+
+def process_input_file_arxivcs(line, j, qfn):
+
+    doc = root[int(line)]
+
+    for field in doc:
+        text = field.text
+        if not field.attrib.has_key('name'):
+            continue
+        nameattr = field.attrib['name']
+        if nameattr == 'id':
+            filename = text
+        elif nameattr == 'abstract':
+            wordlist = text.split()
+        elif nameattr == 'subject' and text2cat_arxivcs.has_key(text):
+            filecategory = text2cat_arxivcs[text]
+
+    return filename, filecategory, wordlist
+
+#------------------------------------------------------------------------------
 
 def filter_string(string, do_stem=True):
 
@@ -71,7 +117,7 @@ def filter_string(string, do_stem=True):
 #------------------------------------------------------------------------------
 
 #Compute list of topic ids corresponding each document id
-def compute_doccategorylist_20news(jsons):
+def compute_doccategorylist(jsons):
 
     doccategorylist = []
     for jsond in jsons:
@@ -80,7 +126,7 @@ def compute_doccategorylist_20news(jsons):
         sublist = []
         for tag in jsond['tags']:
             parts = tag.split('=')
-            if parts[0] == "newsgroup":
+            if parts[0] == gt_tag:
                 category = categoryindices[parts[1]]
                 sublist.append(category)
                 #dstr = dstr + ' ' + str(category)
@@ -93,6 +139,8 @@ def compute_doccategorylist_20news(jsons):
 #------------------------------------------------------------------------------
 
 parser = argparse.ArgumentParser()
+parser.add_argument("dataset", metavar = "DATASET", 
+                    help="used dataset: 20news,reuters,ohsumed,arxivcs")
 parser.add_argument("--queries", metavar = "FILE", 
                     help="list of queries to process")
 parser.add_argument("--querypath", metavar = "PATH", 
@@ -111,21 +159,61 @@ parser.add_argument('--nwritten', metavar='N', action='store', type=int,
                     default=50, help='number of words to write')
 parser.add_argument('--nclicked', metavar='X[:Y]',
                     help='click X suggested keywords with method Y')
-parser.add_argument('--c', metavar='N', action='store', type=float,
-                    default=1.0, help='Exploration/Exploitation coeff.')
-parser.add_argument('--numkws', metavar='N', action='store', type=int,
-                    default=10, help='Number of keywords in DiMe query')
-
+parser.add_argument('--randomstart', action='store_true',
+                    help='start from a random position instead of beginning')
+parser.add_argument('--writeold', metavar='X:Y',
+                    help='write X words from old document at position Y')
+parser.add_argument("--xmlfile", metavar = "XMLFILE", 
+                    help="XML file to read, needed by arxivcs")
 
 #
+parser.add_argument('--c', metavar='N', action='store', type=float,
+                    default=1.0, help='Exploration/Exploitation coeff.')
+parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
+                    default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
+
+
 args = parser.parse_args()
 
 #User ini
-srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
-#srvurl, usrname, password, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval = read_user_ini()
+srvurl, usrname_disabled, password_disabled, time_interval, nspaces, numwords_disabled, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
+#
 numwords = args.numwords
-n_kws = args.numkws
 
+if args.xmlfile:
+    print("Parsing XML, this may take a while")
+    tree = ET.parse(args.xmlfile)
+    root = tree.getroot()
+    print("Parsing XML done")
+
+if args.dataset == "20news":
+    categoryindices = categoryindices_20news
+    gt_tag = gt_tag_20news
+    process_input_file = process_input_file_20news
+    usrname = usrname_20news
+    password = password_20news
+elif args.dataset == "reuters":
+    categoryindices = categoryindices_reuters
+    gt_tag = gt_tag_reuters
+    process_input_file = process_input_file_reuters
+    usrname = usrname_reuters
+    password = password_reuters
+elif args.dataset == "ohsumed":
+    categoryindices = categoryindices_ohsumed
+    gt_tag = gt_tag_ohsumed
+    process_input_file = process_input_file_ohsumed
+    usrname = usrname_ohsumed
+    password = password_ohsumed
+elif args.dataset == "arxivcs":
+    categoryindices = categoryindices_arxivcs
+    gt_tag = gt_tag_arxivcs
+    process_input_file = process_input_file_arxivcs
+    usrname = usrname_arxivcs
+    password = password_arxivcs
+else:
+    print("Unsupported dataset:", args.dataset)
+    sys.exit()
+    
 if not args.queries:
     print("args.queries is empty")
     sys.exit()
@@ -151,8 +239,16 @@ if args.nclicked:
     if len(parts)>1:
         nclicked_method = int(parts[1])
 
+writeold_n = 0
+writeold_pos = 0
+if args.writeold:
+    print(args.writeold)
+    parts = args.writeold.split(":")
+    writeold_n = int(parts[0])
+    if len(parts)>1:
+        writeold_pos = int(parts[1])
 
-#Update all necessary data files
+#update_data(srvurl, usrname, password)
 check_update()
 #Load necessary data files 
 json_data = open('data/json_data.txt')
@@ -176,7 +272,7 @@ tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
 index      = similarities.docsim.Similarity.load('data/similarityvec')
 
 #Compute topics of each document
-doccategorylist = compute_doccategorylist_20news(data)
+doccategorylist = compute_doccategorylist(data)
 
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
@@ -192,48 +288,36 @@ dwordlist = []
 
 filecategory_old = None
 
-#
-filename = args.queries
-print("Reading simulation queries from file", filename)
+wordlist_old = []
 
 #
-f = open(filename,'r')
+print("Reading simulation queries from file", args.queries)
+
+#
+f = open(args.queries, 'r')
+
+qparts = args.queries.rsplit("/",1)
+qfn = qparts[1]
 
 for j,line in enumerate(f):
 
-    #dstr = line.read()
     line        = line.rstrip()
-    dlist       = line.split("/")
-    filename    = line
-    filecategory= categoryindices[dlist[1]]
-    #print "filename2: ", dlist[0], dlist[1]
-    #print 'enron_with_categories/'+dlist[0]
-    #dumfile = open('enron_with_categories/'+dlist[0])
-
-    #print "Message ",j
-    #
-    #mbox = mailbox.mbox(parts[0])
-    mbox = mailbox.mbox(args.querypath+'/'+filename)
-    if len(mbox) != 1:
-        print("ERROR: Multiple emails (", len(mbox), ") found in", filename)
+    
+    filename, filecategory, wordlist = process_input_file(line, j, qfn)
+    if filename is None:
         break
-    for message in mbox:
-        #json_payload = create_payload(message, i, parts[1], parts[2])
-        subject          = message['subject']
-        #print subject
-        subject = filter_string(subject, not args.nostem)
-        #print subject
-        subject_wordlist = subject.split()
-        #print subject
 
-        msgpayload = message.get_payload()
-        #print msgpayload
-        msgpayload = filter_string(msgpayload, not args.nostem)
+    if args.randomstart:
+        random.seed(j)
+        newfirst = random.randrange(len(wordlist))
+        wordlist = wordlist[newfirst:] + wordlist[:newfirst]
 
-        msgpayload_wordlist = msgpayload.split()
+    wordlist_r = list(reversed(wordlist[:writeold_pos]+wordlist_old[:writeold_n]+wordlist[writeold_pos:]))
+    #print(wordlist)
+    #print(wordlist_old)
+    #print(wordlist_r)
 
-        wordlist = subject_wordlist + msgpayload_wordlist
-        #print msgpayload_wordlist
+    wordlist_old = wordlist.copy()
 
     # #Exploration/Exploitation coefficient
     c = args.c
@@ -264,7 +348,6 @@ for j,line in enumerate(f):
 
     kws = []
 
-    wordlist_r = list(reversed(wordlist))
     i = 0
     while len(wordlist_r)>0:                
         dstr = wordlist_r.pop()
@@ -278,7 +361,7 @@ for j,line in enumerate(f):
             #
             if i2 == 0:
                 print("###########################################")
-                print("STARTING NEW MAIL no. ", j)
+                print("STARTING NEW ARTICLE no. ", j)
                 print("###########################################")
                 filelocatorlist.append(1.0)
             else:
@@ -291,8 +374,21 @@ for j,line in enumerate(f):
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
             print("Input to search function: ", dstr2)
-            #jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, srvurl, usrname, password)
-            jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+
+            #jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            #Search docs from DiMe and compute keywords
+            if args.dime_search_method == 1:
+                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            elif args.dime_search_method == 2:
+                #Number of keywords added to query
+                n_kws = 10
+                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            elif args.dime_search_method == 3:
+                #Number of keywords added to query
+                n_kws = 10
+                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+            
+
             nsuggested_files = len(jsons)
 
             #
@@ -316,15 +412,17 @@ for j,line in enumerate(f):
                 histremoval_val = check_history_removal(histremoval_threshold, histremoval_ma_value)
                 if histremoval_val > histremoval_threshold:
                     dwordlist = dwordlist[-3:]
-
+                    
+            #Number of keywords appearing in GUI
+            n_kws = 10
+            kws = kws[0:n_kws]
+            #
+            winds = winds[0:n_kws]
+            #Compute keyword scores here for the n_kws keywords
             #
             all_kw_scores = []
-            kw_maxind = 0
-            kw_randind = 0
-            for ii in range(0,20):
+            for ii in range(0,len(categoryindices)):
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
-                #print("Mean kw scores:",kwm,"kw_scores_topic:",kw_scores_topic)
-                #Take keyword scores for 'filecategory'
                 if ii == filecategory:
                     if len(kw_scores_topic) > 0:
                         #print(len(kw_scores_topic))
@@ -338,7 +436,6 @@ for j,line in enumerate(f):
                         #print("kw_maxind: ", kw_maxind)
                     else:
                         kw_maxind = 0
-                        kw_randind = 0
                 all_kw_scores.append(kwm)
             kw_scores = all_kw_scores[filecategory]
             if filecategory_old is not None:
@@ -361,7 +458,7 @@ for j,line in enumerate(f):
                 #Split file -tag for checking category
                 for ti, tag in enumerate(json['tags']):
                     parts = json['tags'][ti].split('=')
-                    if parts[0] == "newsgroup":
+                    if parts[0] == gt_tag:
                         #
                         categoryid = categoryindices[parts[1]]
                         print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
@@ -414,8 +511,11 @@ for j,line in enumerate(f):
         elif i>=(args.nwritten):
             try:
                 if nclicked_method == 3:
-                    kw_randind2 = random.randint(0,len(kws)-1)
-                    kw_clicked  = kws[kw_randind2]
+                    if len(kws)>0:
+                        kw_randind2 = random.randint(0,len(kws)-1)
+                        kw_clicked  = kws[kw_randind2]
+                    else:
+                        kw_clicked = kws[0]
                 elif nclicked_method == 2:
                     if kw_randind>len(kws)-1:
                         kw_randind = kw_maxind
@@ -439,6 +539,7 @@ for j,line in enumerate(f):
     #Save precisionlist
     filename = filename.replace('/','_')
     filename = filename.replace('.','_')
+    filename = filename.replace(':','_')
     pickle.dump(precisionlist, open('data/precisionlist_'+filename+'.list','wb'))
     if filecategory != filecategory_old and filecategory_old is not None:
         pickle.dump(precisionlist_old, open('data/precisionlistold_'+filename+'.list','wb'))

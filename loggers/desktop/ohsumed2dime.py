@@ -2,7 +2,7 @@
 
 import os
 import sys
-import mailbox
+#import mailbox
 import requests
 import argparse
 import time
@@ -16,6 +16,31 @@ import dlog_common as common
 
 porter = nltk.PorterStemmer()
 #wnl = nltk.WordNetLemmatizer()
+cat2text = {
+    "C01": "Bacterial Infections and Mycoses",
+    "C02": "Virus Diseases",
+    "C03": "Parasitic Diseases",
+    "C04": "Neoplasms",
+    "C05": "Musculoskeletal Diseases",
+    "C06": "Digestive System Diseases",
+    "C07": "Stomatognathic Diseases",
+    "C08": "Respiratory Tract Diseases",
+    "C09": "Otorhinolaryngologic Diseases",
+    "C10": "Nervous System Diseases",
+    "C11": "Eye Diseases",
+    "C12": "Urologic and Male Genital Diseases",
+    "C13": "Female Genital Diseases and Pregnancy Complications",
+    "C14": "Cardiovascular Diseases",
+    "C15": "Hemic and Lymphatic Diseases",
+    "C16": "Neonatal Diseases and Abnormalities",
+    "C17": "Skin and Connective Tissue Diseases",
+    "C18": "Nutritional and Metabolic Diseases",
+    "C19": "Endocrine Diseases",
+    "C20": "Immunologic Diseases",
+    "C21": "Disorders of Environmental Origin",
+    "C22": "Animal Diseases",
+    "C23": "Pathological Conditions, Signs and Symptoms"
+}
 
 #------------------------------------------------------------------------------
 
@@ -40,30 +65,30 @@ def filter_string(string, do_stem=True):
 
 #------------------------------------------------------------------------------
 
-def create_payload(message, i, fn, do_stem):
+def create_payload(line, fn, i, do_stem):
 
     print "---###---###---###---###---###---###---###---###---###---###---"
     print
-    print '%d: %s "%s" from %s' % (i, message['Message-ID'], message['subject'], message['from'])
+    print '%d: %s' % (i, line)
     print
 
-    parts = fn.split("/")
-    finaltags = ['filename='+fn, 'newsgroup='+parts[0]]
-    
+    parts = line.split("/")
+    finaltags = ['filename='+line, 'category='+parts[0], 'categorytext='+cat2text[parts[0]]]
+
     payload = {
         '@type':  'MessageEvent',
-        'actor':    '20news2dime.py',
+        'actor':    'ohsumed2dime.py',
         'origin':   config['hostname'],
         'type':     'http://www.hiit.fi/ontologies/dime/#NewsEvent',
         'duration': 0}
-    
+
     targettedResource = {
         '@type':      'Message',
-        'uri': fn,
+        'uri': 'file://'+fn+'#'+str(i),
         'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nmo/#Message',
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#LocalFileDataObject',
-        'subject': filter_string(message['Subject'], do_stem),
-        'fromString': message['From'],
+        #'subject': filter_string(message['Subject'], do_stem),
+        #'fromString': message['From'],
         'tags' : finaltags
         #'attachments': [],
         #'rawMessage': '' # the full raw message here...
@@ -74,15 +99,10 @@ def create_payload(message, i, fn, do_stem):
     payload['targettedResource']['id'] = targettedResource['id']
     payload['id'] = common.to_json_sha1(payload)
 
-    msgpayload = message.get_payload()
-    msgtext = ''
-    while isinstance(msgpayload, list): 
-        msgpayload = msgpayload[0].get_payload()
+    with open (line, "r") as myfile:
+        abstext = myfile.read()
 
-    if isinstance(msgpayload, str):
-        msgtext = msgpayload
-
-    targettedResource['plainTextContent'] = filter_string(msgtext, do_stem)
+    targettedResource['plainTextContent'] = filter_string(abstext, do_stem)
 
     payload['targettedResource'] = targettedResource.copy()
 
@@ -92,16 +112,16 @@ def create_payload(message, i, fn, do_stem):
 
 if __name__ == "__main__":
 
-    print "Starting the enron2dime.py logger on " + time.strftime("%c")
+    print "Starting the ohsumed2dime.py logger on " + time.strftime("%c")
 
-    parser = argparse.ArgumentParser(description='Sends 20 Newsgroups data to DiMe.')
+    parser = argparse.ArgumentParser(description='Sends Ohsumed medical abstracts data to DiMe.')
 
     parser.add_argument('msgfile', metavar='FILE',
-                        help='list of newsgroup articles to be processed')
+                        help='list of abstracts to be processed')
     parser.add_argument('--dryrun', action='store_true',
                         help='do not actually send anything')
     parser.add_argument('--limit', metavar='N', action='store', type=int,
-                        default=0, help='process only N first messages')
+                        default=0, help='process only N first abstracts')
     parser.add_argument('--nostem', action='store_true',
                         help='disable Porter stemming of tokens')
 
@@ -109,7 +129,7 @@ if __name__ == "__main__":
 
     cwd = os.getcwd()
     os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
-    conf.configure(inifile="20news.ini")
+    conf.configure(inifile="ohsumed.ini")
     os.chdir(cwd)
 
     print "Username read from ini-file:", config['username']
@@ -127,19 +147,16 @@ if __name__ == "__main__":
     with open(args.msgfile) as f:
         for line in f:
             line = line.rstrip()
+            print
             print "Processing [{}]".format(line)
-            mbox = mailbox.mbox(line)
-            if len(mbox) != 1:
-                print "ERROR: Multiple messages found in", line
-                break
-            for message in mbox:
-                json_payload = create_payload(message, i, line, not args.nostem)
-                if json_payload is None:
-                    continue
-                print "PAYLOAD:\n" + json_payload
 
-                if not args.dryrun:
-                    common.post_payload(json_payload, "event")
+            json_payload = create_payload(line, args.msgfile, i, not args.nostem)
+            if json_payload is None:
+                continue
+            print "PAYLOAD:\n" + json_payload
+
+            if not args.dryrun:
+                common.post_payload(json_payload, "event")
 
             if args.limit>0 and i >= args.limit:
                 break

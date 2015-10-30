@@ -180,12 +180,14 @@ public class SearchIndex {
 		}
 	    }
 
+	    long tot = toIndex.size();
 	    for (InformationElement elem : toIndex) {
 		if (indexElement(writer, elem))
 		    count += 1;
 		else
 		    skipped += 1;
 
+		LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
 		infoElemDAO.setIndexed(elem);
 	    }
 

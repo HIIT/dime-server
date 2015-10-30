@@ -34,53 +34,6 @@ import scipy.cluster
 #
 #import matplotlib.pyplot as plt
 
-
-#####
-#Some additional functions that are used in search_dime function
-#
-def twotuplelist2fulllist(tuplelist, nfeatures):
-    if len(tuplelist) == 0:
-        vec = [0]*nfeatures
-        #pass
-    else:
-        #
-        vec = [0]*nfeatures
-        nel = len(tuplelist[0])
-        #print 'Num. of el.:', nel
-        for i in range(len(tuplelist)):
-            vec[tuplelist[i][0]] = tuplelist[i][1]
-
-    vec = np.array(vec)
-    #print 'Length of wordlist: ', len(vec)
-    return vec
-
-#Remove unwanted words
-def remove_unwanted_words(testlist):
-    #Load stopwordlist
-    cpath = os.getcwd()
-    cpathd= cpath + '/' + 'data/' + 'stopwordlist.list'
-    #f = open(cpathd,'r')
-    #stoplist = pickle.load(f)
-    stoplist = pickle.load(open(cpathd,'rb'))
-
-    chgd = True
-    if len(testlist) > 0:
-        for iword, word in enumerate(testlist):
-            while chgd:
-                if not iword > len(testlist)-1:
-                    if testlist[iword] in stoplist:
-                        del testlist[iword]
-                        chgd = True
-                    else:
-                        chgd = False
-                else:
-                    break
-            chgd = True
-
-    return testlist
-
-
-
 ################################################################
 #Search functions 
 ################################################################
@@ -122,6 +75,7 @@ def search_dime(srvurl, username, password, query, n_results):
 
     #Query for DiMe server
     query_string = server_url + '/search?query={}&limit=%s' % n_results
+    #
     r = requests.get(query_string.format(query),
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
@@ -213,7 +167,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
     test_vec      = query2bow(query, dictionary)
 
     #
-    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c, mu)
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, dictionary, c, mu)
     kws_vec    = dictionary.doc2bow(kws)
 
     #make string of keywords 
@@ -261,7 +215,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
     test_vec      = query2bow(query, dictionary)
 
     #Get keywords related to input query string 
-    winds, kws = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
 
     #make string of keywords 
     query = '%s' % query
@@ -271,49 +225,125 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
 
     return jsons, kws, winds
 
+
+
+#Function that computes keywords using LinRel and makes search using
+#DiMe-server's own search function 'search_dime_with_word_weights'
+def search_dime_using_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
+
+    #INPUTS:
+    #query = string from keyboard
+    #n_kws = number of LinRel keywords added automatically to query-string
+    #X     = document term matrix as tfidf form
+    #tfidf = tfidf -model by which the query is transformed into a tfidf vector
+    #dictionary = list of words and their indices ['word    ']
+    #c     = Exploitation/Exploration coefficient
+    #mu    = Tikhonov regularization parameter
+    #OUTPUTS:
+    #jsons = list of jsons corresponding each resource 
+    #kws   = keywords computed by LinRel
+    #winds = indices of the LinRel keywords
+
+    #
+    ndocuments = X.shape[0]
+    nwords     = len(dictionary)
+
+    #Convert query into bag of words representation
+    test_vec      = query2bow(query, dictionary)
+
+    #Get keywords related to input query string 
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
+
+    #Convert input from keyboard to list of words
+    word_list = query.split()
+    #Add weights (in this case all are 1)
+    dum_query = ''
+    for word in word_list:
+        dumstr = word+'^1.0 '
+        #dum_word_list.append(dumstr)
+        dum_query = dum_query + dumstr
+
+    #Add weights to suggested keywords (in this case the corresponding values of vsum )
+    n_kw = 1
+    for i,word in enumerate(kws):
+        if word in word_list:
+            continue
+        if n_kw <= n_kws:
+            dumstr = word+'^%f ' % vsum[i]
+            dum_query = dum_query + dumstr
+            n_kw = n_kw + 1
+
+    #query = dum_word_list.join()
+    print(dum_query)
+    #query = '%s' % query
+    #print(dum_word_list)
+
+    #Search resources from DiMe using Dime-servers own search function
+    jsons = search_dime(srvurl, username, password, dum_query, n_results)
+    #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
+
+    #
+    return jsons, kws, winds
+
+
 #
-def query2bow(query,dictionary):
+def search_dime_using_only_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
 
-    #inputs:
-    #query      = string input
-    #dictionary = gensim dictionary containing words taken from dime data
+    #INPUTS:
+    #query = string from keyboard
+    #n_kws = number of LinRel keywords added automatically to query-string
+    #X     = document term matrix as tfidf form
+    #tfidf = tfidf -model by which the query is transformed into a tfidf vector
+    #dictionary = list of words and their indices ['word    ']
+    #c     = Exploitation/Exploration coefficient
+    #mu    = Tikhonov regularization parameter
+    #OUTPUTS:
+    #jsons = list of jsons corresponding each resource 
+    #kws   = keywords computed by LinRel
+    #winds = indices of the LinRel keywords
 
-    #Output:
-    #test_vec   = bag of word representation of query string
+    #
+    ndocuments = X.shape[0]
+    nwords     = len(dictionary)
+
+    #Convert query into bag of words representation
+    test_vec      = query2bow(query, dictionary)
+
+    #Get keywords related to input query string 
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
+
+    #Add weights to suggested keywords (in this case the corresponding values of vsum )
+    dum_query = ''
+    n_kw = 1
+    for i,word in enumerate(kws):
+        if n_kw <= n_kws:
+            dumstr = word+'^%f ' % vsum[i]
+            dum_query = dum_query + dumstr
+            n_kw = n_kw + 1
+
+    #query = dum_word_list.join()
+    print(dum_query)
+    #query = '%s' % query
+    #print(dum_word_list)
+
+    #Search resources from DiMe using Dime-servers own search function
+    jsons = search_dime(srvurl, username, password, dum_query, n_results)
+    #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
+
+    #
+    return jsons, kws, winds
 
 
-    #Make list of words from the query string
-    test_wordlist = query.lower().split()
-    #Remove unwanted words from query
-    test_wordlist = remove_unwanted_words(test_wordlist)
-
-    #Convert the words into nearest dictionary word
-    for nword, word in enumerate(test_wordlist):
-        correctedword = difflib.get_close_matches(word, list(dictionary.values()))
-        if len(correctedword):
-            test_wordlist[nword] = correctedword[0]
-        else:
-            test_wordlist[nword] = ' '
-    print(("Search thread: Closest dictionary words: ", test_wordlist))
-    #f = open('data/test_wordlist.list','w')
-    #pickle.dump(test_wordlist,f)
-    pickle.dump(test_wordlist, open('data/test_wordlist.list','wb'))
-
-    #Make bag of word vector of the input string taken from keyboard
-    test_vec = dictionary.doc2bow(test_wordlist)
-
-    return test_vec
 
 #
 def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu):
 
-    #Inputs:
+    #INPUTS:
     #test_vec   = bag of word representation of the input query string (taken from keyboard)
     #X          = tfidf matrix of resources
     #dictionary = gensim dictionary containing words taken from dime data
     #c          = Exploitation/Exploration coefficient
-
-    #Output:
+    #OUTPUTS:
     #vsinds     = list of indices of keywords
     #kws        = list of keywords
 
@@ -364,8 +394,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury(r, X, mu)
     #r_hat, sigma_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc(r, X, mu)
     r_hat, sigma_hat, w_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(r, X, mu)
-    #print("w_hat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!:", w_hat)
-
+    #print("w_hat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ", w_hat)
 
     #Compute to norm of sigma_hat
     norm_sigma_hat = np.linalg.norm(sigma_hat)
@@ -376,8 +405,6 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     else:
         norm_sigma_hat_vec = np.array([norm_sigma_hat])
         np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
-
-
 
     #Normalize relevance estimate vector
     if r_hat.sum() > 0.0:
@@ -394,6 +421,7 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         #w_hat = w_hat/w_hat.sum()
 
     #Add r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
+    print("VALUE OF c: ",c)
     vsum = r_hat + c*sigma_hat
     #Normalize vsum
     if vsum.max() > 0.0:
@@ -488,8 +516,9 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Take take indices of elements of 'vsum' according to ascending order
     vsinds = np.argsort(vsum[:,0])
-    #Take last 20 indices from vsinds
-    vsinds = vsinds[-20:]
+    #Take last 20 indices from vsinds, i.e. choose 20 keywords
+    #vsinds = vsinds[-20:]
+    vsinds = vsinds[-100:]
     #Make reversed list of vsinds
     vsindsrev = reversed(vsinds)
     #Reverse
@@ -519,9 +548,12 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
             #print 'Suggested keywords by vsinds: ', dictionary.get(vsinds[i]), type(dictionary.get(vsinds[i])), vsum[vsinds[i]]
             kws.append(dictionary.get(vsinds[i]))
         #
-        return vsinds, kws
+        #Take the vsum values of keywords and normalize with respect to maximum value
+        if vsum.max() > 0.0:
+            vsum = vsum/vsum.max()
+        return vsinds, kws, vsum[vsinds]
     else:
-        return [], []
+        return [], [], []
 
 
 def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
@@ -534,9 +566,6 @@ def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
     #Output
     #y_hatapp     = estimation of relevance vector 
     #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
-
-
-
 
     #Load document term matrix 
     #sX = load_sparse_csc('data/sX.sparsemat.npz')
@@ -763,11 +792,6 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
 
     return y_hat, sigma_hat, w_hat
 
-
-
-
-
-
 #
 def recompute_keywords(c):
     #print 'c', c
@@ -791,6 +815,9 @@ def recompute_keywords(c):
     vsinds= np.argsort(vsum[:,0])
     kwinds= np.argsort(r_hat[:,0])
 
+    #Initialize list of keywords
+    kws = []
+
     if r_hat.max() > 0.0:
         kwinds = kwinds[-20:]
         vsinds = vsinds[-20:]
@@ -802,8 +829,6 @@ def recompute_keywords(c):
             kwindsd.append(i)
         #
         kwinds = kwindsd
-        #Initialize list of keywords
-        kws = []
         #print 'Indices of estimated keywords: ', kwinds
         #kwinds= docinds.tolist()
         for i in range(len(kwinds)):
