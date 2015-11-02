@@ -111,7 +111,7 @@ categoryindices_arxivcs = {
     "cs.SE": 36,
     "cs.SD": 37,
     "cs.SC": 38,
-    "cs.SY": 40
+    "cs.SY": 39
 }
 gt_tag_arxivcs = "category"
 usrname_arxivcs = password_arxivcs = "arxiv-cs-99-20151028"

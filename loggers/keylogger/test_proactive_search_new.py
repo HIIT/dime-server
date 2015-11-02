@@ -79,17 +79,18 @@ def process_input_file_arxivcs(line, j, qfn):
 
     doc = root[int(line)]
 
+    filename, filecategory, wordlist = None, None, []
     for field in doc:
         text = field.text
-        if not field.attrib.has_key('name'):
+        if not 'name' in field.attrib:
             continue
         nameattr = field.attrib['name']
         if nameattr == 'id':
             filename = text
         elif nameattr == 'abstract':
             wordlist = text.split()
-        elif nameattr == 'subject' and text2cat_arxivcs.has_key(text):
-            filecategory = text2cat_arxivcs[text]
+        elif nameattr == 'subject' and text in text2cat_arxivcs:
+            filecategory = categoryindices[text2cat_arxivcs[text]]
 
     return filename, filecategory, wordlist
 
@@ -249,7 +250,7 @@ if args.writeold:
         writeold_pos = int(parts[1])
 
 #update_data(srvurl, usrname, password)
-check_update()
+check_update(usrname, password)
 #Load necessary data files 
 json_data = open('data/json_data.txt')
 #DiMe data in json -format
@@ -306,6 +307,8 @@ for j,line in enumerate(f):
     filename, filecategory, wordlist = process_input_file(line, j, qfn)
     if filename is None:
         break
+    if filecategory is None:
+        continue
 
     if args.randomstart:
         random.seed(j)
