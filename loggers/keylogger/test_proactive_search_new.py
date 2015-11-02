@@ -250,7 +250,7 @@ if args.writeold:
         writeold_pos = int(parts[1])
 
 #update_data(srvurl, usrname, password)
-check_update()
+check_update(usrname, password)
 #Load necessary data files 
 json_data = open('data/json_data.txt')
 #DiMe data in json -format

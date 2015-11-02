@@ -101,55 +101,60 @@ def update_all_data():
 	create_stopwordlist(cpathd)	
 
 #Check whether to update data files
-def check_update():
+def check_update(_username=None, _password=None):
 
-	#
-	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
-	
-	#Get current path
-	cpath  = os.getcwd()
-	cpathd = cpath + '/' + 'data'
-	
-	#
-	if os.path.exists(cpathd):
-		print('Search thread: check_update: data/ folder EXISTS!')
+        #
+        srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
 
-		if not os.path.isfile('data/json_data.txt'):
-			update_data(srvurl, username, password)
+        if _username is not None:
+            username = _username
+        if _password is not None:
+            password = _password
 
-		if not os.path.isfile('data/tmpdict.dict'):
-			update_dictionary()			
+        #Get current path
+        cpath  = os.getcwd()
+        cpathd = cpath + '/' + 'data'
 
-		if not os.path.isfile('data/doctm.data'):
-			update_doctm(cpathd)
-			update_doc_tfidf_list(cpathd)
+        #
+        if os.path.exists(cpathd):
+                print('Search thread: check_update: data/ folder EXISTS!')
 
-		#if not os.path.isfile('/tmp/similarityvec'):
-		if not os.path.isfile('data/similarityvec'):
-			update_docsim_model()
+                if not os.path.isfile('data/json_data.txt'):
+                        update_data(srvurl, username, password)
 
-		if not os.path.isfile('data/docindlist.list'):
-			update_Xt_and_docindlist([0])
+                if not os.path.isfile('data/tmpdict.dict'):
+                        update_dictionary()
 
-		if not os.path.isfile('data/tfidfmodel.model'):
-			update_tfidf_model(cpathd)
+                if not os.path.isfile('data/doctm.data'):
+                        update_doctm(cpathd)
+                        update_doc_tfidf_list(cpathd)
 
-		if not os.path.isfile('data/stopwordlist.list'):
-			create_stopwordlist(cpathd)
+                #if not os.path.isfile('/tmp/similarityvec'):
+                if not os.path.isfile('data/similarityvec'):
+                        update_docsim_model()
 
-	else: 
-		print('Search thread: check_update: data/ DOES NOT EXISTS! CREATE ONE!')
-		#Create data folder into the current path
-		os.makedirs(cpathd)
-		#
-		update_data(srvurl, username, password)
-		update_dictionary()			
-		update_doctm(cpathd)
-		update_doc_tfidf_list(cpathd)
-		update_docsim_model()
-		update_Xt_and_docindlist([0])
-		update_tfidf_model(cpathd)
-		create_stopwordlist(cpathd)		
+                if not os.path.isfile('data/docindlist.list'):
+                        update_Xt_and_docindlist([0])
+
+                if not os.path.isfile('data/tfidfmodel.model'):
+                        update_tfidf_model(cpathd)
+
+                if not os.path.isfile('data/stopwordlist.list'):
+                        create_stopwordlist(cpathd)
+
+        else:
+                print('Search thread: check_update: data/ DOES NOT EXISTS! CREATE ONE!')
+                #Create data folder into the current path
+                os.makedirs(cpathd)
+                #
+                update_data(srvurl, username, password)
+                update_dictionary()
+                update_doctm(cpathd)
+                update_doc_tfidf_list(cpathd)
+                update_docsim_model()
+                update_Xt_and_docindlist([0])
+                update_tfidf_model(cpathd)
+                create_stopwordlist(cpathd)
 
 
 #Update data
