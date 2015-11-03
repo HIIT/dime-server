@@ -101,7 +101,7 @@ if __name__ == "__main__":
 			if(len(sp) == 5):
 				folder = sp[3]
 			elif(len(sp) == 3):
-				folder = sp[2]
+				folder = sp[2].replace(' ','')
 			status = conn.select(folder, readonly=True)
 			if(status[0]=='NO'):
 				continue
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 				if(no%100 ==0):
 					print 'Read '+ str(no) + ' Emails'+'.'*(no/100)
 			print 'Total number of Extracted Emails:', len(emails)
-		conn.close()
+		#conn.close()
 		conn.logout()
 	        print 'Read All Emails'
 
