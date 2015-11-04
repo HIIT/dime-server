@@ -278,7 +278,7 @@ def update_doctm(destinationfolder):
 	#Import dictionary
 	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 	nwords = len(dictionary)
-	print("update_doctm: number of words in dictionary:", nwords)
+	print("update_files: update_doctm: number of words in dictionary:", nwords)
 
 	#Import data
 	f = open('data/json_data.txt','r')
@@ -338,6 +338,7 @@ def update_doc_tfidf_list(destinationfolder):
 	doctm = pickle.load(open('data/doctm.data','rb'))
 	#print 'rows doctm', len(doctm)
 
+
 	#Learn tfidf model from the document term matrix
 	tfidf = models.TfidfModel(doctm, normalize = True)
 
@@ -353,7 +354,9 @@ def update_doc_tfidf_list(destinationfolder):
 	pickle.dump(doc_tfidf_list, open(destinationfolder+'/doc_tfidf_list.data','wb'))
 
 	#Make also sparse matrix representation of doctm and doc_tfidf_list
+	print('started')
 	sparsemat = doc_tfidf_list_to_sparsemat(doctm)
+	print('finished')
 	print('Search thread: doctm sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sXdoctm.sparsemat',sparsemat)
 
@@ -369,16 +372,22 @@ def doc_tfidf_list_to_sparsemat(doc_tfidf_list):
 	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 	nwords = len(dictionary)
 
+	#Number of lists in doc_tfidf_list
 	nrow = len(doc_tfidf_list)
+	#Initialize sparse matrix
 	sparsemat = sparse.lil_matrix((nrow, nwords))
-	print(sparsemat.shape)
+	print("Size of a matrix ",sparsemat.data.nbytes)
+	#
+	print("Dimensions of a matrix ",sparsemat.shape)
+	#
 	row = 0
 	for d in doc_tfidf_list:
 		for c in d:
 			sparsemat[row,c[0]] = c[1]
 		row = row + 1
 	sparsemat = sparsemat.tocsc()
-
+	print("Size of a matrix ",sparsemat.data.nbytes)
+	#
 	return sparsemat
 
 
@@ -393,8 +402,7 @@ def load_sparse_csc(filename):
     return sparse.csc_matrix((  loader['data'], loader['indices'], loader['indptr']),
                          shape = loader['shape'])	
 
-
-
+#
 def update_Xt_and_docindlist(docindlist):
 
 	#print docindlist 
@@ -487,71 +495,9 @@ def update_docsim_model():
 	#index.save('/tmp/similarityvec')
 	index.save('data/similarityvec')
 
-#Updates LinRel matrix, denoted by A 
-def update_A(docinds, y):
-
-	#Load sparse tfidf matrix
-	#sX = np.load('sX.npy')
-	sX = load_sparse_csc('data/sX.sparsemat.npz')	
-
-	print("Search thread: Updating A")
-
-	#Compute estimation of weight vector (i.e. user model)
-	print('Search thread: Create Xt ')
-	sXcsr = sX.tocsr()
-	print('Search thread: Type of sXcsr: ', type(sXcsr))
-	sXtcsr= sXcsr[docinds,:]
-	Xt    = sXtcsr.toarray()
-	print('Search thread: Xt shape: ', Xt.shape)
-	print('Search thread: y shape: ', y.shape)
-
-	#
-	w = estimate_w(Xt,y)
-	w = np.array([w])
-	w = w.transpose()
-	#test_vec_full = twotuplelist2fulllist(test_vec, nwords)
-	#plt.plot(range(len(w)), w)
-	#plt.show()
-
-	#
-	yT    = y.transpose()
-	norm_y= np.linalg.norm(yT)
-	if norm_y > 0.0:
-		yT  = yT/(norm_y*norm_y)
-
-	#Update A
-	Atilde = w*yT
-	print('Search thread: Shape of Atilde: ', Atilde.shape)
-	print('Search thread: Max val of Atilde: ', Atilde.max())
-	sAtilde= sparse.csc_matrix(Atilde)
-	#print 'type sX, ', type(sX), 'shape, ', sX.shape
-	#print 'type sAtilde,', type(sAtilde), 'shape, ', sAtilde.shape
-	sA = sX*sAtilde
-	#A     = np.dot(X,Atilde)
-
-	#np.save('A.npy', A)
-	#update_Xt_and_docindlist(docinds)
-
-	return sA
-
-
-
-
-
-
- 
-#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
-#I.e. compute estimation of user model
-def estimate_w(Xt,y):
-	#
-	#mu = 1.5
-	mu = 0.0
-	w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
-	return w
-
-
 #Make full array from tfidf_vec (= is a list of 2-tuples i.e. (location, tfidf_value) ) 
-def make_tfidf_array(tfidf_vec, dictionary):
+#Not recommended!!
+def make_full_tfidf_array(tfidf_vec, dictionary):
 
     #Number of words in dictionary
     nwords = len(dictionary)
@@ -565,125 +511,6 @@ def make_tfidf_array(tfidf_vec, dictionary):
         tfidf_array[wid] = score
 
     return tfidf_array
-
-
-#
-def create_topic_model_and_doctid(numoftopics):
-
-	print("Create topic model!")
-
-	#Import data
-	f = open('json_data.txt','r')
-	data = json.load(f)
-
-	#Import dictionary
-	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
-
-	#Import document term matrix
-	f = open('doctm.data','r')
-	doctm = pickle.load(f)
-
-	#Number of documents in database
-	ndocuments = len(doctm)
-
-	#Compute cluster distributions (topics)
-	#ldamodel = models.LdaModel(doctm, num_topics = numoftopics, id2word = dictionary, passes=10, iterations=200)
-	ldamodel = models.LdaModel(doctm, num_topics = numoftopics, id2word = dictionary, passes=10, iterations=20)
-
-	#Save 'ldamodel' for future use
-	ldamodel.save('/tmp/tmpldamodel')
-
-    #Compute topic ids for documents
-	dtid = []
-	for i in range(len(doctm)):
-		dumtidv = []
-		dumtpv  = []
-		doc_lda = ldamodel[doctm[i]]
-		for j in range(len(doc_lda)):
-			dumtidv.append(doc_lda[j][0])
-			dumtpv.append(doc_lda[j][1])
-		dtid.append(dumtidv[np.argmax(dumtpv)])
-	dtid = np.array(dtid)
-	np.save('doctid.npy',dtid)
-
-
-	#Print words in topics
-	# for i in range(numoftopics):
-	# 	#Print most probable words in each cluster
-	# 	print 'topic ' + str(i)
-	# 	prkw = ldamodel.show_topic(i, topn=10)
-	# 	for j in range(len(prkw)):
-	# 		print prkw[j][0], prkw[j][1]
-
-	
-	#Compute doc. ind list of each topic
-	topicdocindlist = []
-	for i in range(numoftopics):
-		#print np.where(dtid == i)[0]
-		topicdocindlist.append(np.where(dtid==i)[0])
-
-	#Store the data of doctm
-	f = open('topicdocindlist.list','w')
-	pickle.dump(topicdocindlist, f)
-
-
-#
-def update_topic_model_and_doctid():
-
-	print("Updating topic model!")
-
-	#Import data
-	f = open('json_data.txt','r')
-	data = json.load(f)
-
-	#Import dictionary
-	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
-
-	#Import lda model
-	ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
-
-	#Import document term matrix
-	f = open('doctm.data','r')
-	doctm = pickle.load(f)
-
-	#Import topic document index list (for computing the number of topics )
-	f = open('topicdocindlist.list','r')
-	topicdocindlist = pickle.load(f)
-	numoftopics = len(topicdocindlist)
-
-	#Number of documents in database
-	ndocuments = len(doctm)
-
-	#Compute cluster distributions (topics)
-	#ldamodel = models.LdaModel(doctm, num_topics = numoftopics, id2word = dictionary, passes=10, iterations=200)
-	ldamodel.update(doctm)
-
-	#Save 'ldamodel' for future use
-	ldamodel.save('/tmp/tmpldamodel')
-
-    #Compute topic ids for documents
-	dtid = []
-	for i in range(len(doctm)):
-		dumtidv = []
-		dumtpv  = []
-		doc_lda = ldamodel[doctm[i]]
-		for j in range(len(doc_lda)):
-			dumtidv.append(doc_lda[j][0])
-			dumtpv.append(doc_lda[j][1])
-		dtid.append(dumtidv[np.argmax(dumtpv)])
-	dtid = np.array(dtid)
-	np.save('doctid.npy',dtid)
-
-	#Compute doc. ind list of each topic
-	topicdocindlist = []
-	for i in range(numoftopics):
-		#print np.where(dtid == i)[0]
-		topicdocindlist.append(np.where(dtid==i)[0])
-
-	#Store the data of doctm
-	f = open('topicdocindlist.list','w')
-	pickle.dump(topicdocindlist, f)
-
 
 
 #Remove words from dictionary based on df-value (df = document frequency)
@@ -750,16 +577,200 @@ def df_word_removal(sXdoctm, dictionary):
 
 
 
-
-
-
-
-
-
-
-
-
 #######
+#UNHOLA
+#######
+
+
+#Updates LinRel matrix, denoted by A 
+# def update_A(docinds, y):
+
+# 	#Load sparse tfidf matrix
+# 	#sX = np.load('sX.npy')
+# 	sX = load_sparse_csc('data/sX.sparsemat.npz')	
+
+# 	print("Search thread: Updating A")
+
+# 	#Compute estimation of weight vector (i.e. user model)
+# 	print('Search thread: Create Xt ')
+# 	sXcsr = sX.tocsr()
+# 	print('Search thread: Type of sXcsr: ', type(sXcsr))
+# 	sXtcsr= sXcsr[docinds,:]
+# 	Xt    = sXtcsr.toarray()
+# 	print('Search thread: Xt shape: ', Xt.shape)
+# 	print('Search thread: y shape: ', y.shape)
+
+# 	#
+# 	w = estimate_w(Xt,y)
+# 	w = np.array([w])
+# 	w = w.transpose()
+# 	#test_vec_full = twotuplelist2fulllist(test_vec, nwords)
+# 	#plt.plot(range(len(w)), w)
+# 	#plt.show()
+
+# 	#
+# 	yT    = y.transpose()
+# 	norm_y= np.linalg.norm(yT)
+# 	if norm_y > 0.0:
+# 		yT  = yT/(norm_y*norm_y)
+
+# 	#Update A
+# 	Atilde = w*yT
+# 	print('Search thread: Shape of Atilde: ', Atilde.shape)
+# 	print('Search thread: Max val of Atilde: ', Atilde.max())
+# 	sAtilde= sparse.csc_matrix(Atilde)
+# 	#print 'type sX, ', type(sX), 'shape, ', sX.shape
+# 	#print 'type sAtilde,', type(sAtilde), 'shape, ', sAtilde.shape
+# 	sA = sX*sAtilde
+# 	#A     = np.dot(X,Atilde)
+
+# 	#np.save('A.npy', A)
+# 	#update_Xt_and_docindlist(docinds)
+
+# 	return sA
+
+
+
+#Compute Tikhonov regularized solution for y=Xt*w (using scipy function lsqr)
+#I.e. compute estimation of user model
+# def estimate_w(Xt,y):
+# 	#
+# 	#mu = 1.5
+# 	mu = 0.0
+# 	w = scipy.sparse.linalg.lsqr(Xt,y, damp=mu)[0]
+# 	return w
+
+
+#
+# def create_topic_model_and_doctid(numoftopics):
+
+# 	print("Create topic model!")
+
+# 	#Import data
+# 	f = open('json_data.txt','r')
+# 	data = json.load(f)
+
+# 	#Import dictionary
+# 	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
+
+# 	#Import document term matrix
+# 	f = open('doctm.data','r')
+# 	doctm = pickle.load(f)
+
+# 	#Number of documents in database
+# 	ndocuments = len(doctm)
+
+# 	#Compute cluster distributions (topics)
+# 	#ldamodel = models.LdaModel(doctm, num_topics = numoftopics, id2word = dictionary, passes=10, iterations=200)
+# 	ldamodel = models.LdaModel(doctm, num_topics = numoftopics, id2word = dictionary, passes=10, iterations=20)
+
+# 	#Save 'ldamodel' for future use
+# 	ldamodel.save('/tmp/tmpldamodel')
+
+#     #Compute topic ids for documents
+# 	dtid = []
+# 	for i in range(len(doctm)):
+# 		dumtidv = []
+# 		dumtpv  = []
+# 		doc_lda = ldamodel[doctm[i]]
+# 		for j in range(len(doc_lda)):
+# 			dumtidv.append(doc_lda[j][0])
+# 			dumtpv.append(doc_lda[j][1])
+# 		dtid.append(dumtidv[np.argmax(dumtpv)])
+# 	dtid = np.array(dtid)
+# 	np.save('doctid.npy',dtid)
+
+
+# 	#Print words in topics
+# 	# for i in range(numoftopics):
+# 	# 	#Print most probable words in each cluster
+# 	# 	print 'topic ' + str(i)
+# 	# 	prkw = ldamodel.show_topic(i, topn=10)
+# 	# 	for j in range(len(prkw)):
+# 	# 		print prkw[j][0], prkw[j][1]
+
+	
+# 	#Compute doc. ind list of each topic
+# 	topicdocindlist = []
+# 	for i in range(numoftopics):
+# 		#print np.where(dtid == i)[0]
+# 		topicdocindlist.append(np.where(dtid==i)[0])
+
+# 	#Store the data of doctm
+# 	f = open('topicdocindlist.list','w')
+# 	pickle.dump(topicdocindlist, f)
+
+
+
+
+# #
+# def update_topic_model_and_doctid():
+
+# 	print("Updating topic model!")
+
+# 	#Import data
+# 	f = open('json_data.txt','r')
+# 	data = json.load(f)
+
+# 	#Import dictionary
+# 	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
+
+# 	#Import lda model
+# 	ldamodel = models.LdaModel.load('/tmp/tmpldamodel')
+
+# 	#Import document term matrix
+# 	f = open('doctm.data','r')
+# 	doctm = pickle.load(f)
+
+# 	#Import topic document index list (for computing the number of topics )
+# 	f = open('topicdocindlist.list','r')
+# 	topicdocindlist = pickle.load(f)
+# 	numoftopics = len(topicdocindlist)
+
+# 	#Number of documents in database
+# 	ndocuments = len(doctm)
+
+# 	#Compute cluster distributions (topics)
+# 	#ldamodel = models.LdaModel(doctm, num_topics = numoftopics, id2word = dictionary, passes=10, iterations=200)
+# 	ldamodel.update(doctm)
+
+# 	#Save 'ldamodel' for future use
+# 	ldamodel.save('/tmp/tmpldamodel')
+
+#     #Compute topic ids for documents
+# 	dtid = []
+# 	for i in range(len(doctm)):
+# 		dumtidv = []
+# 		dumtpv  = []
+# 		doc_lda = ldamodel[doctm[i]]
+# 		for j in range(len(doc_lda)):
+# 			dumtidv.append(doc_lda[j][0])
+# 			dumtpv.append(doc_lda[j][1])
+# 		dtid.append(dumtidv[np.argmax(dumtpv)])
+# 	dtid = np.array(dtid)
+# 	np.save('doctid.npy',dtid)
+
+# 	#Compute doc. ind list of each topic
+# 	topicdocindlist = []
+# 	for i in range(numoftopics):
+# 		#print np.where(dtid == i)[0]
+# 		topicdocindlist.append(np.where(dtid==i)[0])
+
+# 	#Store the data of doctm
+# 	f = open('topicdocindlist.list','w')
+# 	pickle.dump(topicdocindlist, f)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # #Creates full tfidf numpy array of documents (not recommended)

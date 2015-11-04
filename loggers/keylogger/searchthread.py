@@ -62,6 +62,7 @@ class SearchThread(QThread):
   self.data       = json.load(json_data)
   #Load df-matrix (document frequency matrix)
   self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
+  print("Search thread: Size of a loaded tfidf matrix ",self.sXdoctm.data.nbytes)
   #Load dictionary
   self.dictionary = corpora.Dictionary.load('data/tmpdict.dict')
   #Remove common words from dictionary
