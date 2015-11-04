@@ -58,22 +58,27 @@ class SearchThread(QThread):
 
   #
   json_data = open('data/json_data.txt')
+  
   #DiMe data in json -format
   self.data       = json.load(json_data)
+  
   #Load df-matrix (document frequency matrix)
-  self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
-  print("Search thread: Size of a loaded tfidf matrix ",self.sXdoctm.data.nbytes)
+  #self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
+  #print("Search thread: Size of a loaded tfidf matrix ",self.sXdoctm.data.nbytes)
+  
   #Load dictionary
   self.dictionary = corpora.Dictionary.load('data/tmpdict.dict')
+  
   #Remove common words from dictionary
   #df_word_removal(self.sXdoctm, self.dictionary)
   #self.dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
+  
   #Load updated tfidf-matrix of the corpus
   self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
+  
   #Load updated df-matrix
-  self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
-  #Load tfidf -model
-  self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+  #self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
+    
   #Load cosine similarity model for computing cosine similarity between keyboard input with documents
   #self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
   self.index      = similarities.docsim.Similarity.load('data/similarityvec')
@@ -170,13 +175,11 @@ class SearchThread(QThread):
       self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
       #Load updated df-matrix
       self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
-      #Load tfidf -model
-      self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+      
       #Load 
       #self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
       self.index      = similarities.docsim.Similarity.load('data/similarityvec')
-      #Load tfidf -model
-      self.tfidf      = models.TfidfModel.load('data/tfidfmodel.model')
+      
       #Load cosine similarity model for computing cosine similarity between keyboard input with documents
       #self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
       self.index      = similarities.docsim.Similarity.load('data/similarityvec')
@@ -209,7 +212,7 @@ class SearchThread(QThread):
       elif self.searchfuncid == 1:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path 
         #jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
-        jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.tfidf, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
+        jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
         print('Search thread: Ready for new search!')
         print(len(jsons))
         if len(jsons) > 0:
@@ -218,7 +221,7 @@ class SearchThread(QThread):
       elif self.searchfuncid == 2:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path 
         n_kws = 10
-        jsons, kws, winds = search_dime_using_linrel_keywords(dstr, n_kws, self.sX, self.tfidf, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+        jsons, kws, winds = search_dime_using_linrel_keywords(dstr, n_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
         #jsons = search_dime_linrel_without_summing_previous_estimates(dstr)
         if len(jsons) > 0:
           #Return keyword list
@@ -226,8 +229,8 @@ class SearchThread(QThread):
         print('Search thread: Ready for new search!')   
       elif self.searchfuncid == 3:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path 
-        #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.tfidf, self.dictionary, self.c)
-        jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.tfidf, self.dictionary, self.c, self.mu)
+        #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.dictionary, self.c)
+        jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
         if len(jsons) > 0:
           #Return keyword list
           self.send_keywords.emit(kws)

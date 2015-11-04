@@ -355,19 +355,19 @@ def update_doc_tfidf_list(destinationfolder):
 
 	#Make also sparse matrix representation of doctm and doc_tfidf_list
 	print('started')
-	sparsemat = doc_tfidf_list_to_sparsemat(doctm)
+	sparsemat = list_of_lists_to_sparsemat(doctm)
 	print('finished')
 	print('Search thread: doctm sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sXdoctm.sparsemat',sparsemat)
 
-	sparsemat = doc_tfidf_list_to_sparsemat(doc_tfidf_list)
+	sparsemat = list_of_lists_to_sparsemat(doc_tfidf_list)
 	print('Search thread: sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sX.sparsemat',sparsemat)
 
 
 
 #Converts doc_tfidf_list to scipy sparse matrix format (as csc_matrix)
-def doc_tfidf_list_to_sparsemat(doc_tfidf_list):
+def list_of_lists_to_sparsemat(doc_tfidf_list):
 	#Import dictionary
 	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 	nwords = len(dictionary)
