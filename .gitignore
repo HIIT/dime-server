@@ -12,3 +12,5 @@ HOWTO
 /loggers/keylogger/typedwords.txt
 /loggers/keylogger/user.ini
 /config/application-local.properties
+/scripts/dime-elements.json
+/scripts/dime-events.json
