@@ -793,6 +793,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
 
     return y_hat, sigma_hat, w_hat
 
+
 #
 def recompute_keywords(c):
     #print 'c', c

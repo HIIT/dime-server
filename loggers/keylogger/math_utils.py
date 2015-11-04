@@ -249,6 +249,7 @@ def query2bow(query,dictionary):
 
 #
 def twotuplelist2fulllist(tuplelist, nfeatures):
+    #
     if len(tuplelist) == 0:
         vec = [0]*nfeatures
         #pass

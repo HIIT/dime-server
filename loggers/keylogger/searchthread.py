@@ -60,7 +60,7 @@ class SearchThread(QThread):
   json_data = open('data/json_data.txt')
   
   #DiMe data in json -format
-  self.data       = json.load(json_data)
+  #self.data       = json.load(json_data)
   
   #Load df-matrix (document frequency matrix)
   #self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
@@ -150,7 +150,7 @@ class SearchThread(QThread):
   #Check that all data files exist
   check_update()
 
-
+  #
   while True:
     #
     cmachtime = time()
@@ -163,9 +163,9 @@ class SearchThread(QThread):
       #
       json_data = open('data/json_data.txt')
       #DiMe data in json -format
-      self.data       = json.load(json_data)
+      #self.data       = json.load(json_data)
       #Load df-matrix (document frequency matrix)
-      self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
+      #self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
       #Load dictionary
       self.dictionary = corpora.Dictionary.load('data/tmpdict.dict')
       #Remove common words from dictionary
@@ -174,7 +174,7 @@ class SearchThread(QThread):
       #Load updated tfidf-matrix of the corpus
       self.sX         = load_sparse_csc('data/sX.sparsemat.npz')
       #Load updated df-matrix
-      self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
+      #self.sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')      
       
       #Load 
       #self.index      = similarities.docsim.Similarity.load('/tmp/similarityvec')
@@ -191,7 +191,10 @@ class SearchThread(QThread):
     #
     if self.extrasearch:
       print('Search thread: got extra search command from main!')      
-      jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
+      #Search function causing clicking results up to 4.10.2015
+      #jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
+      #
+      jsons = search_dime(self.srvurl, self.usrname, self.password, dstr, self.n_results)
       self.extrasearch = False    
 
     #
@@ -207,7 +210,7 @@ class SearchThread(QThread):
 
       self.start_search.emit()
       if self.searchfuncid == 0:
-        jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
+        #jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
         print('Search thread: Ready for new search!')
       elif self.searchfuncid == 1:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path 
@@ -227,14 +230,13 @@ class SearchThread(QThread):
           #Return keyword list
           self.send_keywords.emit(kws)        
         print('Search thread: Ready for new search!')   
-      elif self.searchfuncid == 3:
-        #Create/update relevant data files if necessary and store into 'data/' folder in current path 
-        #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.dictionary, self.c)
-        jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
-        if len(jsons) > 0:
-          #Return keyword list
-          self.send_keywords.emit(kws)
-        print('Search thread: Ready for new search!')      
+      # elif self.searchfuncid == 3:
+      #   #Create/update relevant data files if necessary and store into 'data/' folder in current path 
+      #   #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
+      #   if len(jsons) > 0:
+      #     #Return keyword list
+      #     self.send_keywords.emit(kws)
+      #   print('Search thread: Ready for new search!')      
 
       print('Search thread: len jsons ', len(jsons))
       if len(jsons) > 0:
@@ -252,83 +254,5 @@ class SearchThread(QThread):
       self.oldquery = dstr
       self.all_done.emit()
 
-
     else:
       sleep(0.3) # artificial time delay    
-
-
-
- # def read_user_ini():
-
- #    #
- #    f          = open('user.ini','r')
- #    dumstr     = f.read()
- #    stringlist = dumstr.split()
-
- #    for i in range( len(stringlist) ):
- #            if stringlist[i] == "server_url:":
- #                    srvurl = stringlist[i+1]
- #            if stringlist[i] == "usrname:":
- #                    usrname = stringlist[i+1]
- #            if stringlist[i] == "password:":
- #                    password = stringlist[i+1]
- #            if stringlist[i] == "time_interval:":
- #                    time_interval_string = stringlist[i+1]
- #                    time_interval = float(time_interval_string)
- #            if stringlist[i] == "nspaces:":
- #                    nspaces_string = stringlist[i+1]
- #                    nspaces = int(nspaces_string)
- #            if stringlist[i] == "numwords:":
- #                    dum_string = stringlist[i+1]
- #                    numwords = int(dum_string)                      
- #            if stringlist[i] == "updating_interval:":
- #                    dum_string = stringlist[i+1]
- #                    updateinterval = float(dum_string)  
- #            if stringlist[i] == "data_update_interval:":
- #                dum_string = stringlist[i+1]
- #                data_update_interval = float(dum_string)
- #            if stringlist[i] == "nokeypress_interval:":
- #                dum_string = stringlist[i+1]
- #                nokeypress_interval = float(dum_string)
-
- #    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval, data_update_interval, nokeypress_interval
-
-
-
- 
- # def read_user_ini(self):
-
- #    f          = open('user.ini','r')
- #    dumstr     = f.read()
- #    stringlist = dumstr.split()
-
- #    for i in range( len(stringlist) ):
- #            if stringlist[i] == "server_url:":
- #                    srvurl = stringlist[i+1]
- #            if stringlist[i] == "usrname:":
- #                    usrname = stringlist[i+1]
- #            if stringlist[i] == "password:":
- #                    password = stringlist[i+1]
- #            if stringlist[i] == "time_interval:":
- #                    time_interval_string = stringlist[i+1]
- #                    time_interval = float(time_interval_string)
- #            if stringlist[i] == "nspaces:":
- #                    nspaces_string = stringlist[i+1]
- #                    nspaces = int(nspaces_string)
- #            if stringlist[i] == "numwords:":
- #                    dum_string = stringlist[i+1]
- #                    numwords = int(dum_string)                      
- #            if stringlist[i] == "updating_interval:":
- #                    dum_string = stringlist[i+1]
- #                    updateinterval = float(dum_string)                        
-
- #    return srvurl, usrname, password, time_interval, nspaces, numwords, updateinterval  
-
-
-#def unicode_to_str(ustr):
-#  """Converts unicode strings to 8-bit strings."""
-#  try:
-#      return ustr.encode('utf-8')
-#  except UnicodeEncodeError:
-#      print "Main: UnicodeEncodeError"
-#  return ""

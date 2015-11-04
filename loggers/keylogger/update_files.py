@@ -443,30 +443,7 @@ def update_Xt_and_docindlist(docindlist):
 		pickle.dump(omittedindlist,open('data/omittedindlist.npy','wb'))
 
 
-def doc_tfidf_list_to_array(tfidf_list, nwords):
-	ndocuments = len(tfidf_list)	
 
-	tfidf_array = np.zeros((nwords,ndocuments))
-	#
-	for nvec, tfidf_vec in enumerate(tfidf_list):
-	    #print nvec
-	    for wi in range(len(tfidf_vec)):
-	        wid, score = tfidf_vec[wi]
-	        #print wid, score
-	        tfidf_array[wid, nvec] = score
-
-	tfidf_array = tfidf_array.transpose()
-	#print 'tfidf ', tfidf_array.shape
-
-	#Normalize rows of tfidf_array
-	for i in range(tfidf_array.shape[0]):
-		dumvec = tfidf_array[i][:]
-		sumvec = np.sum(dumvec,axis=0)
-		if sumvec > 0.0:
-			dumvec = dumvec/float(sumvec)
-		tfidf_array[i][:] = dumvec
-
-	return tfidf_array
 
 #Update similarity vector
 def update_docsim_model():
@@ -577,9 +554,40 @@ def df_word_removal(sXdoctm, dictionary):
 
 
 
+
+
+
+
 #######
 #UNHOLA
 #######
+
+
+# def doc_tfidf_list_to_array(tfidf_list, nwords):
+# 	ndocuments = len(tfidf_list)	
+
+# 	tfidf_array = np.zeros((nwords,ndocuments))
+# 	#
+# 	for nvec, tfidf_vec in enumerate(tfidf_list):
+# 	    #print nvec
+# 	    for wi in range(len(tfidf_vec)):
+# 	        wid, score = tfidf_vec[wi]
+# 	        #print wid, score
+# 	        tfidf_array[wid, nvec] = score
+
+# 	tfidf_array = tfidf_array.transpose()
+# 	#print 'tfidf ', tfidf_array.shape
+
+# 	#Normalize rows of tfidf_array
+# 	for i in range(tfidf_array.shape[0]):
+# 		dumvec = tfidf_array[i][:]
+# 		sumvec = np.sum(dumvec,axis=0)
+# 		if sumvec > 0.0:
+# 			dumvec = dumvec/float(sumvec)
+# 		tfidf_array[i][:] = dumvec
+
+# 	return tfidf_array
+
 
 
 #Updates LinRel matrix, denoted by A 
