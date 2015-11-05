@@ -166,6 +166,8 @@ parser.add_argument('--writeold', metavar='X:Y',
                     help='write X words from old document at position Y')
 parser.add_argument("--xmlfile", metavar = "XMLFILE", 
                     help="XML file to read, needed by arxivcs")
+parser.add_argument("--clickweight", metavar = "W",
+                    help="weight assigned to clicked keywords")
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -173,6 +175,7 @@ parser.add_argument('--c', metavar='N', action='store', type=float,
 parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
                     default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
 
+print("Starting as:", sys.argv)
 
 args = parser.parse_args()
 
@@ -375,7 +378,7 @@ for j,line in enumerate(f):
         #Initialize the json -object corresponding the input
         djson = {}
         #Add the written word into the json -object corresponding the written document
-        djson['action']['write'] = kw_clicked
+        #djson['action']['write'] = kw_clicked
 
 
         #If nth word has been written, do search and keyword computing
@@ -413,15 +416,15 @@ for j,line in enumerate(f):
 
             #Search docs from DiMe and compute keywords
             if args.dime_search_method == 1:
-                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 2:
                 #Number of suggested keywords added to query
                 n_kws = 10
-                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 3:
                 #Number of suggested keywords added to query
                 n_kws = 10
-                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             
             #Get number of suggested documents
             nsuggested_files = len(jsons)
@@ -569,11 +572,13 @@ for j,line in enumerate(f):
                 else:
                     kw_clicked = kws[0]
 
-                #Add the suggested keywords into the json -object corresponding the written document
-                djson['kws'] = kws                    
+                if args.clickweight:
+                    kw_clicked = kw_clicked + "^" + args.clickweight
 
-                #
                 print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
+
+                #Add the suggested keywords into the json -object corresponding the written document
+                djson['kws'] = kws
 
                 #Add the clicked word into the word list corresponding the written document
                 wordlist_r.append(kw_clicked)
