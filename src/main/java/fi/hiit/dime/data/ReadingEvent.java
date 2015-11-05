@@ -34,6 +34,18 @@ public class ReadingEvent extends DesktopEvent {
     */
     public Boolean isSummary;
 
+    /** Proportion of document which was read (for summary events)
+     */
+    public double proportionRead;
+
+    /** Proportion of document which was marked as "interesting" (for summary events)
+     */
+    public double proportionInteresting;
+
+    /** Proportion of document which was marked as "critical" (for summary events)
+     */
+    public double proportionCritical;
+
     /** A vector representing the page numbers currently being considered (number within PDF document).
      * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
      * A number representing the page number in the given document, starting from 0. */

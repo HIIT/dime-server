@@ -88,8 +88,11 @@ public class Rect {
      */
     public static final int CLASSSOURCE_CLICK = 2;
     
-    /** Class source for rectangles marked by eye tracking.
+    /** Class source for rectangles marked by eye tracking  (input to dime, before machine learning).
      */
-    public static final int CLASSSOURCE_EYE = 3;
-
+    public static final int CLASSSOURCE_SMI = 3;
+    
+    /** Class source for rectangles marked by machine learning.
+     */
+    public static final int CLASSSOURCE_ML = 4;
 }
