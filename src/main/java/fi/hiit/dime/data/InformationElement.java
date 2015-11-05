@@ -93,7 +93,7 @@ public class InformationElement extends AbstractPersistable<Long> {
     /** Plain text content of the information element. This is indexed
        for text search.
     */
-    @Column(columnDefinition="text")
+    @Column(columnDefinition="longtext")
     public String plainTextContent;
 
     /** Form of storage according to the Semantic Desktop ontology:
