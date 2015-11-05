@@ -25,6 +25,7 @@ package fi.hiit.dime.data;
 
 import java.util.ArrayList;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Embedded;
 
@@ -64,5 +65,6 @@ public class ReadingEvent extends DesktopEvent {
     public ArrayList<PageEyeData> pageEyeData;
 
     /** Plain text content of text currently displayed on screen. */
+    @Column(columnDefinition="text")
     public String plainTextContent;
 }

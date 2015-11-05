@@ -26,6 +26,7 @@ package fi.hiit.dime.data;
 
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -34,6 +35,8 @@ import javax.persistence.OneToMany;
 public class ScientificDocument extends Document {
     @OneToMany
     public List<Person> authors;
+
+    @Column(columnDefinition="text")
     public String booktitle;
 
     @ElementCollection(targetClass = String.class)
