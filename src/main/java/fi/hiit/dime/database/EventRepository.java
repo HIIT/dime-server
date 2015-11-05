@@ -27,6 +27,7 @@ package fi.hiit.dime.database;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.authentication.User;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.ArrayList;
@@ -107,7 +108,7 @@ public interface EventRepository extends CrudRepository<Event, Long>,
 
     Event findOneByAppIdAndUser(String appId, User user);
 
-    List<Event> findByUserOrderByStartDesc(User user);
+    List<Event> findByUserOrderByStartDesc(User user, Pageable pageable);
 
     Long countByUser(User user);
 

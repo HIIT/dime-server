@@ -24,6 +24,8 @@
 
 package fi.hiit.dime.database;
 
+import org.springframework.data.domain.PageRequest;
+
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.authentication.User;
 
@@ -81,8 +83,9 @@ public class EventDAO {
     }
 
     @Transactional(readOnly = true)
-    public List<Event> eventsForUser(Long userId) {
-	return repo.findByUserOrderByStartDesc(User.makeUser(userId));
+    public List<Event> eventsForUser(Long userId, int limit) {
+	return repo.findByUserOrderByStartDesc(User.makeUser(userId), 
+					       new PageRequest(1, limit));
     }
 
     @Transactional(readOnly = true)

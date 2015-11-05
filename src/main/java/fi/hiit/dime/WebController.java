@@ -103,7 +103,7 @@ public class WebController extends WebMvcConfigurerAdapter {
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
 	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        model.addAttribute("events", eventDAO.eventsForUser(userId));
+        model.addAttribute("events", eventDAO.eventsForUser(userId, 100));
 	model.addAttribute("count", eventDAO.count(userId));
         return "log";
     }
