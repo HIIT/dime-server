@@ -388,12 +388,8 @@ for j,line in enumerate(f):
         dstr = wordlist_r.pop()
 
         #Initialize the json -object corresponding the input
-<<<<<<< HEAD
         docdict = {}
-=======
-        djson = {}
 
->>>>>>> a1385cf9b964cc10207fe5857588a8716c7ce43e
         #Add the written word into the json -object corresponding the written document
         docdict['action'] = {}
         docdict['action']['write'] = dstr
@@ -592,8 +588,9 @@ for j,line in enumerate(f):
 
 
         #
+        pprint.pprint(docdict, width=30)
         master_document_dict[str(j)][str(i)] = docdict
-        pprint.pprint(master_document_dict, width=30)
+        #pprint.pprint(master_document_dict, width=30)
 
         #Open file for appending the created json-document
         f = open('docdict.json','w')
