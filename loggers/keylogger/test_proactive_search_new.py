@@ -381,17 +381,21 @@ for j,line in enumerate(f):
     #dummy index
     j2 = 0
 
+
+    #Initialize the json -object corresponding the input
+    docdict = {}
+
     #Go through words in word list corresponding the current document
     while len(wordlist_r)>0:             
 
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
-        #Initialize the json -object corresponding the input
-        docdict = {}
+
 
         #Add the written word into the json -object corresponding the written document
-        docdict['action'] = {}
+        if 'action' not in docdict:
+            docdict['action'] = {}
         docdict['action']['write'] = dstr
 
         #If nth word has been written, do search and keyword computing
@@ -589,9 +593,10 @@ for j,line in enumerate(f):
 
         #
         pprint.pprint(docdict, width=30)
+        #Add to master_document_dict
         master_document_dict[str(j)][str(i)] = docdict
-        #pprint.pprint(master_document_dict, width=30)
-
+        #Initialize the json -object corresponding the input
+        docdict = {}
         #Open file for appending the created json-document
         f = open('docdict.json','w')
         #Convert Python dict 'master_document_dict' into a json -document
@@ -627,13 +632,11 @@ for j,line in enumerate(f):
 
                 #
                 print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
-
-                #Add the suggested keywords into the json -object corresponding the written document
-                djson['kws'] = kws
-
                 #Add the clicked word into the word list corresponding the written document
                 wordlist_r.append(kw_clicked)
 
+                #Add the suggested keywords into the json -object corresponding the written document
+                docdict['kws'] = kws
                 #Add the clicked word into the json -object corresponding the written document
                 docdict['action'] = {}
                 docdict['action']['click'] = kw_clicked
