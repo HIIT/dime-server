@@ -73,12 +73,11 @@ public class DataController extends AuthorizedController {
     	this.infoElemDAO = infoElemDAO;
     }
 
-    private void dumpJson(Object input) {
+    private String dumpJson(Object input) {
 	try {
-	    LOG.debug("JSON: " +
-		     objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input));
+	    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input);
 	} catch (IOException e) {
-	    LOG.warn("IOException when trying to JSONify object: " + e);
+	    return "Unable to parse JSON object.";
 	}
     }
 
@@ -90,11 +89,12 @@ public class DataController extends AuthorizedController {
      * @param input     The event object that was uploaded
      * @param dumpJson  Whether to also print the JSON of the event object
      */
-    protected void eventLog(String eventName, User user, Event input, boolean dumpJson) {
+    protected void eventLog(User user, Event input, boolean dumpJson) {
 	LOG.info("{} for user {} from {} at {}, with actor {}",
-		 eventName, user.username, input.origin, new Date(), input.actor);
+		 input.getClass().getSimpleName(), user.username,
+		 input.origin, new Date(), input.actor);
 	if (dumpJson)
-	    dumpJson(input);
+	    LOG.debug(dumpJson(input));
     }
 
     /**
@@ -110,24 +110,7 @@ public class DataController extends AuthorizedController {
 	LOG.info("{} for user {} at {}",
 		 elemName, user.username, new Date());
 	if (dumpJson)
-	    dumpJson(input);
-    }
-
-    /**
-     * Helper method to log an array of uploaded events.
-     *
-     * @param eventName Name of event class
-     * @param user      User object
-     * @param input     The array of event objects that were uploaded
-     * @param dumpJson  Whether to also print the JSON of the event object
-     */
-    protected void eventLog(String eventName, User user, Event[] input, boolean dumpJson) {
-	if (input.length > 0) {
-	    LOG.info("{} for user {} from {} at {}, with actor {}",
-		     eventName, user.username, input[0].origin, new Date(), input[0].actor);
-	    if (dumpJson)
-		dumpJson(input);
-	}
+	    LOG.debug(dumpJson(input));
     }
 
     /**
@@ -144,7 +127,7 @@ public class DataController extends AuthorizedController {
 	    LOG.info("{} for user {} at {}",
 		     elemName, user.username, new Date());
 	    if (dumpJson)
-		dumpJson(input);
+		LOG.debug(dumpJson(input));
 	}
     }
 
@@ -180,13 +163,10 @@ public class DataController extends AuthorizedController {
 	    }
 	    
 	} else if (elem.appId != null) {
-	    InformationElement foo = infoElemDAO.findByAppId(elem.appId, user);
-	    if (foo != null) {
-		expandedElem = infoElemDAO.findById(foo.getId(), user);
-		LOG.debug("appId given, expanded to id={}", expandedElem.getId());
-	    } else {
-		LOG.debug("appId given, unable to expand");
-	    }
+	    expandedElem = infoElemDAO.findByAppId(elem.appId, user);
+	    if (expandedElem != null)
+		LOG.debug("appId given, expanded to id={}",
+			  expandedElem.getId());
 	}
 	
 	// If this is a stub element, expand it 
@@ -198,6 +178,7 @@ public class DataController extends AuthorizedController {
 		return expandedElem;
 	    } else {
 		LOG.error("Uploaded stub, but unable to expand!");
+		LOG.error(dumpJson(elem));
 		throw new BadRequestException("unable to expand stub");
 	    }
 	} else {
@@ -240,24 +221,48 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The event as stored
      */
-    private Event storeEvent(Event input, User user) 
+    private Event storeEvent(Event event, User user) 
 	throws NotFoundException, BadRequestException {
-	input.user = user;
 
-	if (input.getId() != null) {
-	    if (eventDAO.findById(input.getId(), user) == null)
-		throw new BadRequestException("Application not allowed to supply id.");
+	// FIXME: should be unified with expandInformationElement code
+	Event expandedEvent = null; 
+	if (event.getId() != null) {
+	    expandedEvent = eventDAO.findById(event.getId(), user);
+
+	    // Error if id doesn't exist 
+	    if (expandedEvent == null)
+		throw new NotFoundException("id not found");
+	    
+	    // Check that appId is consistent (if given)
+	    if (event.appId != null && !event.appId.equals(expandedEvent.appId)) {
+		LOG.error("appId not consistent: {} != {}", event.appId, expandedEvent.appId);
+		throw new BadRequestException("appId not consistent");
+	    }
+	    
+	} else if (event.appId != null) {
+	    expandedEvent = eventDAO.findByAppId(event.appId, user);
+	    if (expandedEvent != null)
+		LOG.debug("appId given, expanded to id={}",
+			  expandedEvent.getId());
 	}
 
-	if (input instanceof ResourcedEvent) {
-	    ResourcedEvent revent = (ResourcedEvent)input;
+	if (event instanceof ResourcedEvent) {
+	    ResourcedEvent revent = (ResourcedEvent)event;
 	    InformationElement elem = revent.targettedResource;
 	    revent.targettedResource = storeElement(elem, user);
 	}
 
-	eventDAO.save(input);
+	if (expandedEvent != null) {
+	    event.user = user;
+	    event = eventDAO.replace(expandedEvent, event);
+	} else {
+	    // Otherwise, this is just a new object, so store it
+	    event.user = user;
+	    event.autoFill();
+	}
+	eventDAO.save(event);
 
-	return input;
+	return event;
     }
 
     /** HTTP end point for uploading a single event. */    
@@ -270,7 +275,7 @@ public class DataController extends AuthorizedController {
 
 	input = storeEvent(input, user);
 
-	eventLog("Event", user, input, true);
+	eventLog(user, input, true);
 
 	return new ResponseEntity<Event>(input, HttpStatus.OK);
     }	
@@ -301,9 +306,8 @@ public class DataController extends AuthorizedController {
 
 	for (int i=0; i<input.length; i++) {
 	    input[i] = storeEvent(input[i], user);
+	    eventLog(user, input[i], true);
 	}
-
-	eventLog("Events", user, input, true);
 
 	return new ResponseEntity<Event[]>(input, HttpStatus.OK);
     }	

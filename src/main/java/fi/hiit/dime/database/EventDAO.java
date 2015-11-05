@@ -45,8 +45,12 @@ public class EventDAO {
 
     @Transactional
     public void save(Event obj) {
-	obj.autoFill();
 	repo.save(obj);
+    }
+
+    @Transactional
+    public Event replace(Event oldObj, Event newObj) {
+	return repo.replace(oldObj, newObj);
     }
 
     @Transactional(readOnly = true)
@@ -57,6 +61,11 @@ public class EventDAO {
     @Transactional(readOnly = true)
     public Event findById(Long id, User user) {
 	return repo.findOneByIdAndUser(id, user);
+    }
+
+    @Transactional(readOnly = true)
+    public Event findByAppId(String appId, User user) {
+	return repo.findOneByAppIdAndUser(appId, user);
     }
 
     /**

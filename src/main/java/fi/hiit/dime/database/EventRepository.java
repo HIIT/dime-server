@@ -40,6 +40,7 @@ import javax.persistence.TypedQuery;
 
 interface EventRepositoryCustom {
     public List<Event> find(User user, Map<String, String> filterParams);
+    public Event replace(Event oldEvent, Event newEvent);
 }
 
 class EventRepositoryImpl extends BaseRepository implements EventRepositoryCustom {
@@ -91,6 +92,11 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
 
 	return makeQuery(q.toString(), namedParams, Event.class).getResultList();
     }
+
+    public Event replace(Event oldEvent, Event newEvent) {
+	newEvent.copyIdFrom(oldEvent);
+	return entityManager.merge(newEvent);
+    }
 }
 
 public interface EventRepository extends CrudRepository<Event, Long>,
@@ -98,6 +104,8 @@ public interface EventRepository extends CrudRepository<Event, Long>,
     Event findOne(Long id);
 
     Event findOneByIdAndUser(Long id, User user);
+
+    Event findOneByAppIdAndUser(String appId, User user);
 
     List<Event> findByUserOrderByStartDesc(User user);
 

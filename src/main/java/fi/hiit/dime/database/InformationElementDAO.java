@@ -50,7 +50,6 @@ public class InformationElementDAO {
 
     @Transactional
     public void save(InformationElement obj) {
-	obj.autoFill();
 	notIndexed.add(obj);
 	repo.save(obj);
     }

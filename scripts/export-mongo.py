@@ -107,7 +107,7 @@ def export_events(db, uid, filename):
                     no_elem_found.add(elem_id)
                     continue
 
-                processed_elem = process_element(elem, uid, True)
+                processed_elem = process_element(elem, uid)
                 if processed_elem is None:
                     continue
 

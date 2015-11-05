@@ -38,16 +38,20 @@ import javax.persistence.OneToMany;
 @Entity
 public class Message extends InformationElement {
     public Date date;
+    @Column(columnDefinition="text")
     public String subject;
     //
+    @Column(columnDefinition="text")
     public String fromString;
     @ManyToOne
     public Person from;
     //
+    @Column(columnDefinition="text")
     public String toString;
     @OneToMany
     public List<Person> to;
     //
+    @Column(columnDefinition="text")
     public String ccString;
     @OneToMany
     public List<Person> cc;
