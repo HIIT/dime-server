@@ -12,6 +12,9 @@ import json
 from pymongo import MongoClient
 import io
 
+# To install requirements in Ubuntu/Debian:
+# apt-get install python-bson python-pymongo
+
 elem_fields = {}
 event_fields = {}
 
