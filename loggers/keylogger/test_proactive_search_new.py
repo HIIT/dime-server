@@ -172,6 +172,8 @@ parser.add_argument('--writeold', metavar='X:Y',
                     help='write X words from old document at position Y')
 parser.add_argument("--xmlfile", metavar = "XMLFILE", 
                     help="XML file to read, needed by arxivcs")
+parser.add_argument("--clickweight", metavar = "W",
+                    help="weight assigned to clicked keywords")
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -179,6 +181,7 @@ parser.add_argument('--c', metavar='N', action='store', type=float,
 parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
                     default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
 
+print("Starting as:", sys.argv)
 
 args = parser.parse_args()
 
@@ -385,11 +388,15 @@ for j,line in enumerate(f):
         dstr = wordlist_r.pop()
 
         #Initialize the json -object corresponding the input
+<<<<<<< HEAD
         docdict = {}
+=======
+        djson = {}
+
+>>>>>>> a1385cf9b964cc10207fe5857588a8716c7ce43e
         #Add the written word into the json -object corresponding the written document
         docdict['action'] = {}
         docdict['action']['write'] = dstr
-
 
         #If nth word has been written, do search and keyword computing
         if i%divn == 0:
@@ -618,8 +625,14 @@ for j,line in enumerate(f):
                 else:
                     kw_clicked = kws[0]
 
+                if args.clickweight:
+                    kw_clicked = kw_clicked + "^" + args.clickweight
+
                 #
                 print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
+
+                #Add the suggested keywords into the json -object corresponding the written document
+                djson['kws'] = kws
 
                 #Add the clicked word into the word list corresponding the written document
                 wordlist_r.append(kw_clicked)
