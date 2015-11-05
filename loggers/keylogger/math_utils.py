@@ -153,14 +153,16 @@ def compute_doccategorylist_enron():
     #return 0
     #pass
 
-#Compute topic scores of each keywords 
+#Compute topic scores of each keywords given the writing topic 'writin_topic'
 def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, writing_topic):
+
     #input:
     #tfidf_matrix
     #doccategorylist = list of topic ids corresponding each document id
     #
     #output:
-    #kw_scores.mean() = list of topic related mean of tfidf values of suggested keywords
+    #kw_scores.mean() = mean of mean values of tfidf values of suggested keywords with respect to the writing topic
+    #kw_scores        = list of mean values of suggested keywords with respect to the writing topic
 
     if len(keywordindlist)==0:
         return 0, []
@@ -192,14 +194,19 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     return kw_scores.mean(), kw_scores
 
 
+#Pick random keyword using categorical random distribution
 def pick_random_kw_ind(kw_scores_filecategory):
+    
     #
     sum_kw_scores_filecategory = kw_scores_filecategory.sum()
-    print(sum_kw_scores_filecategory)
-    #random value from range [0,1]
+    print("pick_random_kw_ind: ", sum_kw_scores_filecategory)
+
+    #Take random value from range [0,1] 
     rv = random.random()
+    #
     rv = rv*sum_kw_scores_filecategory
-    print(rv)
+
+    print("pick_random_kw_ind: ", rv)
     #
     dv = 0
     for i,v in enumerate(kw_scores_filecategory):
@@ -207,11 +214,6 @@ def pick_random_kw_ind(kw_scores_filecategory):
         if not rv > dv:
             print(i)
             return i
-
-
-
-
-
 
 #
 def query2bow(query,dictionary):
@@ -249,6 +251,7 @@ def query2bow(query,dictionary):
 
 #
 def twotuplelist2fulllist(tuplelist, nfeatures):
+    #
     if len(tuplelist) == 0:
         vec = [0]*nfeatures
         #pass
