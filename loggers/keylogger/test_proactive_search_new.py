@@ -285,9 +285,6 @@ doccategorylist = compute_doccategorylist(data)
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
 
-#
-
-
 #List having length of total amount of written words
 #Having value 1 in indices corresponding the beginning of the document
 #and    value 0 in indices elsewhere
@@ -295,19 +292,17 @@ filelocatorlist = []
 
 #Dummy word list containing words written from the document
 dwordlist = []
+#Dummy word list containing words written from the previous document
+wordlist_old = []
 
-#
+#Category of the previous written document
 filecategory_old = None
 
 #
-wordlist_old = []
-
-#
 print("Reading simulation queries from file", args.queries)
-
-#
+#Open the file containing names of the test documents
 f = open(args.queries, 'r')
-
+#
 qparts = args.queries.rsplit("/",1)
 qfn = qparts[1]
 
@@ -377,6 +372,12 @@ for j,line in enumerate(f):
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
+        #Initialize the json -object corresponding the input
+        djson = {}
+        #Add the written word into the json -object corresponding the written document
+        djson['action']['write'] = kw_clicked
+
+
         #If nth word has been written, do search and keyword computing
         if i%divn == 0:
 
@@ -403,6 +404,10 @@ for j,line in enumerate(f):
             dstr2 = dstr2 + ' ' + dstr
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
+
+            #Add the written input of latest words into the json -object corresponding the written document
+            djson['input'] = dstr2
+
             #
             print("Input to search function: ", dstr2)
 
@@ -446,10 +451,11 @@ for j,line in enumerate(f):
             #Number of keywords appearing in GUI
             n_kws = 10
             kws = kws[0:n_kws]
-            #
+            
+            #Get indices of n_kws keywords
             winds = winds[0:n_kws]
+
             #Compute keyword scores here for the n_kws keywords
-            #
             all_kw_scores = []
             for ii in range(0,len(categoryindices)):
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
@@ -461,13 +467,15 @@ for j,line in enumerate(f):
                         kw_scores_filecategory = np.array(kw_scores_filecategory)
                         #print(kw_scores_filecategory)
                         kw_maxind = np.argmax(kw_scores_filecategory)
-                        #
+                        #Take keyword randomly using Categorical probability distribution Cat(lamba1, lambda2, ...)
                         kw_randind = pick_random_kw_ind(kw_scores_filecategory) 
                         #print("kw_maxind: ", kw_maxind)
                     else:
                         kw_maxind = 0
                 all_kw_scores.append(kwm)
             kw_scores = all_kw_scores[filecategory]
+
+            #
             if filecategory_old is not None:
                 kw_scores_old = all_kw_scores[filecategory_old]
             else:
@@ -560,8 +568,20 @@ for j,line in enumerate(f):
                     kw_clicked = kws[kw_maxind]
                 else:
                     kw_clicked = kws[0]
+
+                #Add the suggested keywords into the json -object corresponding the written document
+                djson['kws'] = kws                    
+
+                #
                 print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
+
+                #Add the clicked word into the word list corresponding the written document
                 wordlist_r.append(kw_clicked)
+
+                #Add the clicked word into the json -object corresponding the written document
+                djson['action'] = {}
+                djson['action']['click'] = kw_clicked
+
             except IndexError:
                 print("Adding clicked keyword failed, breaking out")
                 break
