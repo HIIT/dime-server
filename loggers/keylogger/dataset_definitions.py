@@ -172,7 +172,7 @@ categoryindices_arxivcs = {
     "cs.SY": 39
 }
 gt_tag_arxivcs = "category"
-usrname_arxivcs = password_arxivcs = "arxiv-cs-99-20151028"
+usrname_arxivcs = password_arxivcs = "arxiv-cs-10-20151028"
 
 text2cat_arxivcs = {
     "Computer Science - Artificial Intelligence": "cs.AI",

@@ -146,7 +146,7 @@ def search_dime_docsim(query, data, index, dictionary):
 
 #Function that computes keywords using LinRel and makes search using
 #'search_dime_docsim'
-def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, c, mu):
+def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu):
 
     #Inputs:
     #query = string from keyboard
@@ -194,7 +194,8 @@ def search_dime_linrel_keyword_search(query, X, data, index, tfidf, dictionary, 
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function, 'search_dime'
-def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
+#def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
+def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, srvurl, username, password, n_results):
 
     #Inputs:
     #query = string from keyboard
@@ -229,7 +230,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function 'search_dime_with_word_weights'
-def search_dime_using_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
+def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results):
 
     #INPUTS:
     #query = string from keyboard
@@ -287,7 +288,7 @@ def search_dime_using_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu,
 
 
 #
-def search_dime_using_only_linrel_keywords(query, n_kws, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
+def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results):
 
     #INPUTS:
     #query = string from keyboard
@@ -791,6 +792,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
     sigma_hat = np.array(sigma_hat)
 
     return y_hat, sigma_hat, w_hat
+
 
 #
 def recompute_keywords(c):

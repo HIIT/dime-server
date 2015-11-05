@@ -30,20 +30,34 @@ import java.util.ArrayList;
    Also see https://github.com/HIIT/PeyeDF/wiki/Data-Format/.
 */
 public class ReadingEvent extends DesktopEvent {
-    /** Boolean indicating if the event refers to multiple pages.
+    /** Boolean indicating if the event is a summary sent at the end of reading.
     */
-    public Boolean multiPage;
+    public Boolean isSummary;
+
+    /** List of strings that were searched for, found and selected by user, during this summary event (for summary events).
+     */
+    public ArrayList<String> foundStrings;
+
+    /** Proportion of document which was read (for summary events)
+     */
+    public double proportionRead;
+
+    /** Proportion of document which was marked as "interesting" (for summary events)
+     */
+    public double proportionInteresting;
+
+    /** Proportion of document which was marked as "critical" (for summary events)
+     */
+    public double proportionCritical;
 
     /** A vector representing the page numbers currently being considered (number within PDF document).
      * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
-     * A number representing the page number in the given document, starting from 0.
-     * These should be in the same order as visiblePageLabels and pageRects. */
+     * A number representing the page number in the given document, starting from 0. */
     public int[] pageNumbers;
     
     /** A vector representing the page numbers currently being considered (ORIGINAL page number).
      * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
-     * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example.
-     * These should be in the same order as visiblePageNumbers and pageRects. */
+     * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example. */
     public ArrayList<String> pageLabels;
     
     /** A list of rectangles representing where the relevant (viewport, seen, interesting, etc.) paragraphs are. 
