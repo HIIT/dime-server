@@ -34,6 +34,10 @@ public class ReadingEvent extends DesktopEvent {
     */
     public Boolean isSummary;
 
+    /** List of strings that were searched for, found and selected by user, during this summary event (for summary events).
+     */
+    public ArrayList<String> foundStrings;
+
     /** Proportion of document which was read (for summary events)
      */
     public double proportionRead;
