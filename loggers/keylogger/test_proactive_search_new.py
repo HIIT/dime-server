@@ -375,7 +375,8 @@ for j,line in enumerate(f):
         #Initialize the json -object corresponding the input
         djson = {}
         #Add the written word into the json -object corresponding the written document
-        djson['action']['write'] = kw_clicked
+        djson['action'] = {}
+        djson['action']['write'] = dstr
 
 
         #If nth word has been written, do search and keyword computing
@@ -413,15 +414,15 @@ for j,line in enumerate(f):
 
             #Search docs from DiMe and compute keywords
             if args.dime_search_method == 1:
-                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 2:
                 #Number of suggested keywords added to query
                 n_kws = 10
-                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 3:
                 #Number of suggested keywords added to query
                 n_kws = 10
-                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             
             #Get number of suggested documents
             nsuggested_files = len(jsons)
@@ -438,7 +439,7 @@ for j,line in enumerate(f):
                         new_winds.append(winds[iii])
                     else:
                         print("KEYWORD", kw, "ALREADY IN INPUT, REMOVE!!")
-                kws = new_kws
+                kws   = new_kws
                 winds = new_winds
                 print("KWS AFTER REMOVAL:", kws)
 
@@ -457,19 +458,26 @@ for j,line in enumerate(f):
 
             #Compute keyword scores here for the n_kws keywords
             all_kw_scores = []
+            #Go through topics 
             for ii in range(0,len(categoryindices)):
+                #Compute keyword scores given the writing topic 'ii'
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
+                #If topic index 'ii' corresponds the current writing topic, store
+                #the keyword scores for the current writing topic into the variable 'kw_scores_filecategory'
+                #and also pick one keyword randomly
                 if ii == filecategory:
                     if len(kw_scores_topic) > 0:
-                        #print(len(kw_scores_topic))
-                        #print(type(kw_scores_topic))
+                        #Store the keyword scores relating to current topic
                         kw_scores_filecategory = kw_scores_topic
+                        #Compute probabilities of suggested keywords
+                        kw_probabilities = kw_scores_filecategory/sum(kw_scores_filecategory)
+                        #Convert to numpy array
                         kw_scores_filecategory = np.array(kw_scores_filecategory)
-                        #print(kw_scores_filecategory)
+                        #Take the word index of the suggested keyword having largest score in the writing topic
                         kw_maxind = np.argmax(kw_scores_filecategory)
                         #Take keyword randomly using Categorical probability distribution Cat(lamba1, lambda2, ...)
                         kw_randind = pick_random_kw_ind(kw_scores_filecategory) 
-                        #print("kw_maxind: ", kw_maxind)
+                        #print("Keyword probabilities: ", kw_probabilities, "sum: ", kw_probabilities.sum())
                     else:
                         kw_maxind = 0
                 all_kw_scores.append(kwm)
@@ -546,6 +554,13 @@ for j,line in enumerate(f):
         #
         i2 = i2 + 1
 
+        #Add the suggested keywords into the json -object corresponding the written document
+        djson['kws'] = {}
+        for l,kw in enumerate(kws):
+            djson['kws'][kw] = kw_probabilities[l]
+        print()
+        print("Suggested kws with probs: ", djson['kws'])
+
         #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
         #stop while-loop of current document 
         if i>=(args.nwritten+nclicked_n):
@@ -569,9 +584,6 @@ for j,line in enumerate(f):
                 else:
                     kw_clicked = kws[0]
 
-                #Add the suggested keywords into the json -object corresponding the written document
-                djson['kws'] = kws                    
-
                 #
                 print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
 
@@ -586,6 +598,8 @@ for j,line in enumerate(f):
                 print("Adding clicked keyword failed, breaking out")
                 break
 
+        #Add json into the python list of jsons
+        #djsons.append[djson]
         print()
 
     #Save json object corresponding the writing of the latest document
