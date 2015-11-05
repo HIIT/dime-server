@@ -28,7 +28,7 @@ import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserService;
-import fi.hiit.dime.data.Message;
+import fi.hiit.dime.data.*;
 import fi.hiit.dime.util.RandomPassword;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -187,6 +187,69 @@ public abstract class RestTest {
 	    }
 	} catch (IOException e) {
 	}
+    }
+
+    // Uploading helpers
+    
+    protected <T extends InformationElement> T 
+			 uploadElement(T elem, Class<T> responseType) 
+    {
+	return uploadData(infoElemApi, elem, responseType, false);
+    }
+
+    protected <T extends InformationElement> T[] 
+			 uploadInformationElements(T[] elems,
+						   Class<T[]> responseType) 
+    {
+	return uploadData(infoElemsApi, elems, responseType, false);
+    }
+
+    protected <T extends Event> T uploadEvent(T event, Class<T> responseType) {
+	return uploadData(eventApi, event, responseType, false);
+    }
+
+    protected <T extends Event> T[] uploadEvents(T[] events,
+						 Class<T[]> responseType) {
+	return uploadData(eventsApi, events, responseType, false);
+    }
+
+    protected <S, T> T uploadData(String apiUrl, S data, Class<T> responseType,
+			     boolean expectError) {
+    	// Upload to DiMe
+    	ResponseEntity<T> res = getRest().postForEntity(apiUrl, data, 
+							responseType);
+
+    	// Check that HTTP was as expected
+	if (expectError)
+	    assertClientError(res);
+	else
+	    assertSuccessful(res);
+
+	return res.getBody();
+    }
+
+
+    // Downloading helpers
+
+    protected <T> T getData(String apiUrl, Class<T> responseType) {
+	return getData(apiUrl, responseType, false);
+    }
+
+    protected <T> void getDataExpectError(String apiUrl) {
+	getData(apiUrl, String.class, true);
+    }
+
+    protected <T> T getData(String apiUrl, Class<T> responseType,
+			    boolean expectError) {
+    	ResponseEntity<T> res = getRest().getForEntity(apiUrl, responseType);
+
+    	// Check that HTTP was as expected
+	if (expectError)
+	    assertClientError(res);
+	else
+	    assertSuccessful(res);
+
+	return res.getBody();
     }
 
 }

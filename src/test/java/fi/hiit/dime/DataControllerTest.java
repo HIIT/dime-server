@@ -69,15 +69,8 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("Event to be uploaded to " + eventApi, event1);
 
-	// Upload to DiMe
-	ResponseEntity<FeedbackEvent> res1 = 
-	    getRest().postForEntity(eventApi, event1, FeedbackEvent.class);
+	FeedbackEvent outEvent1 = uploadEvent(event1, FeedbackEvent.class);
 
-	// Check that HTTP was successful
-	assertSuccessful(res1);
-
-	// Checks to ensure returned object is the same as uploaded
-	FeedbackEvent outEvent1 = res1.getBody();
 	assertEquals(event1.value, outEvent1.value, DELTA);
 
 	dumpData("Event received back from server:", outEvent1);
@@ -98,14 +91,7 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("Event with stub to be uploaded to " + eventApi, event2);
 	
-	ResponseEntity<FeedbackEvent> res2 = 
-	    getRest().postForEntity(eventApi, event2, FeedbackEvent.class);
-
-	// Check that HTTP was successful
-	assertSuccessful(res2);
-
-	// Checks to ensure returned object is the same as uploaded
-	FeedbackEvent outEvent2 = res2.getBody();
+	FeedbackEvent outEvent2 = uploadEvent(event2, FeedbackEvent.class);
 	assertEquals(event2.value, outEvent2.value, DELTA);
 
 	dumpData("Second event received back from server:", outEvent2);
@@ -131,14 +117,9 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("Event with appId stub to be uploaded to " + eventApi, event3);
 	
-	ResponseEntity<FeedbackEvent> res3 = 
-	    getRest().postForEntity(eventApi, event3, FeedbackEvent.class);
-
-	// Check that HTTP was successful
-	assertSuccessful(res3);
+	FeedbackEvent outEvent3 = uploadEvent(event3, FeedbackEvent.class);
 
 	// Checks to ensure returned object is the same as uploaded
-	FeedbackEvent outEvent3 = res3.getBody();
 	assertEquals(event3.value, outEvent3.value, DELTA);
 
 	dumpData("Second event received back from server:", outEvent2);
@@ -164,15 +145,9 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("Event to be uploaded to " + eventApi, event1);
 
-	// Upload to DiMe
-	ResponseEntity<MessageEvent> res1 = 
-	    getRest().postForEntity(eventApi, event1, MessageEvent.class);
-	
-	// Check that HTTP was successful
-	assertSuccessful(res1);
+	MessageEvent outEvent1 = uploadEvent(event1, MessageEvent.class);
 
 	// Checks to ensure returned object is the same as uploaded
-	MessageEvent outEvent1 = res1.getBody();
 	dumpData("Event received back from server:", outEvent1);
 
 	Message outMsg1 = (Message)outEvent1.targettedResource;
@@ -229,15 +204,9 @@ public class DataControllerTest extends RestTest {
     
 	dumpData("testEventGet: events to be uploaded to " + eventsApi, events);
 
-	// Upload to DiMe
-	ResponseEntity<Event[]> uploadRes = 
-	    getRest().postForEntity(eventsApi, events, Event[].class);
-
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes);
+	Event[] outEvents = uploadEvents(events, Event[].class);
 
 	// Checks to ensure returned object is the same as uploaded
-	Event[] outEvents = uploadRes.getBody();
 	assertEquals(events.length, outEvents.length);
 
 	FeedbackEvent outEvent1 = (FeedbackEvent)outEvents[0];
@@ -255,12 +224,8 @@ public class DataControllerTest extends RestTest {
 	dumpData("testEventGet: events received back from server:", outEvents);
 
 	// Read back events over REST API and check
-	ResponseEntity<FeedbackEvent> getRes1 = 
-	    getRest().getForEntity(eventApi + "/" + outEvent1.getId(),
-				   FeedbackEvent.class);
-	assertSuccessful(getRes1);
-
-	FeedbackEvent getEvent1 = getRes1.getBody();
+	FeedbackEvent getEvent1 = getData(eventApi + "/" + outEvent1.getId(),
+					  FeedbackEvent.class);
 	assertEquals(event1.value, getEvent1.value, DELTA);
 
 	Document getDoc = (Document)getEvent1.targettedResource;
@@ -269,48 +234,30 @@ public class DataControllerTest extends RestTest {
 	assertTrue(getDoc.hasTag("tag1"));
 	assertTrue(getDoc.hasTag("tag2"));
 
-	ResponseEntity<SearchEvent> getRes2 = 
-	    getRest().getForEntity(eventApi + "/" + outEvent2.getId(),
-				   SearchEvent.class);
-
-	SearchEvent getEvent2 = getRes2.getBody();
+	SearchEvent getEvent2 = getData(eventApi + "/" + outEvent2.getId(),
+					SearchEvent.class);
 	assertEquals(event2.query, getEvent2.query);
 
-	ResponseEntity<SearchEvent> getRes3 = 
-	    getRest().getForEntity(eventApi + "/" + outEvent3.getId(),
-				   SearchEvent.class);
-
-	SearchEvent getEvent3 = getRes3.getBody();
+	SearchEvent getEvent3 = getData(eventApi + "/" + outEvent3.getId(),
+					SearchEvent.class);
 	assertEquals(event3.query, getEvent3.query);
 
 	// Read back uploaded document
-	ResponseEntity<Document> getDocRes = 
-	    getRest().getForEntity(infoElemApi + "/" + uploadDoc.getId(),
-				   Document.class);
-	assertSuccessful(getDocRes);
+	Document getDirectDoc = getData(infoElemApi + "/" + uploadDoc.getId(),
+					Document.class);
 
-	Document getDirectDoc = getDocRes.getBody();
 	assertEquals(getDirectDoc.uri, origDoc.uri);
 
 	// Also test accessing an object that doesn't exist
-	ResponseEntity<String> getBadRes1 = 
-	    getRest().getForEntity(infoElemApi + "/18923742",
-				   String.class);
-	assertClientError(getBadRes1);
+	getDataExpectError(infoElemApi + "/18923742");
 
 	// Also test accessing an object that doesn't exist
-	ResponseEntity<String> getBadRes2 = 
-	    getRest().getForEntity(eventApi + "/12980942",
-				   String.class);
-	assertClientError(getBadRes2);
+	getDataExpectError(eventApi + "/12980942");
 
 	// Test filtering on actor
-	ResponseEntity<Event[]> getEventsRes = 
-	    getRest().getForEntity(eventsApi + "?actor=TestActor1",
-				   Event[].class);
-	assertSuccessful(getEventsRes);
+	Event[] eventsRes = getData(eventsApi + "?actor=TestActor1",
+				    Event[].class);
 
-	Event[] eventsRes = getEventsRes.getBody();
 	assertEquals(2, eventsRes.length);
 
 	for (Event ev : eventsRes) {
@@ -320,29 +267,21 @@ public class DataControllerTest extends RestTest {
 	dumpData("events filtered by actor", eventsRes);
 
 	// Test filtering by bad parameters
-	ResponseEntity<String> getEventsRes3 = 
-	    getRest().getForEntity(eventsApi + "?foo=bar",
-				   String.class);
-	assertClientError(getEventsRes3);
+	getDataExpectError(eventsApi + "?foo=bar");
 
 	// Test filtering on multiple parameters
-	ResponseEntity<SearchEvent[]> getEventsRes4 = 
-	    getRest().getForEntity(eventsApi + "?query=" + event3.query
-				   + "&actor=TestActor2",
-				   SearchEvent[].class);
-	assertSuccessful(getEventsRes4);
+	SearchEvent[] eventsRes4 = getData(eventsApi + "?query=" + event3.query
+					   + "&actor=TestActor2",
+					   SearchEvent[].class);
 
-	SearchEvent[] eventsRes4 = getEventsRes4.getBody();
 	assertEquals(1, eventsRes4.length);
 
 	assertEquals(eventsRes4[0].query, event3.query);
 
 	// Test filtering for information elements
-	ResponseEntity<InformationElement[]> getInfoElems = 
-	    getRest().getForEntity(infoElemsApi + "?tag=tag1", InformationElement[].class);
-	assertSuccessful(getInfoElems);
+	InformationElement[] infoElemsRes = getData(infoElemsApi + "?tag=tag1", 
+						    InformationElement[].class);
 
-	InformationElement[] infoElemsRes = getInfoElems.getBody();
 	assertEquals(1, infoElemsRes.length);
 
 	for (InformationElement elem : infoElemsRes) {
@@ -387,15 +326,8 @@ public class DataControllerTest extends RestTest {
 
 	dumpData("List of events to be uploaded to " + eventsApi, events);
 
-	// Upload to DiMe
-	ResponseEntity<SearchEvent[]> uploadRes = 
-	    getRest().postForEntity(eventsApi, events, SearchEvent[].class);
-
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes);
-
 	// Checks to ensure returned object is the same as uploaded
-	SearchEvent[] outEvents = uploadRes.getBody();
+	SearchEvent[] outEvents = uploadEvents(events, SearchEvent[].class);
 	assertEquals(events.length, outEvents.length);
 
 	// end should have been set to equal start
@@ -439,14 +371,9 @@ public class DataControllerTest extends RestTest {
 	event.targettedResource = msg;
 
 	// Upload to DiMe
-	ResponseEntity<MessageEvent> uploadRes = 
-	    getRest().postForEntity(eventApi, event, MessageEvent.class);
-
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes);
+	MessageEvent outEvent = uploadEvent(event, MessageEvent.class);
 
 	// check that content is still the same
-	MessageEvent outEvent = uploadRes.getBody();
 	assertEquals(content1, outEvent.targettedResource.plainTextContent);
 	Long msgId = outEvent.targettedResource.getId();
 
@@ -460,23 +387,15 @@ public class DataControllerTest extends RestTest {
 	dumpData("Changed message (id)", event);
 	
 	// Upload the changed message
-	ResponseEntity<MessageEvent> uploadRes2 = 
-	    getRest().postForEntity(eventApi, event, MessageEvent.class);
-	
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes2);
+	MessageEvent outEvent2 = uploadEvent(event, MessageEvent.class);
 
 	// check that content is the changed one
-	MessageEvent outEvent2 = uploadRes2.getBody();
 	assertEquals(content2, outEvent2.targettedResource.plainTextContent);
 	assertEquals(msgId, outEvent2.targettedResource.getId());
 
 	// Read back infoelement over REST API and check
-	ResponseEntity<Message> getElem = 
-	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
-	assertSuccessful(getElem);
+	Message msg2 = getData(infoElemApi + "/" + msgId, Message.class);
 
-	Message msg2 = getElem.getBody();
 	assertEquals(content2, msg2.plainTextContent);
 	assertEquals(2, msg2.tags.size());
 	assertTrue(msg2.hasTag("mytag"));
@@ -491,23 +410,15 @@ public class DataControllerTest extends RestTest {
 	dumpData("Changed message (appId)", event);
 
 	// Upload the changed message
-	ResponseEntity<MessageEvent> uploadRes3 = 
-	    getRest().postForEntity(eventApi, event, MessageEvent.class);
+	MessageEvent outEvent3 = uploadEvent(event, MessageEvent.class);
 	
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes3);
-
 	// check that content is the changed one
-	MessageEvent outEvent3 = uploadRes3.getBody();
 	assertEquals(content3, outEvent3.targettedResource.plainTextContent);
 	assertEquals(msgId, outEvent3.targettedResource.getId());
 
 	// Read back infoelement over REST API and check
-	ResponseEntity<Message> getElem2 = 
-	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
-	assertSuccessful(getElem2);
+	Message msg3 = getData(infoElemApi + "/" + msgId, Message.class);
 
-	Message msg3 = getElem2.getBody();
 	dumpData("Got back", msg3);
 
 	assertEquals(content3, msg3.plainTextContent);
@@ -525,48 +436,31 @@ public class DataControllerTest extends RestTest {
 	msg.appId = "hfpiewhfi";
 
 	// Upload to DiMe
-	ResponseEntity<Message> uploadRes =
-	    getRest().postForEntity(infoElemApi, msg, Message.class);
-
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes);
+	Message outMsg = uploadElement(msg, Message.class);
 
 	// check that content is still the same
-	Message outMsg = uploadRes.getBody();
 	assertEquals(outMsg.plainTextContent, content1);
 	Long msgId = outMsg.getId();
 
 	// Read back infoelement over REST API and check
-	ResponseEntity<Message> getElem = 
-	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
-	assertSuccessful(getElem);
+	Message msg2 = getData(infoElemApi + "/" + msgId, Message.class);
 
-	Message msg2 = getElem.getBody();
 	assertEquals(msg2.plainTextContent, content1);
-
 
 	// Copy id from uploaded msg and change content
 	msg.copyIdFrom(outMsg);
 	msg.plainTextContent = content2;
 
 	// Upload to DiMe
-	ResponseEntity<Message> uploadRes2 =
-	    getRest().postForEntity(infoElemApi, msg, Message.class);
+	Message outMsg2 = uploadElement(msg, Message.class);
 
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes2);
-	
 	// check that content is the new one
-	Message outMsg2 = uploadRes2.getBody();
 	assertEquals(content2, outMsg2.plainTextContent);
 	assertEquals(msgId, outMsg2.getId());
 
 	// Read back infoelement over REST API and check
-	ResponseEntity<Message> getElem2 = 
-	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
-	assertSuccessful(getElem2);
+	Message msg3 = getData(infoElemApi + "/" + msgId, Message.class);
 
-	Message msg3 = getElem2.getBody();
 	assertEquals(msg3.plainTextContent, content2);
 
 
@@ -575,24 +469,16 @@ public class DataControllerTest extends RestTest {
 	msg.plainTextContent = content3;
 
 	// Upload to DiMe
-	ResponseEntity<Message> uploadRes3 =
-	    getRest().postForEntity(infoElemApi, msg, Message.class);
+	Message outMsg3 = uploadElement(msg, Message.class);
 
-	// Check that HTTP was successful
-	assertSuccessful(uploadRes3);
-	
 	// check that content is the new one
-	Message outMsg3 = uploadRes3.getBody();
 	assertEquals(content3, outMsg3.plainTextContent);
 	assertEquals(msgId, outMsg3.getId());
 	assertEquals(msg.appId, outMsg3.appId);
 
 	// Read back infoelement over REST API and check
-	ResponseEntity<Message> getElem3 = 
-	    getRest().getForEntity(infoElemApi + "/" + msgId, Message.class);
-	assertSuccessful(getElem3);
+	Message msg4 = getData(infoElemApi + "/" + msgId, Message.class);
 
-	Message msg4 = getElem3.getBody();
 	assertEquals(msg4.plainTextContent, content3);
     }
 
@@ -613,13 +499,9 @@ public class DataControllerTest extends RestTest {
 	dumpData("Uploading fake id", event);
 	
     	// Upload to DiMe
-    	ResponseEntity<String> res = 
-    	    getRest().postForEntity(eventApi, event, String.class);
+	String res = uploadData(eventApi, event, String.class, true);
 	
 	System.out.println("RES=" + res);
-
-    	// Check that HTTP was successful
-	assertClientError(res);
     }
 
 }
