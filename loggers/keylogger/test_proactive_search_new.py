@@ -288,10 +288,12 @@ if os.path.isfile('data/r_old.npy'):
 #
 
 
-#
+#List having length of total amount of written words
+#Having value 1 in indices corresponding the beginning of the document
+#and    value 0 in indices elsewhere
 filelocatorlist = []
 
-#
+#Dummy word list containing words written from the document
 dwordlist = []
 
 #
@@ -336,7 +338,8 @@ for j,line in enumerate(f):
     # #Exploration/Exploitation coefficient
     c = args.c
 
-    #Remove r_old.npy = old version of observed relevance vector
+    #Remove r_old.npy = old version of observed relevance vector 
+    #and also empty the dummy word list corresponding the previous written document
     if not args.norestart:    
         if os.path.isfile('data/r_old.npy'):
             os.remove('data/r_old.npy')
@@ -374,7 +377,7 @@ for j,line in enumerate(f):
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
-        #If nth word has been written, do search
+        #If nth word has been written, do search and keyword computing
         if i%divn == 0:
 
             #
@@ -389,31 +392,36 @@ for j,line in enumerate(f):
             else:
                 filelocatorlist.append(0.0)
 
+            #Print the document index and the latest written word and its running number
             print("Filename:", filename, "j:", j, "i:", i, "dstr:", dstr)
+
+            #Add the latest written word into a dummy word list
             dwordlist.append(dstr)
+
+            #Add the latest written word into a dummy string 'dstr2' containing recent written words
+            #'dstr2' will be the query string that is passed to the search functions!
             dstr2 = dstr2 + ' ' + dstr
-            #print "Currently typed: ", dstr2
             dstr2 = dwordlist[-numwords:]
             dstr2 = ' '.join(dstr2)
+            #
             print("Input to search function: ", dstr2)
 
-            #jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
             #Search docs from DiMe and compute keywords
             if args.dime_search_method == 1:
                 jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 2:
-                #Number of keywords added to query
+                #Number of suggested keywords added to query
                 n_kws = 10
                 jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 3:
-                #Number of keywords added to query
+                #Number of suggested keywords added to query
                 n_kws = 10
                 jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, tfidf, dictionary, c, mu, srvurl, usrname, password, n_results)
             
-
+            #Get number of suggested documents
             nsuggested_files = len(jsons)
 
-            #
+            #Remove suggested keywords already appearing in the written input
             if args.removeseenkws:
                 test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
                 print("TEST_WORDLIST:", test_wordlist)
@@ -559,6 +567,9 @@ for j,line in enumerate(f):
                 break
 
         print()
+
+    #Save json object corresponding the writing of the latest document
+
 
     #Save list of locators of documents that are written
     filelocatorlistnp = np.array(filelocatorlist)
