@@ -343,14 +343,12 @@ for j,line in enumerate(f):
         dwordlist = []
 
     #
-    i2= 0
-    #Number of currently typed words
     divn = 1
-    #
+    #String of currently written word from the document
+    dstr  = ''
+    #String of currently written words from the document
     dstr2 = ''
-    #Go through words of wordlist of a single message
-    #dummy index
-    j2 = 0
+
 
     #Maximum number of words written from each file 
     #Average precision
@@ -365,6 +363,10 @@ for j,line in enumerate(f):
 
     #Number of words written from the current document
     i = 0
+    #dummy index for keeping track the beginning of a new document
+    i2= 0
+    #dummy index
+    j2 = 0
 
     #Go through words in word list corresponding the current document
     while len(wordlist_r)>0:             
@@ -522,11 +524,11 @@ for j,line in enumerate(f):
         else:
             dwordlist.append(dstr)
             dstr2 = dstr2 + ' ' + dstr
-        #
-        i2 = i2 + 1
 
         #
         i = i + 1
+        #
+        i2 = i2 + 1
 
         #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
         #stop while-loop of current document 
