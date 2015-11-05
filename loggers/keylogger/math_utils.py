@@ -199,14 +199,14 @@ def pick_random_kw_ind(kw_scores_filecategory):
     
     #
     sum_kw_scores_filecategory = kw_scores_filecategory.sum()
-    print("pick_random_kw_ind: ", sum_kw_scores_filecategory)
+    #print("pick_random_kw_ind: ", sum_kw_scores_filecategory)
 
     #Take random value from range [0,1] 
     rv = random.random()
     #
     rv = rv*sum_kw_scores_filecategory
 
-    print("pick_random_kw_ind: ", rv)
+    #print("pick_random_kw_ind: ", rv)
     #
     dv = 0
     for i,v in enumerate(kw_scores_filecategory):
