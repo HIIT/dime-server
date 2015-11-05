@@ -354,12 +354,10 @@ def update_doc_tfidf_list(destinationfolder):
 	pickle.dump(doc_tfidf_list, open(destinationfolder+'/doc_tfidf_list.data','wb'))
 
 	#Make also sparse matrix representation of doctm and doc_tfidf_list
-	print('started')
 	sparsemat = list_of_lists_to_sparsemat(doctm)
-	print('finished')
 	print('Search thread: doctm sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sXdoctm.sparsemat',sparsemat)
-
+	#
 	sparsemat = list_of_lists_to_sparsemat(doc_tfidf_list)
 	print('Search thread: sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sX.sparsemat',sparsemat)
