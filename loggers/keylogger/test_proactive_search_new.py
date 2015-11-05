@@ -275,6 +275,7 @@ index      = similarities.docsim.Similarity.load('data/similarityvec')
 #Compute topics of each document
 doccategorylist = compute_doccategorylist(data)
 
+#If file 'r_old.npy' exist, remove it
 if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
 
@@ -287,8 +288,10 @@ filelocatorlist = []
 #
 dwordlist = []
 
+#
 filecategory_old = None
 
+#
 wordlist_old = []
 
 #
@@ -300,6 +303,7 @@ f = open(args.queries, 'r')
 qparts = args.queries.rsplit("/",1)
 qfn = qparts[1]
 
+#Loop through documents to be written
 for j,line in enumerate(f):
 
     line        = line.rstrip()
@@ -315,6 +319,7 @@ for j,line in enumerate(f):
         newfirst = random.randrange(len(wordlist))
         wordlist = wordlist[newfirst:] + wordlist[:newfirst]
 
+    #Reverse the order of words in the documents
     wordlist_r = list(reversed(wordlist[:writeold_pos]+wordlist_old[:writeold_n]+wordlist[writeold_pos:]))
     #print(wordlist)
     #print(wordlist_old)
@@ -349,10 +354,16 @@ for j,line in enumerate(f):
     precisionlist = []
     precisionlist_old = []
 
+    #Initialize list of keywords
     kws = []
 
+    #Number of words written from the current document
     i = 0
-    while len(wordlist_r)>0:                
+
+    #Go through words in word list corresponding the current document
+    while len(wordlist_r)>0:             
+
+        #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
         #If nth word has been written, do search
@@ -508,9 +519,15 @@ for j,line in enumerate(f):
         #
         i2 = i2 + 1
 
-        i = i+1
+        #
+        i = i + 1
+
+        #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
+        #stop while-loop of current document 
         if i>=(args.nwritten+nclicked_n):
             break
+        #If number of words written from the current document is greater than
+        #args.nwritten click the suggested keyword using some clicking model
         elif i>=(args.nwritten):
             try:
                 if nclicked_method == 3:
@@ -535,11 +552,11 @@ for j,line in enumerate(f):
 
         print()
 
-    #
+    #Save list of locators of documents that are written
     filelocatorlistnp = np.array(filelocatorlist)
     np.save('data/filelocatorlist.npy',filelocatorlistnp)
 
-    #Save precisionlist
+    #Save precisionlist corresponding the written document
     filename = filename.replace('/','_')
     filename = filename.replace('.','_')
     filename = filename.replace(':','_')
@@ -547,5 +564,6 @@ for j,line in enumerate(f):
     if filecategory != filecategory_old and filecategory_old is not None:
         pickle.dump(precisionlist_old, open('data/precisionlistold_'+filename+'.list','wb'))
 
+    #Store the old filecategory for precision value comparison
     filecategory_old = filecategory
 
