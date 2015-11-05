@@ -141,7 +141,7 @@ def compute_doccategorylist(jsons):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dataset", metavar = "DATASET", 
-                    help="used dataset: 20news,reuters,ohsumed,arxivcs")
+                    help="used dataset: 20news,reuters,reuters52,ohsumed,arxivcs")
 parser.add_argument("--queries", metavar = "FILE", 
                     help="list of queries to process")
 parser.add_argument("--querypath", metavar = "PATH", 
@@ -199,6 +199,12 @@ elif args.dataset == "reuters":
     process_input_file = process_input_file_reuters
     usrname = usrname_reuters
     password = password_reuters
+elif args.dataset == "reuters52":
+    categoryindices = categoryindices_reuters52
+    gt_tag = gt_tag_reuters
+    process_input_file = process_input_file_reuters
+    usrname = usrname_reuters52
+    password = password_reuters52
 elif args.dataset == "ohsumed":
     categoryindices = categoryindices_ohsumed
     gt_tag = gt_tag_ohsumed
