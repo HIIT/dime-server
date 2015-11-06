@@ -36,8 +36,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -502,6 +506,72 @@ public class DataControllerTest extends RestTest {
 	String res = uploadData(eventApi, event, String.class, true);
 	
 	System.out.println("RES=" + res);
+    }
+
+    @Test
+    public void testReadingEvent() throws Exception {
+	String someText = "Aliquam erat volutpat.  Nunc eleifend leo vitae magna.  In id erat non orci commodo lobortis.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.  Sed diam.  Praesent fermentum tempor tellus.  Nullam tempus.  Mauris ac felis vel velit tristique imperdiet.  Donec at pede.  Etiam vel neque nec dui dignissim bibendum.  Vivamus id enim.  Phasellus neque orci, porta a, aliquet quis, semper a, massa.  Phasellus purus.  Pellentesque tristique imperdiet tortor.  Nam euismod tellus id erat.";
+
+	ReadingEvent re = new ReadingEvent();
+	re.type = "http://www.hiit.fi/ontologies/dime/#ReadingEvent";
+	re.plainTextContent = someText.substring(25,150);
+	re.foundStrings = Arrays.asList("aliquam", "volutpat", "tellus");
+	re.pageNumbers = Arrays.asList(0, 4);
+
+	List<PageEyeData> eyeData = new ArrayList<PageEyeData>();
+	for (int i=0; i<10; i++) {
+	    PageEyeData ed = new PageEyeData();
+	    ed.Xs = Arrays.asList(i*0.0, i*1.5, i*2.2);
+	    ed.Ys = Arrays.asList(i*0.0, i*1.5, i*2.2);
+	    ed.Ps = Arrays.asList(i*0.0, i*1.5, i*2.2);
+
+	    ed.startTimes = Arrays.asList(i*1l, i*2l, i*4l);
+	    ed.endTimes = Arrays.asList(i+1l, i*2+1l, i*4+2l);
+
+	    ed.durations = Arrays.asList(1l, 1l, 2l);
+
+	    ed.pageIndex = i;
+	    eyeData.add(ed);
+	}
+
+	re.pageEyeData = eyeData;
+
+	List<Rect> rs = new ArrayList<Rect>();
+	Rect r = new Rect();
+	r.origin = new Point(0.0, 453.5);
+	r.readingClass = Rect.CLASS_VIEWPORT;
+	r.pageIndex = 0;
+	r.classSource = 1;
+	r.size = new Size(612.0, 338.5);
+	rs.add(r);
+	re.pageRects = rs;
+
+	re.scaleFactor = 1.685;
+	
+	ScientificDocument doc = new ScientificDocument();
+	doc.mimeType = "application/pdf";
+	doc.title = "Microsoft Word - paper.docx";
+	doc.plainTextContent = someText;
+	doc.uri = "/home/testuser/docs/memex_iui2016_submittedversion.pdf";
+	doc.firstPage = 0;
+	doc.lastPage = 0;
+	doc.year = 0;
+	doc.type = "http://www.hiit.fi/ontologies/dime/#ScientificDocument";
+	
+	re.targettedResource = doc;
+
+	dumpData("ReadingEvent before", re);
+
+	ReadingEvent reRet = uploadEvent(re, ReadingEvent.class);
+	
+	dumpData("ReadingEvent back", reRet);
+
+    	// ResponseEntity<String> ress = getRest().postForEntity(eventApi, re, 
+	// 						      String.class);
+
+	// // String res = uploadData(eventApi, re, String.class, true);
+	// String res = ress.getBody();
+	// System.out.println("RES=" + res);
     }
 
 }

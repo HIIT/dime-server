@@ -31,11 +31,19 @@ import javax.persistence.Embeddable;
 */
 @Embeddable
 public class Size {
+    // Yes, this is needed :-)
+    public Size() {}
+
+    public Size(double w, double h) {
+    	width = w; 
+    	height = h;
+    }
+
     /** Width of this item.
      */
-    public double width;
+    public Double width;
 
     /** Height of this item.
      */
-    public double height;
+    public Double height;
 }

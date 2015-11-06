@@ -31,6 +31,14 @@ import javax.persistence.Embeddable;
 */
 @Embeddable
 public class Point {
+    // Yes, this is needed :-)
+    public Point() {}
+
+    public Point(double x, double y) {
+	this.x = x;
+	this.y = y;
+    }
+
     /** Horizontal (x) coordinate
      */
     public double x;

@@ -23,11 +23,16 @@
 */
 package fi.hiit.dime.data;
 
-import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Entity;
+import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 
 /**
    A detailed reading event.
@@ -41,7 +46,8 @@ public class ReadingEvent extends DesktopEvent {
 
     /** List of strings that were searched for, found and selected by user, during this summary event (for summary events).
      */
-    public ArrayList<String> foundStrings;
+    @ElementCollection(targetClass = String.class)
+    public List<String> foundStrings;
 
     /** Proportion of document which was read (for summary events)
      */
@@ -58,17 +64,20 @@ public class ReadingEvent extends DesktopEvent {
     /** A vector representing the page numbers currently being considered (number within PDF document).
      * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
      * A number representing the page number in the given document, starting from 0. */
-    public int[] pageNumbers;
+    @ElementCollection(targetClass = Integer.class)
+    public List<Integer> pageNumbers;
     
     /** A vector representing the page numbers currently being considered (ORIGINAL page number).
      * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
      * This means you could get page 500 even if you PDF is 2 pages long, if that was the page in the source journal, for example. */
-    public ArrayList<String> pageLabels;
+    @ElementCollection(targetClass = String.class)
+    public List<String> pageLabels;
     
     /** A list of rectangles representing where the relevant (viewport, seen, interesting, etc.) paragraphs are. 
      * All the rects should fit within the page. Rect dimensions refer to points in a 72 dpi space where the bottom left is the origin,
      * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points. */
-    public ArrayList<Rect> pageRects;
+    @OneToMany(mappedBy="event")
+    public List<Rect> pageRects;
 
     /** The scale factor currently being used (1 = 100% size, 2 = 200%, etc).
      */
@@ -76,7 +85,8 @@ public class ReadingEvent extends DesktopEvent {
 
     /** Eye tracking data for this event, one entry per page (pageEyeData contains page index, from 0).
      */
-    public ArrayList<PageEyeData> pageEyeData;
+    @OneToMany(mappedBy="event")
+    public List<PageEyeData> pageEyeData;
 
     /** Plain text content of text currently displayed on screen. */
     @Column(columnDefinition="text")

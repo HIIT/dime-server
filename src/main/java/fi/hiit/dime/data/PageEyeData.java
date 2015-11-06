@@ -24,38 +24,58 @@
 
 package fi.hiit.dime.data;
 
-import javax.persistence.Embeddable;
+import org.springframework.data.jpa.domain.AbstractPersistable;
+
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
+import javax.persistence.FetchType;
+import javax.persistence.CascadeType;
+
+import java.util.List;
 
 /**
    Class representing points read on a specific page (in page space coordinates).
 */
-@Embeddable
-public class PageEyeData {
+@Entity
+public class PageEyeData extends AbstractPersistable<Long> {
     /** Horizontal (x) coordinates
      */
-    public double[] Xs;
+    @ElementCollection(targetClass = Double.class)
+    public List<Double> Xs;
 
     /** Vertical (y) coordinatess.
      */
-    public double[] Ys;
+    @ElementCollection(targetClass = Double.class)
+    public List<Double> Ys;
 
     /** Pupil size.
      */
-    public double[] Ps;
+    @ElementCollection(targetClass = Double.class)
+    public List<Double> Ps;
 
     /** Times of fixation start in microseconds.
      */
-    public long[] startTimes;
+    @ElementCollection(targetClass = Long.class)
+    public List<Long> startTimes;
 
     /** Times of fixation end in microseconds.
      */
-    public long[] endTimes;
+    @ElementCollection(targetClass = Long.class)
+    public List<Long> endTimes;
 
     /** Fixation durations in microseconds.
      */
-    public long[] durations;
+    @ElementCollection(targetClass = Long.class)
+    public List<Long> durations;
 
     /** Page index for this block of data.
      */
     public int pageIndex;
+
+    // Reference back to event is needed for SQL
+    @ManyToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinColumn(name="event_id")
+    public ReadingEvent event;
 }
