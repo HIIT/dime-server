@@ -8,6 +8,12 @@ import argparse
 from dime_search2 import *
 from update_files import *
 
+#e.g.For storing jsons 
+import json
+
+#
+import pprint
+
 #
 import mailbox
 
@@ -166,6 +172,8 @@ parser.add_argument('--writeold', metavar='X:Y',
                     help='write X words from old document at position Y')
 parser.add_argument("--xmlfile", metavar = "XMLFILE", 
                     help="XML file to read, needed by arxivcs")
+parser.add_argument("--clickweight", metavar = "W",
+                    help="weight assigned to clicked keywords")
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -173,6 +181,7 @@ parser.add_argument('--c', metavar='N', action='store', type=float,
 parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
                     default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
 
+print("Starting as:", sys.argv)
 
 args = parser.parse_args()
 
@@ -280,6 +289,9 @@ index      = similarities.docsim.Similarity.load('data/similarityvec')
 
 #Compute topics of each document
 doccategorylist = compute_doccategorylist(data)
+#Save doccategorylist for further analysis
+pickle.dump(doccategorylist,open('data/doccategorylist.list','wb'))
+
 
 #If file 'r_old.npy' exist, remove it
 if os.path.isfile('data/r_old.npy'):
@@ -306,8 +318,14 @@ f = open(args.queries, 'r')
 qparts = args.queries.rsplit("/",1)
 qfn = qparts[1]
 
+#
+master_document_dict = {}
+
 #Loop through documents to be written
 for j,line in enumerate(f):
+
+    #
+    master_document_dict[str(j)] = {}
 
     line        = line.rstrip()
     
@@ -366,18 +384,22 @@ for j,line in enumerate(f):
     #dummy index
     j2 = 0
 
+
+    #Initialize the json -object corresponding the input
+    docdict = {}
+
     #Go through words in word list corresponding the current document
     while len(wordlist_r)>0:             
 
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
-        #Initialize the json -object corresponding the input
-        djson = {}
-        #Add the written word into the json -object corresponding the written document
-        djson['action'] = {}
-        djson['action']['write'] = dstr
 
+
+        #Add the written word into the json -object corresponding the written document
+        if 'action' not in docdict:
+            docdict['action'] = {}
+        docdict['action']['write'] = dstr
 
         #If nth word has been written, do search and keyword computing
         if i%divn == 0:
@@ -407,7 +429,7 @@ for j,line in enumerate(f):
             dstr2 = ' '.join(dstr2)
 
             #Add the written input of latest words into the json -object corresponding the written document
-            djson['input'] = dstr2
+            docdict['input'] = dstr2
 
             #
             print("Input to search function: ", dstr2)
@@ -426,6 +448,7 @@ for j,line in enumerate(f):
             
             #Get number of suggested documents
             nsuggested_files = len(jsons)
+            print("Number of returned files: ", nsuggested_files)
 
             #Remove suggested keywords already appearing in the written input
             if args.removeseenkws:
@@ -439,7 +462,9 @@ for j,line in enumerate(f):
                         new_winds.append(winds[iii])
                     else:
                         print("KEYWORD", kw, "ALREADY IN INPUT, REMOVE!!")
+                #Update list of keywords into a list having only keywords not occurring in written input
                 kws   = new_kws
+                #Update list of indices of keywords
                 winds = new_winds
                 print("KWS AFTER REMOVAL:", kws)
 
@@ -477,10 +502,14 @@ for j,line in enumerate(f):
                         kw_maxind = np.argmax(kw_scores_filecategory)
                         #Take keyword randomly using Categorical probability distribution Cat(lamba1, lambda2, ...)
                         kw_randind = pick_random_kw_ind(kw_scores_filecategory) 
-                        #print("Keyword probabilities: ", kw_probabilities, "sum: ", kw_probabilities.sum())
                     else:
+                        #
                         kw_maxind = 0
+                #Append the score of n_kws keywords given correspnding topic index 'ii'
                 all_kw_scores.append(kwm)
+
+            #Store the score of n_kws keywords corresponding the writing into 
+            #a variable 'kw_scores'
             kw_scores = all_kw_scores[filecategory]
 
             #
@@ -489,6 +518,7 @@ for j,line in enumerate(f):
             else:
                 kw_scores_old = kw_scores
 
+            #
             sum_of_all_kw_scores = max(sum(all_kw_scores),0.0000000001)
             kw_scores_norm = kw_scores/sum_of_all_kw_scores
             kw_scores_norm_old = kw_scores_old/sum_of_all_kw_scores
@@ -499,11 +529,11 @@ for j,line in enumerate(f):
             nsamecategory_old = 0.0
 
             #Print all tags of jsons
-            for json in jsons:
-                print("Tags: ", json['tags']) 
+            for js in jsons:
+                print("Tags: ", js['tags']) 
                 #Split file -tag for checking category
-                for ti, tag in enumerate(json['tags']):
-                    parts = json['tags'][ti].split('=')
+                for ti, tag in enumerate(js['tags']):
+                    parts = js['tags'][ti].split('=')
                     if parts[0] == gt_tag:
                         #
                         categoryid = categoryindices[parts[1]]
@@ -533,6 +563,7 @@ for j,line in enumerate(f):
             else:
                 avgprecision = 0
                 avgprecision_old = 0
+
             #
             print("Suggested keywords:", kws)
             print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
@@ -555,11 +586,27 @@ for j,line in enumerate(f):
         i2 = i2 + 1
 
         #Add the suggested keywords into the json -object corresponding the written document
-        djson['kws'] = {}
+        docdict['kws'] = {}
+        prob_sum = 0
         for l,kw in enumerate(kws):
-            djson['kws'][kw] = kw_probabilities[l]
-        print()
-        print("Suggested kws with probs: ", djson['kws'])
+            docdict['kws'][kw] = kw_probabilities[l]
+            prob_sum = prob_sum + kw_probabilities[l]
+        print(prob_sum)
+        print("Suggested kws with probs: ", docdict['kws'])
+
+
+        #
+        pprint.pprint(docdict, width=30)
+        #Add to master_document_dict
+        master_document_dict[str(j)][str(i)] = docdict
+        #Initialize the json -object corresponding the input
+        docdict = {}
+        #Open file for appending the created json-document
+        f = open('data/docdicts.json','w')
+        #Convert Python dict 'master_document_dict' into a json -document
+        json_master_document_dict = json.dumps(master_document_dict, indent = 2)
+        json.dump(json_master_document_dict,f)
+
 
         #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
         #stop while-loop of current document 
@@ -584,22 +631,24 @@ for j,line in enumerate(f):
                 else:
                     kw_clicked = kws[0]
 
+                if args.clickweight:
+                    kw_clicked = kw_clicked + "^" + args.clickweight
+
                 #
                 print("Adding clicked keyword", kw_clicked, "using method", nclicked_method)
-
                 #Add the clicked word into the word list corresponding the written document
                 wordlist_r.append(kw_clicked)
 
+                #Add the suggested keywords into the json -object corresponding the written document
+                docdict['kws'] = kws
                 #Add the clicked word into the json -object corresponding the written document
-                djson['action'] = {}
-                djson['action']['click'] = kw_clicked
+                docdict['action'] = {}
+                docdict['action']['click'] = kw_clicked
 
             except IndexError:
                 print("Adding clicked keyword failed, breaking out")
                 break
 
-        #Add json into the python list of jsons
-        #djsons.append[djson]
         print()
 
     #Save json object corresponding the writing of the latest document

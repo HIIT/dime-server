@@ -275,7 +275,9 @@ def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl
             n_kw = n_kw + 1
 
     #query = dum_word_list.join()
-    print(dum_query)
+    print()
+    print("search_dime_using_linrel_keywords: query to Lucene: ", dum_query)
+    print()
     #query = '%s' % query
     #print(dum_word_list)
 
@@ -330,7 +332,8 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     #Search resources from DiMe using Dime-servers own search function
     jsons = search_dime(srvurl, username, password, dum_query, n_results)
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
-
+    print("Number of returned jsons: ", len(jsons))
+    
     #
     return jsons, kws, winds
 
@@ -517,28 +520,12 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
 
     #Take take indices of elements of 'vsum' according to ascending order
     vsinds = np.argsort(vsum[:,0])
-    #Take last 20 indices from vsinds, i.e. choose 20 keywords
-    #vsinds = vsinds[-20:]
+    vsinds = vsinds.tolist()
+    print("TYPE OF VSINDS: ", type(vsinds))
+    #Take last 100 indices from vsinds, i.e. choose 100 keywords
     vsinds = vsinds[-100:]
-    #Make reversed list of vsinds
-    vsindsrev = reversed(vsinds)
-    #Reverse
-    vsinds = []
-    for i in vsindsrev:
-        vsinds.append(i)
-
-    #Take take indices of elements of 'r_hat' according to ascending order
-    kwinds = np.argsort(r_hat[:,0])
-    #Take last 20 indices from vsinds
-    kwinds = kwinds[-20:]
-    #Make reverse list object
-    kwindsrev = reversed(kwinds)
-    #Reverse
-    kwindsd = []
-    for i in kwindsrev:
-        kwindsd.append(i)
-    #
-    kwinds = kwindsd
+    #Reverse, i.e. make list of indices corresponding the descending order of elements of 'r_hat'
+    vsinds = list(reversed(vsinds))
 
     #
     if r_hat.max() > 0.0:

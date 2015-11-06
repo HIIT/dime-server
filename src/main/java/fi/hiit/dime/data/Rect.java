@@ -60,6 +60,10 @@ public class Rect extends AbstractPersistable<Long> {
      */
     public int classSource;
 
+    /** Plain text contained within this rectangle.
+     */
+    public String plainTextContent;
+
     /** Unspecified reading class
      */
     public static final int CLASS_UNSET = 0;
