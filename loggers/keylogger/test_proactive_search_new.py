@@ -598,7 +598,7 @@ for j,line in enumerate(f):
         #Initialize the json -object corresponding the input
         docdict = {}
         #Open file for appending the created json-document
-        f = open('docdict.json','w')
+        f = open('data/docdicts.json','w')
         #Convert Python dict 'master_document_dict' into a json -document
         json_master_document_dict = json.dumps(master_document_dict, indent = 2)
         json.dump(json_master_document_dict,f)
