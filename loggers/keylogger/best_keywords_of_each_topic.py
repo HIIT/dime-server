@@ -4,26 +4,54 @@ from math_utils import *
 import pickle
 
 #
+import pprint
+
+#
 import matplotlib.pyplot as plt
 #from matplotlib import imshow
 
 #Load updated tfidf-matrix of the corpus
 sX         = load_sparse_csc('data/sX.sparsemat.npz')
 sXarray    = sX.toarray()
+#sXarray    = sX
 
 #Load dictionary
 dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 wkeys = [i for i in range(len(dictionary))]
 #print(wkeys)
 #print(len(dictionary.keys()))
+
 #Compute topics of each document
-doccategorylist = compute_doccategorylist()
+#doccategorylist = compute_doccategorylist()
 doccategorylist = pickle.load(open('data/doccategorylist.list','rb'))
+#Number of documents
+print("Doccategorylist: ", len(doccategorylist))
+
+#Gather different topics and their occurrence in documents
+topics = {}
+for doc_topics in doccategorylist:
+    for topic in doc_topics:
+        if topic not in topics:
+            topics[topic] = 1
+        else:
+            topics[topic] = topics[topic] + 1
+
+pprint.pprint(topics, width = 30)
+
+#Check that the number of documents match
+ndocs = 0
+for topic in topics.keys():
+    ndocs = ndocs + topics[topic]
+print("Number of documents: ", ndocs)
+
 
 #
 all_kw_scores = []
 topic_words = []
-for i in range(1,13):   
+
+#Go through topics
+for i in range(len(topics)):   
+    print('Topic ',i)
     #print(dictionary.keys()[0])
     #kw_mean, kw_scores = compute_topic_keyword_scores(sXarray, dictionary.keys(), doccategorylist, i)
     kw_mean, kw_scores = compute_topic_keyword_scores(sXarray, wkeys, doccategorylist, i)
@@ -41,6 +69,8 @@ for i in range(1,13):
     dwords = []
     for ind in inds:
         dwords.append(dictionary.get(ind))
+
+    print()
     print(dwords,kw_mean)
     topic_words.append(dwords)
     #print(all_kw_scores[i-1].shape)
@@ -65,26 +95,8 @@ for row in all_kw_scores:
     print(dcossim)
     topic_cossim.append(dcossim)
 cosmat = np.array(topic_cossim)
-#fig = plt.figure()
-# plt.imshow(cosmat, interpolation='nearest', cmap=plt.cm.binary)
-# plt.colorbar()
-# plt.show()
 
-
-# sentence1 = "dog is the"
-# sentence2 = "the dog is a very nice animal"
-# sentence3 = "the dog is running in your garden"
-# set_sentence1 = set(sentence1.split())
-# set_sentence2 = set(sentence2.split())
-# set_sentence3 = set(sentence3.split())
-
-# intersection1 = set_sentence1.intersection(set_sentence3)
-# intersection2 = set_sentence2.intersection(set_sentence3)
-
-# Similarity1 = (1.0 + len(intersection1))/(1.0 + max(len(set_sentence1), len(set_sentence3)))
-# Similarity2 = (1.0 + len(intersection2))/(1.0 + max(len(set_sentence2), len(set_sentence3)))
-# print(Similarity1,Similarity2)
-
+#
 topic_cossim2 = []
 for dwords in topic_words:
     dset = set(dwords)
@@ -95,10 +107,11 @@ for dwords in topic_words:
         dcossim2.append( (1.0 + len(dintersection))/(1.0 + max(len(dset), len(dset2))) )
     print(dcossim2)
     topic_cossim2.append(dcossim2)
-
+#
 cosmat2 = np.array(topic_cossim2)
 #fig = plt.figure()
 #plt.imshow(cosmat, interpolation='nearest', cmap=plt.cm.ocean)
+#plt.imshow(cosmat, interpolation='nearest', cmap=plt.cm.binary)
 plt.imshow(cosmat2, interpolation='nearest', cmap=plt.cm.binary)
 plt.colorbar()
 plt.show()
