@@ -48,6 +48,10 @@ public class Rect {
      */
     public int classSource;
 
+    /** Plain text contained within this rectangle.
+     */
+    public String plainTextContent;
+
     /** Unspecified reading class
      */
     public static final int CLASS_UNSET = 0;
