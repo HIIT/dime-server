@@ -62,6 +62,7 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
     	    case "tag":
 		criteria = ":tag member of e.tags";
     		break;
+	    case "appId":
     	    case "uri":
     	    case "plaintextcontent":
     	    case "isstoredas":

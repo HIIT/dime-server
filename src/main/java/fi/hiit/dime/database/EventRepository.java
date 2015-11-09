@@ -70,6 +70,7 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
     	    case "actor":
     	    case "origin":
     	    case "type":
+	    case "appId":
     	    // case "start":
     	    // case "end":
     	    // case "duration":

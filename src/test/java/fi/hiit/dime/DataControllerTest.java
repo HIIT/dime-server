@@ -484,6 +484,14 @@ public class DataControllerTest extends RestTest {
 	Message msg4 = getData(infoElemApi + "/" + msgId, Message.class);
 
 	assertEquals(msg4.plainTextContent, content3);
+
+
+	// Finally, read back infoelement with appId
+	Message[] msgs = getData(infoElemsApi + "?appId=" + msg.appId, Message[].class);
+
+	assertEquals(1, msgs.length);
+	assertEquals(content3, msgs[0].plainTextContent);
+
     }
 
     @Test
