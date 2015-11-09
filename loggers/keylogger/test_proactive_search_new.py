@@ -316,13 +316,13 @@ qparts = args.queries.rsplit("/",1)
 qfn = qparts[1]
 
 #
-master_document_dict = {}
+master_document_list = []
 
 #Loop through documents to be written
 for j,line in enumerate(f):
 
     #
-    master_document_dict[str(j)] = {}
+    #master_document_dict[str(j)] = {}
 
     line        = line.rstrip()
     
@@ -381,9 +381,9 @@ for j,line in enumerate(f):
     #dummy index
     j2 = 0
 
-
     #Initialize the json -object corresponding the input
-    docdict = {}
+    iteration_list = []
+    click_added = False
 
     #Go through words in word list corresponding the current document
     while len(wordlist_r)>0:             
@@ -391,12 +391,15 @@ for j,line in enumerate(f):
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
-
+        iteration = {}
+        iteration['i'] = i
 
         #Add the written word into the json -object corresponding the written document
-        if 'action' not in docdict:
-            docdict['action'] = {}
-        docdict['action']['write'] = dstr
+        if click_added:
+            iteration['click'] = dstr
+        else:
+            iteration['write'] = dstr
+        click_added = False
 
         #If nth word has been written, do search and keyword computing
         if i%divn == 0:
@@ -426,7 +429,7 @@ for j,line in enumerate(f):
             dstr2 = ' '.join(dstr2)
 
             #Add the written input of latest words into the json -object corresponding the written document
-            docdict['input'] = dstr2
+            iteration['input'] = dstr2
 
             #
             print("Input to search function: ", dstr2)
@@ -582,26 +585,22 @@ for j,line in enumerate(f):
         i2 = i2 + 1
 
         #Add the suggested keywords into the json -object corresponding the written document
-        docdict['kws'] = {}
+        iteration['kws'] = {}
         prob_sum = 0
         for l,kw in enumerate(kws):
-            docdict['kws'][kw] = kw_probabilities[l]
+            iteration['kws'][kw] = kw_probabilities[l]
             prob_sum = prob_sum + kw_probabilities[l]
         print(prob_sum)
-        print("Suggested kws with probs: ", docdict['kws'])
+        print("Suggested kws with probs: ", iteration['kws'])
 
 
         #
-        pprint.pprint(docdict, width=30)
+        #pprint.pprint(docdict, width=30)
         #Add to master_document_dict
-        master_document_dict[str(j)][str(i)] = docdict
+        #master_document_list.append(docdict)
         #Initialize the json -object corresponding the input
-        docdict = {}
+        #docdict = {}
         #Open file for appending the created json-document
-        f = open('data/docdicts.json','w')
-        #Convert Python dict 'master_document_dict' into a json -document
-        json_master_document_dict = json.dumps(master_document_dict, indent = 2)
-        json.dump(json_master_document_dict,f)
 
 
         #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
@@ -635,17 +634,20 @@ for j,line in enumerate(f):
                 #Add the clicked word into the word list corresponding the written document
                 wordlist_r.append(kw_clicked)
 
+                click_added = True
+
                 #Add the suggested keywords into the json -object corresponding the written document
-                docdict['kws'] = kws
+                #docdict['kws'] = kws
                 #Add the clicked word into the json -object corresponding the written document
-                docdict['action'] = {}
-                docdict['action']['click'] = kw_clicked
+                #docdict['action'] = {}
+                #docdict['action']['click'] = kw_clicked
 
             except IndexError:
                 print("Adding clicked keyword failed, breaking out")
                 break
 
         print()
+        iteration_list.append(iteration)
 
     #Save json object corresponding the writing of the latest document
 
@@ -653,6 +655,10 @@ for j,line in enumerate(f):
     #Save list of locators of documents that are written
     filelocatorlistnp = np.array(filelocatorlist)
     np.save('data/filelocatorlist.npy',filelocatorlistnp)
+
+    master_document_list.append({"category": filecategory,
+                                 "filename": filename,
+                                 "iterations": iteration_list})
 
     #Save precisionlist corresponding the written document
     filename = filename.replace('/','_')
@@ -665,3 +671,5 @@ for j,line in enumerate(f):
     #Store the old filecategory for precision value comparison
     filecategory_old = filecategory
 
+with open('data/docdicts.json', 'w') as f:
+    json.dump(master_document_list, f, indent=2)
