@@ -332,7 +332,8 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     #Search resources from DiMe using Dime-servers own search function
     jsons = search_dime(srvurl, username, password, dum_query, n_results)
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
-
+    print("Number of returned jsons: ", len(jsons))
+    
     #
     return jsons, kws, winds
 

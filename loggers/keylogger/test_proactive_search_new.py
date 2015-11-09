@@ -289,6 +289,9 @@ index      = similarities.docsim.Similarity.load('data/similarityvec')
 
 #Compute topics of each document
 doccategorylist = compute_doccategorylist(data)
+#Save doccategorylist for further analysis
+pickle.dump(doccategorylist,open('data/doccategorylist.list','wb'))
+
 
 #If file 'r_old.npy' exist, remove it
 if os.path.isfile('data/r_old.npy'):
@@ -448,6 +451,7 @@ for j,line in enumerate(f):
             
             #Get number of suggested documents
             nsuggested_files = len(jsons)
+            print("Number of returned files: ", nsuggested_files)
 
             #Remove suggested keywords already appearing in the written input
             if args.removeseenkws:

@@ -34,6 +34,11 @@ public class ReadingEvent extends DesktopEvent {
     */
     public Boolean isSummary;
 
+    /** Id identifying this reading session.
+     * All ReadingEvents generated during one session (from document open to document close) should have the same sessionId.
+     */
+    public String sessionId;
+
     /** List of strings that were searched for, found and selected by user, during this summary event (for summary events).
      */
     public ArrayList<String> foundStrings;
