@@ -432,6 +432,78 @@ public class DataControllerTest extends RestTest {
     }
 
     @Test
+    public void testEventChange() throws Exception {
+	String appId1 = "lk43nguefd";
+	String appId2 = "9o543gewlk";
+
+	// Create two events with appIds
+	Event[] events = new Event[2];
+
+	String query1 = "some search query";
+	String query2 = "some other search";
+
+	SearchEvent searchEvent = new SearchEvent();
+	searchEvent.appId = appId1;
+	searchEvent.query = query1;
+	searchEvent.actor = "TestActor1";
+	events[0] = searchEvent;
+
+	String content1 = "foobar";
+	String content2 = "barfoo";
+
+	Message msg = createTestEmail(content1, "");
+	MessageEvent msgEvent = new MessageEvent();
+	msgEvent.appId = appId2;
+	msgEvent.targettedResource = msg;
+	events[1] = msgEvent;
+
+	// Upload to DiMe
+	Event[] outEvents = uploadEvents(events, Event[].class);
+	SearchEvent outSearchEvent1 = (SearchEvent)outEvents[0];
+	MessageEvent outMsgEvent1 = (MessageEvent)outEvents[1];
+
+	// check that content is still the same
+	assertEquals(2, outEvents.length);
+	assertEquals(appId1, outSearchEvent1.appId);
+	assertEquals(appId2, outMsgEvent1.appId);
+	assertEquals(query1, outSearchEvent1.query);
+	assertEquals(content1, outMsgEvent1.targettedResource.plainTextContent);
+
+
+	// Change search event and message content
+	searchEvent.query = query2;
+	msg.plainTextContent = content2;
+
+	// Upload the changed events
+	SearchEvent outSearchEvent2 = uploadEvent(searchEvent, SearchEvent.class);
+	MessageEvent outMsgEvent2 = uploadEvent(msgEvent, MessageEvent.class);
+
+	// Sanity check for appIds
+	assertEquals(appId1, outSearchEvent2.appId);
+	assertEquals(msgEvent.appId, outMsgEvent2.appId);
+
+	// check that content is the changed one
+	assertEquals(query2, outSearchEvent2.query);
+	assertEquals(content2, outMsgEvent2.targettedResource.plainTextContent);
+
+
+	// Read back events over REST API and check again
+	SearchEvent[] searchEventGot = getData(eventsApi + "?appid=" + appId1,
+					       SearchEvent[].class);
+
+	MessageEvent[] msgEventGot = getData(eventsApi + "?appid=" + appId2,
+					     MessageEvent[].class);
+
+	// Sanity check for appIds
+	assertEquals(appId1, searchEventGot[0].appId);
+	assertEquals(appId2, msgEventGot[0].appId);
+
+	// check that content is the changed one
+	assertEquals(query2, searchEventGot[0].query);
+	assertEquals(content2, msgEventGot[0].targettedResource.plainTextContent);
+    }
+
+    @Test
     public void testElemUpload() throws Exception {
 	String content1 = "foobar";
 	String content2 = "barfoo";
@@ -487,7 +559,7 @@ public class DataControllerTest extends RestTest {
 
 
 	// Finally, read back infoelement with appId
-	Message[] msgs = getData(infoElemsApi + "?appId=" + msg.appId, Message[].class);
+	Message[] msgs = getData(infoElemsApi + "?appid=" + msg.appId, Message[].class);
 
 	assertEquals(1, msgs.length);
 	assertEquals(content3, msgs[0].plainTextContent);

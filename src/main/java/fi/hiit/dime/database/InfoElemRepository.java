@@ -54,22 +54,24 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
 	// Loop over user's parameters, and transform to SQL statments
 	// and fill in namedParams
 	for (Map.Entry<String, String> param : filterParams.entrySet()) {
-    	    String name = param.getKey();
+    	    String name = param.getKey().toLowerCase();
     	    String value = param.getValue();
 
-	    String criteria = String.format("%s=:%s", name, name);
+	    String criteria = "";
+
     	    switch (name) {
     	    case "tag":
 		criteria = ":tag member of e.tags";
     		break;
-	    case "appId":
+	    case "appid":
+		name = "appId";
     	    case "uri":
     	    case "plaintextcontent":
     	    case "isstoredas":
     	    case "type":
     	    case "mimetype":
     	    case "title":
-    	    // case "":
+		criteria = String.format("%s=:%s", name, name);
     		break;
     	    default:
     		throw new IllegalArgumentException(name);

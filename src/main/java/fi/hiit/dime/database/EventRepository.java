@@ -60,17 +60,19 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
 	// Loop over user's parameters, and transform to SQL statments
 	// and fill in namedParams
 	for (Map.Entry<String, String> param : filterParams.entrySet()) {
-    	    String name = param.getKey();
+    	    String name = param.getKey().toLowerCase();
     	    String value = param.getValue();
 
     	    switch (name) {
+	    case "appid":
+		name = "appId";
+		break;
     	    // case "tag":
     	    // 	name = "tags";
     	    // 	break;
     	    case "actor":
     	    case "origin":
     	    case "type":
-	    case "appId":
     	    // case "start":
     	    // case "end":
     	    // case "duration":
