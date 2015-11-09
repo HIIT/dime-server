@@ -44,10 +44,15 @@ def create_payload(line, fn, i, do_stem):
 
     print "---###---###---###---###---###---###---###---###---###---###---"
     print
-    print '%d: %s' % (i, line)
+    print '%d: %s ...' % (i, line[:50])
     print
 
     parts = line.split("\t")
+
+    if parts[0] in skipped_categories:
+        print line[:30], "... (", parts[0],  ") matches category to be skipped"
+        return None
+
     finaltags = ['category='+parts[0]]
     
     payload = {
@@ -96,8 +101,15 @@ if __name__ == "__main__":
                         default=0, help='process only N first messages')
     parser.add_argument('--nostem', action='store_true',
                         help='disable Porter stemming of tokens')
+    parser.add_argument('--skip', action='store', metavar='X[,Y]',
+                        help='skip categories X [and Y]')
 
     args = parser.parse_args()
+
+    skipped_categories = []
+    if args.skip:
+        skipped_categories = args.skip.split(",")
+        print "Categories to be skipped are", skipped_categories
 
     cwd = os.getcwd()
     os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
@@ -119,15 +131,14 @@ if __name__ == "__main__":
     with open(args.msgfile) as f:
         for line in f:
             line = line.rstrip()
-            print "Processing [{}]".format(line)
+            #print "Processing [{}]".format(line)
 
             json_payload = create_payload(line, args.msgfile, i, not args.nostem)
-            if json_payload is None:
-                continue
-            print "PAYLOAD:\n" + json_payload
 
-            if not args.dryrun:
-                common.post_payload(json_payload, "event")
+            if json_payload is not None:
+                print "PAYLOAD:\n" + json_payload
+                if not args.dryrun:
+                    common.post_payload(json_payload, "event")
 
             if args.limit>0 and i >= args.limit:
                 break
