@@ -33,7 +33,7 @@ import javax.persistence.OneToMany;
 
 @Entity
 public class ScientificDocument extends Document {
-    @OneToMany
+    @OneToMany(mappedBy="authorIn")
     public List<Person> authors;
 
     @Column(columnDefinition="text")

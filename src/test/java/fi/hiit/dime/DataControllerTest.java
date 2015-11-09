@@ -637,6 +637,18 @@ public class DataControllerTest extends RestTest {
 	doc.lastPage = 0;
 	doc.year = 0;
 	doc.type = "http://www.hiit.fi/ontologies/dime/#ScientificDocument";
+
+	Person a1 = new Person();
+	a1.firstName = "Matti";
+	a1.lastName = "Meikäläinen";
+
+	Person a2 = new Person();
+	a2.firstName = "John";
+	a2.lastName = "Doe";
+
+	doc.authors = new ArrayList<Person>();
+	doc.authors.add(a1);
+	doc.authors.add(a2);
 	
 	re.targettedResource = doc;
 
