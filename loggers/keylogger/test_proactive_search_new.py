@@ -174,6 +174,8 @@ parser.add_argument("--xmlfile", metavar = "XMLFILE",
                     help="XML file to read, needed by arxivcs")
 parser.add_argument("--clickweight", metavar = "W",
                     help="weight assigned to clicked keywords")
+parser.add_argument('--knownitem', action='store_true',
+                    help='perform known item search')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -214,6 +216,12 @@ elif args.dataset == "reuters52":
     process_input_file = process_input_file_reuters
     usrname = usrname_reuters52
     password = password_reuters52
+elif args.dataset == "reuters52minus2":
+    categoryindices = categoryindices_reuters52_minus2
+    gt_tag = gt_tag_reuters
+    process_input_file = process_input_file_reuters
+    usrname = usrname_reuters52_minus2
+    password = password_reuters52_minus2
 elif args.dataset == "ohsumed":
     categoryindices = categoryindices_ohsumed
     gt_tag = gt_tag_ohsumed
@@ -234,9 +242,6 @@ if not args.queries:
     print("args.queries is empty")
     sys.exit()
 
-if not args.querypath:
-    print("args.querypath is empty")
-    sys.exit()
 
 histremoval_threshold = 0
 histremoval_ma_value  = 0
@@ -322,14 +327,34 @@ qfn = qparts[1]
 master_document_list = []
 
 #Loop through documents to be written
-for j,line in enumerate(f):
+for j, line in enumerate(f):
 
     #
     #master_document_dict[str(j)] = {}
 
     line        = line.rstrip()
-    
-    filename, filecategory, wordlist = process_input_file(line, j, qfn)
+
+    if args.dataset.find("reuters") == -1:
+        parts = line.split()
+        if args.knownitem:
+            if len(parts)==2:
+                known_item_target = parts[1] 
+
+                # find "known_item_target" from json.txt, return index
+
+                # create matching doccategorylist
+
+            else:
+                print("Line {0} of {1} does not contain known item target items").format(j, line)
+                sys.exit()
+        else:
+            known_item_target = None
+
+        filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
+
+    else:
+        filename, filecategory, wordlist = process_input_file(line, j, qfn)
+
     if filename is None:
         break
     if filecategory is None:
