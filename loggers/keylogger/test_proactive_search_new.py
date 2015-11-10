@@ -238,6 +238,9 @@ else:
     print("Unsupported dataset:", args.dataset)
     sys.exit()
     
+#Store the contents of 'categoryindices' additionally to a variable
+categoryindices_original = categoryindices
+
 if not args.queries:
     print("args.queries is empty")
     sys.exit()
@@ -329,29 +332,41 @@ master_document_list = []
 #Loop through documents to be written
 for j, line in enumerate(f):
 
-    #
-    #master_document_dict[str(j)] = {}
-
+    #Strip all spaces from the end of the string
     line        = line.rstrip()
-
+    #If not using reuters -data, do the following
     if args.dataset.find("reuters") == -1:
+        #Split e.g. line of the form ' talk.religion.misc/83781  talk.religion.misc/81000' into two
         parts = line.split()
+        #If knownitem is selected, do the following
         if args.knownitem:
             if len(parts)==2:
+                #
                 known_item_target = parts[1] 
-
-                # find "known_item_target" from json.txt, return index
-
-                # create matching doccategorylist
-
+                print("KNOWN ITEM: ",known_item_target)
+                #Find the json index (running number) of "known_item_target" from json.txt (here named as 'data').
+                for di, djson in enumerate(data):
+                    if djson['uri'] == known_item_target:
+                        # create matching doccategorylist
+                        doccategorylist = len(data)*[[0]]
+                        #Insert value 1 for element corresponding the known document
+                        doccategorylist[di] = [1]
+                        #Use temporarily the original category index
+                        categoryindices = categoryindices_original
+                        #Get the filename, filecategory, and the word list corresponding the current writing document
+                        filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
+                        #Change the dict named 'categoryindices' to correspond kown item search scenario
+                        categoryindices = {'Other':0, 'The known item':1}
+                        #Change the filecategory (the category of the writing document) to correspond the changed categoryindices 
+                        #By default, the writing document is not the same as the known item
+                        filecategory = 0
             else:
+                #
                 print("Line {0} of {1} does not contain known item target items").format(j, line)
                 sys.exit()
         else:
             known_item_target = None
-
-        filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
-
+    #
     else:
         filename, filecategory, wordlist = process_input_file(line, j, qfn)
 
@@ -512,6 +527,7 @@ for j, line in enumerate(f):
             #Compute keyword scores here for the n_kws keywords
             all_kw_scores = []
             #Go through topics 
+            print("Category ids: ",categoryindices)
             for ii in range(0,len(categoryindices)):
                 #Compute keyword scores given the writing topic 'ii'
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
@@ -562,8 +578,24 @@ for j, line in enumerate(f):
                 #Split file -tag for checking category
                 for ti, tag in enumerate(js['tags']):
                     parts = js['tags'][ti].split('=')
-                    if parts[0] == gt_tag:
-                        #
+
+                    #Added 10.11.15 for known item search scenario
+                    if parts[0] == 'filename':
+                        #If known item search scenario is selected, compare the dime document's filename to
+                        #the name of the known document
+                        if args.knownitem:
+                            print("PARTS 1: ", parts[1], "KNOWN ITEM: ", known_item_target)
+                            if parts[1] == known_item_target:
+                                categoryid = 1
+                                nsamecategory = nsamecategory + 1.0
+                                print("GOT SAME CATEGORY AS CURRENT!")
+                            else:
+                                categoryid = 0
+
+                            print("Category:", categoryid, "Correct:", 1)
+
+                    #
+                    if parts[0] == gt_tag and not args.knownitem:
                         categoryid = categoryindices[parts[1]]
                         print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
                         #
@@ -621,16 +653,6 @@ for j, line in enumerate(f):
             prob_sum = prob_sum + kw_probabilities[l]
         print(prob_sum)
         print("Suggested kws with probs: ", iteration['kws'])
-
-
-        #
-        #pprint.pprint(docdict, width=30)
-        #Add to master_document_dict
-        #master_document_list.append(docdict)
-        #Initialize the json -object corresponding the input
-        #docdict = {}
-        #Open file for appending the created json-document
-
 
         #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
         #stop while-loop of current document 

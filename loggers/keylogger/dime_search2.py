@@ -400,15 +400,8 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     r_hat, sigma_hat, w_hat = return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(r, X, mu)
     #print("w_hat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: ", w_hat)
 
-    #Compute to norm of sigma_hat
-    norm_sigma_hat = np.linalg.norm(sigma_hat)
-    if os.path.isfile("data/norm_sigma_hat.npy"):
-        norm_sigma_hat_vec = np.load("data/norm_sigma_hat.npy")
-        norm_sigma_hat_vec = np.append(norm_sigma_hat_vec, norm_sigma_hat)
-        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
-    else:
-        norm_sigma_hat_vec = np.array([norm_sigma_hat])
-        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
+    #Do analysis of r_hat, sigma_hat and w_hat
+    #do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat)
 
     #Normalize relevance estimate vector
     if r_hat.sum() > 0.0:
@@ -416,112 +409,24 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
     if sigma_hat.sum() > 0.0:
         sigma_hat = sigma_hat/sigma_hat.sum()
+
     #Make unit vector from w_hat (user model)
     norm_w_hat = np.linalg.norm(w_hat)
     if norm_w_hat > 0.0:
         w_hat = w_hat/norm_w_hat
         norm_w_hat = np.linalg.norm(w_hat)
-        #print("Norm of current w_hat: ", np.linalg.norm(w_hat))
-        #w_hat = w_hat/w_hat.sum()
 
-    #Add r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
+    #Sum r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
     print("VALUE OF c: ",c)
     vsum = r_hat + c*sigma_hat
     #Normalize vsum
     if vsum.max() > 0.0:
         vsum = vsum/vsum.sum()
 
-    #Compute sparsities of vectors
-    r_hat_spar     = vec_sparsity(r_hat)
-    #Store sparsity values of r_hat vector
-    if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
-        r_hat_spar_hist_vec = np.load('data/r_hat_spar_hist_vec.npy')
-        r_hat_spar_hist_vec = np.append(r_hat_spar_hist_vec, r_hat_spar)
-        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
-    else:
-        r_hat_spar_hist_vec = np.array([r_hat_spar])
-        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
-
-    sigma_hat_spar = vec_sparsity(sigma_hat)
-    #Store sparsity values of sigma_hat vector
-    if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
-        sigma_hat_spar_hist_vec = np.load('data/sigma_hat_spar_hist_vec.npy')
-        sigma_hat_spar_hist_vec = np.append(sigma_hat_spar_hist_vec, sigma_hat_spar)
-        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
-    else:
-        sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
-        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
-
-    #
-    vsum_spar      = vec_sparsity(vsum)
-
-    #Load previous vsum -vector, and compute cosine similarity between current vsum and previous vsum vectors
-    cossim = 0.0
-    eps    = 1e-15
-    if os.path.isfile('data/vsum.npy'):
-        #print "dime_search: Load vsum_old!!"
-        vsum_old = np.load('data/vsum.npy')
-        #Compute cosine similarity between previous and current vsum -vectors
-        cossim = vsum_old.T.dot(vsum)[0.0]
-        n1 = np.linalg.norm(vsum)
-        n2 = np.linalg.norm(vsum_old)   
-        cossim = cossim/(max(n1*n2,eps))
-    #Store cosine similarity between vsum vectors into a vector and file    
-    if os.path.isfile("data/cossim_vsum_vec.npy"):
-        cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
-        cossim_vsum_vec = np.append(cossim_vsum_vec, cossim)
-        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
-    else:
-        cossim_vsum_vec = np.array([cossim])
-        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)        
-
-    #Load previous w_hat -vector, and compute cosine similarity between current w_hat and previous w_hat vectors
-    cossim_w_hat = 0.0
-    eucl_dist_w_hat = 0.0
-    eps    = 1e-15
-    if os.path.isfile('data/w_hat.npy'):
-        #
-        w_hat_old = np.load('data/w_hat.npy')
-        norm_w_hat_old = np.linalg.norm(w_hat_old)
-        #print("Norm of old w_hat: ", norm_w_hat_old)
-        sum_norms = norm_w_hat + norm_w_hat_old
-        #print("sum of norms!!!!!!!!!!: ", sum_norms)
-        #
-        diff_w_hat = w_hat_old-w_hat
-        eucl_dist_w_hat  = np.linalg.norm(diff_w_hat)
-        eucl_dist_w_hat  = eucl_dist_w_hat/sum_norms
-        print("Euclidean distance in unit sphere!: ", eucl_dist_w_hat)
-
-    #Compute and store eucl distance between current and previous w_hat
-    if os.path.isfile("data/eucl_dist_w_hat_vec.npy"):
-        eucl_dist_w_hat_vec = np.load('data/eucl_dist_w_hat_vec.npy')
-        eucl_dist_w_hat_vec = np.append(eucl_dist_w_hat_vec, eucl_dist_w_hat)
-        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)
-    else:
-        eucl_dist_w_hat_vec = np.array([eucl_dist_w_hat])
-        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)    
-
-    #Compute and store cosine similarity between current and previous user model
-    # if os.path.isfile("data/cossim_w_hat_vec.npy"):
-    #     cossim_w_hat_vec = np.load('data/cossim_w_hat_vec.npy')
-    #     cossim_w_hat_vec = np.append(cossim_w_hat_vec, cossim_w_hat)
-    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)
-    # else:
-    #     cossim_w_hat_vec = np.array([cossim_w_hat])
-    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)    
-
-    #Save current r_hat and sigma_hat, and w_hat
-    np.save('data/r_hat.npy',r_hat)
-    np.save('data/sigma_hat.npy',sigma_hat)
-    #Store current vsum-vector to vsum.npy
-    np.save('data/vsum.npy', vsum)        
-    #Store current w_hat
-    np.save('data/w_hat.npy',w_hat)
-
     #Take take indices of elements of 'vsum' according to ascending order
     vsinds = np.argsort(vsum[:,0])
+    #Convert to python list
     vsinds = vsinds.tolist()
-    print("TYPE OF VSINDS: ", type(vsinds))
     #Take last 100 indices from vsinds, i.e. choose 100 keywords
     vsinds = vsinds[-100:]
     #Reverse, i.e. make list of indices corresponding the descending order of elements of 'r_hat'
@@ -842,9 +747,126 @@ def recompute_keywords(c):
 
 
 
+#Do analysis of r_hat and sigma_hat vectors
+def do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat):
 
+    #Compute and store the norm of sigma_hat
+    norm_sigma_hat = np.linalg.norm(sigma_hat)
+    if os.path.isfile("data/norm_sigma_hat.npy"):
+        norm_sigma_hat_vec = np.load("data/norm_sigma_hat.npy")
+        norm_sigma_hat_vec = np.append(norm_sigma_hat_vec, norm_sigma_hat)
+        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
+    else:
+        norm_sigma_hat_vec = np.array([norm_sigma_hat])
+        np.save('data/norm_sigma_hat.npy', norm_sigma_hat_vec)
 
+    #Normalize relevance estimate vector
+    if r_hat.sum() > 0.0:
+        r_hat     = r_hat/r_hat.sum()
+    #Normalize sigma_hat (upper bound std.dev of relevance estimates)
+    if sigma_hat.sum() > 0.0:
+        sigma_hat = sigma_hat/sigma_hat.sum()
+    #Make unit vector from w_hat (user model)
+    norm_w_hat = np.linalg.norm(w_hat)
+    if norm_w_hat > 0.0:
+        w_hat = w_hat/norm_w_hat
+        norm_w_hat = np.linalg.norm(w_hat)
+        #print("Norm of current w_hat: ", np.linalg.norm(w_hat))
+        #w_hat = w_hat/w_hat.sum()
 
+    #Add r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
+    print("VALUE OF c: ",c)
+    vsum = r_hat + c*sigma_hat
+    #Normalize vsum
+    if vsum.max() > 0.0:
+        vsum = vsum/vsum.sum()
+
+    #Compute sparsities of vectors
+    r_hat_spar     = vec_sparsity(r_hat)
+    #Store sparsity values of r_hat vector
+    if os.path.isfile("data/r_hat_spar_hist_vec.npy"):
+        r_hat_spar_hist_vec = np.load('data/r_hat_spar_hist_vec.npy')
+        r_hat_spar_hist_vec = np.append(r_hat_spar_hist_vec, r_hat_spar)
+        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
+    else:
+        r_hat_spar_hist_vec = np.array([r_hat_spar])
+        np.save('data/r_hat_spar_hist_vec.npy', r_hat_spar_hist_vec)
+
+    sigma_hat_spar = vec_sparsity(sigma_hat)
+    #Store sparsity values of sigma_hat vector
+    if os.path.isfile("data/sigma_hat_spar_hist_vec.npy"):
+        sigma_hat_spar_hist_vec = np.load('data/sigma_hat_spar_hist_vec.npy')
+        sigma_hat_spar_hist_vec = np.append(sigma_hat_spar_hist_vec, sigma_hat_spar)
+        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+    else:
+        sigma_hat_spar_hist_vec = np.array([sigma_hat_spar])
+        np.save('data/sigma_hat_spar_hist_vec.npy', sigma_hat_spar_hist_vec)
+
+    #
+    vsum_spar      = vec_sparsity(vsum)
+
+    #Load previous vsum -vector, and compute cosine similarity between current vsum and previous vsum vectors
+    cossim = 0.0
+    eps    = 1e-15
+    if os.path.isfile('data/vsum.npy'):
+        #print "dime_search: Load vsum_old!!"
+        vsum_old = np.load('data/vsum.npy')
+        #Compute cosine similarity between previous and current vsum -vectors
+        cossim = vsum_old.T.dot(vsum)[0.0]
+        n1 = np.linalg.norm(vsum)
+        n2 = np.linalg.norm(vsum_old)   
+        cossim = cossim/(max(n1*n2,eps))
+    #Store cosine similarity between vsum vectors into a vector and file    
+    if os.path.isfile("data/cossim_vsum_vec.npy"):
+        cossim_vsum_vec = np.load('data/cossim_vsum_vec.npy')
+        cossim_vsum_vec = np.append(cossim_vsum_vec, cossim)
+        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)
+    else:
+        cossim_vsum_vec = np.array([cossim])
+        np.save('data/cossim_vsum_vec.npy', cossim_vsum_vec)        
+
+    #Load previous w_hat -vector, and compute euclidean dinstance between current w_hat and previous w_hat vectors
+    cossim_w_hat = 0.0
+    eucl_dist_w_hat = 0.0
+    eps    = 1e-15
+    if os.path.isfile('data/w_hat.npy'):
+        #
+        w_hat_old = np.load('data/w_hat.npy')
+        norm_w_hat_old = np.linalg.norm(w_hat_old)
+        #print("Norm of old w_hat: ", norm_w_hat_old)
+        sum_norms = norm_w_hat + norm_w_hat_old
+        #print("sum of norms!!!!!!!!!!: ", sum_norms)
+        #
+        diff_w_hat = w_hat_old-w_hat
+        eucl_dist_w_hat  = np.linalg.norm(diff_w_hat)
+        eucl_dist_w_hat  = eucl_dist_w_hat/sum_norms
+        print("Euclidean distance in unit sphere!: ", eucl_dist_w_hat)
+
+    #Store eucl distance between current and previous w_hat
+    if os.path.isfile("data/eucl_dist_w_hat_vec.npy"):
+        eucl_dist_w_hat_vec = np.load('data/eucl_dist_w_hat_vec.npy')
+        eucl_dist_w_hat_vec = np.append(eucl_dist_w_hat_vec, eucl_dist_w_hat)
+        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)
+    else:
+        eucl_dist_w_hat_vec = np.array([eucl_dist_w_hat])
+        np.save('data/eucl_dist_w_hat_vec.npy', eucl_dist_w_hat_vec)    
+
+    #Compute and store cosine similarity between current and previous user model
+    # if os.path.isfile("data/cossim_w_hat_vec.npy"):
+    #     cossim_w_hat_vec = np.load('data/cossim_w_hat_vec.npy')
+    #     cossim_w_hat_vec = np.append(cossim_w_hat_vec, cossim_w_hat)
+    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)
+    # else:
+    #     cossim_w_hat_vec = np.array([cossim_w_hat])
+    #     np.save('data/cossim_w_hat_vec.npy', cossim_w_hat_vec)    
+
+    #Save current r_hat and sigma_hat, and w_hat
+    np.save('data/r_hat.npy',r_hat)
+    np.save('data/sigma_hat.npy',sigma_hat)
+    #Store current vsum-vector to vsum.npy
+    np.save('data/vsum.npy', vsum)        
+    #Store current w_hat
+    np.save('data/w_hat.npy',w_hat)
 
 
 
