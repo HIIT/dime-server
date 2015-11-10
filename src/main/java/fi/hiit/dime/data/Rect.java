@@ -24,14 +24,13 @@
 
 package fi.hiit.dime.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
-import javax.persistence.FetchType;
-import javax.persistence.CascadeType;
+import javax.persistence.ManyToOne;
 
 /**
    Class representing a rectangle in a two dimensions (maps to the ReadingRect struct in PeyeDF).
@@ -121,7 +120,8 @@ public class Rect extends AbstractPersistable<Long> {
     public static final int CLASSSOURCE_SEARCH = 5;
 
     // Reference back to event is needed for SQL
-    @ManyToOne(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JsonIgnore
+    @ManyToOne
     @JoinColumn(name="event_id")
     public ReadingEvent event;
 }

@@ -24,13 +24,12 @@
 
 package fi.hiit.dime.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
@@ -43,7 +42,8 @@ public class Person extends AbstractPersistable<Long> {
     public String dimeAccount;   // e.g. "foobar@dime.hiit.fi"
 
     // Reference back to ScientificDocument is needed for SQL
-    @ManyToOne(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @JsonIgnore
+    @ManyToOne
     @JoinColumn(name="scientificdocument_id")
     public ScientificDocument authorIn;
 }

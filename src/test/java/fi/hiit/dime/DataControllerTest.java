@@ -598,8 +598,9 @@ public class DataControllerTest extends RestTest {
 	re.foundStrings = Arrays.asList("aliquam", "volutpat", "tellus");
 	re.pageNumbers = Arrays.asList(0, 4);
 
+	final int numEyeData = 10;
 	List<PageEyeData> eyeData = new ArrayList<PageEyeData>();
-	for (int i=0; i<10; i++) {
+	for (int i=0; i<numEyeData; i++) {
 	    PageEyeData ed = new PageEyeData();
 	    ed.Xs = Arrays.asList(i*0.0, i*1.5, i*2.2);
 	    ed.Ys = Arrays.asList(i*0.0, i*1.5, i*2.2);
@@ -615,6 +616,8 @@ public class DataControllerTest extends RestTest {
 	}
 
 	re.pageEyeData = eyeData;
+
+	assertEquals(numEyeData, re.pageEyeData.size());
 
 	List<Rect> rs = new ArrayList<Rect>();
 	Rect r = new Rect();
@@ -658,12 +661,18 @@ public class DataControllerTest extends RestTest {
 	
 	dumpData("ReadingEvent back", reRet);
 
-    	// ResponseEntity<String> ress = getRest().postForEntity(eventApi, re, 
-	// 						      String.class);
+	assertEquals(numEyeData, reRet.pageEyeData.size());
+	assertEquals(re.pageRects.size(), reRet.pageRects.size());
 
-	// // String res = uploadData(eventApi, re, String.class, true);
-	// String res = ress.getBody();
-	// System.out.println("RES=" + res);
+	ReadingEvent reGet = getData(eventApi + "/" + reRet.getId(),
+				     ReadingEvent.class);
+	dumpData("ReadingEvent via GET", reGet);
+
+	assertEquals(numEyeData, reGet.pageEyeData.size());
+	assertEquals(re.pageRects.size(), reGet.pageRects.size());
+
+	ScientificDocument docGet = (ScientificDocument)reGet.targettedResource;
+	assertEquals(doc.authors.size(), docGet.authors.size());
     }
 
 }
