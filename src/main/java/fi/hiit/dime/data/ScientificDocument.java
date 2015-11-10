@@ -30,11 +30,13 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
 @Entity
 public class ScientificDocument extends Document {
-    @OneToMany(mappedBy="authorIn", cascade=CascadeType.ALL)
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name="document_id", referencedColumnName="id")
     public List<Person> authors;
 
     @Column(columnDefinition="text")
@@ -49,10 +51,4 @@ public class ScientificDocument extends Document {
     public String address;
     public String publisher;
     public int volume;
-
-    @Override
-    public void autoFill() {
-    	if (authors != null) 
-	    for (Person p : authors) p.authorIn = this;
-    }
 }

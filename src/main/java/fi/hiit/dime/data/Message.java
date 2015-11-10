@@ -32,9 +32,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.ManyToMany;
 
 /**
    Class representing an electronic message, such as an email.
@@ -71,7 +71,8 @@ public class Message extends InformationElement {
 	       inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
     public List<Person> cc;
 
-    @OneToMany
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name="message_id", referencedColumnName="id")
     public List<InformationElement> attachments;
     
     @Column(columnDefinition="text")

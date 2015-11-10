@@ -24,13 +24,10 @@
 
 package fi.hiit.dime.data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 import java.util.List;
 
@@ -72,10 +69,4 @@ public class PageEyeData extends AbstractPersistable<Long> {
     /** Page index for this block of data.
      */
     public int pageIndex;
-
-    // Reference back to event is needed for SQL
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name="event_id")
-    public ReadingEvent event;
 }

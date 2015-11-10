@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.JoinColumn;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -78,7 +79,8 @@ public class ReadingEvent extends DesktopEvent {
     /** A list of rectangles representing where the relevant (viewport, seen, interesting, etc.) paragraphs are. 
      * All the rects should fit within the page. Rect dimensions refer to points in a 72 dpi space where the bottom left is the origin,
      * as in Apple's PDFKit. A page in US Letter format (often used for papers) translates to approx 594 x 792 points. */
-    @OneToMany(mappedBy="event", cascade=CascadeType.ALL)
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name="event_id", referencedColumnName="id")
     public List<Rect> pageRects;
 
     /** The scale factor currently being used (1 = 100% size, 2 = 200%, etc).
@@ -87,18 +89,11 @@ public class ReadingEvent extends DesktopEvent {
 
     /** Eye tracking data for this event, one entry per page (pageEyeData contains page index, from 0).
      */
-    @OneToMany(mappedBy="event", cascade=CascadeType.ALL)
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name="event_id", referencedColumnName="id")
     public List<PageEyeData> pageEyeData;
 
     /** Plain text content of text currently displayed on screen. */
     @Column(columnDefinition="text")
     public String plainTextContent;
-
-    @Override
-    public void autoFill() {
-    	if (pageRects != null) 
-	    for (Rect r : pageRects) r.event = this;
-	if (pageEyeData != null) 
-	    for (PageEyeData d : pageEyeData) d.event = this;
-    } 
 }

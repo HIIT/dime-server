@@ -30,8 +30,6 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 import java.util.List;
 
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 @Entity
 public class Person extends AbstractPersistable<Long> {
@@ -40,10 +38,4 @@ public class Person extends AbstractPersistable<Long> {
     public String middleNames;  // middle names or middle initials, if any
     public String emailAccount;  // e.g. "foo.bar@hiit.fi"
     public String dimeAccount;   // e.g. "foobar@dime.hiit.fi"
-
-    // Reference back to ScientificDocument is needed for SQL
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name="scientificdocument_id")
-    public ScientificDocument authorIn;
 }
