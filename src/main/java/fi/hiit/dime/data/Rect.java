@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import javax.persistence.Embedded;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -61,6 +62,7 @@ public class Rect extends AbstractPersistable<Long> {
 
     /** Plain text contained within this rectangle.
      */
+    @Column(columnDefinition="text")
     public String plainTextContent;
 
     /** Unspecified reading class
