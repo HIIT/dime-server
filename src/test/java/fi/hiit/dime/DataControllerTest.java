@@ -563,7 +563,8 @@ public class DataControllerTest extends RestTest {
 
 	assertEquals(1, msgs.length);
 	assertEquals(content3, msgs[0].plainTextContent);
-
+	assertEquals(msg.to.size(), msgs[0].to.size());
+	assertEquals(msg.cc.size(), msgs[0].cc.size());
     }
 
     @Test

@@ -44,6 +44,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -138,14 +139,36 @@ public abstract class RestTest {
 	return createTestEmail("Hello, world", "Hello DiMe!");
     }
 
+    protected Person createPerson(String firstName, String lastName, String email) {
+	Person p = new Person();
+	p.firstName = firstName;
+	p.lastName = lastName;
+	p.emailAccount = email;
+
+	return p;
+    }
+
+    protected String personToStr(Person p) {
+	return String.format("%s %s <%s>", p.firstName, p.lastName, p.emailAccount);
+    }
+
     protected Message createTestEmail(String content, String subject) {
 	// Create a message
 	Message msg = new Message();
 	msg.date = new Date(); // current date
 	msg.subject = subject;
-	msg.fromString = "Mats Sjöberg <mats.sjoberg@helsinki.fi>";
-	msg.toString = "Mats Sjöberg <mats.sjoberg@hiit.fi>";
-	msg.ccString = "Mats Sjöberg <mats.sjoberg@cs.helsinki.fi>";
+
+	msg.from = createPerson("Mats", "Sjöberg", "mats.sjoberg@helsinki.fi");
+	msg.fromString = personToStr(msg.from);
+
+	msg.to = new ArrayList<Person>();
+	msg.to.add(createPerson("Mats", "Sjöberg", "mats.sjoberg@hiit.fi"));
+	msg.toString = personToStr(msg.to.get(0));
+
+	msg.cc = new ArrayList<Person>();
+	msg.cc.add(createPerson("Mats", "Sjöberg", "mats.sjoberg@cs.helsinki.fi"));
+	msg.ccString = personToStr(msg.cc.get(0));
+
 	msg.plainTextContent = content;
 	
 	SimpleDateFormat format =

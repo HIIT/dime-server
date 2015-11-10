@@ -27,10 +27,14 @@ package fi.hiit.dime.data;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 
 /**
    Class representing an electronic message, such as an email.
@@ -38,24 +42,35 @@ import javax.persistence.OneToMany;
 @Entity
 public class Message extends InformationElement {
     public Date date;
+    
     @Column(columnDefinition="text")
     public String subject;
-    //
+
     @Column(columnDefinition="text")
     public String fromString;
-    @ManyToOne
+
+    @ManyToOne(cascade=CascadeType.ALL)
+    @JoinColumn(name="from_id")
     public Person from;
-    //
+
     @Column(columnDefinition="text")
     public String toString;
-    @OneToMany
+
+    @ManyToMany(cascade=CascadeType.ALL)
+    @JoinTable(name="message_to", 
+	       joinColumns={@JoinColumn(name="message_id", referencedColumnName="id")},
+	       inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
     public List<Person> to;
-    //
+
     @Column(columnDefinition="text")
     public String ccString;
-    @OneToMany
+
+    @ManyToMany(cascade=CascadeType.ALL)
+    @JoinTable(name="message_cc", 
+	       joinColumns={@JoinColumn(name="message_id", referencedColumnName="id")},
+	       inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
     public List<Person> cc;
-    //
+
     @OneToMany
     public List<InformationElement> attachments;
     
