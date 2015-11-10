@@ -347,7 +347,7 @@ for j, line in enumerate(f):
                 #Find the json index (running number) of "known_item_target" from json.txt (here named as 'data').
                 for di, djson in enumerate(data):
                     if djson['uri'] == known_item_target:
-                        # create matching doccategorylist
+                        #Create matching doccategorylist
                         doccategorylist = len(data)*[[0]]
                         #Insert value 1 for element corresponding the known document
                         doccategorylist[di] = [1]
@@ -530,11 +530,12 @@ for j, line in enumerate(f):
             print("Category ids: ",categoryindices)
             for ii in range(0,len(categoryindices)):
                 #Compute keyword scores given the writing topic 'ii'
+                print("Index OF NON-ZEROS: ", [i for i, e in enumerate(doccategorylist) if e!=[0]])
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
                 #If topic index 'ii' corresponds the current writing topic, store
                 #the keyword scores for the current writing topic into the variable 'kw_scores_filecategory'
                 #and also pick one keyword randomly
-                if ii == filecategory:
+                if ii == filecategory and not args.knownitem:
                     if len(kw_scores_topic) > 0:
                         #Store the keyword scores relating to current topic
                         kw_scores_filecategory = kw_scores_topic
@@ -549,6 +550,32 @@ for j, line in enumerate(f):
                     else:
                         #
                         kw_maxind = 0
+                elif ii == 1:
+                    if len(kw_scores_topic) > 0:
+                        
+                        print("Computing keyword clicking probabilities with respect to the known (and wanted) document.")
+                        
+                        #Store the keyword scores relating to the known file
+                        kw_scores_known_file = kw_scores_topic
+                        print(kw_scores_known_file)
+
+                        #Compute clicking probabilities of suggested keywords
+                        if sum(kw_scores_known_file) > 0:
+                            kw_probabilities = kw_scores_known_file/sum(kw_scores_known_file)
+                            print(kw_probabilities)
+                        else:
+                            kw_probabilities = kw_scores_known_file
+
+                        #Convert to numpy array
+                        kw_scores_known_file = np.array(kw_scores_known_file)
+                        #Take the word index of the suggested keyword having largest score in the known file
+                        kw_maxind = np.argmax(kw_scores_known_file)
+                        #Take keyword randomly using Categorical probability distribution Cat(lamba1, lambda2, ...)
+                        kw_randind = pick_random_kw_ind(kw_scores_known_file) 
+                    else:
+                        #
+                        kw_maxind = 0                    
+
                 #Append the score of n_kws keywords given correspnding topic index 'ii'
                 all_kw_scores.append(kwm)
 
@@ -584,14 +611,14 @@ for j, line in enumerate(f):
                         #If known item search scenario is selected, compare the dime document's filename to
                         #the name of the known document
                         if args.knownitem:
-                            print("PARTS 1: ", parts[1], "KNOWN ITEM: ", known_item_target)
+                            print("SUGGESTED ITEM: ", parts[1], "KNOWN ITEM: ", known_item_target)
                             if parts[1] == known_item_target:
                                 categoryid = 1
                                 nsamecategory = nsamecategory + 1.0
                                 print("GOT SAME CATEGORY AS CURRENT!")
                             else:
                                 categoryid = 0
-
+                            #
                             print("Category:", categoryid, "Correct:", 1)
 
                     #
@@ -606,33 +633,40 @@ for j, line in enumerate(f):
                             print("GOT SAME CATEGORY AS OLD!")
                             nsamecategory_old = nsamecategory_old + 1.0
 
-            #Current precision
-            if nsuggested_files > 0:
-                cprecision = float(nsamecategory)/float(nsuggested_files)
-                cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
+            #Compute current topic precision if the script is not runned in 'Known item search' -mode
+            if not args.knownitem:
+
+                #
+                if nsuggested_files > 0:
+                    cprecision = float(nsamecategory)/float(nsuggested_files)
+                    cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
+                else:
+                    cprecision = 0
+                    cprecision_old = 0
+
+                #Average precision so far
+                sumavgprecision = sumavgprecision + cprecision
+                sumavgprecision_old = sumavgprecision_old + cprecision_old
+                if j2 > 0:
+                    avgprecision = float(sumavgprecision)/float(j2)
+                    avgprecision_old = float(sumavgprecision_old)/float(j2)
+                else:
+                    avgprecision = 0
+                    avgprecision_old = 0
+
+                #
+                print("Suggested keywords:", kws)
+                print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
+                print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
+                print("  ", all_kw_scores_norm)
+
+                #
+                precisionlist.append([cprecision, avgprecision, kw_scores_norm])
+                precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
+
             else:
-                cprecision = 0
-                cprecision_old = 0
-
-            #Average precision so far
-            sumavgprecision = sumavgprecision + cprecision
-            sumavgprecision_old = sumavgprecision_old + cprecision_old
-            if j2 > 0:
-                avgprecision = float(sumavgprecision)/float(j2)
-                avgprecision_old = float(sumavgprecision_old)/float(j2)
-            else:
-                avgprecision = 0
-                avgprecision_old = 0
-
-            #
-            print("Suggested keywords:", kws)
-            print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
-            print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-            print("  ", all_kw_scores_norm)
-
-            #
-            precisionlist.append([cprecision, avgprecision, kw_scores_norm])
-            precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
+                #Compute the rank of the known item in the list of suggested files, if occurring in the list of suggested docs
+                pass
 
             #
             dstr2 = ''
@@ -652,7 +686,7 @@ for j, line in enumerate(f):
             iteration['kws'][kw] = kw_probabilities[l]
             prob_sum = prob_sum + kw_probabilities[l]
         print(prob_sum)
-        print("Suggested kws with probs: ", iteration['kws'])
+        print("Suggested kws with probabilities: ", iteration['kws'])
 
         #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
         #stop while-loop of current document 
