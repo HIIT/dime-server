@@ -600,7 +600,7 @@ for j, line in enumerate(f):
             nsamecategory_old = 0.0
 
             #Print all tags of jsons
-            for js in jsons:
+            for ji, js in enumerate(jsons):
                 print("Tags: ", js['tags']) 
                 #Split file -tag for checking category
                 for ti, tag in enumerate(js['tags']):
@@ -619,7 +619,8 @@ for j, line in enumerate(f):
                                 nsamecategory = nsamecategory + 1.0
 
                                 #Compute the inverse of rank
-                                invrank = 1.0/float(ti+1)
+                                print("RANK in suggestions:", ji+1)
+                                invrank = 1.0/float(ji+1)
                                 #Add to 'iteration' dict
                                 iteration['inv_rank'] = invrank
                                 print("GOT SAME CATEGORY AS CURRENT! ", invrank)
