@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="mvsjober (generated)" id="1447249518172-1">
+        <createTable tableName="event">
+            <column name="dtype" type="VARCHAR(31)">
+                <constraints nullable="false"/>
+            </column>
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="app_id" type="VARCHAR(255)"/>
+            <column name="actor" type="VARCHAR(255)"/>
+            <column name="duration" type="DOUBLE(22)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end" type="datetime"/>
+            <column name="altitude" type="DOUBLE(22)"/>
+            <column name="bearing" type="DOUBLE(22)"/>
+            <column name="description_line" type="VARCHAR(255)"/>
+            <column name="horiz_accuracy" type="DOUBLE(22)"/>
+            <column name="latitude" type="DOUBLE(22)"/>
+            <column name="longitude" type="DOUBLE(22)"/>
+            <column name="speed" type="DOUBLE(22)"/>
+            <column name="vert_accuracy" type="DOUBLE(22)"/>
+            <column name="origin" type="VARCHAR(255)"/>
+            <column name="start" type="datetime"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="value" type="DOUBLE(22)"/>
+            <column name="is_summary" type="BIT(1)"/>
+            <column name="plain_text_content" type="TEXT"/>
+            <column name="proportion_critical" type="DOUBLE(22)"/>
+            <column name="proportion_interesting" type="DOUBLE(22)"/>
+            <column name="proportion_read" type="DOUBLE(22)"/>
+            <column name="scale_factor" type="DOUBLE(22)"/>
+            <column name="session_id" type="VARCHAR(255)"/>
+            <column name="query" type="VARCHAR(255)"/>
+            <column name="data" type="TINYBLOB"/>
+            <column name="sample_rate" type="INT"/>
+            <column name="user_id" type="BIGINT"/>
+            <column name="resource_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-2">
+        <createTable tableName="information_element">
+            <column name="dtype" type="VARCHAR(31)">
+                <constraints nullable="false"/>
+            </column>
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="app_id" type="VARCHAR(255)"/>
+            <column name="is_stored_as" type="VARCHAR(255)"/>
+            <column name="plain_text_content" type="LONGTEXT"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="uri" type="TEXT"/>
+            <column name="mime_type" type="VARCHAR(255)"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="cc_string" type="TEXT"/>
+            <column name="date" type="datetime"/>
+            <column name="from_string" type="TEXT"/>
+            <column name="raw_message" type="TEXT"/>
+            <column name="subject" type="TEXT"/>
+            <column name="to_string" type="TEXT"/>
+            <column name="address" type="VARCHAR(255)"/>
+            <column name="booktitle" type="TEXT"/>
+            <column name="first_page" type="INT"/>
+            <column name="last_page" type="INT"/>
+            <column name="publisher" type="VARCHAR(255)"/>
+            <column name="volume" type="INT"/>
+            <column name="year" type="INT"/>
+            <column name="user_id" type="BIGINT"/>
+            <column name="from_id" type="BIGINT"/>
+            <column name="message_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-3">
+        <createTable tableName="information_element_tags">
+            <column name="information_element_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tags" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-4">
+        <createTable tableName="message_cc">
+            <column name="message_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-5">
+        <createTable tableName="message_to">
+            <column name="message_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="person_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-6">
+        <createTable tableName="page_eye_data">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="page_index" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-7">
+        <createTable tableName="page_eye_data_durations">
+            <column name="page_eye_data_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="durations" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-8">
+        <createTable tableName="page_eye_data_end_times">
+            <column name="page_eye_data_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_times" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-9">
+        <createTable tableName="page_eye_data_ps">
+            <column name="page_eye_data_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ps" type="DOUBLE(22)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-10">
+        <createTable tableName="page_eye_data_start_times">
+            <column name="page_eye_data_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_times" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-11">
+        <createTable tableName="page_eye_data_xs">
+            <column name="page_eye_data_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="xs" type="DOUBLE(22)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-12">
+        <createTable tableName="page_eye_data_ys">
+            <column name="page_eye_data_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ys" type="DOUBLE(22)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-13">
+        <createTable tableName="person">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="dime_account" type="VARCHAR(255)"/>
+            <column name="email_account" type="VARCHAR(255)"/>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="middle_names" type="VARCHAR(255)"/>
+            <column name="document_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-14">
+        <createTable tableName="reading_event_found_strings">
+            <column name="reading_event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="found_strings" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-15">
+        <createTable tableName="reading_event_page_labels">
+            <column name="reading_event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="page_labels" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-16">
+        <createTable tableName="reading_event_page_numbers">
+            <column name="reading_event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="page_numbers" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-17">
+        <createTable tableName="rect">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="class_source" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="x" type="DOUBLE(22)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="y" type="DOUBLE(22)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="page_index" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="plain_text_content" type="TEXT"/>
+            <column name="reading_class" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="height" type="DOUBLE(22)"/>
+            <column name="width" type="DOUBLE(22)"/>
+            <column name="event_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-18">
+        <createTable tableName="scientific_document_keywords">
+            <column name="scientific_document_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="keywords" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-19">
+        <createTable tableName="user">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="password_hash" type="VARCHAR(255)"/>
+            <column name="role" type="INT"/>
+            <column name="time_login" type="datetime"/>
+            <column name="time_registered" type="datetime"/>
+            <column name="username" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-20">
+        <addForeignKeyConstraint baseColumnNames="page_eye_data_id" baseTableName="page_eye_data_ps" constraintName="FK_223wivdyf57fmailayrls6m5k" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="page_eye_data"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-21">
+        <addForeignKeyConstraint baseColumnNames="reading_event_id" baseTableName="reading_event_page_numbers" constraintName="FK_32islamebjvhhfwdth5xnqxf8" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="event"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-22">
+        <addForeignKeyConstraint baseColumnNames="reading_event_id" baseTableName="reading_event_found_strings" constraintName="FK_493at021l4190cv7gwko4pvid" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="event"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-23">
+        <addForeignKeyConstraint baseColumnNames="page_eye_data_id" baseTableName="page_eye_data_start_times" constraintName="FK_59o0otiuag2ncytkri3m6x20w" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="page_eye_data"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-24">
+        <addForeignKeyConstraint baseColumnNames="person_id" baseTableName="message_to" constraintName="FK_88in0bp1dug4mn2abslpv550v" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-25">
+        <addForeignKeyConstraint baseColumnNames="event_id" baseTableName="rect" constraintName="FK_90mn75ogvw0r9pd9lw9yhd66m" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="event"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-26">
+        <addForeignKeyConstraint baseColumnNames="document_id" baseTableName="person" constraintName="FK_aar69o7w2jhdwnubrmudffjkv" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="information_element"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-27">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="information_element" constraintName="FK_bg88ix90piav52wj7sfmdiler" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="user"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-28">
+        <addForeignKeyConstraint baseColumnNames="message_id" baseTableName="message_cc" constraintName="FK_cgasiyr2f1msl277pj5h2nlpl" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="information_element"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-29">
+        <addForeignKeyConstraint baseColumnNames="reading_event_id" baseTableName="reading_event_page_labels" constraintName="FK_d2jp1ms11x55mmixvtw2wx1t3" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="event"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-30">
+        <addForeignKeyConstraint baseColumnNames="page_eye_data_id" baseTableName="page_eye_data_ys" constraintName="FK_edfrl99gxf8jalifdo4fkyuuc" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="page_eye_data"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-31">
+        <addForeignKeyConstraint baseColumnNames="resource_id" baseTableName="event" constraintName="FK_ei0063idkhgfh6pqv2hsfont1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="information_element"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-32">
+        <addForeignKeyConstraint baseColumnNames="event_id" baseTableName="page_eye_data" constraintName="FK_gskbfnhpnlkgdejmyci9jk39y" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="event"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-33">
+        <addForeignKeyConstraint baseColumnNames="page_eye_data_id" baseTableName="page_eye_data_end_times" constraintName="FK_ioxhqvrqrejrpe3enusyjrgd" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="page_eye_data"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-34">
+        <addForeignKeyConstraint baseColumnNames="scientific_document_id" baseTableName="scientific_document_keywords" constraintName="FK_kcaryge05oonaa5va9i33nq3h" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="information_element"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-35">
+        <addForeignKeyConstraint baseColumnNames="message_id" baseTableName="information_element" constraintName="FK_ki9bq58emoh8px4ygw4ak1u64" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="information_element"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-36">
+        <addForeignKeyConstraint baseColumnNames="information_element_id" baseTableName="information_element_tags" constraintName="FK_nxm4u8sse2e66arv4ttu8vneq" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="information_element"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-37">
+        <addForeignKeyConstraint baseColumnNames="from_id" baseTableName="information_element" constraintName="FK_oi0xgqmw3h0ca5my9yvi6e37r" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-38">
+        <addForeignKeyConstraint baseColumnNames="message_id" baseTableName="message_to" constraintName="FK_olou0lsdkpgri59kce0nitmt8" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="information_element"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-39">
+        <addForeignKeyConstraint baseColumnNames="page_eye_data_id" baseTableName="page_eye_data_xs" constraintName="FK_p6avwysmp6n075knvfowih6v2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="page_eye_data"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-40">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="event" constraintName="FK_p84ruvsg7mfwb2x5p7iq3q103" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="user"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-41">
+        <addForeignKeyConstraint baseColumnNames="person_id" baseTableName="message_cc" constraintName="FK_r7e34o252hrt4bsih390wkpyl" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="person"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447249518172-42">
+        <addForeignKeyConstraint baseColumnNames="page_eye_data_id" baseTableName="page_eye_data_durations" constraintName="FK_sweplsotffxevwhav04coyl5a" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="page_eye_data"/>
+    </changeSet>
+</databaseChangeLog>
