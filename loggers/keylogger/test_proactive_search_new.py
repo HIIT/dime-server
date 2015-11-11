@@ -607,21 +607,29 @@ for j, line in enumerate(f):
                     parts = js['tags'][ti].split('=')
 
                     #Added 10.11.15 for known item search scenario
+                    #Checking whether the known item
                     if parts[0] == 'filename':
                         #If known item search scenario is selected, compare the dime document's filename to
                         #the name of the known document
                         if args.knownitem:
                             print("SUGGESTED ITEM: ", parts[1], "KNOWN ITEM: ", known_item_target)
                             if parts[1] == known_item_target:
+                                
                                 categoryid = 1
                                 nsamecategory = nsamecategory + 1.0
-                                print("GOT SAME CATEGORY AS CURRENT!")
+
+                                #Compute the inverse of rank
+                                invrank = 1.0/float(ti+1)
+                                #Add to 'iteration' dict
+                                iteration['inv_rank'] = invrank
+                                print("GOT SAME CATEGORY AS CURRENT! ", invrank)
                             else:
                                 categoryid = 0
+                                iteration['inv_rank'] = 0
                             #
                             print("Category:", categoryid, "Correct:", 1)
 
-                    #
+                    #Checking whether current writing topic
                     if parts[0] == gt_tag and not args.knownitem:
                         categoryid = categoryindices[parts[1]]
                         print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
