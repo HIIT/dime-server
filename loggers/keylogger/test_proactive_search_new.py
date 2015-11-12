@@ -340,30 +340,60 @@ for j, line in enumerate(f):
         parts = line.split()
         #If knownitem is selected, do the following
         if args.knownitem:
-            if len(parts)==2:
+            #Create matching doccategorylist
+            doccategorylist = len(data)*[[0]]
+            #Use temporarily the original category index
+            categoryindices = categoryindices_original
+            #Get the filename, filecategory, and the word list corresponding the current writing document
+            filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
+            #Make single string from wordlist
+            content = ' '.join(wordlist)
+            #Search from DiMe the known item
+            jsons = search_dime(srvurl, usrname, password, content, n_results)
+            known_item = jsons[0]
+            known_item_target = known_item['uri']
+            #Insert value 1 for element corresponding the known document
+            for di, djson in enumerate(data):
+                if djson['uri'] == known_item_target:
+                    doccategorylist[di] = [1]
+            #Change the dict named 'categoryindices' to correspond kown item search scenario
+            categoryindices = {'Other':0, 'The known item':1}
+            #Change the filecategory (the category of the writing document) to correspond the changed categoryindices 
+            #By default, the writing document is not the same as the known item
+            filecategory = 0
+
+#            if len(parts)==2:
                 #
-                known_item_target = parts[1] 
-                print("KNOWN ITEM: ",known_item_target)
+#                known_item_target = parts[1] 
+#                print("KNOWN ITEM: ",known_item_target)
                 #Find the json index (running number) of "known_item_target" from json.txt (here named as 'data').
-                for di, djson in enumerate(data):
-                    if djson['uri'] == known_item_target:
+#                for di, djson in enumerate(data):
+#                    if djson['uri'] == known_item_target:
                         #Create matching doccategorylist
-                        doccategorylist = len(data)*[[0]]
+#                        doccategorylist = len(data)*[[0]]
                         #Insert value 1 for element corresponding the known document
-                        doccategorylist[di] = [1]
+#                        doccategorylist[di] = [1]
                         #Use temporarily the original category index
-                        categoryindices = categoryindices_original
+ #                       categoryindices = categoryindices_original
                         #Get the filename, filecategory, and the word list corresponding the current writing document
-                        filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
+  #                      filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
+			#Make single string from wordlist
+#			content = ' '.join(wordlist)
+			#Search from DiMe the known item
+#			jsons = search_dime(srvurl, usrname, password, content, n_results)			
+#			known_item = json[0]
+#			known_item_target = known_item['uri']
+			#Add the known item uri to 'master_document_list'
+#			master_document_list.append({'uri_of_known_item':known_item_target})
                         #Change the dict named 'categoryindices' to correspond kown item search scenario
-                        categoryindices = {'Other':0, 'The known item':1}
+ #                       categoryindices = {'Other':0, 'The known item':1}
                         #Change the filecategory (the category of the writing document) to correspond the changed categoryindices 
                         #By default, the writing document is not the same as the known item
-                        filecategory = 0
-            else:
+  #                      filecategory = 0
+#            else:
                 #
-                print("Line {0} of {1} does not contain known item target items").format(j, line)
-                sys.exit()
+#                print("Line {0} of {1} does not contain known item target items").format(j, line)
+#                sys.exit()
         else:
             known_item_target = None
     #
@@ -426,6 +456,7 @@ for j, line in enumerate(f):
 
     #Initialize the json -object corresponding the input
     iteration_list = []
+
     click_added = False
 
     #Go through words in word list corresponding the current document
@@ -434,6 +465,7 @@ for j, line in enumerate(f):
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
+	#
         iteration = {}
         iteration['i'] = i
 
@@ -599,16 +631,26 @@ for j, line in enumerate(f):
             nsamecategory = 0.0
             nsamecategory_old = 0.0
 
+            #
+            cprecision = 0
+            invrank = 0
+
             #Print all tags of jsons
             for ji, js in enumerate(jsons):
+
                 print("Tags: ", js['tags']) 
                 #Split file -tag for checking category
                 for ti, tag in enumerate(js['tags']):
+
+		    
+
+		    #
                     parts = js['tags'][ti].split('=')
 
                     #Added 10.11.15 for known item search scenario
                     #Checking whether the known item
-                    if parts[0] == 'filename':
+                    if parts[0] == 'filename':		        
+
                         #If known item search scenario is selected, compare the dime document's filename to
                         #the name of the known document
                         if args.knownitem:
@@ -621,12 +663,17 @@ for j, line in enumerate(f):
                                 #Compute the inverse of rank
                                 print("RANK in suggestions:", ji+1)
                                 invrank = 1.0/float(ji+1)
-                                #Add to 'iteration' dict
+				#Define precision to 1
+                                cprecision = 1
+                                #Add to 'iteration' dict        
                                 iteration['inv_rank'] = invrank
+                                iteration['cprecision'] = cprecision
+				#
                                 print("GOT SAME CATEGORY AS CURRENT! ", invrank)
                             else:
                                 categoryid = 0
                                 iteration['inv_rank'] = 0
+                                iteration['cprecision'] = 0
                             #
                             print("Category:", categoryid, "Correct:", 1)
 
@@ -645,7 +692,7 @@ for j, line in enumerate(f):
             #Compute current topic precision if the script is not runned in 'Known item search' -mode
             if not args.knownitem:
 
-                #
+                #Current precision
                 if nsuggested_files > 0:
                     cprecision = float(nsamecategory)/float(nsuggested_files)
                     cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
@@ -674,8 +721,9 @@ for j, line in enumerate(f):
                 precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
 
             else:
-                #Compute the rank of the known item in the list of suggested files, if occurring in the list of suggested docs
-                pass
+		#Store Current precision and inverse of rank of the known item
+		#in 'known item search'-mode
+                precisionlist.append([cprecision, invrank])
 
             #
             dstr2 = ''
@@ -753,6 +801,11 @@ for j, line in enumerate(f):
     master_document_list.append({"category": filecategory,
                                  "filename": filename,
                                  "iterations": iteration_list})
+    if args.knownitem:
+	    master_document_list.append({"category": filecategory,
+        	                         "filename": filename,
+					 "knownitem": known_item_target,
+                	                 "iterations": iteration_list})
 
     #Save precisionlist corresponding the written document
     filename = filename.replace('/','_')
