@@ -659,8 +659,15 @@ public class DataControllerTest extends RestTest {
 	assertEquals(doc1.plainTextContent, doc2.plainTextContent);
 	assertEquals(doc1.title, doc2.title);
 	assertEquals(doc1.authors.size(), doc2.authors.size());
-	assertEquals(doc1.authors.get(0).firstName,
-		     doc2.authors.get(0).firstName);
+	for (int i=0; i<doc1.authors.size(); i++) {
+	    Person a1 = doc1.authors.get(i);
+	    Person a2 = doc2.authors.get(i);
+	    assertEquals(a1.firstName, a2.firstName);
+	    assertEquals(a1.lastName, a2.lastName);
+	    assertEquals(a1.middleNames.size(), a2.middleNames.size());
+	    for (int j=0; j<a1.middleNames.size(); j++)
+		assertEquals(a1.middleNames.get(j), a2.middleNames.get(j));
+	}
 
 	assertEquals(doc1.keywords.size(), doc2.keywords.size());
 	assertEquals(doc1.keywords.get(0),

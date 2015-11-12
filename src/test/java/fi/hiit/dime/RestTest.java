@@ -203,9 +203,11 @@ public abstract class RestTest {
 	Person a1 = new Person();
 	a1.firstName = "Matti";
 	a1.lastName = "Meikäläinen";
+	a1.middleNames = Arrays.asList("M.");
 
 	Person a2 = new Person();
 	a2.firstName = "John";
+	a2.middleNames = Arrays.asList("Albert", "Bob");
 	a2.lastName = "Doe";
 
 	doc.authors = new ArrayList<Person>();
