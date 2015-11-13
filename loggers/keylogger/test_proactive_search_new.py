@@ -36,7 +36,7 @@ def process_input_file_20news(line, j, qfn):
 
     dlist       = line.split("/")
     filename    = line
-    filecategory= categoryindices[dlist[1]]
+    filecategory= categoryindices_original[dlist[1]]
 
     mbox = mailbox.mbox(args.querypath+'/'+filename)
     if len(mbox) != 1:
@@ -60,7 +60,7 @@ def process_input_file_20news(line, j, qfn):
 def process_input_file_reuters(line, j, qfn):
     parts = line.split("\t")
     filename = qfn+'_'+str(j)
-    filecategory= categoryindices[parts[0]]
+    filecategory= categoryindices_original[parts[0]]
     wordlist = parts[1].split(" ")
 
     return filename, filecategory, wordlist
@@ -71,10 +71,12 @@ def process_input_file_ohsumed(line, j, qfn):
 
     dlist       = line.split("/")
     filename    = line
-    filecategory= categoryindices[dlist[0]]
+    filecategory= categoryindices_original[dlist[0]]
 
     with open (args.querypath+'/'+filename, "r") as myfile:
         abstext = myfile.read()
+
+    abstext = filter_string(abstext, not args.nostem)
     wordlist = abstext.split()
 
     return filename, filecategory, wordlist
@@ -96,13 +98,43 @@ def process_input_file_arxivcs(line, j, qfn):
         elif nameattr == 'abstract':
             wordlist = text.split()
         elif nameattr == 'subject' and text in text2cat_arxivcs:
-            filecategory = categoryindices[text2cat_arxivcs[text]]
+            filecategory = categoryindices_original[text2cat_arxivcs[text]]
 
     return filename, filecategory, wordlist
 
 #------------------------------------------------------------------------------
 
+def get_known_item_20news(json_item):
+    if 'uri' in json_item:
+        return json_item['uri']
+    return None
+
+#------------------------------------------------------------------------------
+
+def get_known_item_ohsumed(json_item):
+    if 'tags' not in json_item:
+        return None
+    for t in json_item['tags']:
+        if t.startswith('filename='):
+            parts = t.split('=')
+            return parts[1]
+    return None
+
+#------------------------------------------------------------------------------
+
+def get_known_item_not_implemented_yet(json_item):
+    print("ERROR: get_known_item() not implemented yet for this dataset.")
+    sys.exit()
+    
+
+#------------------------------------------------------------------------------
+
 def filter_string(string, do_stem=True):
+
+    if ((not nltk.__version__.startswith('2')) and 
+        (not nltk.__version__.startswith('3.0'))):
+        print("ERROR: Use of incompatible nltk suspected")
+        sys.exit()
 
     #tokens = nltk.word_tokenize(string)
 
@@ -114,6 +146,9 @@ def filter_string(string, do_stem=True):
     | [][.,;"'?():-_`]  # these are separate tokens
     '''
     tokens = nltk.regexp_tokenize(string, pattern)
+    #print("string:", type(string), string)
+    #print("tokens:", type(tokens), tokens)
+    #print("first token:", type(tokens[0]), tokens[0])
 
     tokens = [t.lower() for t in tokens]
     if do_stem:
@@ -198,10 +233,13 @@ if args.xmlfile:
     root = tree.getroot()
     print("Parsing XML done")
 
+get_known_item = get_known_item_not_implemented_yet
+
 if args.dataset == "20news":
     categoryindices = categoryindices_20news
     gt_tag = gt_tag_20news
     process_input_file = process_input_file_20news
+    get_known_item = get_known_item_20news 
     usrname = usrname_20news
     password = password_20news
 elif args.dataset == "reuters":
@@ -226,6 +264,7 @@ elif args.dataset == "ohsumed":
     categoryindices = categoryindices_ohsumed
     gt_tag = gt_tag_ohsumed
     process_input_file = process_input_file_ohsumed
+    get_known_item = get_known_item_ohsumed
     usrname = usrname_ohsumed
     password = password_ohsumed
 elif args.dataset == "arxivcs":
@@ -235,14 +274,14 @@ elif args.dataset == "arxivcs":
     usrname = usrname_arxivcs
     password = password_arxivcs
 else:
-    print("Unsupported dataset:", args.dataset)
+    print("ERROR: Unsupported dataset:", args.dataset)
     sys.exit()
     
 #Store the contents of 'categoryindices' additionally to a variable
 categoryindices_original = categoryindices
 
 if not args.queries:
-    print("args.queries is empty")
+    print("ERROR: args.queries is empty")
     sys.exit()
 
 
@@ -334,71 +373,42 @@ for j, line in enumerate(f):
 
     #Strip all spaces from the end of the string
     line        = line.rstrip()
-    #If not using reuters -data, do the following
-    if args.dataset.find("reuters") == -1:
-        #Split e.g. line of the form ' talk.religion.misc/83781  talk.religion.misc/81000' into two
-        parts = line.split()
-        #If knownitem is selected, do the following
-        if args.knownitem:
-            #Create matching doccategorylist
-            doccategorylist = len(data)*[[0]]
-            #Use temporarily the original category index
-            categoryindices = categoryindices_original
-            #Get the filename, filecategory, and the word list corresponding the current writing document
-            filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
-            #Make single string from wordlist
-            content = ' '.join(wordlist)
-            #Search from DiMe the known item
-            jsons = search_dime(srvurl, usrname, password, content, n_results)
-            known_item = jsons[0]
-            known_item_target = known_item['uri']
-            #Insert value 1 for element corresponding the known document
-            for di, djson in enumerate(data):
-                if djson['uri'] == known_item_target:
-                    doccategorylist[di] = [1]
-            #Change the dict named 'categoryindices' to correspond kown item search scenario
-            categoryindices = {'Other':0, 'The known item':1}
-            #Change the filecategory (the category of the writing document) to correspond the changed categoryindices 
-            #By default, the writing document is not the same as the known item
-            filecategory = 0
+    print("Processing line", j, ":", line)
 
-#            if len(parts)==2:
-                #
-#                known_item_target = parts[1] 
-#                print("KNOWN ITEM: ",known_item_target)
-                #Find the json index (running number) of "known_item_target" from json.txt (here named as 'data').
-#                for di, djson in enumerate(data):
-#                    if djson['uri'] == known_item_target:
-                        #Create matching doccategorylist
-#                        doccategorylist = len(data)*[[0]]
-                        #Insert value 1 for element corresponding the known document
-#                        doccategorylist[di] = [1]
-                        #Use temporarily the original category index
- #                       categoryindices = categoryindices_original
-                        #Get the filename, filecategory, and the word list corresponding the current writing document
-  #                      filename, filecategory, wordlist = process_input_file(parts[0], j, qfn)
-			#Make single string from wordlist
-#			content = ' '.join(wordlist)
-			#Search from DiMe the known item
-#			jsons = search_dime(srvurl, usrname, password, content, n_results)			
-#			known_item = json[0]
-#			known_item_target = known_item['uri']
-			#Add the known item uri to 'master_document_list'
-#			master_document_list.append({'uri_of_known_item':known_item_target})
-                        #Change the dict named 'categoryindices' to correspond kown item search scenario
- #                       categoryindices = {'Other':0, 'The known item':1}
-                        #Change the filecategory (the category of the writing document) to correspond the changed categoryindices 
-                        #By default, the writing document is not the same as the known item
-  #                      filecategory = 0
-#            else:
-                #
-#                print("Line {0} of {1} does not contain known item target items").format(j, line)
-#                sys.exit()
-        else:
-            known_item_target = None
-    #
+    #Get the filename, filecategory, and the word list corresponding the current writing document
+    filename, filecategory, wordlist = process_input_file(line, j, qfn)
+    print("filename:", filename, "filecategory:", filecategory, "wordlist:", wordlist[:10], 
+          "... total", len(wordlist), "tokens")
+
+    #If knownitem is selected, do the following
+    if args.knownitem:
+        #Create matching doccategorylist
+        doccategorylist = len(data)*[[0]]
+        #Use temporarily the original category index
+        categoryindices = categoryindices_original
+        #Make single string from wordlist
+        content = ' '.join(wordlist)
+        print(content)
+        #Search from DiMe the known item
+        jsons = search_dime(srvurl, usrname, password, content, n_results)
+        if len(jsons) == 0:
+            print("ERROR: DiMe returned zero results for knowitem groundtruth")
+            sys.exit()
+        known_item_target = get_known_item(jsons[0])
+        if known_item_target is None:
+            print("ERROR: Unable to extract knowitem groundtruth from json")
+            sys.exit()
+        #Insert value 1 for element corresponding the known document
+        for di, djson in enumerate(data):
+            if djson['uri'] == known_item_target:
+                doccategorylist[di] = [1]
+        #Change the dict named 'categoryindices' to correspond kown item search scenario
+        categoryindices = {'Other':0, 'The known item':1}
+        #Change the filecategory (the category of the writing document) to correspond the changed categoryindices 
+        #By default, the writing document is not the same as the known item
+        filecategory = 0
     else:
-        filename, filecategory, wordlist = process_input_file(line, j, qfn)
+        known_item_target = None
 
     if filename is None:
         break
@@ -412,9 +422,6 @@ for j, line in enumerate(f):
 
     #Reverse the order of words in the documents
     wordlist_r = list(reversed(wordlist[:writeold_pos]+wordlist_old[:writeold_n]+wordlist[writeold_pos:]))
-    #print(wordlist)
-    #print(wordlist_old)
-    #print(wordlist_r)
 
     wordlist_old = wordlist.copy()
 
@@ -552,7 +559,10 @@ for j, line in enumerate(f):
             #Number of keywords appearing in GUI
             n_kws = 10
             kws = kws[0:n_kws]
-            
+
+            # List initialization
+            kw_probabilities = [0 for x in range(n_kws)]
+
             #Get indices of n_kws keywords
             winds = winds[0:n_kws]
 
