@@ -74,9 +74,9 @@ def search_dime(srvurl, username, password, query, n_results):
     #print("Number of results set to: ", n_results, "type: ", type(n_results))
 
     #Query for DiMe server
-    query_string = server_url + '/search?query={}&limit=%s' % n_results
+    query_string = server_url + '/search?query={}&limit={}'.format(query, n_results)
     #
-    r = requests.get(query_string.format(query),
+    r = requests.get(query_string,
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=100)
@@ -89,6 +89,7 @@ def search_dime(srvurl, username, password, query, n_results):
 
     if r.status_code != requests.codes.ok:
         print('Query failed: no connection to DiMe server', r.status_code)
+        print('  Query string was:', query_string)
         return []
     elif len(r.json()) > 0:
             r = r.json()
