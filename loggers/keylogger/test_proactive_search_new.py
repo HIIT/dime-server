@@ -562,7 +562,8 @@ for j, line in enumerate(f):
             print("Category ids: ",categoryindices)
             for ii in range(0,len(categoryindices)):
                 #Compute keyword scores given the writing topic 'ii'
-                print("Index OF NON-ZEROS: ", [i for i, e in enumerate(doccategorylist) if e!=[0]])
+                if False:
+                    print("Index OF NON-ZEROS: ", [i for i, e in enumerate(doccategorylist) if e!=[0]])
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
                 #If topic index 'ii' corresponds the current writing topic, store
                 #the keyword scores for the current writing topic into the variable 'kw_scores_filecategory'
