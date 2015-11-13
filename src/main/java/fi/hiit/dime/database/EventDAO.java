@@ -84,8 +84,8 @@ public class EventDAO {
 
     @Transactional(readOnly = true)
     public List<Event> eventsForUser(Long userId, int limit) {
-	return repo.findByUserOrderByStartDesc(User.makeUser(userId), 
-					       new PageRequest(1, limit));
+	return repo.findByUserOrderByStartDesc(User.makeUser(userId),
+					       new PageRequest(0, limit));
     }
 
     @Transactional(readOnly = true)
