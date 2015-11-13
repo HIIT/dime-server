@@ -104,28 +104,10 @@ def process_input_file_arxivcs(line, j, qfn):
 
 #------------------------------------------------------------------------------
 
-def get_known_item_20news(json_item):
+def get_item_id(json_item):
     if 'uri' in json_item:
         return json_item['uri']
     return None
-
-#------------------------------------------------------------------------------
-
-def get_known_item_ohsumed(json_item):
-    if 'tags' not in json_item:
-        return None
-    for t in json_item['tags']:
-        if t.startswith('filename='):
-            parts = t.split('=')
-            return parts[1]
-    return None
-
-#------------------------------------------------------------------------------
-
-def get_known_item_not_implemented_yet(json_item):
-    print("ERROR: get_known_item() not implemented yet for this dataset.")
-    sys.exit()
-    
 
 #------------------------------------------------------------------------------
 
@@ -233,13 +215,10 @@ if args.xmlfile:
     root = tree.getroot()
     print("Parsing XML done")
 
-get_known_item = get_known_item_not_implemented_yet
-
 if args.dataset == "20news":
     categoryindices = categoryindices_20news
     gt_tag = gt_tag_20news
     process_input_file = process_input_file_20news
-    get_known_item = get_known_item_20news 
     usrname = usrname_20news
     password = password_20news
 elif args.dataset == "reuters":
@@ -264,7 +243,6 @@ elif args.dataset == "ohsumed":
     categoryindices = categoryindices_ohsumed
     gt_tag = gt_tag_ohsumed
     process_input_file = process_input_file_ohsumed
-    get_known_item = get_known_item_ohsumed
     usrname = usrname_ohsumed
     password = password_ohsumed
 elif args.dataset == "arxivcs":
@@ -394,7 +372,7 @@ for j, line in enumerate(f):
         if len(jsons) == 0:
             print("ERROR: DiMe returned zero results for knowitem groundtruth")
             sys.exit()
-        known_item_target = get_known_item(jsons[0])
+        known_item_target = get_item_id(jsons[0])
         if known_item_target is None:
             print("ERROR: Unable to extract knowitem groundtruth from json")
             sys.exit()
@@ -646,62 +624,53 @@ for j, line in enumerate(f):
             cprecision = 0
             invrank = 0
 
-            #Print all tags of jsons
-            for ji, js in enumerate(jsons):
+            #Process all jsons to extract results
 
-                print("Tags: ", js['tags']) 
-                #Split file -tag for checking category
-                for ti, tag in enumerate(js['tags']):
+            if args.knownitem:
+                for ji, js in enumerate(jsons):
+                    suggested_item = get_item_id(js)
+                    print("SUGGESTED ITEM: ", suggested_item, "KNOWN ITEM: ", known_item_target)
+                    if suggested_item == known_item_target:
+                        categoryid = 1
+                        nsamecategory = nsamecategory + 1.0
 
-		    
-
-		    #
-                    parts = js['tags'][ti].split('=')
-
-                    #Added 10.11.15 for known item search scenario
-                    #Checking whether the known item
-                    if parts[0] == 'filename':		        
-
-                        #If known item search scenario is selected, compare the dime document's filename to
-                        #the name of the known document
-                        if args.knownitem:
-                            print("SUGGESTED ITEM: ", parts[1], "KNOWN ITEM: ", known_item_target)
-                            if parts[1] == known_item_target:
-                                
-                                categoryid = 1
-                                nsamecategory = nsamecategory + 1.0
-
-                                #Compute the inverse of rank
-                                print("RANK in suggestions:", ji+1)
-                                invrank = 1.0/float(ji+1)
-				#Define precision to 1
-                                cprecision = 1
-                                #Add to 'iteration' dict        
-                                iteration['inv_rank'] = invrank
-                                iteration['cprecision'] = cprecision
-				#
-                                print("GOT SAME CATEGORY AS CURRENT! ", invrank)
-                            else:
-                                categoryid = 0
-                                iteration['inv_rank'] = 0
-                                iteration['cprecision'] = 0
-                            #
-                            print("Category:", categoryid, "Correct:", 1)
-
-                    #Checking whether current writing topic
-                    if parts[0] == gt_tag and not args.knownitem:
-                        categoryid = categoryindices[parts[1]]
-                        print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
+                        #Compute the inverse of rank
+                        print("RANK in suggestions:", ji+1)
+                        invrank = 1.0/float(ji+1)
+                        #Define precision to 1
+                        cprecision = 1
+                        #Add to 'iteration' dict        
+                        iteration['inv_rank'] = invrank
+                        iteration['cprecision'] = cprecision
                         #
-                        if categoryid == filecategory:
-                            print("GOT SAME CATEGORY AS CURRENT!")
-                            nsamecategory = nsamecategory + 1.0
-                        elif categoryid == filecategory_old:
-                            print("GOT SAME CATEGORY AS OLD!")
-                            nsamecategory_old = nsamecategory_old + 1.0
+                        print("GOT SAME CATEGORY AS CURRENT! ", invrank)
+                    else:
+                        categoryid = 0
+                        iteration['inv_rank'] = 0
+                        iteration['cprecision'] = 0
+                    #
+                    print("Category:", categoryid, "Correct:", 1)
+                    
+                #Store Current precision and inverse of rank of the known item
+		#in 'known item search'-mode
+                precisionlist.append([cprecision, invrank])
 
-            #Compute current topic precision if the script is not runned in 'Known item search' -mode
-            if not args.knownitem:
+            else:
+                for ji, js in enumerate(jsons):
+                    for ti, tag in enumerate(js['tags']):
+                        parts = js['tags'][ti].split('=')
+
+                        #Checking whether current writing topic
+                        if parts[0] == gt_tag:
+                            categoryid = categoryindices[parts[1]]
+                            print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
+                            #
+                            if categoryid == filecategory:
+                                print("GOT SAME CATEGORY AS CURRENT!")
+                                nsamecategory = nsamecategory + 1.0
+                            elif categoryid == filecategory_old:
+                                print("GOT SAME CATEGORY AS OLD!")
+                                nsamecategory_old = nsamecategory_old + 1.0
 
                 #Current precision
                 if nsuggested_files > 0:
@@ -731,14 +700,10 @@ for j, line in enumerate(f):
                 precisionlist.append([cprecision, avgprecision, kw_scores_norm])
                 precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
 
-            else:
-		#Store Current precision and inverse of rank of the known item
-		#in 'known item search'-mode
-                precisionlist.append([cprecision, invrank])
-
             #
             dstr2 = ''
-        else:
+
+        else: # i%divn != 0:
             dwordlist.append(dstr)
             dstr2 = dstr2 + ' ' + dstr
 
