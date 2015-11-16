@@ -6,8 +6,12 @@ import math
 import pickle
 import numpy as np
 
-#import matplotlib
-#matplotlib.use("Agg")
+import os
+
+if 'DISPLAY' not in os.environ:
+    import matplotlib
+    matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 
 vindex = int(sys.argv[1])

@@ -45,7 +45,7 @@ def create_payload(filepath, filename):
                 'isStoredAs':       common.o("nfo_localfiledataobject"),
                 'mimeType':         mimetype}
 
-    payload['id'] = common.to_json_sha1(payload)
+    payload['appId'] = common.to_json_sha1(payload)
     payload['plainTextContent'] = text
 
     return common.json_dumps(payload, indent=2)

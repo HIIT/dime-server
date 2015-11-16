@@ -167,11 +167,10 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
     if len(keywordindlist)==0:
         return 0, []
 
+    #
     sub_tfidf_matrix = tfidf_matrix[:,keywordindlist]
     #print(sub_tfidf_matrix.shape)
-    #
-    #boolvec = docid_topicid_list == writing_topic
-    #doccategorylist = compute_doccategorylist()
+
     #Initialize boolean numpy vector 
     boolvec = np.zeros((len(doccategorylist),), dtype=bool)
     for i,doctopics in enumerate(doccategorylist):
@@ -179,18 +178,17 @@ def compute_topic_keyword_scores(tfidf_matrix, keywordindlist, doccategorylist, 
         if writing_topic in doctopics:
             boolvec[i] = True
         
-    #print("MAX", np.max(boolvec))
+    #
     if np.max(boolvec) == False:
         return 0, []
+
     #
     sub_tfidf_matrix = sub_tfidf_matrix[boolvec, :]
 
     #
     kw_scores = sub_tfidf_matrix.mean(0)
 
-    #Compute scores of keywords for writing_topic
-
-
+    #
     return kw_scores.mean(), kw_scores
 
 
@@ -212,7 +210,7 @@ def pick_random_kw_ind(kw_scores_filecategory):
     for i,v in enumerate(kw_scores_filecategory):
         dv = dv + kw_scores_filecategory[i]
         if not rv > dv:
-            print(i)
+            #print(i)
             return i
 
 #
