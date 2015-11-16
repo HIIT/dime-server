@@ -200,6 +200,12 @@ parser.add_argument('--c', metavar='N', action='store', type=float,
                     default=1.0, help='Exploration/Exploitation coeff.')
 parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
                     default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
+parser.add_argument('--n_query_kws', metavar='N', action='store', type=int,
+                    default=10, help='Number of LinRel keywords added to query string')
+#Number of clickable kws
+parser.add_argument('--n_clicked_kws', metavar='N', action='store', type=int,
+                    default=10, help='Number of keywords to be clicked after writing.')
+
 
 print("Starting as:", sys.argv)
 
@@ -451,7 +457,7 @@ for j, line in enumerate(f):
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
-	#
+	    #
         iteration = {}
         iteration['i'] = i
 
@@ -500,15 +506,16 @@ for j, line in enumerate(f):
                 jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 2:
                 #Number of suggested keywords added to query
-                n_kws = 10
-                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
+                #n_query_kws = 10
+                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 3:
                 #Number of suggested keywords added to query
-                n_kws = 10
-                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
+                #n_query_kws = 10
+                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             
             #Get number of suggested documents
             nsuggested_files = len(jsons)
+            print("Number of returned keywords: ", len(kws))
             print("Number of returned files: ", nsuggested_files)
 
             #Remove suggested keywords already appearing in the written input
@@ -527,23 +534,26 @@ for j, line in enumerate(f):
                 kws   = new_kws
                 #Update list of indices of keywords
                 winds = new_winds
-                print("KWS AFTER REMOVAL:", kws)
+                #print("KWS AFTER REMOVAL:", kws)
 
-            #
+
+            #Remove history if histremoval option is selected
             if args.histremoval:                
                 histremoval_val = check_history_removal(histremoval_threshold, histremoval_ma_value)
                 if histremoval_val > histremoval_threshold:
                     dwordlist = dwordlist[-3:]
                     
             #Number of keywords appearing in GUI
-            n_kws = 10
+            n_kws = args.n_clicked_kws
+            #Take the best n_kws keywords suggested by LinRel
             kws = kws[0:n_kws]
-
-            # List initialization
-            kw_probabilities = [0 for x in range(n_kws)]
-
             #Get indices of n_kws keywords
             winds = winds[0:n_kws]
+
+            #Initialize the list of clicking probabilities of n_kws keywords
+            kw_probabilities = [0 for x in range(n_kws)]
+
+
 
             #Compute keyword scores here for the n_kws keywords
             all_kw_scores = []
@@ -561,7 +571,7 @@ for j, line in enumerate(f):
                     if len(kw_scores_topic) > 0:
                         #Store the keyword scores relating to current topic
                         kw_scores_filecategory = kw_scores_topic
-                        #Compute probabilities of suggested keywords
+                        #Compute clicking probabilities of suggested keywords
                         kw_probabilities = kw_scores_filecategory/sum(kw_scores_filecategory)
                         #Convert to numpy array
                         kw_scores_filecategory = np.array(kw_scores_filecategory)
@@ -692,7 +702,7 @@ for j, line in enumerate(f):
                     avgprecision_old = 0
 
                 #
-                print("Suggested keywords:", kws)
+                #print("Suggested keywords:", kws)
                 print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
                 print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
                 print("  ", all_kw_scores_norm)
