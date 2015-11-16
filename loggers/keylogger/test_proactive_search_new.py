@@ -96,6 +96,7 @@ def process_input_file_arxivcs(line, j, qfn):
         if nameattr == 'id':
             filename = text
         elif nameattr == 'abstract':
+            text = filter_string(text, not args.nostem)
             wordlist = text.split()
         elif nameattr == 'subject' and text in text2cat_arxivcs:
             filecategory = categoryindices_original[text2cat_arxivcs[text]]
