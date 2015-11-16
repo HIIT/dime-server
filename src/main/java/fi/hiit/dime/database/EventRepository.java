@@ -113,6 +113,8 @@ public interface EventRepository extends CrudRepository<Event, Long>,
 
     List<Event> findByUserOrderByStartDesc(User user, Pageable pageable);
 
+    List<Event> findByUserOrderByStartDesc(User user);
+
     Long countByUser(User user);
 
     Long deleteByUser(User user);

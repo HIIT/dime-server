@@ -591,11 +591,13 @@ public class DataControllerTest extends RestTest {
 
     @Test
     public void testReadingEvent() throws Exception {
-	String someText = "Aliquam erat volutpat.  Nunc eleifend leo vitae magna.  In id erat non orci commodo lobortis.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.  Sed diam.  Praesent fermentum tempor tellus.  Nullam tempus.  Mauris ac felis vel velit tristique imperdiet.  Donec at pede.  Etiam vel neque nec dui dignissim bibendum.  Vivamus id enim.  Phasellus neque orci, porta a, aliquet quis, semper a, massa.  Phasellus purus.  Pellentesque tristique imperdiet tortor.  Nam euismod tellus id erat.";
+ 	ScientificDocument doc = createScientificDocument();
 
 	ReadingEvent re = new ReadingEvent();
+	re.targettedResource = doc;
+
 	re.type = "http://www.hiit.fi/ontologies/dime/#ReadingEvent";
-	re.plainTextContent = someText.substring(25,150);
+	re.plainTextContent = doc.plainTextContent.substring(25,150);
 	re.foundStrings = Arrays.asList("aliquam", "volutpat", "tellus");
 	re.pageNumbers = Arrays.asList(0, 4);
 
@@ -631,30 +633,6 @@ public class DataControllerTest extends RestTest {
 	re.pageRects = rs;
 
 	re.scaleFactor = 1.685;
-	
-	ScientificDocument doc = new ScientificDocument();
-	doc.mimeType = "application/pdf";
-	doc.title = "Microsoft Word - paper.docx";
-	doc.plainTextContent = someText;
-	doc.uri = "/home/testuser/docs/memex_iui2016_submittedversion.pdf";
-	doc.firstPage = 0;
-	doc.lastPage = 0;
-	doc.year = 0;
-	doc.type = "http://www.hiit.fi/ontologies/dime/#ScientificDocument";
-
-	Person a1 = new Person();
-	a1.firstName = "Matti";
-	a1.lastName = "Meikäläinen";
-
-	Person a2 = new Person();
-	a2.firstName = "John";
-	a2.lastName = "Doe";
-
-	doc.authors = new ArrayList<Person>();
-	doc.authors.add(a1);
-	doc.authors.add(a2);
-	
-	re.targettedResource = doc;
 
 	dumpData("ReadingEvent before", re);
 
@@ -676,4 +654,51 @@ public class DataControllerTest extends RestTest {
 	assertEquals(doc.authors.size(), docGet.authors.size());
     }
 
+    protected void compareDocs(ScientificDocument doc1, ScientificDocument doc2) {
+	assertEquals(doc1.appId, doc2.appId);
+	assertEquals(doc1.plainTextContent, doc2.plainTextContent);
+	assertEquals(doc1.title, doc2.title);
+	assertEquals(doc1.authors.size(), doc2.authors.size());
+	for (int i=0; i<doc1.authors.size(); i++) {
+	    Person a1 = doc1.authors.get(i);
+	    Person a2 = doc2.authors.get(i);
+	    assertEquals(a1.firstName, a2.firstName);
+	    assertEquals(a1.lastName, a2.lastName);
+	    assertEquals(a1.middleNames.size(), a2.middleNames.size());
+	    for (int j=0; j<a1.middleNames.size(); j++)
+		assertEquals(a1.middleNames.get(j), a2.middleNames.get(j));
+	}
+
+	assertEquals(doc1.keywords.size(), doc2.keywords.size());
+	assertEquals(doc1.keywords.get(0),
+		     doc2.keywords.get(0));
+    }
+
+    @Test
+    public void testScientificDocument() throws Exception {
+ 	ScientificDocument doc = createScientificDocument();
+	doc.appId = "oiuhgferiufheroi";
+	assertTrue(doc.authors.size() > 0);
+	assertTrue(doc.keywords.size() > 0);
+
+	dumpData("ScientificDocument before", doc);
+
+	ScientificDocument docRet = uploadElement(doc, ScientificDocument.class);
+	dumpData("ScientificDocument after", docRet);
+	compareDocs(doc, docRet);
+
+
+	ScientificDocument docGet = getData(infoElemApi + "/" + docRet.getId(), 
+					    ScientificDocument.class);
+	dumpData("ScientificDocument GET id", docGet);
+	compareDocs(doc, docGet);
+
+
+	ScientificDocument[] docGet2 = getData(infoElemsApi + "?appId=" + doc.appId, 
+					     ScientificDocument[].class);
+	assertEquals(1, docGet2.length);
+	dumpData("ScientificDocument GET appId", docGet2[0]);
+
+	compareDocs(doc, docGet2[0]);
+    }
 }

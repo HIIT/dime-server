@@ -36,7 +36,7 @@ def process_input_file_20news(line, j, qfn):
 
     dlist       = line.split("/")
     filename    = line
-    filecategory= categoryindices[dlist[1]]
+    filecategory= categoryindices_original[dlist[1]]
 
     mbox = mailbox.mbox(args.querypath+'/'+filename)
     if len(mbox) != 1:
@@ -60,7 +60,7 @@ def process_input_file_20news(line, j, qfn):
 def process_input_file_reuters(line, j, qfn):
     parts = line.split("\t")
     filename = qfn+'_'+str(j)
-    filecategory= categoryindices[parts[0]]
+    filecategory= categoryindices_original[parts[0]]
     wordlist = parts[1].split(" ")
 
     return filename, filecategory, wordlist
@@ -71,10 +71,12 @@ def process_input_file_ohsumed(line, j, qfn):
 
     dlist       = line.split("/")
     filename    = line
-    filecategory= categoryindices[dlist[0]]
+    filecategory= categoryindices_original[dlist[0]]
 
     with open (args.querypath+'/'+filename, "r") as myfile:
         abstext = myfile.read()
+
+    abstext = filter_string(abstext, not args.nostem)
     wordlist = abstext.split()
 
     return filename, filecategory, wordlist
@@ -96,13 +98,25 @@ def process_input_file_arxivcs(line, j, qfn):
         elif nameattr == 'abstract':
             wordlist = text.split()
         elif nameattr == 'subject' and text in text2cat_arxivcs:
-            filecategory = categoryindices[text2cat_arxivcs[text]]
+            filecategory = categoryindices_original[text2cat_arxivcs[text]]
 
     return filename, filecategory, wordlist
 
 #------------------------------------------------------------------------------
 
+def get_item_id(json_item):
+    if 'uri' in json_item:
+        return json_item['uri']
+    return None
+
+#------------------------------------------------------------------------------
+
 def filter_string(string, do_stem=True):
+
+    if ((not nltk.__version__.startswith('2')) and 
+        (not nltk.__version__.startswith('3.0'))):
+        print("ERROR: Use of incompatible nltk suspected")
+        sys.exit()
 
     #tokens = nltk.word_tokenize(string)
 
@@ -114,6 +128,9 @@ def filter_string(string, do_stem=True):
     | [][.,;"'?():-_`]  # these are separate tokens
     '''
     tokens = nltk.regexp_tokenize(string, pattern)
+    #print("string:", type(string), string)
+    #print("tokens:", type(tokens), tokens)
+    #print("first token:", type(tokens[0]), tokens[0])
 
     tokens = [t.lower() for t in tokens]
     if do_stem:
@@ -174,6 +191,8 @@ parser.add_argument("--xmlfile", metavar = "XMLFILE",
                     help="XML file to read, needed by arxivcs")
 parser.add_argument("--clickweight", metavar = "W",
                     help="weight assigned to clicked keywords")
+parser.add_argument('--knownitem', action='store_true',
+                    help='perform known item search')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -214,6 +233,12 @@ elif args.dataset == "reuters52":
     process_input_file = process_input_file_reuters
     usrname = usrname_reuters52
     password = password_reuters52
+elif args.dataset == "reuters52minus2":
+    categoryindices = categoryindices_reuters52_minus2
+    gt_tag = gt_tag_reuters
+    process_input_file = process_input_file_reuters
+    usrname = usrname_reuters52_minus2
+    password = password_reuters52_minus2
 elif args.dataset == "ohsumed":
     categoryindices = categoryindices_ohsumed
     gt_tag = gt_tag_ohsumed
@@ -227,16 +252,16 @@ elif args.dataset == "arxivcs":
     usrname = usrname_arxivcs
     password = password_arxivcs
 else:
-    print("Unsupported dataset:", args.dataset)
+    print("ERROR: Unsupported dataset:", args.dataset)
     sys.exit()
     
+#Store the contents of 'categoryindices' additionally to a variable
+categoryindices_original = categoryindices
+
 if not args.queries:
-    print("args.queries is empty")
+    print("ERROR: args.queries is empty")
     sys.exit()
 
-if not args.querypath:
-    print("args.querypath is empty")
-    sys.exit()
 
 histremoval_threshold = 0
 histremoval_ma_value  = 0
@@ -322,14 +347,47 @@ qfn = qparts[1]
 master_document_list = []
 
 #Loop through documents to be written
-for j,line in enumerate(f):
+for j, line in enumerate(f):
 
-    #
-    #master_document_dict[str(j)] = {}
-
+    #Strip all spaces from the end of the string
     line        = line.rstrip()
-    
+    print("Processing line", j, ":", line)
+
+    #Get the filename, filecategory, and the word list corresponding the current writing document
     filename, filecategory, wordlist = process_input_file(line, j, qfn)
+    print("filename:", filename, "filecategory:", filecategory, "wordlist:", wordlist[:10], 
+          "... total", len(wordlist), "tokens")
+
+    #If knownitem is selected, do the following
+    if args.knownitem:
+        #Create matching doccategorylist
+        doccategorylist = len(data)*[[0]]
+        #Use temporarily the original category index
+        categoryindices = categoryindices_original
+        #Make single string from wordlist
+        content = ' '.join(wordlist)
+        print(content)
+        #Search from DiMe the known item
+        jsons = search_dime(srvurl, usrname, password, content, n_results)
+        if len(jsons) == 0:
+            print("ERROR: DiMe returned zero results for knowitem groundtruth")
+            sys.exit()
+        known_item_target = get_item_id(jsons[0])
+        if known_item_target is None:
+            print("ERROR: Unable to extract knowitem groundtruth from json")
+            sys.exit()
+        #Insert value 1 for element corresponding the known document
+        for di, djson in enumerate(data):
+            if djson['uri'] == known_item_target:
+                doccategorylist[di] = [1]
+        #Change the dict named 'categoryindices' to correspond kown item search scenario
+        categoryindices = {'Other':0, 'The known item':1}
+        #Change the filecategory (the category of the writing document) to correspond the changed categoryindices 
+        #By default, the writing document is not the same as the known item
+        filecategory = 0
+    else:
+        known_item_target = None
+
     if filename is None:
         break
     if filecategory is None:
@@ -342,9 +400,6 @@ for j,line in enumerate(f):
 
     #Reverse the order of words in the documents
     wordlist_r = list(reversed(wordlist[:writeold_pos]+wordlist_old[:writeold_n]+wordlist[writeold_pos:]))
-    #print(wordlist)
-    #print(wordlist_old)
-    #print(wordlist_r)
 
     wordlist_old = wordlist.copy()
 
@@ -386,6 +441,7 @@ for j,line in enumerate(f):
 
     #Initialize the json -object corresponding the input
     iteration_list = []
+
     click_added = False
 
     #Go through words in word list corresponding the current document
@@ -394,6 +450,7 @@ for j,line in enumerate(f):
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
+	#
         iteration = {}
         iteration['i'] = i
 
@@ -480,20 +537,26 @@ for j,line in enumerate(f):
             #Number of keywords appearing in GUI
             n_kws = 10
             kws = kws[0:n_kws]
-            
+
+            # List initialization
+            kw_probabilities = [0 for x in range(n_kws)]
+
             #Get indices of n_kws keywords
             winds = winds[0:n_kws]
 
             #Compute keyword scores here for the n_kws keywords
             all_kw_scores = []
             #Go through topics 
+            print("Category ids: ",categoryindices)
             for ii in range(0,len(categoryindices)):
                 #Compute keyword scores given the writing topic 'ii'
+                if False:
+                    print("Index OF NON-ZEROS: ", [i for i, e in enumerate(doccategorylist) if e!=[0]])
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
                 #If topic index 'ii' corresponds the current writing topic, store
                 #the keyword scores for the current writing topic into the variable 'kw_scores_filecategory'
                 #and also pick one keyword randomly
-                if ii == filecategory:
+                if ii == filecategory and not args.knownitem:
                     if len(kw_scores_topic) > 0:
                         #Store the keyword scores relating to current topic
                         kw_scores_filecategory = kw_scores_topic
@@ -508,6 +571,32 @@ for j,line in enumerate(f):
                     else:
                         #
                         kw_maxind = 0
+                elif ii == 1:
+                    if len(kw_scores_topic) > 0:
+                        
+                        print("Computing keyword clicking probabilities with respect to the known (and wanted) document.")
+                        
+                        #Store the keyword scores relating to the known file
+                        kw_scores_known_file = kw_scores_topic
+                        print(kw_scores_known_file)
+
+                        #Compute clicking probabilities of suggested keywords
+                        if sum(kw_scores_known_file) > 0:
+                            kw_probabilities = kw_scores_known_file/sum(kw_scores_known_file)
+                            print(kw_probabilities)
+                        else:
+                            kw_probabilities = kw_scores_known_file
+
+                        #Convert to numpy array
+                        kw_scores_known_file = np.array(kw_scores_known_file)
+                        #Take the word index of the suggested keyword having largest score in the known file
+                        kw_maxind = np.argmax(kw_scores_known_file)
+                        #Take keyword randomly using Categorical probability distribution Cat(lamba1, lambda2, ...)
+                        kw_randind = pick_random_kw_ind(kw_scores_known_file) 
+                    else:
+                        #
+                        kw_maxind = 0                    
+
                 #Append the score of n_kws keywords given correspnding topic index 'ii'
                 all_kw_scores.append(kwm)
 
@@ -531,55 +620,90 @@ for j,line in enumerate(f):
             nsamecategory = 0.0
             nsamecategory_old = 0.0
 
-            #Print all tags of jsons
-            for js in jsons:
-                print("Tags: ", js['tags']) 
-                #Split file -tag for checking category
-                for ti, tag in enumerate(js['tags']):
-                    parts = js['tags'][ti].split('=')
-                    if parts[0] == gt_tag:
-                        #
-                        categoryid = categoryindices[parts[1]]
-                        print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
-                        #
-                        if categoryid == filecategory:
-                            print("GOT SAME CATEGORY AS CURRENT!")
-                            nsamecategory = nsamecategory + 1.0
-                        elif categoryid == filecategory_old:
-                            print("GOT SAME CATEGORY AS OLD!")
-                            nsamecategory_old = nsamecategory_old + 1.0
-
-            #Current precision
-            if nsuggested_files > 0:
-                cprecision = float(nsamecategory)/float(nsuggested_files)
-                cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
-            else:
-                cprecision = 0
-                cprecision_old = 0
-
-            #Average precision so far
-            sumavgprecision = sumavgprecision + cprecision
-            sumavgprecision_old = sumavgprecision_old + cprecision_old
-            if j2 > 0:
-                avgprecision = float(sumavgprecision)/float(j2)
-                avgprecision_old = float(sumavgprecision_old)/float(j2)
-            else:
-                avgprecision = 0
-                avgprecision_old = 0
-
             #
-            print("Suggested keywords:", kws)
-            print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
-            print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
-            print("  ", all_kw_scores_norm)
+            cprecision = 0
+            invrank = 0
 
-            #
-            precisionlist.append([cprecision, avgprecision, kw_scores_norm])
-            precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
+            #Process all jsons to extract results
+
+            if args.knownitem:
+                for ji, js in enumerate(jsons):
+                    suggested_item = get_item_id(js)
+                    print("SUGGESTED ITEM: ", suggested_item, "KNOWN ITEM: ", known_item_target)
+                    if suggested_item == known_item_target:
+                        categoryid = 1
+                        nsamecategory = nsamecategory + 1.0
+
+                        #Compute the inverse of rank
+                        print("RANK in suggestions:", ji+1)
+                        invrank = 1.0/float(ji+1)
+                        #Define precision to 1
+                        cprecision = 1
+                        #Add to 'iteration' dict        
+                        iteration['inv_rank'] = invrank
+                        iteration['cprecision'] = cprecision
+                        #
+                        print("GOT SAME CATEGORY AS CURRENT! ", invrank)
+                    else:
+                        categoryid = 0
+                        iteration['inv_rank'] = 0
+                        iteration['cprecision'] = 0
+                    #
+                    print("Category:", categoryid, "Correct:", 1)
+                    
+                #Store Current precision and inverse of rank of the known item
+		#in 'known item search'-mode
+                precisionlist.append([cprecision, invrank])
+
+            else:
+                for ji, js in enumerate(jsons):
+                    for ti, tag in enumerate(js['tags']):
+                        parts = js['tags'][ti].split('=')
+
+                        #Checking whether current writing topic
+                        if parts[0] == gt_tag:
+                            categoryid = categoryindices[parts[1]]
+                            print("Category:", categoryid, "Correct:", filecategory, "Old:", filecategory_old)
+                            #
+                            if categoryid == filecategory:
+                                print("GOT SAME CATEGORY AS CURRENT!")
+                                nsamecategory = nsamecategory + 1.0
+                            elif categoryid == filecategory_old:
+                                print("GOT SAME CATEGORY AS OLD!")
+                                nsamecategory_old = nsamecategory_old + 1.0
+
+                #Current precision
+                if nsuggested_files > 0:
+                    cprecision = float(nsamecategory)/float(nsuggested_files)
+                    cprecision_old = float(nsamecategory_old)/float(nsuggested_files)
+                else:
+                    cprecision = 0
+                    cprecision_old = 0
+
+                #Average precision so far
+                sumavgprecision = sumavgprecision + cprecision
+                sumavgprecision_old = sumavgprecision_old + cprecision_old
+                if j2 > 0:
+                    avgprecision = float(sumavgprecision)/float(j2)
+                    avgprecision_old = float(sumavgprecision_old)/float(j2)
+                else:
+                    avgprecision = 0
+                    avgprecision_old = 0
+
+                #
+                print("Suggested keywords:", kws)
+                print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
+                print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
+                print("  ", all_kw_scores_norm)
+
+                #
+                precisionlist.append([cprecision, avgprecision, kw_scores_norm])
+                precisionlist_old.append([cprecision_old, avgprecision_old, kw_scores_norm_old])
 
             #
             dstr2 = ''
-        else:
+
+        else: # i%divn != 0:
             dwordlist.append(dstr)
             dstr2 = dstr2 + ' ' + dstr
 
@@ -595,17 +719,7 @@ for j,line in enumerate(f):
             iteration['kws'][kw] = kw_probabilities[l]
             prob_sum = prob_sum + kw_probabilities[l]
         print(prob_sum)
-        print("Suggested kws with probs: ", iteration['kws'])
-
-
-        #
-        #pprint.pprint(docdict, width=30)
-        #Add to master_document_dict
-        #master_document_list.append(docdict)
-        #Initialize the json -object corresponding the input
-        #docdict = {}
-        #Open file for appending the created json-document
-
+        print("Suggested kws with probabilities: ", iteration['kws'])
 
         #If number of written and clicked words is bigger than args.nwritten + arg.nclicked, 
         #stop while-loop of current document 
@@ -663,6 +777,11 @@ for j,line in enumerate(f):
     master_document_list.append({"category": filecategory,
                                  "filename": filename,
                                  "iterations": iteration_list})
+    if args.knownitem:
+	    master_document_list.append({"category": filecategory,
+        	                         "filename": filename,
+					 "knownitem": known_item_target,
+                	                 "iterations": iteration_list})
 
     #Save precisionlist corresponding the written document
     filename = filename.replace('/','_')

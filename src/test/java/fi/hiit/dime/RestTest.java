@@ -45,6 +45,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -184,6 +185,38 @@ public abstract class RestTest {
 	    "\n\n" + msg.plainTextContent;
 
 	return msg;
+    }
+
+    protected ScientificDocument createScientificDocument() {
+	String someText = "Aliquam erat volutpat.  Nunc eleifend leo vitae magna.  In id erat non orci commodo lobortis.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.  Sed diam.  Praesent fermentum tempor tellus.  Nullam tempus.  Mauris ac felis vel velit tristique imperdiet.  Donec at pede.  Etiam vel neque nec dui dignissim bibendum.  Vivamus id enim.  Phasellus neque orci, porta a, aliquet quis, semper a, massa.  Phasellus purus.  Pellentesque tristique imperdiet tortor.  Nam euismod tellus id erat.";
+
+	ScientificDocument doc = new ScientificDocument();
+	doc.mimeType = "application/pdf";
+	doc.title = "Microsoft Word - paper.docx";
+	doc.plainTextContent = someText;
+	doc.uri = "/home/testuser/docs/memex_iui2016_submittedversion.pdf";
+	doc.firstPage = 0;
+	doc.lastPage = 0;
+	doc.year = 0;
+	doc.type = "http://www.hiit.fi/ontologies/dime/#ScientificDocument";
+
+	Person a1 = new Person();
+	a1.firstName = "Matti";
+	a1.lastName = "Meikäläinen";
+	a1.middleNames = Arrays.asList("M.");
+
+	Person a2 = new Person();
+	a2.firstName = "John";
+	a2.middleNames = Arrays.asList("Albert", "Bob");
+	a2.lastName = "Doe";
+
+	doc.authors = new ArrayList<Person>();
+	doc.authors.add(a1);
+	doc.authors.add(a2);
+	
+	doc.keywords = Arrays.asList("foo", "bar", "baz");
+
+	return doc;
     }
 
     /**
