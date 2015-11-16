@@ -316,6 +316,8 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     #Get keywords related to input query string 
     winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
 
+
+
     #Add weights to suggested keywords (in this case the corresponding values of vsum )
     dum_query = ''
     n_kw = 1
@@ -429,7 +431,8 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     #Convert to python list
     vsinds = vsinds.tolist()
     #Take last 100 indices from vsinds, i.e. choose 100 keywords
-    vsinds = vsinds[-100:]
+    #vsinds = vsinds[-100:]
+
     #Reverse, i.e. make list of indices corresponding the descending order of elements of 'r_hat'
     vsinds = list(reversed(vsinds))
 
