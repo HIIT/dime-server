@@ -443,4 +443,7 @@
     <changeSet author="mvsjober (generated)" id="1447750648097-68">
         <addForeignKeyConstraint baseColumnNames="PAGE_EYE_DATA_ID" baseTableName="PAGE_EYE_DATA_DURATIONS" constraintName="FK_SWEPLSOTFFXEVWHAV04COYL5A" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PAGE_EYE_DATA"/>
     </changeSet>
+    <changeSet author="mats (generated)" id="1447787936104-1">
+        <modifyDataType columnName="DATA" newDataType="blob(2147483647)" tableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>

@@ -1,4 +1,4 @@
-spring.jpa.hibernate.ddl-auto = validate
+spring.jpa.hibernate.ddl-auto =
 
 spring.datasource.url = jdbc:h2:file:~/.dime/tmp/h2_tmp_clean
 spring.datasource.username = sa
