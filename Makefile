@@ -7,8 +7,8 @@ SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 DOCKER_DB_DIR = ~/dime-db
 
 LOCAL_PROPERTIES = config/application-local.properties
-CLEAN_TMP_DB = ~/.dime/tmp/h2_tmp_clean
-AUTOGEN_TMP_DB = ~/.dime/tmp/h2_tmp_autogen
+CLEAN_TMP_DIR = ~/.dime/tmp/cleandb
+AUTOGEN_TMP_DIR = ~/.dime/tmp/autogen
 
 all:	assemble
 
@@ -46,22 +46,21 @@ docker_db_dir:
 runDocker: docker docker_db_dir
 	docker run -it -p 8080:8080 -v $(DOCKER_DB_DIR):/var/lib/mongodb dime-server
 
-cleanTmpDb:
-	@echo Removing old temp db $(CLEAN_TMP_DB)
-	rm -f $(CLEAN_TMP_DB).*
-	@echo Setting temporary config
-	-test -e $(LOCAL_PROPERTIES) && \
-		mv -f $(LOCAL_PROPERTIES) $(LOCAL_PROPERTIES).bak
-	ln -s application-local.properties.tmp_clean $(LOCAL_PROPERTIES)
-	@echo Running tests to generate db
-	$(MAKE) test
+cleanDb:
+	@echo Removing old temp dir $(CLEAN_TMP_DIR)
+	rm -rf $(CLEAN_TMP_DIR)
+	@echo Running tests to generate clean db
+	SPRING_PROFILES_ACTIVE=cleandb $(MAKE) test
 
-autogenTmpDb:
-	@echo Removing old temp db $(AUTOGEN_TMP_DB)
-	rm -f $(AUTOGEN_TMP_DB).*
-	@echo Setting temporary config
-	-test -e $(LOCAL_PROPERTIES) && \
-		mv -f $(LOCAL_PROPERTIES) $(LOCAL_PROPERTIES).bak
-	ln -s application-local.properties.tmp_autogen $(LOCAL_PROPERTIES)
-	@echo Running tests to generate db
-	$(MAKE) test
+autogenDb:
+	@echo Removing old temp dir $(AUTOGEN_TMP_DIR)
+	rm -rf $(AUTOGEN_TMP_DIR)
+	@echo Running tests to generate autogen db
+	SPRING_PROFILES_ACTIVE=autogen $(MAKE) test
+
+initSql: autogenDb
+	rm -f src/main/resources/db/changelog/db.changelog-master.xml
+	$(GRADLE) generateChangelog
+
+updateSql: autogenDb cleanDb
+	$(GRADLE) diffChangeLog
