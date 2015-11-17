@@ -20,7 +20,8 @@ import dlog_conf as conf
 import dlog_common as common
 
 porter = nltk.PorterStemmer()
-#wnl = nltk.WordNetLemmatizer()
+wnl = nltk.WordNetLemmatizer()
+
 text2cat = {
     "Computer Science - Artificial Intelligence": "cs.AI",
     "Computer Science - Computational Complexity": "cs.CC",
@@ -66,7 +67,7 @@ text2cat = {
 
 #------------------------------------------------------------------------------
 
-def filter_string(string, do_stem=True):
+def filter_string(string, do_stem=True, do_lemma=False):
 
     #tokens = nltk.word_tokenize(string)
 
@@ -82,12 +83,13 @@ def filter_string(string, do_stem=True):
     tokens = [t.lower() for t in tokens]
     if do_stem:
         tokens = [porter.stem(t) for t in tokens]
-    #tokens = [wnl.lemmatize(t) for t in tokens]
+    if do_lemma:
+        tokens = [wnl.lemmatize(t) for t in tokens]
     return " ".join(item for item in tokens if len(item)>1)
 
 #------------------------------------------------------------------------------
 
-def create_payload(doc, i, do_stem):
+def create_payload(doc, i, do_stem, do_lemma):
 
     print "---###---###---###---###---###---###---###---###---###---###---"
     print i
@@ -125,7 +127,7 @@ def create_payload(doc, i, do_stem):
         'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument',
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#EmbeddedFileDataObject',
         'keywords': keywords,
-        'title': filter_string(title, do_stem), 
+        'title': filter_string(title, do_stem, do_lemma), 
         'tags' : finaltags
     }
 
@@ -134,7 +136,7 @@ def create_payload(doc, i, do_stem):
     payload['targettedResource']['id'] = targettedResource['id']
     payload['id'] = common.to_json_sha1(payload)
 
-    targettedResource['plainTextContent'] = filter_string(abstract, do_stem)
+    targettedResource['plainTextContent'] = filter_string(abstract, do_stem, do_lemma)
 
     payload['targettedResource'] = targettedResource.copy()
 
@@ -158,6 +160,8 @@ if __name__ == "__main__":
                         help='disable Porter stemming of tokens')
     parser.add_argument('--probskip', action='store', type=float,
                         default=-1.0, help='probability of skipping an abstract')
+    parser.add_argument('--lemmatize', action='store_true',
+                        help='enable Wordnet lemmatization of tokens')
 
     args = parser.parse_args()
 
@@ -192,7 +196,7 @@ if __name__ == "__main__":
 
         print "Processing", j, doc
 
-        json_payload = create_payload(doc, i, not args.nostem)
+        json_payload = create_payload(doc, i, not args.nostem, args.lemmatize)
         if json_payload is None:
             continue
         print "PAYLOAD:\n" + json_payload

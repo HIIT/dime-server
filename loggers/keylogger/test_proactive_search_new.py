@@ -25,6 +25,7 @@ import random
 
 import nltk
 porter = nltk.PorterStemmer()
+wnl = nltk.WordNetLemmatizer()
 
 import xml.etree.ElementTree as ET
 
@@ -44,11 +45,11 @@ def process_input_file_20news(line, j, qfn):
         return None, None, None
     for message in mbox:
         subject          = message['subject']
-        subject = filter_string(subject, not args.nostem)
+        subject = filter_string(subject, not args.nostem, args.lemmatize)
         subject_wordlist = subject.split()
 
         msgpayload = message.get_payload()
-        msgpayload = filter_string(msgpayload, not args.nostem)
+        msgpayload = filter_string(msgpayload, not args.nostem, args.lemmatize)
         msgpayload_wordlist = msgpayload.split()
 
         wordlist = subject_wordlist + msgpayload_wordlist        
@@ -76,7 +77,7 @@ def process_input_file_ohsumed(line, j, qfn):
     with open (args.querypath+'/'+filename, "r") as myfile:
         abstext = myfile.read()
 
-    abstext = filter_string(abstext, not args.nostem)
+    abstext = filter_string(abstext, not args.nostem, args.lemmatize)
     wordlist = abstext.split()
 
     return filename, filecategory, wordlist
@@ -96,6 +97,7 @@ def process_input_file_arxivcs(line, j, qfn):
         if nameattr == 'id':
             filename = text
         elif nameattr == 'abstract':
+            text = filter_string(text, not args.nostem, args.lemmatize)
             wordlist = text.split()
         elif nameattr == 'subject' and text in text2cat_arxivcs:
             filecategory = categoryindices_original[text2cat_arxivcs[text]]
@@ -111,7 +113,7 @@ def get_item_id(json_item):
 
 #------------------------------------------------------------------------------
 
-def filter_string(string, do_stem=True):
+def filter_string(string, do_stem=True, do_lemma=False):
 
     if ((not nltk.__version__.startswith('2')) and 
         (not nltk.__version__.startswith('3.0'))):
@@ -128,14 +130,12 @@ def filter_string(string, do_stem=True):
     | [][.,;"'?():-_`]  # these are separate tokens
     '''
     tokens = nltk.regexp_tokenize(string, pattern)
-    #print("string:", type(string), string)
-    #print("tokens:", type(tokens), tokens)
-    #print("first token:", type(tokens[0]), tokens[0])
 
     tokens = [t.lower() for t in tokens]
     if do_stem:
         tokens = [porter.stem(t) for t in tokens]
-    #tokens = [wnl.lemmatize(t) for t in tokens]
+    if do_lemma:
+        tokens = [wnl.lemmatize(t) for t in tokens]
     return " ".join(item for item in tokens if len(item)>1)
 
 #------------------------------------------------------------------------------
@@ -171,6 +171,8 @@ parser.add_argument("--querypath", metavar = "PATH",
                     help="path to queries to process")
 parser.add_argument('--nostem', action='store_true',
                     help='disable Porter stemming of tokens')
+parser.add_argument('--lemmatize', action='store_true',
+                    help='enable Wordnet lemmatization of tokens')
 parser.add_argument('--norestart', action='store_true',
                     help='do not restart between documents')
 parser.add_argument('--numwords', metavar='N', action='store', type=int,
@@ -261,6 +263,12 @@ elif args.dataset == "arxivcs":
     process_input_file = process_input_file_arxivcs
     usrname = usrname_arxivcs
     password = password_arxivcs
+elif args.dataset == "arxivcs-wnl":
+    categoryindices = categoryindices_arxivcs
+    gt_tag = gt_tag_arxivcs
+    process_input_file = process_input_file_arxivcs
+    usrname = usrname_arxivcs_wnl
+    password = password_arxivcs_wnl
 else:
     print("ERROR: Unsupported dataset:", args.dataset)
     sys.exit()
