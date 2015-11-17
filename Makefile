@@ -8,6 +8,7 @@ DOCKER_DB_DIR = ~/dime-db
 
 LOCAL_PROPERTIES = config/application-local.properties
 CLEAN_TMP_DB = ~/.dime/tmp/h2_tmp_clean
+AUTOGEN_TMP_DB = ~/.dime/tmp/h2_tmp_autogen
 
 all:	assemble
 
@@ -52,5 +53,15 @@ cleanTmpDb:
 	-test -e $(LOCAL_PROPERTIES) && \
 		mv -f $(LOCAL_PROPERTIES) $(LOCAL_PROPERTIES).bak
 	ln -s application-local.properties.tmp_clean $(LOCAL_PROPERTIES)
+	@echo Running tests to generate db
+	$(MAKE) test
+
+autogenTmpDb:
+	@echo Removing old temp db $(AUTOGEN_TMP_DB)
+	rm -f $(AUTOGEN_TMP_DB).*
+	@echo Setting temporary config
+	-test -e $(LOCAL_PROPERTIES) && \
+		mv -f $(LOCAL_PROPERTIES) $(LOCAL_PROPERTIES).bak
+	ln -s application-local.properties.tmp_autogen $(LOCAL_PROPERTIES)
 	@echo Running tests to generate db
 	$(MAKE) test
