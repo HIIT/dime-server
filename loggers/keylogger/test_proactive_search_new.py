@@ -195,6 +195,8 @@ parser.add_argument("--clickweight", metavar = "W",
                     help="weight assigned to clicked keywords")
 parser.add_argument('--knownitem', action='store_true',
                     help='perform known item search')
+parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
+                    default=1.0, help='use MMR with parameter lambda')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
