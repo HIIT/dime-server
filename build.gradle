@@ -3,44 +3,56 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.2.RELEASE")
- 	classpath("org.liquibase:liquibase-gradle-plugin:1.1.1")
-	classpath("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final")
-	classpath("mysql:mysql-connector-java:5.1.37")
-      }	
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.2.7.RELEASE'
+      // 	classpath 'org.springframework.boot:spring-boot-starter-data-jpa:1.2.2.RELEASE'
+
+      // 	classpath 'org.liquibase:liquibase-gradle-plugin:1.1.1'
+      //   classpath 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final'
+      // 	classpath 'org.liquibase.ext:liquibase-hibernate4:3.5'
+      // 	classpath 'org.liquibase:liquibase-core:3.3.2'
+      // 	classpath 'com.h2database:h2:1.4.190'
+      // 	classpath 'mysql:mysql-connector-java:5.1.37'
+    }	
 }
 
+// apply plugin: 'org.liquibase.gradle'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'spring-boot'
-apply plugin: 'org.liquibase.gradle'
 
 jar {
     baseName = 'dime-server'
     version =  '0.1.0'
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
-    compile("org.springframework.boot:spring-boot-starter-security")
-    compile("org.springframework.boot:spring-boot-starter-data-jpa")
-    compile("com.h2database:h2")
-    compile("mysql:mysql-connector-java:5.1.37")
-    compile("com.fasterxml.jackson.core:jackson-annotations")
-    compile("org.apache.lucene:lucene-core:5.3.0")
-    compile("org.apache.lucene:lucene-analyzers-common:5.3.0")
-    compile("org.apache.lucene:lucene-queryparser:5.3.0")
-    compile("org.liquibase.ext:liquibase-hibernate4:3.5")
-    compile("org.liquibase:liquibase-core:3.4.1")
-    compile("org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final")
-    testCompile("org.springframework.boot:spring-boot-starter-test")
-    //testCompile("junit:junit")
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    compile 'org.springframework.boot:spring-boot-starter-security'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    
+    compile 'org.liquibase:liquibase-core'
+    compile 'org.liquibase.ext:liquibase-hibernate4:3.5'
+    compile 'org.hibernate.javax.persistence:hibernate-jpa-2.1-api'
+    runtime 'com.h2database:h2'
+    runtime 'mysql:mysql-connector-java'
+
+    compile 'com.fasterxml.jackson.core:jackson-annotations'
+
+    compile 'org.apache.lucene:lucene-core:5.3.0'
+    compile 'org.apache.lucene:lucene-analyzers-common:5.3.0'
+    compile 'org.apache.lucene:lucene-queryparser:5.3.0'
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    //testCompile 'junit:junit'
 }
 
 task wrapper(type: Wrapper) {
@@ -59,16 +71,35 @@ allprojects {
     }
 }
 
-liquibase {
-  activities {
-    main {
-      changeLogFile 'src/main/resources/db/changelog/db.changelog-master.xml'
-      url 'jdbc:mysql://localhost:3306/dime'
-      username 'dime'
-      password ''
-      referenceDriver 'liquibase.ext.hibernate.database.connection.HibernateDriver'
-      referenceUrl 'hibernate:spring:fi.hiit.dime.data?dialect=org.hibernate.dialect.MySQLDialect'
-    }
-  }
-  runList = 'main'
-}
+// liquibase {
+//   activities {
+//     main {
+//       // changeLogFile 'src/main/resources/db/changelog/db.changelog-master.xml'
+//       changeLogFile 'changelog.xml'
+
+//       url 'hibernate:spring:fi.hiit.dime.data?dialect=org.hibernate.dialect.H2Dialect'
+//       driver 'liquibase.ext.hibernate.database.connection.HibernateDriver'
+
+//       // url 'jdbc:h2:file:~/.dime/tmp/h2_tmp_autogen'
+//       // username 'sa'
+//       // password 'sa'
+
+//       // url 'jdbc:mysql://localhost:3306/dime'
+//       // username 'dime'
+//       // password 'AiWah9hi'
+
+//       // referenceUrl 'jdbc:h2:file:~/.dime/tmp/h2_tmp_clean'
+//       // referenceUsername 'sa'
+//       // referencePassword 'sa'
+
+//       // referenceUrl 'jdbc:mysql://localhost:3306/dime_dev'
+//       // referenceUsername 'dime'
+//       // referencePassword 'AiWah9hi'
+
+//       //referenceDriver 'liquibase.ext.hibernate.database.connection.HibernateDriver'
+//       //referenceUrl 'hibernate:spring:fi.hiit.dime.data?dialect=org.hibernate.dialect.MySQLDialect'
+//       //diffChangeLogFile 'changelog-diff.xml'
+//     }
+//   }
+//   runList = 'main'
+// }
