@@ -209,6 +209,10 @@ parser.add_argument('--n_query_kws', metavar='N', action='store', type=int,
 parser.add_argument('--n_clicked_kws', metavar='N', action='store', type=int,
                     default=10, help='Number of keywords to be clicked after writing.')
 
+#Number of clickable kws
+parser.add_argument('--reject_previously_suggested_kws', action='store_true',
+                    help='Remove keywords suggested in previous iterations')
+
 
 print("Starting as:", sys.argv)
 
@@ -522,6 +526,10 @@ for j, line in enumerate(f):
                 #n_query_kws = 10
                 jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             
+
+            #
+
+
             #Get number of suggested documents
             nsuggested_files = len(jsons)
             print("Number of returned keywords: ", len(kws))
@@ -545,24 +553,53 @@ for j, line in enumerate(f):
                 winds = new_winds
                 #print("KWS AFTER REMOVAL:", kws)
 
-
             #Remove history if histremoval option is selected
             if args.histremoval:                
                 histremoval_val = check_history_removal(histremoval_threshold, histremoval_ma_value)
                 if histremoval_val > histremoval_threshold:
                     dwordlist = dwordlist[-3:]
-                    
+
+            #Remove keywords suggested in previous iterations
+            if args.reject_previously_suggested_kws:
+                #
+                if os.path.isfile('data/previously_shown_kws_'+str(j)+'.list'):
+                    previous_kws = pickle.load(open('data/previously_shown_kws_'+str(j)+'.list','rb'))
+                    #
+                    new_kws = []
+                    new_winds = []
+                    for iii,kw in enumerate(kws):
+                        if kw not in previous_kws:
+                            new_kws.append(kws[iii])
+                            new_winds.append(winds[iii])
+                        else:
+                            print("KEYWORD ", kw, " SUGGESTED EARLIER, REMOVE!!")
+                    #Update list of keywords into a list having only new keywords not occurring in previous iterations
+                    kws   = new_kws
+                    #Update list of indices of keywords
+                    winds = new_winds
+                    #
+                    print("NUMBER OF CLICKED KWS: ",args.n_clicked_kws)
+                    previous_kws = previous_kws + kws[0:args.n_clicked_kws]
+                    print("NUMBER OF CLICKED KWS: ",len(previous_kws))
+                    #Store the kws-list for further use
+                    pickle.dump(previous_kws,open('data/previously_shown_kws_'+str(j)+'.list','wb'))                    
+                else:
+                    print("NUMBER OF CLICKED KWS: ",args.n_clicked_kws)
+                    previous_kws = kws[0:args.n_clicked_kws]
+                    print("NUMBER OF CLICKED KWS: ",len(previous_kws))
+                    #Store the kws-list for further use
+                    pickle.dump(previous_kws,open('data/previously_shown_kws_'+str(j)+'.list','wb'))
+
             #Number of keywords appearing in GUI
             n_kws = args.n_clicked_kws
             #Take the best n_kws keywords suggested by LinRel
             kws = kws[0:n_kws]
+
             #Get indices of n_kws keywords
             winds = winds[0:n_kws]
 
             #Initialize the list of clicking probabilities of n_kws keywords
             kw_probabilities = [0 for x in range(n_kws)]
-
-
 
             #Compute keyword scores here for the n_kws keywords
             all_kw_scores = []
