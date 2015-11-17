@@ -231,7 +231,9 @@ def query2bow(query,dictionary):
 
     #Convert the words into nearest dictionary word
     for nword, word in enumerate(test_wordlist):
+        #Search the closest word form dictionary
         correctedword = difflib.get_close_matches(word, list(dictionary.values()))
+        #Replace the original word by the closest dictionary word
         if len(correctedword):
             test_wordlist[nword] = correctedword[0]
         else:
