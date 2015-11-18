@@ -365,7 +365,7 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
             #Go through kw-indices stored in S
             sim_max = 0
             #
-            val = lambda_coeff*(vsum[i] - (1-lambda_coeff)*sim_vec.max())
+            val = lambda_coeff*vsum[i] - (1-lambda_coeff)*sim_vec.max()
 
             #Append the value to a dict vals
             vals[wind] = val
