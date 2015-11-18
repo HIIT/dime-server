@@ -69,13 +69,11 @@ public class ApiControllerTest extends RestTest {
     }
 
     private InformationElement[] doSearch(String query) {
-	ResponseEntity<InformationElement[]> res = 
-	    getRest().getForEntity(apiUrl("/search?query=" + query),
-				   InformationElement[].class);
+	return getData(apiUrl("/search?query=" + query), InformationElement[].class);
+    }
 
-	assertSuccessful(res);
-
-	return res.getBody();
+    private Event[] doEventSearch(String query) {
+	return getData(apiUrl("/eventsearch?query=" + query), Event[].class);
     }
 
     @Test
@@ -111,15 +109,11 @@ public class ApiControllerTest extends RestTest {
 	}
 
 	// Upload them to DiMe
-	ResponseEntity<Event[]> res = 
-	    getRest().postForEntity(eventsApi, events, Event[].class);
-
-	// Check that HTTP was successful
-	assertSuccessful(res);
+	uploadEvents(events, Event[].class);
 
 	// Refresh Lucene index
-	if (searchIndex != null)
-	    searchIndex.updateIndex(false);
+	// if (searchIndex != null)
+	//     searchIndex.updateIndex(false);
 
 	// Now try searching for the ones in idxToFind
 	InformationElement[] searchRes = doSearch(magicWord);
@@ -133,5 +127,19 @@ public class ApiControllerTest extends RestTest {
     	}
 
 	//FIXME: also compare to idxToFind
+
+	// Try searching as events
+	Event[] searchEventsRes = doEventSearch(magicWord);
+	
+	dumpData("searchEventsRes", searchEventsRes);
+
+    	assertEquals(idxToFind.size(), searchEventsRes.length);
+	
+    	for (Event event : searchEventsRes) {
+	    assertTrue(event instanceof ResourcedEvent);
+
+	    ResourcedEvent revent = (ResourcedEvent)event;
+    	    assertTrue(revent.targettedResource.plainTextContent.contains(magicWord));
+    	}
     }
 }

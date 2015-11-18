@@ -24,14 +24,15 @@
 
 package fi.hiit.dime.database;
 
-import org.springframework.data.domain.PageRequest;
-
 import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.authentication.User;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +69,11 @@ public class EventDAO {
     @Transactional(readOnly = true)
     public Event findByAppId(String appId, User user) {
 	return repo.findOneByAppIdAndUser(appId, user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResourcedEvent> findByElement(InformationElement elem, User user) {
+	return repo.findByTargettedResourceAndUser(elem, user);
     }
 
     /**

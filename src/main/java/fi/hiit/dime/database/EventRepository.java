@@ -25,6 +25,8 @@
 package fi.hiit.dime.database;
 
 import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.authentication.User;
 
 import org.springframework.data.domain.Pageable;
@@ -102,6 +104,8 @@ public interface EventRepository extends CrudRepository<Event, Long>,
 
     Event findOneByAppIdAndUser(String appId, User user);
 
+    List<ResourcedEvent> findByTargettedResourceAndUser(InformationElement elem, User user);
+    
     List<Event> findByUserOrderByStartDesc(User user, Pageable pageable);
 
     List<Event> findByUserOrderByStartDesc(User user);

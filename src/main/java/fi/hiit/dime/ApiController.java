@@ -105,22 +105,19 @@ public class ApiController extends AuthorizedController {
 	       @RequestParam(defaultValue="-1") int limit) {
 	User user = getUser(auth);
 
-	if (query.length() > 0) {
+	if (!dimeConfig.getUseLucene()) {
+	    LOG.warn("Unable to search without Lucene. Please enable Lucene first.");
+	} else 	if (query.length() > 0) {
 	    try {
-		List<InformationElement> resultsList = null;
-		String searchSystem = "none";
-		if (dimeConfig.getUseLucene()) {
-		    searchIndex.updateIndex(true);
-		    resultsList = searchIndex.textSearch(query, limit, user.getId());
-		    searchSystem = "Lucene";
-		}
+		searchIndex.updateIndex(true);
+		List<InformationElement> resultsList = 
+		    searchIndex.textSearch(query, limit, user.getId());
 	    
 		InformationElement[] results = new InformationElement[resultsList.size()];
 		resultsList.toArray(results);	
 		
-		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d " +
-				       "results using %s.",
-				       query, limit, results.length, searchSystem));
+		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
+				       query, limit, results.length));
 
 		return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
 	    } catch (IOException e) {
@@ -131,7 +128,44 @@ public class ApiController extends AuthorizedController {
 
 	return new ResponseEntity<InformationElement[]>(new InformationElement[0],
 							HttpStatus.OK);
-
     }
+
+    @RequestMapping(value="/eventsearch", method = RequestMethod.GET)
+    public ResponseEntity<Event[]>
+	eventSearch(Authentication auth, 
+		    @RequestParam String query,
+		    @RequestParam(defaultValue="-1") int limit) {
+	User user = getUser(auth);
+
+	if (!dimeConfig.getUseLucene()) {
+	    LOG.warn("Unable to search without Lucene. Please enable Lucene first.");
+	} else 	if (query.length() > 0) {
+	    try {
+		searchIndex.updateIndex(true);
+		List<InformationElement> resultsList = 
+		    searchIndex.textSearch(query, limit, user.getId());
+
+		List<Event> events = new ArrayList<Event>();
+		for (InformationElement elem : resultsList) {
+		    List<ResourcedEvent> expandedEvents = eventDAO.findByElement(elem, user);
+		    LOG.info("  Found element {} -> events {}", elem.getId(), expandedEvents.size());
+		    events.addAll(expandedEvents);
+		}
+	    
+		Event[] results = new Event[events.size()];
+		events.toArray(results);
+		
+		LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
+				       query, limit, results.length));
+
+		return new ResponseEntity<Event[]>(results, HttpStatus.OK);
+	    } catch (IOException e) {
+		return new ResponseEntity<Event[]> (HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+
+	return new ResponseEntity<Event[]>(new Event[0], HttpStatus.OK);
+    }
+	
 
 }
