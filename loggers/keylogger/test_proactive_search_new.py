@@ -525,10 +525,18 @@ for j, line in enumerate(f):
                 #Number of suggested keywords added to query
                 #n_query_kws = 10
                 jsons, kws, winds, vsum = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
-            
-
+		
             #
+            print("KEYWORDS BEFORE RANKING: ",kws[0:20])
 
+            #MMR
+            if args.mmr:
+                lambda_coeff = args.mmr
+                frac_sizeS = 0.001
+                frackws = 0.001
+                kws, winds = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
+                #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
+                print("RERANKED KEYWORDS with lambda=",lambda_coeff,": \n", kws)
 
             #Get number of suggested documents
             nsuggested_files = len(jsons)

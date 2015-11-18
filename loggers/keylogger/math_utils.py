@@ -298,7 +298,7 @@ def remove_unwanted_words(testlist):
 
 
 #
-def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackws):
+def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, frackws):
 
     #INPUT:
     #lambda = parameter for MMR-ranking method, if lambda = 1 MMR-ranking has no effect, if lambda = 0 MMR-ranking chooses from kws the most dissimilar keywords
@@ -309,25 +309,32 @@ def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackw
     #OUTPUT:
     #S = list of n_kws keywords ranked by MMR-ranking method
 
+    #
+    if lambda_coeff > 1.0 or lambda_coeff <= 0.0:
+        print("Lambda's value not valid!!")
+        return kws, R
+
+    if len(vsum) == 0:
+        print("vsum is empty!!")
+        return kws, R
+
+
     #Number of reranked kws to be returned
-    sizeS = int(frac_sizeS*A.shape[1])
+    sizeS = int(frac_sizeS*tfidf_matrix.shape[1])
     #Number of kws to be reranked
     n_reranked_kws = int(frackws*len(R))
-
-    print(sizeS,n_reranked_kws)
-    
-    #
-    vsum = vsum/vsum.max()
+    #print(sizeS,n_reranked_kws)
 
     #
-    if lambda_coeff > 1.0 or lambda_coeff <0.0:
-        print("Lambda's value not valid!!")
-        return R
+    vsum = vsum/np.linalg.norm(vsum)
+    #subvsum = vsum[0:n_reranked_kws]
+    #print("SUBVSUM")
 
     #Initialize the list of reranked kws
     S = []
 
-
+    #Take sub list of keywords
+    subkws = kws[0:n_reranked_kws]
     #Take sub list of R
     subR = R[0:n_reranked_kws]
     #Take sub matrix of tfidf-matrix
@@ -353,13 +360,12 @@ def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackw
 
             #Take vector of cosine similarities corresponding the keyword at hand
             sim_vec = sim_matrix[i,:].toarray()
-            #print(sim_vec/sim_vec.max())
+            if np.linalg.norm(sim_vec) > 0.0:
+               sim_vec = sim_vec/np.linalg.norm(sim_vec)
             #Go through kw-indices stored in S
             sim_max = 0
-            for j,wind2 in enumerate(S):
-                sim_max = sim_vec.max()
             #
-            val = lambda_coeff*(vsum[i] - (1-lambda_coeff)*sim_max)
+            val = lambda_coeff*(vsum[i] - (1-lambda_coeff)*sim_vec.max())
 
             #Append the value to a dict vals
             vals[wind] = val
@@ -370,7 +376,27 @@ def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackw
         #    
         S.append(solve(vals))
 
-    return S
+    #print(S)
+    #Take the corresponding keywords
+    new_kws = []
+    kwinds = []
+    for i,el in enumerate(S):
+        l=[ind for ind in subR if ind==el]
+        if(len(l)>0):
+          kwinds.append(l[0])
+        #kwinds.append(subR.index(el))
+            
+    for ind in kwinds:
+        new_kws.append(kws[ind])
+
+#    new_kws = kws[kwinds]
+
+#    for i,el in enumerate(subkws):
+#        if subR[i] in S:
+#            print(i,el)
+#            new_kws.append(el)
+
+    return new_kws, S
 
 #Take from dict of the form {number:number} the key having maximum value
 def solve(dic):
