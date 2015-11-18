@@ -713,7 +713,7 @@ public class DataControllerTest extends RestTest {
 
 
 	ScientificDocument[] docGet2 = getData(infoElemsApi + "?appId=" + doc.appId, 
-					     ScientificDocument[].class);
+					      ScientificDocument[].class);
 	assertEquals(1, docGet2.length);
 	dumpData("ScientificDocument GET appId", docGet2[0]);
 

@@ -48,10 +48,7 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
 
     public List<Event> find(User user, Map<String, String> filterParams) {
 	// We build the SQL query into q
-	StringBuilder q = new StringBuilder("select e from Event e");
-
-	// To keep track if we are at the first search parameter
-	boolean first = true;
+	StringBuilder q = new StringBuilder("select e from Event e where user.id=:userId");
 
 	// Map for storing named parameters for the query we are
 	// constructing
@@ -84,18 +81,11 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
     		throw new IllegalArgumentException(name);
     	    }
 	    
-	    if (first) {
-		q.append(" where");
-		first = false;
-	    } else {
-		q.append(" and");
-	    }
-	    
-	    q.append(String.format(" %s=:%s", name, name));
+	    q.append(String.format(" and %s=:%s", name, name));
 	    namedParams.put(name, value);
     	}
 
-	return makeQuery(q.toString(), namedParams, Event.class).getResultList();
+	return makeQuery(q.toString(), namedParams, user, Event.class).getResultList();
     }
 
     public Event replace(Event oldEvent, Event newEvent) {

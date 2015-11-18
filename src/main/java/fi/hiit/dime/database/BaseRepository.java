@@ -24,6 +24,8 @@
 
 package fi.hiit.dime.database;
 
+import fi.hiit.dime.authentication.User;
+
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -35,11 +37,13 @@ class BaseRepository {
     protected EntityManager entityManager;
 
     <T> TypedQuery<T> makeQuery(String q, Map<String, String> params,
-				Class<T> resultClass) 
+				User user, Class<T> resultClass) 
     {
         TypedQuery<T> query = entityManager.createQuery(q, resultClass);
-
 	System.out.println("Find query: " + q);
+
+	query = query.setParameter("userId", user.getId());
+	System.out.println("  param: userId = " + user.getId());
 
 	for (Map.Entry<String, String> p : params.entrySet()) {
 	    System.out.println("  param: " + p.getKey() + " = " + p.getValue());

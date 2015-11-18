@@ -42,10 +42,8 @@ interface InfoElemRepositoryCustom {
 class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositoryCustom {
     public List<InformationElement> find(User user, Map<String, String> filterParams) {
 	// We build the SQL query into q
-	StringBuilder q = new StringBuilder("select e from InformationElement e");
-
-	// To keep track if we are at the first search parameter
-	boolean first = true;
+	StringBuilder q = new StringBuilder("select e from InformationElement e " +
+					    "where user.id=:userId");
 
 	// Map for storing named parameters for the query we are
 	// constructing
@@ -77,18 +75,11 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
     		throw new IllegalArgumentException(name);
     	    }
 
-	    if (first) {
-		q.append(" where");
-		first = false;
-	    } else {
-		q.append(" and");
-	    }
-	    
-	    q.append(" " + criteria);
+	    q.append(" and " + criteria);
 	    namedParams.put(name, value);
     	}
 
-	return makeQuery(q.toString(), namedParams,
+	return makeQuery(q.toString(), namedParams, user,
 			 InformationElement.class).getResultList();
     }
 
