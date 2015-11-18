@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
-    <changeSet author="mvsjober (generated)" id="1447750648097-1">
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="mvsjober (generated)" id="1447835745985-1">
         <createTable tableName="EVENT">
             <column name="DTYPE" type="VARCHAR(31)">
                 <constraints nullable="false"/>
@@ -27,7 +27,7 @@
             <column name="TYPE" type="VARCHAR(255)"/>
             <column name="VALUE" type="DOUBLE(17)"/>
             <column name="IS_SUMMARY" type="BOOLEAN(1)"/>
-            <column name="PLAIN_TEXT_CONTENT" type="TEXT"/>
+            <column name="PLAIN_TEXT_CONTENT" type="CLOB"/>
             <column name="PROPORTION_CRITICAL" type="DOUBLE(17)"/>
             <column name="PROPORTION_INTERESTING" type="DOUBLE(17)"/>
             <column name="PROPORTION_READ" type="DOUBLE(17)"/>
@@ -40,7 +40,7 @@
             <column name="RESOURCE_ID" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-2">
+    <changeSet author="mvsjober (generated)" id="1447835745985-2">
         <createTable tableName="INFORMATION_ELEMENT">
             <column name="DTYPE" type="VARCHAR(31)">
                 <constraints nullable="false"/>
@@ -50,19 +50,19 @@
             </column>
             <column name="APP_ID" type="VARCHAR(255)"/>
             <column name="IS_STORED_AS" type="VARCHAR(255)"/>
-            <column name="PLAIN_TEXT_CONTENT" type="TEXT"/>
+            <column name="PLAIN_TEXT_CONTENT" type="CLOB"/>
             <column name="TYPE" type="VARCHAR(255)"/>
-            <column name="URI" type="TEXT"/>
+            <column name="URI" type="CLOB"/>
             <column name="MIME_TYPE" type="VARCHAR(255)"/>
             <column name="TITLE" type="VARCHAR(255)"/>
-            <column name="CC_STRING" type="TEXT"/>
+            <column name="CC_STRING" type="CLOB"/>
             <column name="DATE" type="TIMESTAMP"/>
-            <column name="FROM_STRING" type="TEXT"/>
-            <column name="RAW_MESSAGE" type="TEXT"/>
-            <column name="SUBJECT" type="TEXT"/>
-            <column name="TO_STRING" type="TEXT"/>
+            <column name="FROM_STRING" type="CLOB"/>
+            <column name="RAW_MESSAGE" type="CLOB"/>
+            <column name="SUBJECT" type="CLOB"/>
+            <column name="TO_STRING" type="CLOB"/>
             <column name="ADDRESS" type="VARCHAR(255)"/>
-            <column name="BOOKTITLE" type="TEXT"/>
+            <column name="BOOKTITLE" type="CLOB"/>
             <column name="FIRST_PAGE" type="INT(10)"/>
             <column name="LAST_PAGE" type="INT(10)"/>
             <column name="PUBLISHER" type="VARCHAR(255)"/>
@@ -73,7 +73,7 @@
             <column name="MESSAGE_ID" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-3">
+    <changeSet author="mvsjober (generated)" id="1447835745985-3">
         <createTable tableName="INFORMATION_ELEMENT_TAGS">
             <column name="INFORMATION_ELEMENT_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -81,7 +81,7 @@
             <column name="TAGS" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-4">
+    <changeSet author="mvsjober (generated)" id="1447835745985-4">
         <createTable tableName="MESSAGE_CC">
             <column name="MESSAGE_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -91,7 +91,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-5">
+    <changeSet author="mvsjober (generated)" id="1447835745985-5">
         <createTable tableName="MESSAGE_TO">
             <column name="MESSAGE_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -101,7 +101,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-6">
+    <changeSet author="mvsjober (generated)" id="1447835745985-6">
         <createTable tableName="PAGE_EYE_DATA">
             <column autoIncrement="true" name="ID" type="BIGINT(19)">
                 <constraints primaryKey="true" primaryKeyName="CONSTRAINT_8"/>
@@ -112,7 +112,7 @@
             <column name="EVENT_ID" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-7">
+    <changeSet author="mvsjober (generated)" id="1447835745985-7">
         <createTable tableName="PAGE_EYE_DATA_DURATIONS">
             <column name="PAGE_EYE_DATA_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -120,7 +120,7 @@
             <column name="DURATIONS" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-8">
+    <changeSet author="mvsjober (generated)" id="1447835745985-8">
         <createTable tableName="PAGE_EYE_DATA_END_TIMES">
             <column name="PAGE_EYE_DATA_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -128,7 +128,7 @@
             <column name="END_TIMES" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-9">
+    <changeSet author="mvsjober (generated)" id="1447835745985-9">
         <createTable tableName="PAGE_EYE_DATA_PS">
             <column name="PAGE_EYE_DATA_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -136,7 +136,7 @@
             <column name="PS" type="DOUBLE(17)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-10">
+    <changeSet author="mvsjober (generated)" id="1447835745985-10">
         <createTable tableName="PAGE_EYE_DATA_START_TIMES">
             <column name="PAGE_EYE_DATA_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -144,7 +144,7 @@
             <column name="START_TIMES" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-11">
+    <changeSet author="mvsjober (generated)" id="1447835745985-11">
         <createTable tableName="PAGE_EYE_DATA_XS">
             <column name="PAGE_EYE_DATA_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -152,7 +152,7 @@
             <column name="XS" type="DOUBLE(17)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-12">
+    <changeSet author="mvsjober (generated)" id="1447835745985-12">
         <createTable tableName="PAGE_EYE_DATA_YS">
             <column name="PAGE_EYE_DATA_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -160,7 +160,7 @@
             <column name="YS" type="DOUBLE(17)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-13">
+    <changeSet author="mvsjober (generated)" id="1447835745985-13">
         <createTable tableName="PERSON">
             <column autoIncrement="true" name="ID" type="BIGINT(19)">
                 <constraints primaryKey="true" primaryKeyName="CONSTRAINT_8C"/>
@@ -172,7 +172,7 @@
             <column name="DOCUMENT_ID" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-14">
+    <changeSet author="mvsjober (generated)" id="1447835745985-14">
         <createTable tableName="PERSON_MIDDLE_NAMES">
             <column name="PERSON_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -180,7 +180,7 @@
             <column name="MIDDLE_NAMES" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-15">
+    <changeSet author="mvsjober (generated)" id="1447835745985-15">
         <createTable tableName="READING_EVENT_FOUND_STRINGS">
             <column name="READING_EVENT_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -188,7 +188,7 @@
             <column name="FOUND_STRINGS" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-16">
+    <changeSet author="mvsjober (generated)" id="1447835745985-16">
         <createTable tableName="READING_EVENT_PAGE_LABELS">
             <column name="READING_EVENT_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -196,7 +196,7 @@
             <column name="PAGE_LABELS" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-17">
+    <changeSet author="mvsjober (generated)" id="1447835745985-17">
         <createTable tableName="READING_EVENT_PAGE_NUMBERS">
             <column name="READING_EVENT_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -204,7 +204,7 @@
             <column name="PAGE_NUMBERS" type="INT(10)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-18">
+    <changeSet author="mvsjober (generated)" id="1447835745985-18">
         <createTable tableName="RECT">
             <column autoIncrement="true" name="ID" type="BIGINT(19)">
                 <constraints primaryKey="true" primaryKeyName="CONSTRAINT_2"/>
@@ -221,7 +221,7 @@
             <column name="PAGE_INDEX" type="INT(10)">
                 <constraints nullable="false"/>
             </column>
-            <column name="PLAIN_TEXT_CONTENT" type="TEXT"/>
+            <column name="PLAIN_TEXT_CONTENT" type="CLOB"/>
             <column name="READING_CLASS" type="INT(10)">
                 <constraints nullable="false"/>
             </column>
@@ -230,7 +230,7 @@
             <column name="EVENT_ID" type="BIGINT(19)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-19">
+    <changeSet author="mvsjober (generated)" id="1447835745985-19">
         <createTable tableName="SCIENTIFIC_DOCUMENT_KEYWORDS">
             <column name="SCIENTIFIC_DOCUMENT_ID" type="BIGINT(19)">
                 <constraints nullable="false"/>
@@ -238,7 +238,7 @@
             <column name="KEYWORDS" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-20">
+    <changeSet author="mvsjober (generated)" id="1447835745985-20">
         <createTable tableName="USER">
             <column autoIncrement="true" name="ID" type="BIGINT(19)">
                 <constraints primaryKey="true" primaryKeyName="CONSTRAINT_27"/>
@@ -251,199 +251,76 @@
             <column name="USERNAME" type="VARCHAR(255)"/>
         </createTable>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-21">
-        <createIndex indexName="FK_223WIVDYF57FMAILAYRLS6M5K_INDEX_2" tableName="PAGE_EYE_DATA_PS">
-            <column name="PAGE_EYE_DATA_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-22">
-        <createIndex indexName="FK_32ISLAMEBJVHHFWDTH5XNQXF8_INDEX_B" tableName="READING_EVENT_PAGE_NUMBERS">
-            <column name="READING_EVENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-23">
-        <createIndex indexName="FK_493AT021L4190CV7GWKO4PVID_INDEX_5" tableName="READING_EVENT_FOUND_STRINGS">
-            <column name="READING_EVENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-24">
-        <createIndex indexName="FK_59O0OTIUAG2NCYTKRI3M6X20W_INDEX_4" tableName="PAGE_EYE_DATA_START_TIMES">
-            <column name="PAGE_EYE_DATA_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-25">
-        <createIndex indexName="FK_88IN0BP1DUG4MN2ABSLPV550V_INDEX_B" tableName="MESSAGE_TO">
-            <column name="PERSON_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-26">
-        <createIndex indexName="FK_90MN75OGVW0R9PD9LW9YHD66M_INDEX_2" tableName="RECT">
-            <column name="EVENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-27">
-        <createIndex indexName="FK_AAR69O7W2JHDWNUBRMUDFFJKV_INDEX_8" tableName="PERSON">
-            <column name="DOCUMENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-28">
-        <createIndex indexName="FK_BG88IX90PIAV52WJ7SFMDILER_INDEX_5" tableName="INFORMATION_ELEMENT">
-            <column name="USER_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-29">
-        <createIndex indexName="FK_CGASIYR2F1MSL277PJ5H2NLPL_INDEX_B" tableName="MESSAGE_CC">
-            <column name="MESSAGE_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-30">
-        <createIndex indexName="FK_D2JP1MS11X55MMIXVTW2WX1T3_INDEX_7" tableName="READING_EVENT_PAGE_LABELS">
-            <column name="READING_EVENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-31">
-        <createIndex indexName="FK_EDFRL99GXF8JALIFDO4FKYUUC_INDEX_2" tableName="PAGE_EYE_DATA_YS">
-            <column name="PAGE_EYE_DATA_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-32">
-        <createIndex indexName="FK_EI0063IDKHGFH6PQV2HSFONT1_INDEX_3" tableName="EVENT">
-            <column name="RESOURCE_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-33">
-        <createIndex indexName="FK_EXMCAN4YD6JCFHDW994U4SCMV_INDEX_1" tableName="PERSON_MIDDLE_NAMES">
-            <column name="PERSON_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-34">
-        <createIndex indexName="FK_GSKBFNHPNLKGDEJMYCI9JK39Y_INDEX_8" tableName="PAGE_EYE_DATA">
-            <column name="EVENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-35">
-        <createIndex indexName="FK_IOXHQVRQREJRPE3ENUSYJRGD_INDEX_9" tableName="PAGE_EYE_DATA_END_TIMES">
-            <column name="PAGE_EYE_DATA_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-36">
-        <createIndex indexName="FK_KCARYGE05OONAA5VA9I33NQ3H_INDEX_3" tableName="SCIENTIFIC_DOCUMENT_KEYWORDS">
-            <column name="SCIENTIFIC_DOCUMENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-37">
-        <createIndex indexName="FK_KI9BQ58EMOH8PX4YGW4AK1U64_INDEX_5" tableName="INFORMATION_ELEMENT">
-            <column name="MESSAGE_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-38">
-        <createIndex indexName="FK_NXM4U8SSE2E66ARV4TTU8VNEQ_INDEX_5" tableName="INFORMATION_ELEMENT_TAGS">
-            <column name="INFORMATION_ELEMENT_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-39">
-        <createIndex indexName="FK_OI0XGQMW3H0CA5MY9YVI6E37R_INDEX_5" tableName="INFORMATION_ELEMENT">
-            <column name="FROM_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-40">
-        <createIndex indexName="FK_OLOU0LSDKPGRI59KCE0NITMT8_INDEX_B" tableName="MESSAGE_TO">
-            <column name="MESSAGE_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-41">
-        <createIndex indexName="FK_P6AVWYSMP6N075KNVFOWIH6V2_INDEX_2" tableName="PAGE_EYE_DATA_XS">
-            <column name="PAGE_EYE_DATA_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-42">
-        <createIndex indexName="FK_P84RUVSG7MFWB2X5P7IQ3Q103_INDEX_3" tableName="EVENT">
-            <column name="USER_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-43">
-        <createIndex indexName="FK_R7E34O252HRT4BSIH390WKPYL_INDEX_B" tableName="MESSAGE_CC">
-            <column name="PERSON_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-44">
-        <createIndex indexName="FK_SWEPLSOTFFXEVWHAV04COYL5A_INDEX_9" tableName="PAGE_EYE_DATA_DURATIONS">
-            <column name="PAGE_EYE_DATA_ID"/>
-        </createIndex>
-    </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-45">
+    <changeSet author="mvsjober (generated)" id="1447835745985-21">
         <addForeignKeyConstraint baseColumnNames="PAGE_EYE_DATA_ID" baseTableName="PAGE_EYE_DATA_PS" constraintName="FK_223WIVDYF57FMAILAYRLS6M5K" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PAGE_EYE_DATA"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-46">
+    <changeSet author="mvsjober (generated)" id="1447835745985-22">
         <addForeignKeyConstraint baseColumnNames="READING_EVENT_ID" baseTableName="READING_EVENT_PAGE_NUMBERS" constraintName="FK_32ISLAMEBJVHHFWDTH5XNQXF8" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-47">
+    <changeSet author="mvsjober (generated)" id="1447835745985-23">
         <addForeignKeyConstraint baseColumnNames="READING_EVENT_ID" baseTableName="READING_EVENT_FOUND_STRINGS" constraintName="FK_493AT021L4190CV7GWKO4PVID" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-48">
+    <changeSet author="mvsjober (generated)" id="1447835745985-24">
         <addForeignKeyConstraint baseColumnNames="PAGE_EYE_DATA_ID" baseTableName="PAGE_EYE_DATA_START_TIMES" constraintName="FK_59O0OTIUAG2NCYTKRI3M6X20W" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PAGE_EYE_DATA"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-49">
+    <changeSet author="mvsjober (generated)" id="1447835745985-25">
         <addForeignKeyConstraint baseColumnNames="PERSON_ID" baseTableName="MESSAGE_TO" constraintName="FK_88IN0BP1DUG4MN2ABSLPV550V" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PERSON"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-50">
+    <changeSet author="mvsjober (generated)" id="1447835745985-26">
         <addForeignKeyConstraint baseColumnNames="EVENT_ID" baseTableName="RECT" constraintName="FK_90MN75OGVW0R9PD9LW9YHD66M" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-51">
+    <changeSet author="mvsjober (generated)" id="1447835745985-27">
         <addForeignKeyConstraint baseColumnNames="DOCUMENT_ID" baseTableName="PERSON" constraintName="FK_AAR69O7W2JHDWNUBRMUDFFJKV" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-52">
+    <changeSet author="mvsjober (generated)" id="1447835745985-28">
         <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="INFORMATION_ELEMENT" constraintName="FK_BG88IX90PIAV52WJ7SFMDILER" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="USER"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-53">
+    <changeSet author="mvsjober (generated)" id="1447835745985-29">
         <addForeignKeyConstraint baseColumnNames="MESSAGE_ID" baseTableName="MESSAGE_CC" constraintName="FK_CGASIYR2F1MSL277PJ5H2NLPL" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-54">
+    <changeSet author="mvsjober (generated)" id="1447835745985-30">
         <addForeignKeyConstraint baseColumnNames="READING_EVENT_ID" baseTableName="READING_EVENT_PAGE_LABELS" constraintName="FK_D2JP1MS11X55MMIXVTW2WX1T3" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-55">
+    <changeSet author="mvsjober (generated)" id="1447835745985-31">
         <addForeignKeyConstraint baseColumnNames="PAGE_EYE_DATA_ID" baseTableName="PAGE_EYE_DATA_YS" constraintName="FK_EDFRL99GXF8JALIFDO4FKYUUC" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PAGE_EYE_DATA"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-56">
+    <changeSet author="mvsjober (generated)" id="1447835745985-32">
         <addForeignKeyConstraint baseColumnNames="RESOURCE_ID" baseTableName="EVENT" constraintName="FK_EI0063IDKHGFH6PQV2HSFONT1" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-57">
+    <changeSet author="mvsjober (generated)" id="1447835745985-33">
         <addForeignKeyConstraint baseColumnNames="PERSON_ID" baseTableName="PERSON_MIDDLE_NAMES" constraintName="FK_EXMCAN4YD6JCFHDW994U4SCMV" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PERSON"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-58">
+    <changeSet author="mvsjober (generated)" id="1447835745985-34">
         <addForeignKeyConstraint baseColumnNames="EVENT_ID" baseTableName="PAGE_EYE_DATA" constraintName="FK_GSKBFNHPNLKGDEJMYCI9JK39Y" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-59">
+    <changeSet author="mvsjober (generated)" id="1447835745985-35">
         <addForeignKeyConstraint baseColumnNames="PAGE_EYE_DATA_ID" baseTableName="PAGE_EYE_DATA_END_TIMES" constraintName="FK_IOXHQVRQREJRPE3ENUSYJRGD" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PAGE_EYE_DATA"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-60">
+    <changeSet author="mvsjober (generated)" id="1447835745985-36">
         <addForeignKeyConstraint baseColumnNames="SCIENTIFIC_DOCUMENT_ID" baseTableName="SCIENTIFIC_DOCUMENT_KEYWORDS" constraintName="FK_KCARYGE05OONAA5VA9I33NQ3H" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-61">
+    <changeSet author="mvsjober (generated)" id="1447835745985-37">
         <addForeignKeyConstraint baseColumnNames="MESSAGE_ID" baseTableName="INFORMATION_ELEMENT" constraintName="FK_KI9BQ58EMOH8PX4YGW4AK1U64" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-62">
+    <changeSet author="mvsjober (generated)" id="1447835745985-38">
         <addForeignKeyConstraint baseColumnNames="INFORMATION_ELEMENT_ID" baseTableName="INFORMATION_ELEMENT_TAGS" constraintName="FK_NXM4U8SSE2E66ARV4TTU8VNEQ" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-63">
+    <changeSet author="mvsjober (generated)" id="1447835745985-39">
         <addForeignKeyConstraint baseColumnNames="FROM_ID" baseTableName="INFORMATION_ELEMENT" constraintName="FK_OI0XGQMW3H0CA5MY9YVI6E37R" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PERSON"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-64">
+    <changeSet author="mvsjober (generated)" id="1447835745985-40">
         <addForeignKeyConstraint baseColumnNames="MESSAGE_ID" baseTableName="MESSAGE_TO" constraintName="FK_OLOU0LSDKPGRI59KCE0NITMT8" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-65">
+    <changeSet author="mvsjober (generated)" id="1447835745985-41">
         <addForeignKeyConstraint baseColumnNames="PAGE_EYE_DATA_ID" baseTableName="PAGE_EYE_DATA_XS" constraintName="FK_P6AVWYSMP6N075KNVFOWIH6V2" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PAGE_EYE_DATA"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-66">
+    <changeSet author="mvsjober (generated)" id="1447835745985-42">
         <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="EVENT" constraintName="FK_P84RUVSG7MFWB2X5P7IQ3Q103" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="USER"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-67">
+    <changeSet author="mvsjober (generated)" id="1447835745985-43">
         <addForeignKeyConstraint baseColumnNames="PERSON_ID" baseTableName="MESSAGE_CC" constraintName="FK_R7E34O252HRT4BSIH390WKPYL" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PERSON"/>
     </changeSet>
-    <changeSet author="mvsjober (generated)" id="1447750648097-68">
+    <changeSet author="mvsjober (generated)" id="1447835745985-44">
         <addForeignKeyConstraint baseColumnNames="PAGE_EYE_DATA_ID" baseTableName="PAGE_EYE_DATA_DURATIONS" constraintName="FK_SWEPLSOTFFXEVWHAV04COYL5A" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PAGE_EYE_DATA"/>
-    </changeSet>
-    <changeSet author="mats (generated)" id="1447787936104-1">
-        <modifyDataType columnName="DATA" newDataType="blob(2147483647)" tableName="EVENT"/>
     </changeSet>
 </databaseChangeLog>
