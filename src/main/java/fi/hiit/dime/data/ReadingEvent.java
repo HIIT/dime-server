@@ -94,6 +94,6 @@ public class ReadingEvent extends DesktopEvent {
     public List<PageEyeData> pageEyeData;
 
     /** Plain text content of text currently displayed on screen. */
-    @Column(columnDefinition="text")
+    @Column(columnDefinition="longtext")
     public String plainTextContent;
 }

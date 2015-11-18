@@ -59,9 +59,9 @@ autogenDb:
 	@echo $(LOG_HEAD) Running tests to auto-generate database
 	SPRING_PROFILES_ACTIVE=autogen $(MAKE) test
 
-initSql: autogenDb
+initSchema: autogenDb
 	rm -f src/main/resources/db/changelog/db.changelog-master.xml
 	$(GRADLE) generateChangelog
 
-updateSql: autogenDb cleanDb
+updateSchema: autogenDb cleanDb
 	$(GRADLE) diffChangeLog
