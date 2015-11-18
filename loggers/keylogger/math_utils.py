@@ -313,7 +313,7 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
     if lambda_coeff > 1.0 or lambda_coeff <= 0.0:
         print("Lambda's value not valid!!")
         return kws, R
-
+    #
     if len(vsum) == 0:
         print("vsum is empty!!")
         return kws, R
@@ -348,7 +348,6 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
     #Search sizeS reranked kws
     for k in range(sizeS):
         
-        #
         vals = {}
         
         #Go through indices of LinRel-ranked keywords
@@ -362,11 +361,10 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
             sim_vec = sim_matrix[i,:].toarray()
             if np.linalg.norm(sim_vec) > 0.0:
                sim_vec = sim_vec/np.linalg.norm(sim_vec)
-            #Go through kw-indices stored in S
-            sim_max = 0
+
             #
             val = lambda_coeff*vsum[i] - (1-lambda_coeff)*sim_vec.max()
-
+            #print(val, vsum[i])
             #Append the value to a dict vals
             vals[wind] = val
         
@@ -380,11 +378,12 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
     #Take the corresponding keywords
     new_kws = []
     kwinds = []
+    #subR = subR.tolist()
     for i,el in enumerate(S):
-        l=[ind for ind in subR if ind==el]
-        if(len(l)>0):
-          kwinds.append(l[0])
-        #kwinds.append(subR.index(el))
+        #l=[ind for ind in subR if ind==el]
+        #if(len(l)>0):
+        #  kwinds.append(l[0])
+        kwinds.append(subR.index(el))
             
     for ind in kwinds:
         new_kws.append(kws[ind])
@@ -403,7 +402,11 @@ def solve(dic):
     #print(dic.values())
     maxx = max(dic.values())
     keys = [x for x,y in dic.items() if y ==maxx] 
-    return keys[0] if len(keys)==1 else keys
+    if(len(keys)>0):
+       #print(maxx,keys)
+       keys = keys[0]
+    #return keys[0] if len(keys)==1 else keys
+    return keys
 
 
 
@@ -420,12 +423,15 @@ if __name__ == "__main__":
 
     #
     vsum = np.random.rand(A.shape[1])    
-
+    vsum = -np.sort(-vsum)
     #
+    kws = np.random.rand(A.shape[1])
 
     #print(mmr_reranking_of_kws(0.5, R, vsum, 0.025, A, 0.025))
-    print(mmr_reranking_of_kws(0.5, R, vsum, 0.02, A, 0.025))
+    kwsrr, Rrr = mmr_reranking_of_kws(1.0, R, kws, vsum, 0.02, A, 0.025)
 
+    print(kws,R)
+    print(kwsrr, Rrr)
 
     # #    
     # doccategorylist = compute_doccategorylist()
