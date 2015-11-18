@@ -69,7 +69,12 @@ text2cat = {
 
 def filter_string(string, do_stem=True, do_lemma=False):
 
-    #tokens = nltk.word_tokenize(string)
+    if ((not nltk.__version__.startswith('2')) and 
+        (not nltk.__version__.startswith('3.0'))):
+        print("ERROR: Use of incompatible nltk suspected")
+        sys.exit()
+
+   #tokens = nltk.word_tokenize(string)
 
     pattern = r'''(?x)  # set flag to allow verbose regexps
     ([A-Z]\.)+          # abbreviations, e.g. U.S.A.
