@@ -196,7 +196,7 @@ parser.add_argument("--clickweight", metavar = "W",
 parser.add_argument('--knownitem', action='store_true',
                     help='perform known item search')
 parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
-                    default=1.0, help='use MMR with parameter lambda')
+                    default=-1.0, help='use MMR with parameter lambda')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -530,7 +530,7 @@ for j, line in enumerate(f):
             print("KEYWORDS BEFORE RANKING: ",kws[0:20])
 
             #MMR
-            if args.mmr:
+            if args.mmr > 0:
                 lambda_coeff = args.mmr
                 frac_sizeS = 0.001
                 frackws = 0.001
