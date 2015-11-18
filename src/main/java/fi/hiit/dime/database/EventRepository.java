@@ -64,25 +64,26 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
     	    String value = param.getValue();
 
     	    switch (name) {
+	    case "elem_id":
+	    case "elemid":
+		name = "resource_id";
+   	    break;
 	    case "appid":
 		name = "appId";
 		break;
-    	    // case "tag":
-    	    // 	name = "tags";
-    	    // 	break;
     	    case "actor":
     	    case "origin":
     	    case "type":
-    	    // case "start":
-    	    // case "end":
-    	    // case "duration":
+		// case "start":
+		// case "end":
+		// case "duration":
     	    case "query":
-    	    // case "":
+		// case "":
     		break;
     	    default:
     		throw new IllegalArgumentException(name);
     	    }
-
+	    
 	    if (first) {
 		q.append(" where");
 		first = false;

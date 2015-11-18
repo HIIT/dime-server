@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,6 +136,23 @@ public class DataControllerTest extends RestTest {
 	assertEquals(doc.appId, outDoc3.appId);
 	assertEquals(doc.uri, outDoc3.uri);
 	assertEquals(doc.mimeType, outDoc3.mimeType);
+
+	// Test retrieving the events based on the document id
+	FeedbackEvent[] getEvents = 
+	    getData(eventsApi + "?elemId=" + outDoc1.getId(), FeedbackEvent[].class);
+	
+	dumpData("Events retrieved by element id:", getEvents);
+
+	assertEquals(3, getEvents.length);
+	for (FeedbackEvent e : getEvents) {
+	    assertThat(e.getId(), anyOf(is(outEvent1.getId()),
+					is(outEvent2.getId()),
+					is(outEvent3.getId())));
+	    assertThat(e.value, anyOf(is(outEvent1.value),
+				      is(outEvent2.value),
+				      is(outEvent3.value)));
+	}
+
     }
 
     /**
