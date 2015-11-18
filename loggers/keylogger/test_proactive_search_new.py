@@ -25,6 +25,7 @@ import random
 
 import nltk
 porter = nltk.PorterStemmer()
+wnl = nltk.WordNetLemmatizer()
 
 import xml.etree.ElementTree as ET
 
@@ -44,11 +45,11 @@ def process_input_file_20news(line, j, qfn):
         return None, None, None
     for message in mbox:
         subject          = message['subject']
-        subject = filter_string(subject, not args.nostem)
+        subject = filter_string(subject, not args.nostem, args.lemmatize)
         subject_wordlist = subject.split()
 
         msgpayload = message.get_payload()
-        msgpayload = filter_string(msgpayload, not args.nostem)
+        msgpayload = filter_string(msgpayload, not args.nostem, args.lemmatize)
         msgpayload_wordlist = msgpayload.split()
 
         wordlist = subject_wordlist + msgpayload_wordlist        
@@ -76,7 +77,7 @@ def process_input_file_ohsumed(line, j, qfn):
     with open (args.querypath+'/'+filename, "r") as myfile:
         abstext = myfile.read()
 
-    abstext = filter_string(abstext, not args.nostem)
+    abstext = filter_string(abstext, not args.nostem, args.lemmatize)
     wordlist = abstext.split()
 
     return filename, filecategory, wordlist
@@ -96,6 +97,7 @@ def process_input_file_arxivcs(line, j, qfn):
         if nameattr == 'id':
             filename = text
         elif nameattr == 'abstract':
+            text = filter_string(text, not args.nostem, args.lemmatize)
             wordlist = text.split()
         elif nameattr == 'subject' and text in text2cat_arxivcs:
             filecategory = categoryindices_original[text2cat_arxivcs[text]]
@@ -111,7 +113,7 @@ def get_item_id(json_item):
 
 #------------------------------------------------------------------------------
 
-def filter_string(string, do_stem=True):
+def filter_string(string, do_stem=True, do_lemma=False):
 
     if ((not nltk.__version__.startswith('2')) and 
         (not nltk.__version__.startswith('3.0'))):
@@ -128,14 +130,12 @@ def filter_string(string, do_stem=True):
     | [][.,;"'?():-_`]  # these are separate tokens
     '''
     tokens = nltk.regexp_tokenize(string, pattern)
-    #print("string:", type(string), string)
-    #print("tokens:", type(tokens), tokens)
-    #print("first token:", type(tokens[0]), tokens[0])
 
     tokens = [t.lower() for t in tokens]
     if do_stem:
         tokens = [porter.stem(t) for t in tokens]
-    #tokens = [wnl.lemmatize(t) for t in tokens]
+    if do_lemma:
+        tokens = [wnl.lemmatize(t) for t in tokens]
     return " ".join(item for item in tokens if len(item)>1)
 
 #------------------------------------------------------------------------------
@@ -171,6 +171,8 @@ parser.add_argument("--querypath", metavar = "PATH",
                     help="path to queries to process")
 parser.add_argument('--nostem', action='store_true',
                     help='disable Porter stemming of tokens')
+parser.add_argument('--lemmatize', action='store_true',
+                    help='enable Wordnet lemmatization of tokens')
 parser.add_argument('--norestart', action='store_true',
                     help='do not restart between documents')
 parser.add_argument('--numwords', metavar='N', action='store', type=int,
@@ -193,12 +195,24 @@ parser.add_argument("--clickweight", metavar = "W",
                     help="weight assigned to clicked keywords")
 parser.add_argument('--knownitem', action='store_true',
                     help='perform known item search')
+parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
+                    default=1.0, help='use MMR with parameter lambda')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
                     default=1.0, help='Exploration/Exploitation coeff.')
 parser.add_argument('--dime_search_method', metavar='N', action='store', type=int,
                     default=1, help='1: DiMe search + LinRel \n 2: Weighted DiMe search with 10 added keywords, \n 3: Weighted DiMe search using only 10 keywords')
+parser.add_argument('--n_query_kws', metavar='N', action='store', type=int,
+                    default=10, help='Number of LinRel keywords added to query string')
+#Number of clickable kws
+parser.add_argument('--n_clicked_kws', metavar='N', action='store', type=int,
+                    default=10, help='Number of keywords to be clicked after writing.')
+
+#Number of clickable kws
+parser.add_argument('--reject_previously_suggested_kws', action='store_true',
+                    help='Remove keywords suggested in previous iterations')
+
 
 print("Starting as:", sys.argv)
 
@@ -251,6 +265,12 @@ elif args.dataset == "arxivcs":
     process_input_file = process_input_file_arxivcs
     usrname = usrname_arxivcs
     password = password_arxivcs
+elif args.dataset == "arxivcs-wnl":
+    categoryindices = categoryindices_arxivcs
+    gt_tag = gt_tag_arxivcs
+    process_input_file = process_input_file_arxivcs
+    usrname = usrname_arxivcs_wnl
+    password = password_arxivcs_wnl
 else:
     print("ERROR: Unsupported dataset:", args.dataset)
     sys.exit()
@@ -450,7 +470,7 @@ for j, line in enumerate(f):
         #Store the next word in document and remove it from the corresponding word list
         dstr = wordlist_r.pop()
 
-	#
+	    #
         iteration = {}
         iteration['i'] = i
 
@@ -496,18 +516,23 @@ for j, line in enumerate(f):
 
             #Search docs from DiMe and compute keywords
             if args.dime_search_method == 1:
-                jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 2:
                 #Number of suggested keywords added to query
-                n_kws = 10
-                jsons, kws, winds = search_dime_using_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
+                #n_query_kws = 10
+                jsons, kws, winds, vsum = search_dime_using_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             elif args.dime_search_method == 3:
                 #Number of suggested keywords added to query
-                n_kws = 10
-                jsons, kws, winds = search_dime_using_only_linrel_keywords(dstr2, n_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
+                #n_query_kws = 10
+                jsons, kws, winds, vsum = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
             
+
+            #
+
+
             #Get number of suggested documents
             nsuggested_files = len(jsons)
+            print("Number of returned keywords: ", len(kws))
             print("Number of returned files: ", nsuggested_files)
 
             #Remove suggested keywords already appearing in the written input
@@ -526,23 +551,55 @@ for j, line in enumerate(f):
                 kws   = new_kws
                 #Update list of indices of keywords
                 winds = new_winds
-                print("KWS AFTER REMOVAL:", kws)
+                #print("KWS AFTER REMOVAL:", kws)
 
-            #
+            #Remove history if histremoval option is selected
             if args.histremoval:                
                 histremoval_val = check_history_removal(histremoval_threshold, histremoval_ma_value)
                 if histremoval_val > histremoval_threshold:
                     dwordlist = dwordlist[-3:]
-                    
-            #Number of keywords appearing in GUI
-            n_kws = 10
-            kws = kws[0:n_kws]
 
-            # List initialization
-            kw_probabilities = [0 for x in range(n_kws)]
+            #Remove keywords suggested in previous iterations
+            if args.reject_previously_suggested_kws:
+                #
+                if os.path.isfile('data/previously_shown_kws_'+str(j)+'.list'):
+                    previous_kws = pickle.load(open('data/previously_shown_kws_'+str(j)+'.list','rb'))
+                    #
+                    new_kws = []
+                    new_winds = []
+                    for iii,kw in enumerate(kws):
+                        if kw not in previous_kws:
+                            new_kws.append(kws[iii])
+                            new_winds.append(winds[iii])
+                        else:
+                            print("KEYWORD ", kw, " SUGGESTED EARLIER, REMOVE!!")
+                    #Update list of keywords into a list having only new keywords not occurring in previous iterations
+                    kws   = new_kws
+                    #Update list of indices of keywords
+                    winds = new_winds
+                    #
+                    print("NUMBER OF CLICKED KWS: ",args.n_clicked_kws)
+                    previous_kws = previous_kws + kws[0:args.n_clicked_kws]
+                    print("NUMBER OF CLICKED KWS: ",len(previous_kws))
+                    #Store the kws-list for further use
+                    pickle.dump(previous_kws,open('data/previously_shown_kws_'+str(j)+'.list','wb'))                    
+                else:
+                    print("NUMBER OF CLICKED KWS: ",args.n_clicked_kws)
+                    previous_kws = kws[0:args.n_clicked_kws]
+                    print("NUMBER OF CLICKED KWS: ",len(previous_kws))
+                    #Store the kws-list for further use
+                    pickle.dump(previous_kws,open('data/previously_shown_kws_'+str(j)+'.list','wb'))
+
+            #Number of keywords appearing in GUI
+            n_kws = args.n_clicked_kws
+            #Take the best n_kws keywords suggested by LinRel
+            kws = kws[0:n_kws]
 
             #Get indices of n_kws keywords
             winds = winds[0:n_kws]
+
+            #Initialize the list of clicking probabilities of n_kws keywords
+            kw_probabilities = [0 for x in range(n_kws)]
 
             #Compute keyword scores here for the n_kws keywords
             all_kw_scores = []
@@ -560,7 +617,7 @@ for j, line in enumerate(f):
                     if len(kw_scores_topic) > 0:
                         #Store the keyword scores relating to current topic
                         kw_scores_filecategory = kw_scores_topic
-                        #Compute probabilities of suggested keywords
+                        #Compute clicking probabilities of suggested keywords
                         kw_probabilities = kw_scores_filecategory/sum(kw_scores_filecategory)
                         #Convert to numpy array
                         kw_scores_filecategory = np.array(kw_scores_filecategory)
@@ -691,7 +748,7 @@ for j, line in enumerate(f):
                     avgprecision_old = 0
 
                 #
-                print("Suggested keywords:", kws)
+                #print("Suggested keywords:", kws)
                 print("Current: precisions: ",cprecision, avgprecision, 'kw_scores: ', kw_scores, 'normalized:', kw_scores_norm)
                 print("Old:     precisions: ",cprecision_old, avgprecision_old, 'kw_scores: ', kw_scores_old, 'normalized:', kw_scores_norm_old)
                 print("  ", all_kw_scores_norm)

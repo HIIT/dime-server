@@ -8,6 +8,10 @@ import math
 import random
 
 #
+from scipy import sparse
+import scipy.sparse.linalg
+
+#
 #Some additional functions that are used in various places, e.g. in functions of dime_search.py
 #
 
@@ -231,7 +235,9 @@ def query2bow(query,dictionary):
 
     #Convert the words into nearest dictionary word
     for nword, word in enumerate(test_wordlist):
+        #Search the closest word form dictionary
         correctedword = difflib.get_close_matches(word, list(dictionary.values()))
+        #Replace the original word by the closest dictionary word
         if len(correctedword):
             test_wordlist[nword] = correctedword[0]
         else:
@@ -291,24 +297,118 @@ def remove_unwanted_words(testlist):
     return testlist
 
 
+#
+def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackws):
+
+    #INPUT:
+    #lambda = parameter for MMR-ranking method, if lambda = 1 MMR-ranking has no effect, if lambda = 0 MMR-ranking chooses from kws the most dissimilar keywords
+    #R = indices of LinRel-ranked keywords (i.e. the R in the original paper)
+    #sizeS = number of keywords to be ranked by MMR-ranking method
+    #tfidf_matrix = matrix of which each row correspond one document
+    #nkws = fraction of keywords to go through from R
+    #OUTPUT:
+    #S = list of n_kws keywords ranked by MMR-ranking method
+
+    #Number of reranked kws to be returned
+    sizeS = int(frac_sizeS*A.shape[1])
+    #Number of kws to be reranked
+    n_reranked_kws = int(frackws*len(R))
+
+    print(sizeS,n_reranked_kws)
+    
+    #
+    vsum = vsum/vsum.max()
+
+    #
+    if lambda_coeff > 1.0 or lambda_coeff <0.0:
+        print("Lambda's value not valid!!")
+        return R
+
+    #Initialize the list of reranked kws
+    S = []
+
+
+    #Take sub list of R
+    subR = R[0:n_reranked_kws]
+    #Take sub matrix of tfidf-matrix
+    sub_tfidf_matrix = tfidf_matrix[:,R[0:n_reranked_kws]]
+    #Compute cosine similarities between the feature vectors of each keywords
+    sim_matrix = sub_tfidf_matrix.T.dot(sub_tfidf_matrix)
+    #Put to zero the values in the diagonal
+    for i in range(sim_matrix.shape[0]):
+        sim_matrix[i,i] = 0.0
+
+    #Search sizeS reranked kws
+    for k in range(sizeS):
+        
+        #
+        vals = {}
+        
+        #Go through indices of LinRel-ranked keywords
+        for i,wind in enumerate(subR):
+
+            #If wind already found, continue to next
+            if wind in S:
+                continue
+
+            #Take vector of cosine similarities corresponding the keyword at hand
+            sim_vec = sim_matrix[i,:].toarray()
+            #print(sim_vec/sim_vec.max())
+            #Go through kw-indices stored in S
+            sim_max = 0
+            for j,wind2 in enumerate(S):
+                sim_max = sim_vec.max()
+            #
+            val = lambda_coeff*(vsum[i] - (1-lambda_coeff)*sim_max)
+
+            #Append the value to a dict vals
+            vals[wind] = val
+        
+        #Take the index of a maximum value from the list vals
+        #arg_max_vals = [i for i,j in enumerate(vals) if j == max(vals)]
+        
+        #    
+        S.append(solve(vals))
+
+    return S
+
+#Take from dict of the form {number:number} the key having maximum value
+def solve(dic):
+    #print(dic.values())
+    maxx = max(dic.values())
+    keys = [x for x,y in dic.items() if y ==maxx] 
+    return keys[0] if len(keys)==1 else keys
 
 
 
 if __name__ == "__main__":
 
-    #    
-    doccategorylist = compute_doccategorylist()
-
-    #Load tfidf_matrix
-    sX = load_sparse_csc('data/sX.sparsemat.npz')
-    sX = sX.toarray()
-    print(type(sX), sX.shape)
+    #
+    #A = np.random.randint(100000,size=(1000,4000))
+    #A = sparse.csr_matrix(A)
+    A = sparse.rand(1000,4000)
+    A = A.tolil()
 
     #
-    kw_scores = compute_topic_keyword_scores(sX, [400,600], doccategorylist, 3)
-    print(kw_scores)
+    R = np.random.permutation(range(A.shape[1]))
 
-  # v = np.random.randint(0,3,[5,1])
-  # s = vec_sparsity(v)
-  # print(v)
-  # print(s)
+    #
+    vsum = np.random.rand(A.shape[1])    
+
+    #
+
+    #print(mmr_reranking_of_kws(0.5, R, vsum, 0.025, A, 0.025))
+    print(mmr_reranking_of_kws(0.5, R, vsum, 0.02, A, 0.025))
+
+
+    # #    
+    # doccategorylist = compute_doccategorylist()
+
+    # #Load tfidf_matrix
+    # sX = load_sparse_csc('data/sX.sparsemat.npz')
+    # sX = sX.toarray()
+    # print(type(sX), sX.shape)
+
+    # #
+    # kw_scores = compute_topic_keyword_scores(sX, [400,600], doccategorylist, 3)
+    # print(kw_scores)

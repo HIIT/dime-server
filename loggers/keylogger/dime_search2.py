@@ -147,7 +147,7 @@ def search_dime_docsim(query, data, index, dictionary):
 
 #Function that computes keywords using LinRel and makes search using
 #'search_dime_docsim'
-def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu):
+def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu, emphasize_kws=1):
 
     #Inputs:
     #query = string from keyboard
@@ -196,7 +196,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu):
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function, 'search_dime'
 #def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
-def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, srvurl, username, password, n_results):
+def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=1):
 
     #Inputs:
     #query = string from keyboard
@@ -215,6 +215,8 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
 
     #Convert query into bag of words representation urheilu yle 
     test_vec      = query2bow(query, dictionary)
+    # print("QUERY: ",query)
+    # print("BOW: ",test_vec)
 
     #Get keywords related to input query string 
     winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
@@ -225,13 +227,13 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
     #Search resources from DiMe using Dime-servers own search function
     jsons = search_dime(srvurl, username, password, query, n_results)
 
-    return jsons, kws, winds
+    return jsons, kws, winds, vsum
 
 
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function 'search_dime_with_word_weights'
-def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results):
+def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=1):
 
     #INPUTS:
     #query = string from keyboard
@@ -287,11 +289,11 @@ def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
 
     #
-    return jsons, kws, winds
+    return jsons, kws, winds, vsum
 
 
 #
-def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results):
+def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=1):
 
     #INPUTS:
     #query = string from keyboard
@@ -316,6 +318,8 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     #Get keywords related to input query string 
     winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
 
+
+
     #Add weights to suggested keywords (in this case the corresponding values of vsum )
     dum_query = ''
     n_kw = 1
@@ -336,12 +340,12 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     print("Number of returned jsons: ", len(jsons))
     
     #
-    return jsons, kws, winds
+    return jsons, kws, winds, vsum
 
 
 
 #
-def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu):
+def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu, emphasize_kws=1):
 
     #INPUTS:
     #test_vec   = bag of word representation of the input query string (taken from keyboard)
@@ -391,6 +395,13 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         r[winds]      = 1.0
         np.save('data/r_old.npy',r)
 
+
+    #If emphasize_kws < 1 , decrease the observed relevance of other
+    #words, except the last observed words
+    if emphasize_kws < 1:
+        pass
+
+
     #Check that regularization paramter is not 0 or below
     if mu <= 0.0:
         mu = 1.0
@@ -429,7 +440,8 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
     #Convert to python list
     vsinds = vsinds.tolist()
     #Take last 100 indices from vsinds, i.e. choose 100 keywords
-    vsinds = vsinds[-100:]
+    #vsinds = vsinds[-100:]
+
     #Reverse, i.e. make list of indices corresponding the descending order of elements of 'r_hat'
     vsinds = list(reversed(vsinds))
 
