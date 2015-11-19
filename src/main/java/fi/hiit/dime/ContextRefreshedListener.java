@@ -54,7 +54,7 @@ public class ContextRefreshedListener
 	    LOG.info("Using Lucene for searching.");
 	    searchIndex.updateIndex(false);
 	} else {
-	    LOG.info("Lucene not configured, using mongodb search.");
+	    LOG.info("Lucene not configured, search will not be available.");
 	}
     }
 }

@@ -55,8 +55,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -68,6 +70,9 @@ public class SearchIndex {
     private static final String idField = "id";
     private static final String userIdField = "userId";
     private static final String textQueryField = "plainTextContent";
+
+    private static final String versionField = "dime_version";
+    private static final String currentVersion = "1";
 
     private FSDirectory fsDir;
     private DirectoryReader reader = null;
@@ -132,8 +137,8 @@ public class SearchIndex {
     /**
        Get the set of indexed object ids.
     */
-    protected Set<String> indexedIds(IndexReader reader) throws IOException {
-	Set<String> ids = new HashSet<String>();
+    protected Set<Long> indexedIds(IndexReader reader) throws IOException {
+	Set<Long> ids = new HashSet<Long>();
 
 	Set<String> fields = new HashSet<String>();
 	fields.add(idField);
@@ -142,7 +147,7 @@ public class SearchIndex {
 	    Document doc = reader.document(i, fields);
 	    String docId = doc.get(idField);
 	    
-	    ids.add(docId);
+	    ids.add(Long.parseLong(docId, 10));
 	}
 
 	return ids;
@@ -159,10 +164,21 @@ public class SearchIndex {
 	
 	long count = 0;
 
-	LOG.info("Updating Lucene index ....");
+	LOG.debug("Updating Lucene index ....");
 	try {
+	    boolean forceReindex = false;
 	    IndexWriter writer = getIndexWriter();
-	    int skipped = 0;
+	    String version = writer.getCommitData().get(versionField);
+
+	    if (version == null || !version.equals(currentVersion)) {
+		if (version != null)
+		    LOG.info("Lucene index version has changed {} -> {}, " +
+			     "reindexing all documents.", version, currentVersion);
+		forceReindex = true;
+	    }
+
+	    long skipped = 0;
+	    long inLuceneCount = -1;
 
 	    List<InformationElement> toIndex = new ArrayList<InformationElement>();
 
@@ -171,12 +187,14 @@ public class SearchIndex {
 		toIndex.addAll(infoElemDAO.getNotIndexed());
 	    } else {
 		// Get the set of already indexed ids from Lucene
-		Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
+		Set<Long> inLucene = indexedIds(DirectoryReader.open(writer, true));
+
+		inLuceneCount = inLucene.size();
 
 		// Loop over all elements in the database
 		for (InformationElement elem : infoElemDAO.findAll()) {
 		    // Update those which have not yet been indexed
-		    if (!inLucene.contains(elem.getId()))
+		    if (forceReindex || !inLucene.contains(elem.getId()))
 			toIndex.add(elem);
 		}
 	    }
@@ -193,12 +211,17 @@ public class SearchIndex {
 	    }
 
 	    LOG.debug("Writing Lucene index to disk ...");
+
+	    Map<String, String> commitData = new HashMap<String, String>();
+	    commitData.put(versionField, currentVersion);
+	    writer.setCommitData(commitData);
 	    writer.close();
 
-	    LOG.info("Indexed {} information elements.", count);
-	    if (skipped > 0)
-		LOG.info("Skipped {} elements with empty content.", skipped);
-	    
+	    LOG.info("Lucene index updated: " +
+		     (inLuceneCount >= 0 ? inLuceneCount + " previously indexed, " : "") + 
+		     "added {} new information elements, skipped {} objects with empty content.",
+		     count, skipped);
+		     
 	} catch (IOException e) {
 	    LOG.error("Exception while updating search index: " + e);
 	}
