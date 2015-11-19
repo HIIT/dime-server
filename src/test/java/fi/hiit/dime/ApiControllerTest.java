@@ -85,8 +85,8 @@ public class ApiControllerTest extends RestTest {
     	assertEquals(0, searchResEmpty.length);
 
 	// Create some events with messages
-	int numEvents = 10;
-	Event[] events = new Event[numEvents];
+	int numEvents = 11;
+	MessageEvent[] events = new MessageEvent[numEvents];
 
 	Set<Integer> idxToFind = new HashSet<Integer>();
 	idxToFind.add(2);
@@ -96,50 +96,75 @@ public class ApiControllerTest extends RestTest {
 
 	RandomPassword rand = new RandomPassword();
 
-	for (int i=0; i<numEvents; i++) {
+	for (int i=0; i<numEvents-1; i++) {
 	    String content = rand.getPassword(10, false, false);
 	    if (idxToFind.contains(i)) 
 		content += " " + magicWord;
 	    content += " " + rand.getPassword(10, false, false);
 	    Message msg = createTestEmail(content, "Hello");
+	    msg.appId = "fgieruhgieruhg_msg_" + i;
 	    MessageEvent event = new MessageEvent();
 	    event.targettedResource = msg;
 
 	    events[i] = event;
 	}
+	
+	// Make a last event which contains a duplicate message
+	MessageEvent lastEvent = new MessageEvent();
+	lastEvent.targettedResource = events[5].targettedResource;
+
+	events[numEvents-1] = lastEvent;
 
 	// Upload them to DiMe
-	uploadEvents(events, Event[].class);
+	MessageEvent[] uploadedEvents = uploadEvents(events, MessageEvent[].class);
 
-	// Refresh Lucene index
-	// if (searchIndex != null)
-	//     searchIndex.updateIndex(false);
+	assertEquals(numEvents, uploadedEvents.length);
+
+	// Record ids of messages to be found by search
+	Set<Long> idToFind = new HashSet<Long>();
+	for (int i=0; i<numEvents; i++) {
+	    if (idxToFind.contains(i))
+		idToFind.add(uploadedEvents[i].targettedResource.getId());
+	}
 
 	// Now try searching for the ones in idxToFind
 	InformationElement[] searchRes = doSearch(magicWord);
 
 	dumpData("searchRes", searchRes);
 
+	// Check that we have the expected number of results
     	assertEquals(idxToFind.size(), searchRes.length);
 	
+	Set<Long> idFound = new HashSet<Long>();
     	for (InformationElement elem : searchRes) {
+	    // Check that each returned document contains the expected word
     	    assertTrue(elem.plainTextContent.contains(magicWord));
+	    idFound.add(elem.getId());
     	}
 
-	//FIXME: also compare to idxToFind
+	// Check that the ids are exactly those expected
+	assertEquals(idToFind, idFound);
 
 	// Try searching as events
 	Event[] searchEventsRes = doEventSearch(magicWord);
 	
 	dumpData("searchEventsRes", searchEventsRes);
 
-    	assertEquals(idxToFind.size(), searchEventsRes.length);
+	// Check that we have the expected number of results
+	// +1 because we added a last event with duplicate msg
+    	assertEquals(idxToFind.size()+1, searchEventsRes.length);
 	
+	Set<Long> idFound2 = new HashSet<Long>();
     	for (Event event : searchEventsRes) {
 	    assertTrue(event instanceof ResourcedEvent);
 
 	    ResourcedEvent revent = (ResourcedEvent)event;
-    	    assertTrue(revent.targettedResource.plainTextContent.contains(magicWord));
+    	    //assertTrue(revent.targettedResource.plainTextContent.contains(magicWord));
+
+	    idFound2.add(revent.targettedResource.getId());
     	}
+
+	// Check that the ids are exactly those expected
+	assertEquals(idToFind, idFound2);
     }
 }

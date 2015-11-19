@@ -148,7 +148,8 @@ public class ApiController extends AuthorizedController {
 		List<Event> events = new ArrayList<Event>();
 		for (InformationElement elem : resultsList) {
 		    List<ResourcedEvent> expandedEvents = eventDAO.findByElement(elem, user);
-		    LOG.info("  Found element {} -> events {}", elem.getId(), expandedEvents.size());
+		    for (ResourcedEvent event : expandedEvents)
+			event.targettedResource.plainTextContent = null;
 		    events.addAll(expandedEvents);
 		}
 	    
