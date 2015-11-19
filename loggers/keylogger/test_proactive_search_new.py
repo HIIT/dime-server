@@ -535,7 +535,10 @@ for j, line in enumerate(f):
 
             #MMR
             if args.mmr > 0:
-                lambda_coeff = args.mmr
+                if args.mmr > 1:
+                    lambda_coeff = args.mmr/100
+                else:
+                    lambda_coeff = args.mmr
                 frac_sizeS = 0.001
                 frackws = 0.001
                 kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
