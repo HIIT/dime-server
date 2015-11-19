@@ -376,7 +376,7 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
 
     #print(S)
     #Take the corresponding keywords
-    new_kws = []
+    kws_reranked = []
     kwinds = []
     #subR = subR.tolist()
     for i,el in enumerate(S):
@@ -386,7 +386,7 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
         kwinds.append(subR.index(el))
             
     for ind in kwinds:
-        new_kws.append(kws[ind])
+        kws_reranked.append(kws[ind])
 
 #    new_kws = kws[kwinds]
 
@@ -395,7 +395,7 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
 #            print(i,el)
 #            new_kws.append(el)
 
-    return new_kws, S
+    return kws_reranked, S
 
 #Take from dict of the form {number:number} the key having maximum value
 def solve(dic):
