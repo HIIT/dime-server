@@ -19,7 +19,7 @@ $(TARGET): $(SOURCES)
 	$(GRADLE) assemble
 
 run:    $(TARGET)
-	java -jar $(TARGET)
+	$(GRADLE) run
 
 test:
 	rm -rf ./build/reports/tests/
@@ -63,5 +63,5 @@ initSchema: autogenDb
 	rm -f src/main/resources/db/changelog/db.changelog-master.xml
 	$(GRADLE) generateChangelog
 
-updateSchema: autogenDb cleanDb
+updateSchema: autogenDb
 	$(GRADLE) diffChangeLog

@@ -64,9 +64,13 @@ liquibase {
     main {
       changeLogFile 'src/main/resources/db/changelog/db.changelog-master.xml'
 
-      url 'jdbc:h2:file:~/.dime/tmp/cleandb/h2'
+      url 'jdbc:h2:file:~/.dime/database/h2'
       username 'sa'
       password 'sa'
+
+      // url 'jdbc:h2:file:~/.dime/tmp/cleandb/h2'
+      // username 'sa'
+      // password 'sa'
 
       referenceUrl 'jdbc:h2:file:~/.dime/tmp/autogen/h2'
       referenceUsername 'sa'
