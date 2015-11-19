@@ -635,11 +635,14 @@ for j, line in enumerate(f):
             #Go through topics 
             print("Category ids: ",categoryindices)
             for ii in range(0,len(categoryindices)):
-                #Compute keyword scores given the writing topic 'ii'
+
                 if False:
                     print("Index OF NON-ZEROS: ", [i for i, e in enumerate(doccategorylist) if e!=[0]])
+
+                #Compute the scores of keywords with respect to the topic ii
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
-                #If topic index 'ii' corresponds the current writing topic, store
+
+                #If topic index 'ii' corresponds the current writing topic (here named as a variable 'filecategory'), store
                 #the keyword scores for the current writing topic into the variable 'kw_scores_filecategory'
                 #and also pick one keyword randomly
                 if ii == filecategory and not args.knownitem:
@@ -664,7 +667,7 @@ for j, line in enumerate(f):
                         
                         #Store the keyword scores relating to the known file
                         kw_scores_known_file = kw_scores_topic
-                        print(kw_scores_known_file)
+                        print("kw scores of known file: ", kw_scores_known_file)
 
                         #Compute clicking probabilities of suggested keywords
                         if sum(kw_scores_known_file) > 0:
