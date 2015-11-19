@@ -34,6 +34,14 @@ import math
 #For checking data types
 import types
 
+
+####################################################
+def get_item_id(json_item):
+    if 'uri' in json_item:
+        return json_item['uri']
+    return None
+####################################################
+
 #
 class SearchThread(QThread):
 
@@ -156,16 +164,10 @@ class SearchThread(QThread):
 
   #
   i = 0
+  iteration = {}
 
   #
   while True:
-
-    #
-    i = i + 1
-
-    #
-    iteration = {}
-    iteration['i'] = i
 
     #
     cmachtime = time()
@@ -205,15 +207,21 @@ class SearchThread(QThread):
 
     #
     if self.extrasearch:
+
+      #
       print('Search thread: got extra search command from main!')      
 
       #
-      iteration['click'] = dstr
+      #iteration['click'] = dstr
+      iteration['click'] = self.query.split()[-1]
+      print("ITER 1",iteration)
 
       #Search function causing clicking results up to 4.10.2015
       #jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
       #
       jsons = search_dime(self.srvurl, self.usrname, self.password, dstr, self.n_results)
+
+      #
       self.extrasearch = False    
 
     #
@@ -223,12 +231,14 @@ class SearchThread(QThread):
       self.oldquery2 = self.query
 
     #If the query has changed, and certain amount of time in determined self.nokeypress_interval has expired, 
-    #do some of the following:
+    #do the following:
     if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + self.nokeypress_interval:
+
+      print("ITER 2",iteration)
       
       #Add to dstr the content of query text
       dstr = self.query      
-      print('Search thread:', dstr)
+      print('Search thread: QUERY: ', dstr)
 
       #
       iteration['write'] = dstr
@@ -259,7 +269,7 @@ class SearchThread(QThread):
       if lambda_coeff > 0:
           frac_sizeS = 0.001
           frackws = 0.001
-          kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
+          kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, self.sX, frackws)
           #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
           print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")
 
@@ -283,37 +293,32 @@ class SearchThread(QThread):
           kws = kws_rr
           winds = winds_rr
 
-
-
-
-
-
       print('Search thread: Ready for new search!')
       print('Search thread: len jsons ', len(jsons))
       if len(jsons) > 0:
 
         #Compute the inverse rank of the known item
+        known_item_target = "rec.autos/102802"
         for ji, js in enumerate(jsons):
             suggested_item = get_item_id(js)
             print("SUGGESTED ITEM: ", suggested_item, "KNOWN ITEM: ", known_item_target)
             if suggested_item == known_item_target:
-                categoryid = 1
-                nsamecategory = nsamecategory + 1.0
+                # categoryid = 1
+                # nsamecategory = nsamecategory + 1.0
 
                 #Compute the inverse of rank
                 print("RANK in suggestions:", ji+1)
                 invrank = 1.0/float(ji+1)
-                #Define precision to 1
-                cprecision = 1
+
                 #Add to 'iteration' dict        
                 iteration['inv_rank'] = invrank
-                iteration['cprecision'] = cprecision
+                iteration['rank'] = float(ji+1)
                 #
                 print("GOT SAME CATEGORY AS CURRENT! ", invrank)
             else:
                 categoryid = 0
-                iteration['inv_rank'] = 0
-                iteration['cprecision'] = 0
+                iteration['inv_rank'] = 0.0
+                iteration['rank'] = 0.0
 
         #Return keyword list
         #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
@@ -321,10 +326,6 @@ class SearchThread(QThread):
         self.send_links.emit(jsons)
         #Send keywords
         self.send_keywords.emit(kws)
-
-
-
-
 
         #Write first url's appearing in jsons list to a 'suggested_pages.txt'
         cdate = datetime.datetime.now().date()
@@ -340,6 +341,13 @@ class SearchThread(QThread):
       self.all_done.emit()
 
       print(iteration)
+
+      #
+      i = i + 1
+      #
+      iteration = {}
+      iteration['i'] = i
+
 
     else:
       sleep(0.3) # artificial time delay    
