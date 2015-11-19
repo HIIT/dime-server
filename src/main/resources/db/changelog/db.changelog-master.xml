@@ -326,4 +326,17 @@
     <changeSet author="mvsjober (generated)" id="1447837639576-1">
         <modifyDataType columnName="DATA" newDataType="blob(255)" tableName="EVENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447947168955-1">
+        <addColumn tableName="EVENT">
+            <column name="SCORE" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447947168955-2">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="SCORE" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1447947168955-3">
+        <modifyDataType columnName="DATA" newDataType="blob(255)" tableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>

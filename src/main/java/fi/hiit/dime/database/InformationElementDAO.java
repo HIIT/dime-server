@@ -34,19 +34,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Service
-public class InformationElementDAO {
+public class InformationElementDAO extends BaseDAO<InformationElement> {
     private static final Logger LOG = LoggerFactory.getLogger(InformationElementDAO.class);
 
     @Autowired
     private InfoElemRepository repo;
-    private static Set<InformationElement> notIndexed =	new HashSet<InformationElement>();
 
     @Transactional
     public void save(InformationElement obj) {
@@ -58,18 +55,6 @@ public class InformationElementDAO {
     public InformationElement replace(InformationElement oldObj, 
 				      InformationElement newObj) {
 	return repo.replace(oldObj, newObj);
-    }
-
-    public boolean hasUnIndexed() {
-	return !notIndexed.isEmpty();
-    }
-
-    public Set<InformationElement> getNotIndexed() {
-	return notIndexed;
-    }
-
-    public void setIndexed(InformationElement elem) {
-	notIndexed.remove(elem);
     }
 
     /**

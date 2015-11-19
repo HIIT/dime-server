@@ -23,6 +23,8 @@ if r.status_code != requests.codes.ok:
 
 # make search query
 query = "dime"
+if len(sys.argv) > 1:
+    query = ' '.join(sys.argv[1:])
 
 r = requests.get(server_url + '/search?query={}&limit=10'.format(query),
                  headers={'content-type': 'application/json'},

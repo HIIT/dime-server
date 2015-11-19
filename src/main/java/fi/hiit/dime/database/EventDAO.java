@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class EventDAO {
+public class EventDAO extends BaseDAO<Event> {
     private static final Logger LOG = LoggerFactory.getLogger(EventDAO.class);
 
     @Autowired
@@ -48,6 +48,7 @@ public class EventDAO {
 
     @Transactional
     public void save(Event obj) {
+	notIndexed.add(obj);
 	repo.save(obj);
     }
 
@@ -69,6 +70,11 @@ public class EventDAO {
     @Transactional(readOnly = true)
     public Event findByAppId(String appId, User user) {
 	return repo.findOneByAppIdAndUser(appId, user);
+    }
+
+    @Transactional(readOnly = true)
+    public Iterable<Event> findAll() {
+    	return repo.findAll();
     }
 
     @Transactional(readOnly = true)
