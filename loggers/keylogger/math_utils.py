@@ -312,11 +312,11 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
     #
     if lambda_coeff > 1.0 or lambda_coeff <= 0.0:
         print("Lambda's value not valid!!")
-        return kws, R
+        return kws, R, []
     #
     if len(vsum) == 0:
         print("vsum is empty!!")
-        return kws, R
+        return kws, R, []
 
 
     #Number of reranked kws to be returned
@@ -346,6 +346,7 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
         sim_matrix[i,i] = 0.0
 
     #Search sizeS reranked kws
+    mmr_scores = []
     for k in range(sizeS):
         
         vals = {}
@@ -371,7 +372,8 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
         #Take the index of a maximum value from the list vals
         #arg_max_vals = [i for i,j in enumerate(vals) if j == max(vals)]
         
-        #    
+        #
+        mmr_scores.append(max(vals.values()))    
         S.append(solve(vals))
 
     #print(S)
@@ -395,7 +397,7 @@ def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, f
 #            print(i,el)
 #            new_kws.append(el)
 
-    return kws_reranked, S
+    return kws_reranked, S, mmr_scores
 
 #Take from dict of the form {number:number} the key having maximum value
 def solve(dic):

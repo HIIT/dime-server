@@ -538,19 +538,20 @@ for j, line in enumerate(f):
                 lambda_coeff = args.mmr
                 frac_sizeS = 0.001
                 frackws = 0.001
-                kws_rr, winds_rr = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
+                kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
                 #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
                 print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")
 
-                if(len(vsum)>0):
+                if(len(vsum)>0 and len(mmr_scores)>0):
                     #print(len(vsum))
                     vsum_rr = []
                     for wind in winds_rr[0:20]:
                         ind = winds.index(wind)
                         vsum_rr.append(vsum[ind])
 
+                    #print(mmr_scores)
                     for di in range(20):
-                        print(kws_rr[di], vsum_rr[di])
+                        print(kws_rr[di], mmr_scores[di], vsum_rr[di])
 
                 #Substitute the reranked kws_rr to LinRel ranked kws
                 kws = kws_rr
