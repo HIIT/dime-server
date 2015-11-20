@@ -6,7 +6,7 @@ place that you control.
 
 You can install DiMe directly on your machine (instructions below), or
 if you are adventurous test the experimental
-[Docker virtualisation](https://github.com/HIIT/dime-server/wiki/Docker).
+[Docker virtualisation](https://github.com/HIIT/dime-server/wiki/Docker)
 support. For people intending to develop, it is probably easier to
 install it directly.
 
@@ -14,23 +14,22 @@ install it directly.
 
 ### Requirements
 
-- [Java 7 JDK][1] or newer (i.e. Java version 1.7 or newer)
+[Java 7 JDK][1] or newer (i.e. Java version 1.7 or newer) is required.
 
 ### Compiling
 
-Clone the git repository, e.g.:
+First, clone the git repository, for example via the command line:
 
     git clone https://github.com/HIIT/dime-server.git
 
-To compile run:
+To compile, just run:
 
     make
 
-(If you don't have GNU Make, for example on Windows you will have to
-use gradle directly instead of the Makefile wrapper: `./gradlew
-assemble`.)
+(If you don't have GNU Make installed you can also use [gradle][4]
+directly: `./gradlew assemble`.)
 
-On the first compilation, gradle will download any Java dependencies
+In the first compilation, it will download any Java dependencies
 automatically. Hence it may take a bit longer the first time.
 
 ### Running
@@ -39,7 +38,7 @@ To run the server in port 8080 issue the command:
 
     make run
 
-(Or `./gradlew run` if you don't have GNU Make.)
+(Alternatively `./gradlew run` if you don't have GNU Make.)
 
 If you wish to change the TCP port of the server take a look at how to
 [configure the DiMe server][2] to use another port.
@@ -56,7 +55,7 @@ line.
 
 ## Documentation
 
-The [project wiki page] has more detailed instructions and
+The [project wiki page][3] has more detailed instructions and
 documentation of the API and development.
 
 If you have any questions, don't hesitate to contact the lead
@@ -65,3 +64,4 @@ developer [Mats Sjöberg](mailto:mats.sjoberg@helsinki.fi).
 [1]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 [2]: https://github.com/HIIT/dime-server/wiki/Configuration
 [3]: https://github.com/HIIT/dime-server/wiki
+[4]: http://gradle.org/
