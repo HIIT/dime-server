@@ -50,7 +50,6 @@ import javax.persistence.ManyToOne;
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.DesktopEvent.class, name="DesktopEvent"),
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.ReadingEvent.class, name="ReadingEvent"),
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.MessageEvent.class, name="MessageEvent"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.PhysicalEvent.class, name="PhysicalEvent"),
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.SearchEvent.class, name="SearchEvent"),
 })
 @Entity

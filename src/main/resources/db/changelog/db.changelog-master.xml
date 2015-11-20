@@ -358,4 +358,10 @@
     <changeSet author="mvsjober (generated)" id="1448003871721-4">
         <modifyDataType columnName="DATA" newDataType="blob(255)" tableName="EVENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1448019447210-1">
+        <dropColumn columnName="DATA" tableName="EVENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1448019447210-2">
+        <dropColumn columnName="SAMPLE_RATE" tableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>
