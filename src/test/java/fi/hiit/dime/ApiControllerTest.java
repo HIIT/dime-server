@@ -167,4 +167,30 @@ public class ApiControllerTest extends RestTest {
 	// Check that the ids are exactly those expected
 	assertEquals(idToFind, idFound2);
     }
+
+    @Test
+    public void testReadingEventSearch() throws Exception {
+	String magicText = "foobarbaz";
+ 	ScientificDocument doc = createScientificDocument(randomText);
+	ReadingEvent re = createReadingEvent(doc, magicText);
+	re.appId = "hgfewiuhoi543rughierh";
+
+	uploadEvent(re, ReadingEvent.class);
+
+	Event[] searchEventsRes = doEventSearch(magicText);
+	
+	dumpData("searchEventsRes", searchEventsRes);
+
+    	assertEquals(1, searchEventsRes.length);
+
+	assertTrue(searchEventsRes[0] instanceof ReadingEvent);
+
+	ReadingEvent res = (ReadingEvent)searchEventsRes[0];
+
+	assertEquals(re.appId, res.appId);
+	assertEquals(re.plainTextContent, res.plainTextContent);
+
+	// Because we are nulling the document content
+	assertEquals(null, res.targettedResource.plainTextContent);	
+    }
 }

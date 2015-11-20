@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 
 /**
@@ -609,48 +608,10 @@ public class DataControllerTest extends RestTest {
 
     @Test
     public void testReadingEvent() throws Exception {
- 	ScientificDocument doc = createScientificDocument();
+ 	ScientificDocument doc = createScientificDocument(randomText);
 
-	ReadingEvent re = new ReadingEvent();
-	re.targettedResource = doc;
-
-	re.type = "http://www.hiit.fi/ontologies/dime/#ReadingEvent";
-	re.plainTextContent = doc.plainTextContent.substring(25,150);
-	re.foundStrings = Arrays.asList("aliquam", "volutpat", "tellus");
-	re.pageNumbers = Arrays.asList(0, 4);
-
-	final int numEyeData = 10;
-	List<PageEyeData> eyeData = new ArrayList<PageEyeData>();
-	for (int i=0; i<numEyeData; i++) {
-	    PageEyeData ed = new PageEyeData();
-	    ed.Xs = Arrays.asList(i*0.0, i*1.5, i*2.2);
-	    ed.Ys = Arrays.asList(i*0.0, i*1.5, i*2.2);
-	    ed.Ps = Arrays.asList(i*0.0, i*1.5, i*2.2);
-
-	    ed.startTimes = Arrays.asList(i*1l, i*2l, i*4l);
-	    ed.endTimes = Arrays.asList(i+1l, i*2+1l, i*4+2l);
-
-	    ed.durations = Arrays.asList(1l, 1l, 2l);
-
-	    ed.pageIndex = i;
-	    eyeData.add(ed);
-	}
-
-	re.pageEyeData = eyeData;
-
-	assertEquals(numEyeData, re.pageEyeData.size());
-
-	List<Rect> rs = new ArrayList<Rect>();
-	Rect r = new Rect();
-	r.origin = new Point(0.0, 453.5);
-	r.readingClass = Rect.CLASS_VIEWPORT;
-	r.pageIndex = 0;
-	r.classSource = 1;
-	r.size = new Size(612.0, 338.5);
-	rs.add(r);
-	re.pageRects = rs;
-
-	re.scaleFactor = 1.685;
+	ReadingEvent re =
+	    createReadingEvent(doc, doc.plainTextContent.substring(25,150));
 
 	dumpData("ReadingEvent before", re);
 
@@ -658,14 +619,14 @@ public class DataControllerTest extends RestTest {
 	
 	dumpData("ReadingEvent back", reRet);
 
-	assertEquals(numEyeData, reRet.pageEyeData.size());
+	assertEquals(re.pageEyeData.size(), reRet.pageEyeData.size());
 	assertEquals(re.pageRects.size(), reRet.pageRects.size());
 
 	ReadingEvent reGet = getData(eventApi + "/" + reRet.getId(),
 				     ReadingEvent.class);
 	dumpData("ReadingEvent via GET", reGet);
 
-	assertEquals(numEyeData, reGet.pageEyeData.size());
+	assertEquals(re.pageEyeData.size(), reGet.pageEyeData.size());
 	assertEquals(re.pageRects.size(), reGet.pageRects.size());
 
 	ScientificDocument docGet = (ScientificDocument)reGet.targettedResource;
@@ -694,7 +655,7 @@ public class DataControllerTest extends RestTest {
 
     @Test
     public void testScientificDocument() throws Exception {
- 	ScientificDocument doc = createScientificDocument();
+ 	ScientificDocument doc = createScientificDocument(randomText);
 	doc.appId = "oiuhgferiufheroi";
 	assertTrue(doc.authors.size() > 0);
 	assertTrue(doc.keywords.size() > 0);

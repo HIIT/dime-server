@@ -41,12 +41,14 @@ import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Base class for REST API testers.
@@ -72,6 +74,8 @@ public abstract class RestTest {
     private User testUser;
 
     private RandomPassword pw = new RandomPassword();
+
+    public static String randomText = "Aliquam erat volutpat.  Nunc eleifend leo vitae magna.  In id erat non orci commodo lobortis.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.  Sed diam.  Praesent fermentum tempor tellus.  Nullam tempus.  Mauris ac felis vel velit tristique imperdiet.  Donec at pede.  Etiam vel neque nec dui dignissim bibendum.  Vivamus id enim.  Phasellus neque orci, porta a, aliquet quis, semper a, massa.  Phasellus purus.  Pellentesque tristique imperdiet tortor.  Nam euismod tellus id erat.";
 
     protected String eventApi, eventsApi, infoElemApi, infoElemsApi;
 
@@ -187,9 +191,9 @@ public abstract class RestTest {
 	return msg;
     }
 
-    protected ScientificDocument createScientificDocument() {
-	String someText = "Aliquam erat volutpat.  Nunc eleifend leo vitae magna.  In id erat non orci commodo lobortis.  Proin neque massa, cursus ut, gravida ut, lobortis eget, lacus.  Sed diam.  Praesent fermentum tempor tellus.  Nullam tempus.  Mauris ac felis vel velit tristique imperdiet.  Donec at pede.  Etiam vel neque nec dui dignissim bibendum.  Vivamus id enim.  Phasellus neque orci, porta a, aliquet quis, semper a, massa.  Phasellus purus.  Pellentesque tristique imperdiet tortor.  Nam euismod tellus id erat.";
+    
 
+    protected ScientificDocument createScientificDocument(String someText) {
 	ScientificDocument doc = new ScientificDocument();
 	doc.mimeType = "application/pdf";
 	doc.title = "Microsoft Word - paper.docx";
@@ -217,6 +221,51 @@ public abstract class RestTest {
 	doc.keywords = Arrays.asList("foo", "bar", "baz");
 
 	return doc;
+    }
+
+    protected ReadingEvent createReadingEvent(InformationElement doc, String content) {
+	ReadingEvent re = new ReadingEvent();
+	re.targettedResource = doc;
+
+	re.type = "http://www.hiit.fi/ontologies/dime/#ReadingEvent";
+	re.plainTextContent = content;
+	re.foundStrings = Arrays.asList("aliquam", "volutpat", "tellus");
+	re.pageNumbers = Arrays.asList(0, 4);
+
+	final int numEyeData = 10;
+	List<PageEyeData> eyeData = new ArrayList<PageEyeData>();
+	for (int i=0; i<numEyeData; i++) {
+	    PageEyeData ed = new PageEyeData();
+	    ed.Xs = Arrays.asList(i*0.0, i*1.5, i*2.2);
+	    ed.Ys = Arrays.asList(i*0.0, i*1.5, i*2.2);
+	    ed.Ps = Arrays.asList(i*0.0, i*1.5, i*2.2);
+
+	    ed.startTimes = Arrays.asList(i*1l, i*2l, i*4l);
+	    ed.endTimes = Arrays.asList(i+1l, i*2+1l, i*4+2l);
+
+	    ed.durations = Arrays.asList(1l, 1l, 2l);
+
+	    ed.pageIndex = i;
+	    eyeData.add(ed);
+	}
+
+	re.pageEyeData = eyeData;
+
+	assertEquals(numEyeData, re.pageEyeData.size());
+
+	List<Rect> rs = new ArrayList<Rect>();
+	Rect r = new Rect();
+	r.origin = new Point(0.0, 453.5);
+	r.readingClass = Rect.CLASS_VIEWPORT;
+	r.pageIndex = 0;
+	r.classSource = 1;
+	r.size = new Size(612.0, 338.5);
+	rs.add(r);
+	re.pageRects = rs;
+
+	re.scaleFactor = 1.685;
+
+	return re;
     }
 
     /**
