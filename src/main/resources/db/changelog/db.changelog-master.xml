@@ -339,4 +339,23 @@
     <changeSet author="mvsjober (generated)" id="1447947168955-3">
         <modifyDataType columnName="DATA" newDataType="blob(255)" tableName="EVENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1448003871721-1">
+        <createTable tableName="RECT_UNIXT">
+            <column name="RECT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UNIXT" type="BIGINT(19)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1448003871721-2">
+        <addColumn tableName="RECT">
+            <column name="FLOATING" type="BOOLEAN(1)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1448003871721-3">
+        <addForeignKeyConstraint baseColumnNames="RECT_ID" baseTableName="RECT_UNIXT" constraintName="FK_KRYKBT9VDD3BWC1IIDRJHA8CW" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="RECT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1448003871721-4">
+        <modifyDataType columnName="DATA" newDataType="blob(255)" tableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>
