@@ -196,7 +196,7 @@ parser.add_argument("--clickweight", metavar = "W",
 parser.add_argument('--knownitem', action='store_true',
                     help='perform known item search')
 parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
-                    default=1.0, help='use MMR with parameter lambda')
+                    default=-1.0, help='use MMR with parameter lambda')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -525,9 +525,41 @@ for j, line in enumerate(f):
                 #Number of suggested keywords added to query
                 #n_query_kws = 10
                 jsons, kws, winds, vsum = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
-            
-
+		
             #
+            print("KEYWORDS BEFORE RANKING: ")
+            if(len(vsum)>0):
+                #print(len(vsum))
+                for di in range(20):
+                    print(kws[di], vsum[di])
+
+            #MMR
+            if args.mmr > 0:
+                if args.mmr > 1:
+                    lambda_coeff = args.mmr/100
+                else:
+                    lambda_coeff = args.mmr
+                frac_sizeS = 0.001
+                frackws = 0.001
+                kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
+                #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
+                print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")
+
+                if(len(vsum)>0 and len(mmr_scores)>0):
+                    #print(len(vsum))
+                    vsum_rr = []
+                    for wind in winds_rr[0:20]:
+                        ind = winds.index(wind)
+                        vsum_rr.append(vsum[ind])
+
+                    #print(mmr_scores)
+                    for di in range(20):
+                        print(kws_rr[di], mmr_scores[di], vsum_rr[di])
+
+                #Substitute the reranked kws_rr to LinRel ranked kws
+                kws = kws_rr
+                winds = winds_rr
+
 
 
             #Get number of suggested documents
@@ -606,11 +638,14 @@ for j, line in enumerate(f):
             #Go through topics 
             print("Category ids: ",categoryindices)
             for ii in range(0,len(categoryindices)):
-                #Compute keyword scores given the writing topic 'ii'
+
                 if False:
                     print("Index OF NON-ZEROS: ", [i for i, e in enumerate(doccategorylist) if e!=[0]])
+
+                #Compute the scores of keywords with respect to the topic ii
                 kwm, kw_scores_topic = compute_topic_keyword_scores(sXarray, winds, doccategorylist, ii)
-                #If topic index 'ii' corresponds the current writing topic, store
+
+                #If topic index 'ii' corresponds the current writing topic (here named as a variable 'filecategory'), store
                 #the keyword scores for the current writing topic into the variable 'kw_scores_filecategory'
                 #and also pick one keyword randomly
                 if ii == filecategory and not args.knownitem:
@@ -635,7 +670,7 @@ for j, line in enumerate(f):
                         
                         #Store the keyword scores relating to the known file
                         kw_scores_known_file = kw_scores_topic
-                        print(kw_scores_known_file)
+                        print("kw scores of known file: ", kw_scores_known_file)
 
                         #Compute clicking probabilities of suggested keywords
                         if sum(kw_scores_known_file) > 0:

@@ -298,7 +298,7 @@ def remove_unwanted_words(testlist):
 
 
 #
-def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackws):
+def mmr_reranking_of_kws(lambda_coeff, R, kws, vsum, frac_sizeS, tfidf_matrix, frackws):
 
     #INPUT:
     #lambda = parameter for MMR-ranking method, if lambda = 1 MMR-ranking has no effect, if lambda = 0 MMR-ranking chooses from kws the most dissimilar keywords
@@ -309,25 +309,32 @@ def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackw
     #OUTPUT:
     #S = list of n_kws keywords ranked by MMR-ranking method
 
+    #
+    if lambda_coeff > 1.0 or lambda_coeff <= 0.0:
+        print("Lambda's value not valid!!")
+        return kws, R, []
+    #
+    if len(vsum) == 0:
+        print("vsum is empty!!")
+        return kws, R, []
+
+
     #Number of reranked kws to be returned
-    sizeS = int(frac_sizeS*A.shape[1])
+    sizeS = int(frac_sizeS*tfidf_matrix.shape[1])
     #Number of kws to be reranked
     n_reranked_kws = int(frackws*len(R))
-
-    print(sizeS,n_reranked_kws)
-    
-    #
-    vsum = vsum/vsum.max()
+    #print(sizeS,n_reranked_kws)
 
     #
-    if lambda_coeff > 1.0 or lambda_coeff <0.0:
-        print("Lambda's value not valid!!")
-        return R
+    vsum = vsum/np.linalg.norm(vsum)
+    #subvsum = vsum[0:n_reranked_kws]
+    #print("SUBVSUM")
 
     #Initialize the list of reranked kws
     S = []
 
-
+    #Take sub list of keywords
+    subkws = kws[0:n_reranked_kws]
     #Take sub list of R
     subR = R[0:n_reranked_kws]
     #Take sub matrix of tfidf-matrix
@@ -339,9 +346,9 @@ def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackw
         sim_matrix[i,i] = 0.0
 
     #Search sizeS reranked kws
+    mmr_scores = []
     for k in range(sizeS):
         
-        #
         vals = {}
         
         #Go through indices of LinRel-ranked keywords
@@ -353,31 +360,55 @@ def mmr_reranking_of_kws(lambda_coeff, R, vsum, frac_sizeS, tfidf_matrix, frackw
 
             #Take vector of cosine similarities corresponding the keyword at hand
             sim_vec = sim_matrix[i,:].toarray()
-            #print(sim_vec/sim_vec.max())
-            #Go through kw-indices stored in S
-            sim_max = 0
-            for j,wind2 in enumerate(S):
-                sim_max = sim_vec.max()
-            #
-            val = lambda_coeff*(vsum[i] - (1-lambda_coeff)*sim_max)
+            if np.linalg.norm(sim_vec) > 0.0:
+               sim_vec = sim_vec/np.linalg.norm(sim_vec)
 
+            #
+            val = lambda_coeff*vsum[i] - (1-lambda_coeff)*sim_vec.max()
+            #print(val, vsum[i])
             #Append the value to a dict vals
             vals[wind] = val
         
         #Take the index of a maximum value from the list vals
         #arg_max_vals = [i for i,j in enumerate(vals) if j == max(vals)]
         
-        #    
+        #
+        mmr_scores.append(max(vals.values()))    
         S.append(solve(vals))
 
-    return S
+    #print(S)
+    #Take the corresponding keywords
+    kws_reranked = []
+    kwinds = []
+    #subR = subR.tolist()
+    for i,el in enumerate(S):
+        #l=[ind for ind in subR if ind==el]
+        #if(len(l)>0):
+        #  kwinds.append(l[0])
+        kwinds.append(subR.index(el))
+            
+    for ind in kwinds:
+        kws_reranked.append(kws[ind])
+
+#    new_kws = kws[kwinds]
+
+#    for i,el in enumerate(subkws):
+#        if subR[i] in S:
+#            print(i,el)
+#            new_kws.append(el)
+
+    return kws_reranked, S, mmr_scores
 
 #Take from dict of the form {number:number} the key having maximum value
 def solve(dic):
     #print(dic.values())
     maxx = max(dic.values())
     keys = [x for x,y in dic.items() if y ==maxx] 
-    return keys[0] if len(keys)==1 else keys
+    if(len(keys)>0):
+       #print(maxx,keys)
+       keys = keys[0]
+    #return keys[0] if len(keys)==1 else keys
+    return keys
 
 
 
@@ -394,12 +425,15 @@ if __name__ == "__main__":
 
     #
     vsum = np.random.rand(A.shape[1])    
-
+    vsum = -np.sort(-vsum)
     #
+    kws = np.random.rand(A.shape[1])
 
     #print(mmr_reranking_of_kws(0.5, R, vsum, 0.025, A, 0.025))
-    print(mmr_reranking_of_kws(0.5, R, vsum, 0.02, A, 0.025))
+    kwsrr, Rrr = mmr_reranking_of_kws(1.0, R, kws, vsum, 0.02, A, 0.025)
 
+    print(kws,R)
+    print(kwsrr, Rrr)
 
     # #    
     # doccategorylist = compute_doccategorylist()
