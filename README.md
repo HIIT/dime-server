@@ -5,50 +5,18 @@ is to collect your personal data from different loggers into a central
 place that you control.
 
 You can install DiMe directly on your machine (instructions below), or
-[use Docker virtualisation](https://github.com/HIIT/dime-server/wiki/Docker).
-Docker support is still very experimental, but might be easier if you
-don't intend to develop much on DiMe.
+if you are adventurous test the experimental
+[Docker virtualisation](https://github.com/HIIT/dime-server/wiki/Docker).
+support. For people intending to develop, it is probably easier to
+install it directly.
 
-## Server installation
+## Installation
 
 ### Requirements
 
-- [Java 7 JDK][4] or newer (i.e. Java version 1.7 or newer)
-- [mongodb][2] (2.4 or newer, although 2.6 or newer is preferred)
+- [Java 7 JDK][1] or newer (i.e. Java version 1.7 or newer)
 
-If you are running mongodb version 2.4 you have to
-[enable the text search feature manually][1] (it's automatically
-enabled in newer versions).
-
-#### Linux
-
-In Linux it is recommended to install the requirements through a
-package manager if possible, e.g. for Ubuntu or Debian:
-
-    sudo apt-get install mongodb openjdk-7-jdk
-
-On Ubuntu 14.04, it might be a good idea to update mongodb to a 
-more recent version with [these instructions][8].
-
-#### OS X
-
-To install mongodb on Mac OS X, use either Homebrew, Macports or
-install manually.
-
-##### Homebrew and manual install
-
-See: <http://docs.mongodb.org/manual/tutorial/install-mongodb-on-os-x/>
-
-##### Macports
-    
-    sudo port install mongodb
-    sudo port load mongodb      # to start automatically
-
-#### Windows
-
-Install mongodb with [these instructions][9].
-
-### Compile
+### Compiling
 
 Clone the git repository, e.g.:
 
@@ -56,82 +24,44 @@ Clone the git repository, e.g.:
 
 To compile run:
 
-    ./gradlew build
+    make
 
-(In Linux and Mac you can also use `make`, which is just a wrapper
-around gradle.)
+(If you don't have GNU Make, for example on Windows you will have to
+use gradle directly instead of the Makefile wrapper: `./gradlew
+assemble`.)
 
 On the first compilation, gradle will download any Java dependencies
 automatically. Hence it may take a bit longer the first time.
 
-### Configure
+### Running
 
-If you wish to change the default configuration, you need to create a
-file `config/application.properties`. The easiest way is to copy the
-`config/application.properties.example` that is included in this git
-repository. Some of the most common configuration options are
-explained below.
+To run the server in port 8080 issue the command:
 
-#### TCP port
+    make run
 
-The default TCP port where the DiMe server runs is 8080, you can
-change this with the `server.port` setting.
+(Or `./gradlew run` if you don't have GNU Make.)
 
-    server.port=8080
+If you wish to change the TCP port of the server take a look at how to
+[configure the DiMe server][2] to use another port.
 
-#### Lucene search
-
-If you wish to use Lucene indexing for (much) better text search
-results, you currently have to enable it manually by setting the
-`dime.useLucene` option to `true`. There is also a
-`dime.luceneIndexPath` which is the directory where the index will be
-generated:
-
-    dime.useLucene=true
-    dime.luceneIndexPath=${user.home}/dime-lucene
-
-### Run
-
-To run the server issue the command:
-
-    ./gradlew run
-
-(Or `make run` if you prefer on Linux/Mac.)
-
-The DiMe server will automatically use a database named "dime" in the
-mongodb server.
+The DiMe server will put all its files, such as the database and
+Lucene search index under `~/.dime` in your home directory.
 
 Now you can access the DiMe dashboard by going to the address
-<http://localhost:8080> (if you are using the default port).
+<http://localhost:8080>.
 
 When you run DiMe the first time it will automatically create an
 `admin` user and show its randomly generated password in the command
 line.
 
-## Loggers
+## Documentation
 
-This repository currently includes the following loggers:
+The [project wiki page] has more detailed instructions and
+documentation of the API and development.
 
-### Linux desktop logger
+If you have any questions, don't hesitate to contact the lead
+developer [Mats Sjöberg](mailto:mats.sjoberg@helsinki.fi).
 
-- [Installation instructions][3]
-
-### Mac desktop logger
-
-- [Installation instructions][5]
-
-### Cross-platform browser history logger
-
-- [Installation instructions][10]
-
-
-[1]: http://docs.mongodb.org/v2.4/tutorial/enable-text-search/
-[2]: http://www.mongodb.org/
-[3]: https://github.com/HIIT/dime-server/wiki/Linux-desktop
-[4]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
-[5]: https://github.com/HIIT/dime-server/wiki/Mac-desktop
-[6]: http://brew.sh/
-[7]: https://www.macports.org/
-[8]: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
-[9]: http://docs.mongodb.org/manual/tutorial/install-mongodb-on-windows/
-[10]: https://github.com/HIIT/dime-server/wiki/Browser-logger
+[1]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+[2]: https://github.com/HIIT/dime-server/wiki/Configuration
+[3]: https://github.com/HIIT/dime-server/wiki
