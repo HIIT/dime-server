@@ -9,6 +9,7 @@ DOCKER_DB_DIR = ~/dime-db
 LOCAL_PROPERTIES = config/application-local.properties
 CLEAN_TMP_DIR = ~/.dime/tmp/cleandb
 AUTOGEN_TMP_DIR = ~/.dime/tmp/autogen
+DB_FILE = ~/.dime/database/h2.mv.db
 LOG_HEAD = "[MAKE]"
 
 all:	assemble
@@ -63,5 +64,5 @@ initSchema: autogenDb
 	rm -f src/main/resources/db/changelog/db.changelog-master.xml
 	$(GRADLE) generateChangelog
 
-updateSchema: autogenDb
+updateSchema: $(DB_FILE) autogenDb 
 	$(GRADLE) diffChangeLog
