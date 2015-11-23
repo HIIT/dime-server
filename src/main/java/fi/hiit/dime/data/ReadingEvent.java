@@ -39,6 +39,9 @@ import javax.persistence.OneToMany;
 @Entity
 public class ReadingEvent extends DesktopEvent {
     /** Boolean indicating if the event is a summary sent at the end of reading.
+    * Summary reading events contain more "refined" data, while non-summary reading events contain more detail.
+    * Summary reading events can contain united (non-floating) rectangles (but can contin floating rectangles).
+    * Non-summary reading events contain floating rectangles only. 
     */
     public Boolean isSummary;
 

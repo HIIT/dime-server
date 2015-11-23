@@ -66,14 +66,14 @@ public class Rect extends AbstractPersistable<Long> {
     public String plainTextContent;
 
     /** Floating rectangles have this flag set to true.
-     * Floating rectangles are created immediately and are sent in non-summary reading events. Non-floating
-     * rectangles are a union of floating rectangles created at the end of the reading session (document close).
+     * Floating rectangles are created immediately and are sent in non-summary reading events (only summary reading events can contain non-floating rectangles).
+     * Non-floating rectangles are a union of floating rectangles created at the end of the reading session (document close).
      */ 
     public Boolean floating;
 
     /** Vector of unix times (timestamps) representing when this rectangle was created.
      * If this rectangle is floating (see above) this array contains only one timestamp. If this rectangle is from a union
-     * (floating flag is false) it contains a timestamp for each "smaller" rectangled that was united into a bigger one.
+     * (floating flag is false) it contains a timestamp for each "smaller" rectangle that was united into a bigger one.
      */
     @ElementCollection(targetClass = Long.class)
     public List<Long> unixt;

@@ -293,7 +293,7 @@ def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl
 
 
 #
-def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=1):
+def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
 
     #INPUTS:
     #query = string from keyboard
@@ -316,7 +316,7 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     test_vec      = query2bow(query, dictionary)
 
     #Get keywords related to input query string 
-    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu)
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu, emphasize_kws)
 
 
 
@@ -345,62 +345,21 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
 
 
 #
-def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu, emphasize_kws=1):
+def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionary, c, mu, emphasize_kws=0):
 
     #INPUTS:
-    #test_vec   = bag of word representation of the input query string (taken from keyboard)
-    #X          = tfidf matrix of resources
-    #dictionary = gensim dictionary containing words taken from dime data
-    #c          = Exploitation/Exploration coefficient
+    #test_vec      = bag of word representation of the input query string (taken from keyboard)
+    #X             = tfidf matrix of resources
+    #dictionary    = gensim dictionary containing words taken from dime data
+    #c             = Exploitation/Exploration coefficient
+    #emphasize_kws = coefficient determining, how many times bigger the relevance scores of clicked keywords are in relation to relevance scores of written words    
     #OUTPUTS:
-    #vsinds     = list of indices of keywords
-    #kws        = list of keywords
+    #vsinds        = list of indices of keywords
+    #kws           = list of keywords
 
-    #Number of words in dictionary
-    nwords = len(dictionary)
-
-    #Full vector representation of test_vec (i.e. containing all word indices)
-    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
-
-    #Take indices of words occurring in the input
-    winds         = np.where(test_vec_full)
-    winds         = winds[0]
-
-    #Form observed relevance vector from test_vec_full
-    #If old observed relevance vector exists, add it to new relevance vector
-    if os.path.isfile('data/r_old.npy'):
-
-        #Load 
-        r             = np.zeros([test_vec_full.shape[0],1])
-        r_old         = np.load('data/r_old.npy')
-        oldwinds      = np.where(r_old)
-        r[oldwinds]   = 1.0
-        #Add old observed relevance vector into new one
-        r             = r + r_old
-        r[winds]      = 1.0
-        np.save('data/r_old.npy',r)
-
-        #Take inverse of all non-zeros of elements of r = r + r_old
-        thresval = 0.1
-        for i in range(len(r)):
-            if float(r[i]) > 0.0:
-                #
-                r[i] = 1.0/float(r[i])
-                #If value is less than thresval, put to zero
-                if float(r[i]) < thresval:
-                    #print("PUTTING TO ZERO!!!!!!")
-                    r[i] = 0.0
-    else:
-        r             = np.zeros([test_vec_full.shape[0],1])
-        r[winds]      = 1.0
-        np.save('data/r_old.npy',r)
-
-
-    #If emphasize_kws < 1 , decrease the observed relevance of other
-    #words, except the last observed words
-    if emphasize_kws < 1:
-        pass
-
+    #Determine the relevance score of observed words
+    print("EMPHASIZE: ",emphasize_kws)
+    r = relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws)
 
     #Check that regularization paramter is not 0 or below
     if mu <= 0.0:
@@ -460,6 +419,86 @@ def return_and_print_estimated_keyword_indices_and_values(test_vec, X, dictionar
         return vsinds, kws, vsum[vsinds]
     else:
         return [], [], []
+
+
+
+#Determines the relevance scores of observed words
+def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0):
+
+    #INPUT:
+    #test_vec   = bag of word representation of the input query string (taken from keyboard)
+    #dictionary = gensim dictionary containing words taken from dime data
+    #emphasize_kws = coefficient determining, how many times bigger the relevance scores of clicked keywords are in relation to relevance scores of written words    
+    #OUTPUT:
+    #r = vector containing determined relevance scores of observed words (values in the range [0,1])
+
+
+    #Number of words in dictionary
+    nwords = len(dictionary)
+
+    #Full vector representation of test_vec (i.e. containing all word indices)
+    test_vec_full = twotuplelist2fulllist(test_vec, nwords)
+
+    #Take indices of words occurring in the input
+    winds         = np.where(test_vec_full)
+    winds         = winds[0]
+
+    #Form observed relevance vector from test_vec_full
+    #If old observed relevance vector exists, add it to new relevance vector
+    if os.path.isfile('data/r_old.npy'):
+
+        #If emphasize_kws < 1 , decrease the observed relevance of other
+        #words, except the last observed words
+        if emphasize_kws > 0:
+            #Load 
+            r            = np.zeros([test_vec_full.shape[0],1])
+            #Make set out of the list of indices of words with non-zero relevance score
+            wind_set     = set(winds)
+            #
+            r_old        = np.load('data/r_old.npy')
+            oldwinds     = np.where(r_old)
+            oldwind_set  = set(oldwinds[0])
+            #Subtract the set of old word indices from the set of new word indices to get the newest words
+            new_wind_set = wind_set - oldwind_set
+            #Convert to list the 
+            new_winds    = list(new_wind_set)
+            r[winds]     = (1/emphasize_kws)*1.0
+            r[new_winds] = 1.0
+            print("INDICES OF CLICKED KWS: ",new_winds)
+            print("SCORES: ", r[new_winds], r[winds])
+
+        else:
+            #Load 
+            r             = np.zeros([test_vec_full.shape[0],1])
+            r_old         = np.load('data/r_old.npy')
+            oldwinds      = np.where(r_old)
+            r[oldwinds]   = 1.0
+            #Add old observed relevance vector into new one
+            r             = r + r_old
+            r[winds]      = 1.0
+            np.save('data/r_old.npy',r)
+
+            #Take inverse of all non-zeros of elements of r = r + r_old
+            thresval = 0.1
+            for i in range(len(r)):
+                if float(r[i]) > 0.0:
+                    #
+                    r[i] = 1.0/float(r[i])
+                    #If value is less than thresval, put to zero
+                    if float(r[i]) < thresval:
+                        #print("PUTTING TO ZERO!!!!!!")
+                        r[i] = 0.0
+
+    else:
+        print("HALLOO333333333333!!!")
+        r             = np.zeros([test_vec_full.shape[0],1])
+        r[winds]      = 1.0
+        np.save('data/r_old.npy',r)
+
+
+    #Return relevance scores of observed words
+    return r
+
 
 
 def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
