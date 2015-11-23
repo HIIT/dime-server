@@ -197,6 +197,9 @@ parser.add_argument('--knownitem', action='store_true',
                     help='perform known item search')
 parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
                     default=-1.0, help='use MMR with parameter lambda')
+#
+parser.add_argument('--emphasize_clicked_kws', metavar='LAMBDA', action='store', type=float,
+                    default=0, help='Emphasize clicked keywords.')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -356,6 +359,9 @@ wordlist_old = []
 filecategory_old = None
 
 #
+emphasize_clicked_kws = 0.0
+
+#
 print("Reading simulation queries from file", args.queries)
 #Open the file containing names of the test documents
 f = open(args.queries, 'r')
@@ -477,9 +483,11 @@ for j, line in enumerate(f):
         #Add the written word into the json -object corresponding the written document
         if click_added:
             iteration['click'] = dstr
+            emphasize_clicked_kws = args.emphasize_clicked_kws
         else:
             iteration['write'] = dstr
-        click_added = False
+        #
+        click_added = False                 
 
         #If nth word has been written, do search and keyword computing
         if i%divn == 0:
@@ -516,22 +524,24 @@ for j, line in enumerate(f):
 
             #Search docs from DiMe and compute keywords
             if args.dime_search_method == 1:
-                jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws=emphasize_clicked_kws)
             elif args.dime_search_method == 2:
                 #Number of suggested keywords added to query
                 #n_query_kws = 10
-                jsons, kws, winds, vsum = search_dime_using_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
+                jsons, kws, winds, vsum = search_dime_using_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws=emphasize_clicked_kws)
             elif args.dime_search_method == 3:
                 #Number of suggested keywords added to query
                 #n_query_kws = 10
-                jsons, kws, winds, vsum = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results)
-		
+                jsons, kws, winds, vsum = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws=emphasize_clicked_kws)
             #
-            print("KEYWORDS BEFORE RANKING: ")
-            if(len(vsum)>0):
-                #print(len(vsum))
-                for di in range(20):
-                    print(kws[di], vsum[di])
+            emphasize_clicked_kws = 0.0
+
+            #
+            # print("KEYWORDS BEFORE RANKING: ")
+            # if(len(vsum)>0):
+            #     #print(len(vsum))
+            #     for di in range(20):
+            #         print(kws[di], vsum[di])
 
             #MMR
             if args.mmr > 0:
@@ -543,7 +553,7 @@ for j, line in enumerate(f):
                 frackws = 0.001
                 kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
                 #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
-                print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")
+                # print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")
 
                 if(len(vsum)>0 and len(mmr_scores)>0):
                     #print(len(vsum))
@@ -553,8 +563,8 @@ for j, line in enumerate(f):
                         vsum_rr.append(vsum[ind])
 
                     #print(mmr_scores)
-                    for di in range(20):
-                        print(kws_rr[di], mmr_scores[di], vsum_rr[di])
+                    # for di in range(20):
+                    #     print(kws_rr[di], mmr_scores[di], vsum_rr[di])
 
                 #Substitute the reranked kws_rr to LinRel ranked kws
                 kws = kws_rr
