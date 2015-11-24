@@ -331,7 +331,7 @@ def query2relevancevector(query,dictionary,emphasize_kws=0):
     wind = get_wind(word,dictionary)
 
     #store index of emphasized word if emphasize_kws > 0
-    if(emphasize_kws>0):
+    if emphasize_kws>0 and wind == -1:
         if os.path.isfile('data/clicked_kwinds.npy'):
             clicked_kwinds = np.load('data/clicked_kwinds.npy')
             clicked_kwinds = np.append(clicked_kwinds, wind)

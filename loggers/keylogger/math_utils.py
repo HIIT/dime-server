@@ -258,8 +258,14 @@ def query2bow(query,dictionary):
 def get_wind(word, dictionary):
     #Convert the word into a nearest dictionary word
     closest_dictionary_word = difflib.get_close_matches(word, list(dictionary.values()))[0]
+
+    if len(closest_dictionary_word)==0:
+        return -1
+
+    #Take the first word from the list of similar words
+    closest_dictionary_word = closest_dictionary_word[0]
+
     #Get index of the word using the dictionary's member function doc2bow that returns list of tuples [...,(word_id, n_word),...]
-    dictionary.doc2bow([closest_dictionary_word])
     wind = dictionary.doc2bow([closest_dictionary_word])[0][0]    
     #
     return wind
