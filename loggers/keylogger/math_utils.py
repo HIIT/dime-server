@@ -257,7 +257,7 @@ def query2bow(query,dictionary):
 #Index of a single word
 def get_wind(word, dictionary):
     #Convert the word into a nearest dictionary word
-    closest_dictionary_word = difflib.get_close_matches(word, list(dictionary.values()))[0]
+    closest_dictionary_word = difflib.get_close_matches(word, list(dictionary.values()))
 
     if len(closest_dictionary_word)==0:
         return -1
