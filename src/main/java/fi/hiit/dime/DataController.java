@@ -84,7 +84,6 @@ public class DataController extends AuthorizedController {
     /**
      * Helper method to log each event uploaded.
      *
-     * @param eventName Name of event class
      * @param user      User object
      * @param input     The event object that was uploaded
      * @param dumpJson  Whether to also print the JSON of the event object

@@ -18,3 +18,4 @@ HOWTO
 /scripts/dime-events.json
 /loggers/keylogger/*.png
 /loggers/keylogger/*.pdf
+/bin/
