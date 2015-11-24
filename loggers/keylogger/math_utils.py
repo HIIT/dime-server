@@ -242,9 +242,11 @@ def query2bow(query,dictionary):
             test_wordlist[nword] = correctedword[0]
         else:
             test_wordlist[nword] = ' '
+
+    #
     print(("Search thread: Closest dictionary words: ", test_wordlist))
-    #f = open('data/test_wordlist.list','w')
-    #pickle.dump(test_wordlist,f)
+
+    #
     pickle.dump(test_wordlist, open('data/test_wordlist.list','wb'))
 
     #Make bag of word vector of the input string taken from keyboard
@@ -252,6 +254,15 @@ def query2bow(query,dictionary):
 
     return test_vec
 
+#Index of a single word
+def get_wind(word, dictionary):
+    #Convert the word into a nearest dictionary word
+    closest_dictionary_word = difflib.get_close_matches(word, list(dictionary.values()))[0]
+    #Get index of the word using the dictionary's member function doc2bow that returns list of tuples [...,(word_id, n_word),...]
+    dictionary.doc2bow([closest_dictionary_word])
+    wind = dictionary.doc2bow([closest_dictionary_word])[0][0]    
+    #
+    return wind
 
 #
 def twotuplelist2fulllist(tuplelist, nfeatures):
