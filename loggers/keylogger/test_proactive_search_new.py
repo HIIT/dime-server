@@ -201,6 +201,9 @@ parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
 parser.add_argument('--emphasize_clicked_kws', metavar='LAMBDA', action='store', type=float,
                     default=0, help='Emphasize clicked keywords.')
 
+parser.add_argument('--tfidf_model', metavar='N', action='store', type=int,
+                    default=1, help='1: Gensims default tf-idf -model, \n 2: log(tf)*(number_of_documents/df)')
+
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
                     default=1.0, help='Exploration/Exploitation coeff.')
@@ -313,7 +316,7 @@ if args.writeold:
         writeold_pos = int(parts[1])
 
 #update_data(srvurl, usrname, password)
-check_update(usrname, password)
+check_update(usrname, password, args.tfidf_model)
 #Load necessary data files 
 json_data = open('data/json_data.txt')
 #DiMe data in json -format

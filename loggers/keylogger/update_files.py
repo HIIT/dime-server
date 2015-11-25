@@ -81,7 +81,7 @@ def read_user_ini():
 
 
 #
-def update_all_data():
+def update_all_data(tfidf_model = 1):
 	
 	print("Update data!!")
 	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
@@ -97,14 +97,14 @@ def update_all_data():
 	update_data(srvurl, username, password)
 	update_dictionary()			
 	update_doctm(cpathd)
+	update_tfidf_model(cpathd, tfidf_model)	
 	update_doc_tfidf_list_sXdoctm_and_sX(cpathd)
 	update_docsim_model()
 	update_Xt_and_docindlist([0])
-	update_tfidf_model(cpathd)
 	create_stopwordlist(cpathd)	
 
 #Check whether to update data files
-def check_update(_username=None, _password=None):
+def check_update(_username=None, _password=None, tfidf_model = 1):
 
         #
         srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
@@ -140,7 +140,7 @@ def check_update(_username=None, _password=None):
                         update_Xt_and_docindlist([0])
 
                 if not os.path.isfile('data/tfidfmodel.model'):
-                        update_tfidf_model(cpathd)
+                        update_tfidf_model(cpathd, tfidf_model)
 
                 if not os.path.isfile('data/stopwordlist.list'):
                         create_stopwordlist(cpathd)
@@ -153,10 +153,10 @@ def check_update(_username=None, _password=None):
                 update_data(srvurl, username, password)
                 update_dictionary()
                 update_doctm(cpathd)
+                update_tfidf_model(cpathd,tfidf_model)
                 update_doc_tfidf_list_sXdoctm_and_sX(cpathd)
                 update_docsim_model()
                 update_Xt_and_docindlist([0])
-                update_tfidf_model(cpathd)
                 create_stopwordlist(cpathd)
 
 
@@ -310,30 +310,35 @@ def update_doctm(destinationfolder):
 
 
 #
-def update_tfidf_model(destinationfolder):
+def update_tfidf_model(destinationfolder, tfidf_model = 1):
 	#Import doctm
 	doctm = pickle.load(open('data/doctm.data','rb'))
 
 	#Learn tfidf model from the document term matrix
-	#tfidf = models.TfidfModel(doctm)
+	if tfidf_model == 1:
+		tfidf = models.TfidfModel(doctm)
+	elif tfidf_model == 2:
+		tfidf = models.TfidfModel(doctm, wlocal=tf_log2, wglobal=idf)
 	#tfidf = models.TfidfModel(doctm, wlocal=lambda tf: math.log2(tf+1), wglobal=lambda doc_freq, total_docs: total_docs / doc_freq)
-	tfidf = models.TfidfModel(doctm, wlocal=tf_log2, wglobal=idf)
+	
 	tfidf.save(destinationfolder+'/tfidfmodel.model')
 
 #Functions needed in formation of the tf-idf model
 def tf_log2(tf):
 	return math.log2(tf+1)
-
+#
 def idf(doc_freq, total_docs):
 	if doc_freq > 0:
 		return total_docs / doc_freq
 	else:
 		return 0
 
+
 #Updates the tfidf version of doctm (denoted by 'doc_tfidf_list')
 #and saves the 'doc_tfidf_list also in sparse matrix form (more specifically in scipy sparse csc_matrix form)
 def update_doc_tfidf_list_sXdoctm_and_sX(destinationfolder):
 
+	#
 	print("Update doc tfidf list and its corresponding sparse matrix repr.!")
 
 	#Import dictionary
@@ -343,7 +348,8 @@ def update_doc_tfidf_list_sXdoctm_and_sX(destinationfolder):
 	doctm = pickle.load(open('data/doctm.data','rb'))
 
 	#Learn tfidf model from the list of bows
-	tfidf = models.TfidfModel(doctm, wlocal=lambda tf: math.log2(tf+1), wglobal=lambda doc_freq, total_docs: total_docs / doc_freq)
+	tfidf = models.TfidfModel.load('data/tfidfmodel.model')
+	#tfidf = models.TfidfModel(doctm, wlocal=lambda tf: math.log2(tf+1), wglobal=lambda doc_freq, total_docs: total_docs / doc_freq)
 
 	#Make tfidf-list from doctm using the learned tfidf-model
 	doc_tfidf_list = []
@@ -553,10 +559,10 @@ def df_word_removal(sXdoctm, dictionary):
 		#Update dictionary dependent data files
 		dictionary.save('data/tmpdict.dict')
 		update_doctm('data/')
+		update_tfidf_model('data')
 		update_doc_tfidf_list_sXdoctm_and_sX('data/')
 		update_docsim_model()
 		update_Xt_and_docindlist([0])
-		update_tfidf_model('data/')
 		create_stopwordlist('data/')
 		#
 		#return dictionary
