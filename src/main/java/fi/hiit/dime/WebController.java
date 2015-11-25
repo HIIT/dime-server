@@ -29,8 +29,13 @@ import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
-import fi.hiit.dime.data.*;
-import fi.hiit.dime.database.*;
+import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.Message;
+import fi.hiit.dime.database.EventDAO;
+import fi.hiit.dime.database.InformationElementDAO;
+import fi.hiit.dime.search.SearchIndex;
+import fi.hiit.dime.search.TextSearchQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.Logger;
@@ -44,7 +49,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -149,19 +160,18 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     /* Search page */
     @RequestMapping("/search")
-    public String search(@ModelAttribute SearchQuery search,
+    public String search(@ModelAttribute TextSearchQuery query,
 			 Authentication authentication,
 			 Model model) {
 
 	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 	model.addAttribute("info", "");
 
-	String query = search.getQuery();
 	if (!query.isEmpty()) {
 	    List<InformationElement> results = null;
 	    try {
 		searchIndex.updateIndex(true);
-		results = searchIndex.textSearch(query, 100, userId);
+		results = searchIndex.search(query, 100, userId);
 		model.addAttribute("info", "(Lucene)");
 	    } catch (IOException e) {
 		LOG.warn("Lucene search failed [" + e + "].");
@@ -171,7 +181,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	    model.addAttribute("results", results);
 	}
 
-        model.addAttribute("search", search);
+        model.addAttribute("search", query);
 
 
         return "search";

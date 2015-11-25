@@ -25,8 +25,14 @@
 package fi.hiit.dime;
 
 import fi.hiit.dime.ApiController.ApiMessage;
-import fi.hiit.dime.data.*;
-import fi.hiit.dime.database.*;
+import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.Message;
+import fi.hiit.dime.data.MessageEvent;
+import fi.hiit.dime.data.ReadingEvent;
+import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.data.ScientificDocument;
+import fi.hiit.dime.search.SearchIndex;
 import fi.hiit.dime.util.RandomPassword;
 
 import org.junit.Test;

@@ -22,18 +22,22 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime;
+package fi.hiit.dime.search;
+
+import java.util.Arrays;
+import java.util.List;
 
 //------------------------------------------------------------------------------
 
-public class SearchQuery {
-    private String query = "";
-    
-    public String getQuery() {
-	return query;
+public class KeywordSearchQuery extends SearchQuery {
+    public List<WeightedKeyword> weightedKeywords = null;
+
+    public KeywordSearchQuery(WeightedKeyword[] query) {
+	this.weightedKeywords = Arrays.asList(query);
     }
 
-    public void setQuery(String query) {
-	this.query = query; 
+    @Override
+    public boolean isEmpty() {
+	return weightedKeywords != null && weightedKeywords.size() > 0;
     }
 }

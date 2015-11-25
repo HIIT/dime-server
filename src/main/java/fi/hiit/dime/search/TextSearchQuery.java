@@ -22,35 +22,28 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime;
+package fi.hiit.dime.search;
 
-import fi.hiit.dime.search.SearchIndex;
+//------------------------------------------------------------------------------
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.stereotype.Component;
+public class TextSearchQuery extends SearchQuery {
+    public String query;
 
-/**
-   This is just to start search index updating when server has started.
-*/
-@Component
-public class ContextRefreshedListener 
-    implements ApplicationListener<ContextRefreshedEvent> 
-{
-    private static final Logger LOG = LoggerFactory.getLogger(ContextRefreshedListener.class);
+    public TextSearchQuery() {
+	this.query = "";
+    }
 
-    @Autowired
-    private DiMeProperties dimeConfig;
+    public TextSearchQuery(String query) {
+	this.query = query;
+    }
 
-    @Autowired
-    protected SearchIndex searchIndex;
+    // getter and setter to make Thymeleaf believe this is a "bean"
+    public String getQuery() { return query; }
+    public void setQuery(String query) { this.query = query; }
 
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent event) {
-	LOG.info("Using Lucene for searching.");
-	searchIndex.updateIndex(false);
+    public boolean isEmpty() {
+	return query.isEmpty();
     }
 }
+

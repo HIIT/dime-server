@@ -24,7 +24,7 @@
 
 package fi.hiit.dime;
 
-import fi.hiit.dime.database.SearchIndex;
+import fi.hiit.dime.search.SearchIndex;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -22,13 +22,18 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.database;
+package fi.hiit.dime.search;
 
 import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.ReadingEvent;
 import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.database.EventDAO;
+import fi.hiit.dime.database.InformationElementDAO;
+import fi.hiit.dime.search.SearchQuery;
+import fi.hiit.dime.search.TextSearchQuery;
+import fi.hiit.dime.search.KeywordSearchQuery;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -47,6 +52,7 @@ import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
@@ -266,7 +272,7 @@ public class SearchIndex {
 		else
 		    skipped += 1;
 
-		LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
+		// LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
 		if (obj instanceof Event)
 		    eventDAO.setIndexed((Event)obj);
 		if (obj instanceof InformationElement)
@@ -331,8 +337,8 @@ public class SearchIndex {
        @param limit Maximum number of results to return
        @param userId DiMe user id.
     */
-    public List<InformationElement> textSearch(String query, int limit,
-					       Long userId)
+    public List<InformationElement> search(SearchQuery query, int limit,
+					   Long userId)
 	throws IOException
     {
 	if (limit < 0)
@@ -357,7 +363,16 @@ public class SearchIndex {
 
 	    BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
-	    Query textQuery = parser.parse(query, textQueryField);
+	    Query textQuery = null;
+	
+	    if (query instanceof TextSearchQuery) {
+		textQuery = basicTextQuery(((TextSearchQuery)query).query);
+	    } else if (query instanceof KeywordSearchQuery) {
+		textQuery = 
+		    keywordSearchQuery(((KeywordSearchQuery)query).weightedKeywords);
+	    } else {
+		textQuery = new MatchAllDocsQuery();
+	    }
 	    queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
 
 	    Query userQuery = new TermQuery(new Term(userIdField, userId.toString()));
@@ -390,4 +405,15 @@ public class SearchIndex {
 	}	 
 	return elems;
     }
+
+    protected Query basicTextQuery(String query) throws QueryNodeException {
+	return this.parser.parse(query, textQueryField);
+    }
+
+    protected Query keywordSearchQuery(List<WeightedKeyword> weightedKeywords) {
+	// Andrej: remove the line below, and add your code here
+
+	return new MatchAllDocsQuery();
+    }
+
 }
