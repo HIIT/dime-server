@@ -159,15 +159,13 @@ public class WebController extends WebMvcConfigurerAdapter {
 	String query = search.getQuery();
 	if (!query.isEmpty()) {
 	    List<InformationElement> results = null;
-	    if (dimeConfig.getUseLucene()) {
-		try {
-		    searchIndex.updateIndex(true);
-		    results = searchIndex.textSearch(query, 100, userId);
-		    model.addAttribute("info", "(Lucene)");
-		} catch (IOException e) {
-		    LOG.warn("Lucene search failed [" + e + "].");
-		    model.addAttribute("error", e);
-		}
+	    try {
+		searchIndex.updateIndex(true);
+		results = searchIndex.textSearch(query, 100, userId);
+		model.addAttribute("info", "(Lucene)");
+	    } catch (IOException e) {
+		LOG.warn("Lucene search failed [" + e + "].");
+		model.addAttribute("error", e);
 	    }
 
 	    model.addAttribute("results", results);

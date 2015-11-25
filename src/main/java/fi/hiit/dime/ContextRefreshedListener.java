@@ -50,11 +50,7 @@ public class ContextRefreshedListener
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent event) {
-	if (dimeConfig.getUseLucene()) {
-	    LOG.info("Using Lucene for searching.");
-	    searchIndex.updateIndex(false);
-	} else {
-	    LOG.info("Lucene not configured, search will not be available.");
-	}
+	LOG.info("Using Lucene for searching.");
+	searchIndex.updateIndex(false);
     }
 }

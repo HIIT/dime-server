@@ -24,10 +24,14 @@
 
 package fi.hiit.dime;
 
-import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.CurrentUser;
-import fi.hiit.dime.data.*;
-import fi.hiit.dime.database.*;
+import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.database.EventDAO;
+import fi.hiit.dime.database.InformationElementDAO;
+import fi.hiit.dime.database.SearchIndex;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,9 +109,7 @@ public class ApiController extends AuthorizedController {
 	       @RequestParam(defaultValue="-1") int limit) {
 	User user = getUser(auth);
 
-	if (!dimeConfig.getUseLucene()) {
-	    LOG.warn("Unable to search without Lucene. Please enable Lucene first.");
-	} else 	if (query.length() > 0) {
+	if (query.length() > 0) {
 	    try {
 		searchIndex.updateIndex(true);
 		List<InformationElement> resultsList = 
@@ -137,9 +139,7 @@ public class ApiController extends AuthorizedController {
 		    @RequestParam(defaultValue="-1") int limit) {
 	User user = getUser(auth);
 
-	if (!dimeConfig.getUseLucene()) {
-	    LOG.warn("Unable to search without Lucene. Please enable Lucene first.");
-	} else 	if (query.length() > 0) {
+	if (query.length() > 0) {
 	    try {
 		searchIndex.updateIndex(true);
 		List<InformationElement> resultsList = 

@@ -31,10 +31,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DiMeProperties {
     private String luceneIndexPath;
-    private boolean useLucene;
-
-    public void setUseLucene(boolean b) { useLucene = b; }
-    public boolean getUseLucene() { return useLucene; }
 
     public void setLuceneIndexPath(String s) { luceneIndexPath = s; }
     public String getLuceneIndexPath() { return luceneIndexPath; }
