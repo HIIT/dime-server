@@ -26,6 +26,7 @@ package fi.hiit.dime;
 
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.ResourcedEvent;
@@ -52,8 +53,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.servlet.ServletRequest;
 
 /**
@@ -114,17 +117,31 @@ public class ApiController extends AuthorizedController {
     protected InformationElement[] doSearch(SearchQuery query, int limit, User user)
 	throws IOException 
     {
-	if (query.isEmpty()) {
-	    LOG.debug("query empty");
+	if (query.isEmpty())
 	    return new InformationElement[0];
-	}
 
 	searchIndex.updateIndex(true);
 	
-	List<InformationElement> resList = searchIndex.search(query, limit, user.getId());
+	List<DiMeData> dataList = searchIndex.search(query, limit, user.getId());
+	
+	List<InformationElement> elemList = new ArrayList<InformationElement>();
+	Set<Long> seen = new HashSet<Long>();
 
-	InformationElement[] results = new InformationElement[resList.size()];
-	resList.toArray(results);	
+	for (DiMeData data : dataList) {
+	    InformationElement elem = null;
+	    if (data instanceof InformationElement)
+		elem = (InformationElement)data;
+	    else if (data instanceof ResourcedEvent)
+		elem = ((ResourcedEvent)data).targettedResource;
+	    
+	    if (elem != null && !seen.contains(elem.getId())) {
+		elemList.add(elem);
+		seen.add(elem.getId());
+	    }
+	}
+
+	InformationElement[] results = new InformationElement[elemList.size()];
+	elemList.toArray(results);	
 
 	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
 			       query, limit, results.length));
@@ -143,16 +160,32 @@ public class ApiController extends AuthorizedController {
 	    return new Event[0];
 
 	searchIndex.updateIndex(true);
-	List<InformationElement> resList = searchIndex.search(query, limit, user.getId());
+	List<DiMeData> dataList = searchIndex.search(query, limit, user.getId());
 
 	List<Event> events = new ArrayList<Event>();
-	for (InformationElement elem : resList) {
-	    List<ResourcedEvent> expandedEvents = eventDAO.findByElement(elem, user);
-	    for (ResourcedEvent event : expandedEvents) {
-		event.targettedResource.plainTextContent = null;
-		event.score = event.targettedResource.score;
+	Set<Long> seen = new HashSet<Long>();
+
+	for (DiMeData data : dataList) {
+	    if (data instanceof InformationElement) {
+		List<ResourcedEvent> expandedEvents =
+		    eventDAO.findByElement((InformationElement)data, user);
+		for (ResourcedEvent event : expandedEvents) {
+		    event.targettedResource.plainTextContent = null;
+		    event.score = event.targettedResource.score;
+		    if (!seen.contains(event.getId())) {
+			events.add(event);
+			seen.add(event.getId());
+		    }
+		}
+	    } else if (data instanceof Event) {
+		Event event = (Event)data;
+		if (!seen.contains(event.getId())) {
+		    if (event instanceof ResourcedEvent)
+			((ResourcedEvent)event).targettedResource.plainTextContent = null;
+		    events.add(event);
+		    seen.add(event.getId());
+		}
 	    }
-	    events.addAll(expandedEvents);
 	}
 	    
 	Event[] results = new Event[events.size()];
@@ -171,7 +204,6 @@ public class ApiController extends AuthorizedController {
 	       @RequestParam(defaultValue="-1") int limit) 
     {
 	User user = getUser(auth);
-	LOG.debug("foo1 = " + query);
 
 	try {
 	    TextSearchQuery textQuery = new TextSearchQuery(query);

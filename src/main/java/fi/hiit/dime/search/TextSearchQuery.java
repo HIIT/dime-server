@@ -45,5 +45,10 @@ public class TextSearchQuery extends SearchQuery {
     public boolean isEmpty() {
 	return query.isEmpty();
     }
+    
+    @Override
+    public String toString() {
+	return this.query;
+    }
 }
 

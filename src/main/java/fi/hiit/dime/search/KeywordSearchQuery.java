@@ -24,20 +24,37 @@
 
 package fi.hiit.dime.search;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 //------------------------------------------------------------------------------
 
 public class KeywordSearchQuery extends SearchQuery {
-    public List<WeightedKeyword> weightedKeywords = null;
+    public List<WeightedKeyword> weightedKeywords;
+
+    public KeywordSearchQuery() {
+	weightedKeywords = new ArrayList<WeightedKeyword>();
+    }
 
     public KeywordSearchQuery(WeightedKeyword[] query) {
 	this.weightedKeywords = Arrays.asList(query);
     }
 
+    public void add(String word, double weight) {
+	weightedKeywords.add(new WeightedKeyword(word, weight));
+    }
+
     @Override
     public boolean isEmpty() {
-	return weightedKeywords != null && weightedKeywords.size() > 0;
+	return weightedKeywords == null || weightedKeywords.size() == 0;
+    }
+
+    @Override
+    public String toString() {
+	StringBuilder s = new StringBuilder();
+	for (WeightedKeyword kw : weightedKeywords) 
+	    s.append(String.format("%s (%f) ", kw.word, kw.weight));
+	return s.toString();
     }
 }

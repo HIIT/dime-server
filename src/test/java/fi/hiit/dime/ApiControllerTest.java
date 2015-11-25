@@ -32,6 +32,7 @@ import fi.hiit.dime.data.MessageEvent;
 import fi.hiit.dime.data.ReadingEvent;
 import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.data.ScientificDocument;
+import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
 import fi.hiit.dime.util.RandomPassword;
 
@@ -198,5 +199,26 @@ public class ApiControllerTest extends RestTest {
 
 	// Because we are nulling the document content
 	assertEquals(null, res.targettedResource.plainTextContent);	
+    }
+
+    @Test
+    public void testKeywordSearch() throws Exception {
+	String magicText = "foobarbaz";
+ 	ScientificDocument doc = createScientificDocument(randomText);
+	ReadingEvent re = createReadingEvent(doc, magicText);
+	re.appId = "hgfewiuhoi543rughierh";
+
+	uploadEvent(re, ReadingEvent.class);
+
+	KeywordSearchQuery query = new KeywordSearchQuery();
+	query.add("foobarbaz", 0.4);
+	query.add("tellus", 0.1);
+
+	dumpData("query", query);
+	Event[] res = uploadData(apiUrl("/eventkeywordsearch"), query.weightedKeywords,
+				 Event[].class);
+
+	dumpData("keyword search results", res);
+	assertEquals(1, res.length);
     }
 }

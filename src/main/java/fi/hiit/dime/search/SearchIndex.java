@@ -177,9 +177,9 @@ public class SearchIndex {
     }
 
     /**
-      Convert the Lucene doc id into an InformationElement object, 
+      Convert the Lucene doc id into an DiMeData object, 
     */
-    private InformationElement idToElement(String docId) {
+    private DiMeData idToObject(String docId) {
 	String[] parts = docId.split("_", 2);
 
 	if (parts.length == 2) {
@@ -189,9 +189,7 @@ public class SearchIndex {
 	    if (type.equals("elem")) {
 		return infoElemDAO.findById(id);
 	    } else if (type.equals("event")) {
-		Event event = eventDAO.findById(id);
-		if (event instanceof ResourcedEvent)
-		    return ((ResourcedEvent)event).targettedResource;
+		return eventDAO.findById(id);
 	    }
 	}
 
@@ -337,14 +335,13 @@ public class SearchIndex {
        @param limit Maximum number of results to return
        @param userId DiMe user id.
     */
-    public List<InformationElement> search(SearchQuery query, int limit,
-					   Long userId)
+    public List<DiMeData> search(SearchQuery query, int limit, Long userId)
 	throws IOException
     {
 	if (limit < 0)
 	    limit = 100;
 
-	List<InformationElement> elems = new ArrayList<InformationElement>();
+	List<DiMeData> objs = new ArrayList<DiMeData>();
 
 	try {
 	    if (reader == null) {
@@ -386,14 +383,14 @@ public class SearchIndex {
 		float score = hits[i].score;
 		String docId = doc.get(idField);
 		try {
-		    InformationElement elem = idToElement(docId);
-		    if (elem == null) {
+		    DiMeData obj = idToObject(docId);
+		    if (obj == null) {
 			LOG.error("Bad doc id: "+ docId);
-		    } else if (elem.user.getId().equals(userId)) {
-			elem.score = score;
-			elems.add(elem);
+		    } else if (obj.user.getId().equals(userId)) {
+			obj.score = score;
+			objs.add(obj);
 		    } else {
-			LOG.warn("Lucene returned result for wrong user: " + elem.getId());
+			LOG.warn("Lucene returned result for wrong user: " + obj.getId());
 		    }
 		} catch (NumberFormatException ex) {
 		    LOG.error("Lucene returned invalid id: {}", docId);
@@ -403,7 +400,7 @@ public class SearchIndex {
 	} catch (QueryNodeException e) {
 	     LOG.error("Exception: " + e);
 	}	 
-	return elems;
+	return objs;
     }
 
     protected Query basicTextQuery(String query) throws QueryNodeException {

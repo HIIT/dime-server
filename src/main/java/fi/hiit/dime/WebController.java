@@ -29,6 +29,7 @@ import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserCreateFormValidator;
 import fi.hiit.dime.authentication.UserService;
+import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.Message;
@@ -168,7 +169,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	model.addAttribute("info", "");
 
 	if (!query.isEmpty()) {
-	    List<InformationElement> results = null;
+	    List<DiMeData> results = null;
 	    try {
 		searchIndex.updateIndex(true);
 		results = searchIndex.search(query, 100, userId);

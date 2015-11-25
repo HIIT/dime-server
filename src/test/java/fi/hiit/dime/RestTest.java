@@ -318,6 +318,10 @@ public abstract class RestTest {
 	return uploadData(eventsApi, events, responseType, false);
     }
 
+    protected <S, T> T uploadData(String apiUrl, S data, Class<T> responseType) {
+	return uploadData(apiUrl, data, responseType, false);
+    }
+
     protected <S, T> T uploadData(String apiUrl, S data, Class<T> responseType,
 			     boolean expectError) {
     	// Upload to DiMe

@@ -28,5 +28,13 @@ package fi.hiit.dime.search;
 
 public class WeightedKeyword {
     public String word;
+
     public double weight;
+
+    public WeightedKeyword() {}
+
+    public WeightedKeyword(String word, double weight) {
+	this.word = word;
+	this.weight = weight;
+    }
 }
