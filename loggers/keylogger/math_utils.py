@@ -223,10 +223,8 @@ def query2bow(query,dictionary):
     #inputs:
     #query      = string input
     #dictionary = gensim dictionary containing words taken from dime data
-
     #Output:
     #test_vec   = bag of word representation of query string
-
 
     #Make list of words from the query string
     test_wordlist = query.lower().split()
@@ -252,7 +250,9 @@ def query2bow(query,dictionary):
     #Make bag of word vector of the input string taken from keyboard
     test_vec = dictionary.doc2bow(test_wordlist)
 
+    #
     return test_vec
+
 
 #Index of a single word
 def get_wind(word, dictionary):
@@ -269,6 +269,7 @@ def get_wind(word, dictionary):
     wind = dictionary.doc2bow([closest_dictionary_word])[0][0]    
     #
     return wind
+
 
 #
 def twotuplelist2fulllist(tuplelist, nfeatures):

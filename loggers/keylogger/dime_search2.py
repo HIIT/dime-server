@@ -343,14 +343,12 @@ def query2relevancevector(query,dictionary,emphasize_kws=0):
             np.save('data/clicked_kwinds.npy',np.array([]))
         clicked_kwinds = np.array([])
 
-
     #Convert query into bag of words representation
     test_vec      = query2bow(query, dictionary)
 
     #Determine the relevance score of observed words
     print("INDICES OF EMPHASIZED WORDS: ", clicked_kwinds)
     r = relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws, clicked_kwinds.tolist())
-    #r = relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws)
 
     #
     return r
