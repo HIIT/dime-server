@@ -40,10 +40,12 @@ import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -266,18 +268,25 @@ public class SearchIndex {
 		}
 	    }
 
+		// create a field that stores term vectors, i.e. tf (idf) values
+		FieldType fieldType = new FieldType();
+		fieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
+		fieldType.setStored(false);
+		fieldType.setStoreTermVectors(true);
+		fieldType.setTokenized(true);
+
 	    long tot = toIndex.size();
 	    for (DiMeData obj : toIndex) {
-		if (indexElement(writer, obj))
-		    count += 1;
-		else
-		    skipped += 1;
+	    	if (indexElement(writer, obj, fieldType))
+	    		count += 1;
+	    	else
+	    		skipped += 1;
 
-		// LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
-		if (obj instanceof Event)
-		    eventDAO.setIndexed((Event)obj);
-		if (obj instanceof InformationElement)
-		    infoElemDAO.setIndexed((InformationElement)obj);
+	    	// LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
+	    	if (obj instanceof Event)
+	    		eventDAO.setIndexed((Event)obj);
+	    	if (obj instanceof InformationElement)
+	    		infoElemDAO.setIndexed((InformationElement)obj);
 	    }
 
 	    LOG.debug("Writing Lucene index to disk ...");
@@ -306,7 +315,7 @@ public class SearchIndex {
        @param obj data object to add
        @return true if object was added
     */
-    protected boolean indexElement(IndexWriter writer, DiMeData obj)
+    protected boolean indexElement(IndexWriter writer, DiMeData obj, FieldType fieldType)
 	throws IOException 
     {
 	String content = dataContent(obj);
@@ -323,7 +332,8 @@ public class SearchIndex {
 
 	doc.add(new StringField(userIdField, obj.user.getId().toString(), Field.Store.YES));
 
-	doc.add(new TextField(textQueryField, content, Field.Store.NO));
+	//doc.add(new TextField(textQueryField, content, Field.Store.NO));
+	doc.add(new Field(textQueryField, content, fieldType));
 
 	// doc.add(new LongField("modified", lastModified, Field.Store.NO));
 
