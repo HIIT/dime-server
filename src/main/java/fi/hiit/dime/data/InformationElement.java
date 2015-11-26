@@ -81,11 +81,6 @@ public class InformationElement extends DiMeData {
      */
     public String isStoredAs;
 
-    /** Detailed data type according to the Semantic Desktop ontology: 
-	http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
-     */
-    public String type;
-
     /** Determines if this element is a stub, i.e. contains only the
         id of a previously uploaded object.
 

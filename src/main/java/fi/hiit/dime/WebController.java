@@ -172,7 +172,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	    List<DiMeData> results = null;
 	    try {
 		searchIndex.updateIndex(true);
-		results = searchIndex.search(query, 100, userId);
+		results = searchIndex.search(query, null, null, 100, userId);
 		model.addAttribute("info", "(Lucene)");
 	    } catch (IOException e) {
 		LOG.warn("Lucene search failed [" + e + "].");

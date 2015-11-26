@@ -5,6 +5,7 @@ import sys
 import socket
 import time
 import json
+import urllib
 
 #------------------------------------------------------------------------------
 
@@ -24,7 +25,7 @@ if r.status_code != requests.codes.ok:
 # make search query
 query = "dime"
 if len(sys.argv) > 1:
-    query = ' '.join(sys.argv[1:])
+    query = urllib.parse.quote(' '.join(sys.argv[1:]), safe='&=')
 
 r = requests.get(server_url + '/search?query={}&limit=10'.format(query),
                  headers={'content-type': 'application/json'},

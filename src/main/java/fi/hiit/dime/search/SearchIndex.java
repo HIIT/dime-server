@@ -28,7 +28,7 @@ import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.ReadingEvent;
-import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.data.SearchEvent;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.search.SearchQuery;
@@ -67,6 +67,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,9 +81,13 @@ public class SearchIndex {
     private static final String idField = "id";
     private static final String userIdField = "userId";
     private static final String textQueryField = "plainTextContent";
+    private static final String classField = "@type";
+    private static final String typeField = "type";
 
     private static final String versionField = "dime_version";
-    private static final String currentVersion = "2";
+    private static final String currentVersion = "4";
+
+    private static final String dataClassPrefix = "fi.hiit.dime.data.";
 
     private FSDirectory fsDir;
     private DirectoryReader reader = null;
@@ -203,6 +208,8 @@ public class SearchIndex {
     private String dataContent(DiMeData obj) {
 	if (obj instanceof ReadingEvent)
 	    return ((ReadingEvent)obj).plainTextContent;
+	else if (obj instanceof SearchEvent)
+	    return ((SearchEvent)obj).query;
 	else if (obj instanceof InformationElement)
 	    return ((InformationElement)obj).plainTextContent;
 
@@ -210,7 +217,20 @@ public class SearchIndex {
     }
 
     /**
-       Call to update index, e.g. after adding new information elements.
+       Return short class name for any DiMeData object.
+    */
+    private String getClassName(DiMeData obj) {
+	String fullClassName = obj.getClass().getName();
+	if (!fullClassName.startsWith(dataClassPrefix)) {
+	    LOG.error("Unexpected class name {}, doesn't start with '{}'.",
+		      fullClassName, dataClassPrefix);
+	    return null;
+	}
+	return fullClassName.substring(dataClassPrefix.length());
+    }
+
+    /**
+       call to update index, e.g. after adding new information elements.
 
        @return Number of elements that were newly indexed
     */
@@ -263,12 +283,19 @@ public class SearchIndex {
 		}
 	    }
 
+	    Map<String, Long> cHist = new HashMap<String, Long>();
+
 	    long tot = toIndex.size();
 	    for (DiMeData obj : toIndex) {
-		if (indexElement(writer, obj))
+		if (indexElement(writer, obj)) {
 		    count += 1;
-		else
+
+		    String cName = getClassName(obj);
+		    long c = cHist.containsKey(cName) ? cHist.get(cName) : 0;
+		    cHist.put(cName, c + 1);
+		} else {
 		    skipped += 1;
+		}
 
 		// LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
 		if (obj instanceof Event)
@@ -288,6 +315,11 @@ public class SearchIndex {
 		     (inLuceneCount >= 0 ? inLuceneCount + " previously indexed, " : "") + 
 		     "added {} new objects, skipped {} objects with empty content.",
 		     count, skipped);
+
+	    LOG.debug("Indexed of different classes:");
+	    for (Map.Entry<String, Long> entry : cHist.entrySet()) {
+		LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
+	    }
 		     
 	} catch (IOException e) {
 	    LOG.error("Exception while updating search index: " + e);
@@ -312,15 +344,21 @@ public class SearchIndex {
 	    return false;
 
 	String elemId = luceneId(obj);
-	LOG.debug("Indexing ", elemId);
+
+	String className = getClassName(obj);
+	if (className == null)
+	    return false;
+
+	String objType = "";
+	if (obj.type != null)
+	    objType = obj.type;
 
 	Document doc = new Document(); // NOTE: Lucene Document!
-
 	doc.add(new StringField(idField, elemId, Field.Store.YES));
-
 	doc.add(new StringField(userIdField, obj.user.getId().toString(), Field.Store.YES));
-
 	doc.add(new TextField(textQueryField, content, Field.Store.NO));
+	doc.add(new StringField(classField, className, Field.Store.YES));
+	doc.add(new StringField(typeField, objType, Field.Store.YES));
 
 	// doc.add(new LongField("modified", lastModified, Field.Store.NO));
 
@@ -335,7 +373,8 @@ public class SearchIndex {
        @param limit Maximum number of results to return
        @param userId DiMe user id.
     */
-    public List<DiMeData> search(SearchQuery query, int limit, Long userId)
+    public List<DiMeData> search(SearchQuery query, String className, String typeName, 
+				 int limit, Long userId)
 	throws IOException
     {
 	if (limit < 0)
@@ -372,8 +411,16 @@ public class SearchIndex {
 	    }
 	    queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
 
-	    Query userQuery = new TermQuery(new Term(userIdField, userId.toString()));
-	    queryBuilder.add(userQuery, BooleanClause.Occur.FILTER);
+	    queryBuilder.add(new TermQuery(new Term(userIdField, userId.toString())),
+			     BooleanClause.Occur.FILTER);
+
+	    if (className != null)
+		queryBuilder.add(new TermQuery(new Term(classField, className)), 
+				 BooleanClause.Occur.FILTER);
+
+	    if (typeName != null)
+		queryBuilder.add(new TermQuery(new Term(typeField, typeName)),
+				 BooleanClause.Occur.FILTER);
 
 	    TopDocs results = searcher.search(queryBuilder.build(), limit);
 	    ScoreDoc[] hits = results.scoreDocs;

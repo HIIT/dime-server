@@ -54,6 +54,11 @@ public class DiMeData extends AbstractPersistable<Long> {
     @JoinColumn(name = "user_id")
     public User user;
 
+    /** Detailed data type according to the Semantic Desktop ontology: 
+	http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
+     */
+    public String type;
+
     /** Method to call when ever a new object has been uploaded, e.g.
 	to clean up user provided data, or perform some house keeping
 	before storing in the database.

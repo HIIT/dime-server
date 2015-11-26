@@ -114,7 +114,8 @@ public class ApiController extends AuthorizedController {
        Helper method to transform the search results into an
        appropriate format for returning from the API.
     */
-    protected InformationElement[] doSearch(SearchQuery query, int limit, User user)
+    protected InformationElement[] doSearch(SearchQuery query, String className, 
+					    String typeName, int limit, User user)
 	throws IOException 
     {
 	if (query.isEmpty())
@@ -122,7 +123,8 @@ public class ApiController extends AuthorizedController {
 
 	searchIndex.updateIndex(true);
 	
-	List<DiMeData> dataList = searchIndex.search(query, limit, user.getId());
+	List<DiMeData> dataList =
+	    searchIndex.search(query, className, typeName, limit, user.getId());
 	
 	List<InformationElement> elemList = new ArrayList<InformationElement>();
 	Set<Long> seen = new HashSet<Long>();
@@ -143,8 +145,7 @@ public class ApiController extends AuthorizedController {
 	InformationElement[] results = new InformationElement[elemList.size()];
 	elemList.toArray(results);	
 
-	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
-			       query, limit, results.length));
+	LOG.info(String.format("Search query \"%s\" (limit=%d, className=%s, typeName=%s) returned %d results.", query, limit, className, typeName, results.length));
 	return results;
     }
 
@@ -153,14 +154,16 @@ public class ApiController extends AuthorizedController {
        results into their corresponding events for returning from the
        API.
     */
-    protected Event[] doEventSearch(SearchQuery query, int limit, User user) 
+    protected Event[] doEventSearch(SearchQuery query, String className,
+				    String typeName, int limit, User user) 
 	throws IOException 
     {
 	if (query.isEmpty())
 	    return new Event[0];
 
 	searchIndex.updateIndex(true);
-	List<DiMeData> dataList = searchIndex.search(query, limit, user.getId());
+	List<DiMeData> dataList = searchIndex.search(query, className, typeName,
+						     limit, user.getId());
 
 	List<Event> events = new ArrayList<Event>();
 	Set<Long> seen = new HashSet<Long>();
@@ -191,23 +194,25 @@ public class ApiController extends AuthorizedController {
 	Event[] results = new Event[events.size()];
 	events.toArray(results);
 
-	LOG.info(String.format("Search query \"%s\" (limit=%d) returned %d results.",
-			       query, limit, results.length));
+	LOG.info(String.format("Search query \"%s\" (limit=%d, className=%s, typeName=%s) returned %d results.", query, limit, className, typeName, results.length));
 		
 	return results;
     }
 
     @RequestMapping(value="/search", method = RequestMethod.GET)
     public ResponseEntity<InformationElement[]> 
-	search(Authentication auth, 
+	search(Authentication auth,
 	       @RequestParam String query,
+	       @RequestParam(value="@type", required=false) String className,
+	       @RequestParam(value="type", required=false) String typeName,
 	       @RequestParam(defaultValue="-1") int limit) 
     {
 	User user = getUser(auth);
 
 	try {
 	    TextSearchQuery textQuery = new TextSearchQuery(query);
-	    InformationElement[] results = doSearch(textQuery, limit, user);
+	    InformationElement[] results =
+		doSearch(textQuery, className, typeName, limit, user);
 
 	    return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
 	} catch (IOException e) {
@@ -220,12 +225,15 @@ public class ApiController extends AuthorizedController {
     public ResponseEntity<Event[]>
 	eventSearch(Authentication auth, 
 		    @RequestParam String query,
+		    @RequestParam(value="@type", required=false) String className,
+		    @RequestParam(value="type", required=false) String typeName,
 		    @RequestParam(defaultValue="-1") int limit) {
 	User user = getUser(auth);
 
 	try {
 	    TextSearchQuery textQuery = new TextSearchQuery(query);
-	    Event[] results = doEventSearch(textQuery, limit, user);
+	    Event[] results = 
+		doEventSearch(textQuery, className, typeName, limit, user);
 
 	    return new ResponseEntity<Event[]>(results, HttpStatus.OK);
 	} catch (IOException e) {
@@ -241,7 +249,7 @@ public class ApiController extends AuthorizedController {
 
 	try {
 	    KeywordSearchQuery query = new KeywordSearchQuery(input);
-	    InformationElement[] results = doSearch(query, -1, user);
+	    InformationElement[] results = doSearch(query, null, null, -1, user);
 	    
 	    return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
 	} catch (IOException e) {
@@ -258,7 +266,7 @@ public class ApiController extends AuthorizedController {
 
 	try {
 	    KeywordSearchQuery query = new KeywordSearchQuery(input);
-	    Event[] results = doEventSearch(query, -1, user);
+	    Event[] results = doEventSearch(query, null, null, -1, user);
 
 	    return new ResponseEntity<Event[]>(results, HttpStatus.OK);
 	} catch (IOException e) {

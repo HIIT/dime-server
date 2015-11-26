@@ -67,11 +67,6 @@ public abstract class Event extends DiMeData {
     @Embedded
     public Location location;
 
-    /** Detailed type of event, using the Semantic Desktop ontology, see:
-	http://www.semanticdesktop.org/ontologies/2010/01/25/nuao
-     */
-    public String type;
-
     /** Time stamp when the event was started. Format example: 2015-08-11T12:56:53Z
      */
     public Date start;

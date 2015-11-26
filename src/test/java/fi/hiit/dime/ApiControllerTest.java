@@ -32,6 +32,7 @@ import fi.hiit.dime.data.MessageEvent;
 import fi.hiit.dime.data.ReadingEvent;
 import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.data.ScientificDocument;
+import fi.hiit.dime.data.SearchEvent;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
 import fi.hiit.dime.util.RandomPassword;
@@ -92,8 +93,8 @@ public class ApiControllerTest extends RestTest {
     	assertEquals(0, searchResEmpty.length);
 
 	// Create some events with messages
-	int numEvents = 11;
-	MessageEvent[] events = new MessageEvent[numEvents];
+	int numEvents = 12;
+	Event[] events = new Event[numEvents];
 
 	Set<Integer> idxToFind = new HashSet<Integer>();
 	idxToFind.add(2);
@@ -103,7 +104,7 @@ public class ApiControllerTest extends RestTest {
 
 	RandomPassword rand = new RandomPassword();
 
-	for (int i=0; i<numEvents-1; i++) {
+	for (int i=0; i<numEvents-2; i++) {
 	    String content = rand.getPassword(10, false, false);
 	    if (idxToFind.contains(i)) 
 		content += " " + magicWord;
@@ -117,25 +118,33 @@ public class ApiControllerTest extends RestTest {
 	}
 	
 	// Make a last event which contains a duplicate message
-	MessageEvent lastEvent = new MessageEvent();
-	lastEvent.targettedResource = events[5].targettedResource;
+	MessageEvent extraEvent = new MessageEvent();
+	extraEvent.targettedResource = ((MessageEvent)events[5]).targettedResource;
 
-	events[numEvents-1] = lastEvent;
+	events[numEvents-2] = extraEvent;
+
+	SearchEvent searchEvent = new SearchEvent();
+	searchEvent.query = "foobar";
+	searchEvent.appId = "i43ruhutfiu5rhuhuhg";
+	
+	events[numEvents-1] = searchEvent;
+
+	dumpData("TESTSEARCH", events);
 
 	// Upload them to DiMe
-	MessageEvent[] uploadedEvents = uploadEvents(events, MessageEvent[].class);
+	Event[] uploadedEvents = uploadEvents(events, Event[].class);
 
 	assertEquals(numEvents, uploadedEvents.length);
 
 	// Record ids of messages to be found by search
 	Set<Long> idToFind = new HashSet<Long>();
-	for (int i=0; i<numEvents; i++) {
+	for (int i=0; i<numEvents-1; i++) {
 	    if (idxToFind.contains(i))
-		idToFind.add(uploadedEvents[i].targettedResource.getId());
+		idToFind.add(((MessageEvent)uploadedEvents[i]).targettedResource.getId());
 	}
 
 	// Now try searching for the ones in idxToFind
-	InformationElement[] searchRes = doSearch(magicWord);
+	InformationElement[] searchRes = doSearch(magicWord+"&@type=Message");
 
 	dumpData("searchRes", searchRes);
 
@@ -153,12 +162,12 @@ public class ApiControllerTest extends RestTest {
 	assertEquals(idToFind, idFound);
 
 	// Try searching as events
-	Event[] searchEventsRes = doEventSearch(magicWord);
+	Event[] searchEventsRes = doEventSearch(magicWord+"&@type=Message");
 	
 	dumpData("searchEventsRes", searchEventsRes);
 
 	// Check that we have the expected number of results
-	// +1 because we added a last event with duplicate msg
+	// +1 because we added an extra event with duplicate msg
     	assertEquals(idxToFind.size()+1, searchEventsRes.length);
 	
 	Set<Long> idFound2 = new HashSet<Long>();
@@ -173,6 +182,14 @@ public class ApiControllerTest extends RestTest {
 
 	// Check that the ids are exactly those expected
 	assertEquals(idToFind, idFound2);
+
+	// Search for SearchEvents only
+	Event[] searchByTypeRes = doEventSearch("foobar&@type=SearchEvent");
+
+	assertEquals(1, searchByTypeRes.length);
+	assertEquals(searchEvent.appId, searchByTypeRes[0].appId);
+	assertTrue(searchByTypeRes[0] instanceof SearchEvent);
+	assertEquals(searchEvent.query, ((SearchEvent)searchByTypeRes[0]).query);
     }
 
     @Test
