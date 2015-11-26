@@ -36,6 +36,10 @@ import math
 #
 #import matplotlib.pyplot as plt
 
+#import matplotlib
+#matplotlib.use("Agg")
+#import matplotlib.pyplot as plt
+
 #
 import os
 
@@ -246,6 +250,8 @@ def update_dictionary():
 
 	#Create dictionary
 	dictionary = corpora.Dictionary([wordlist])
+
+        #dictionary.filter_extremes(no_below=5, no_above=0.5)
 
 	#Save dictionary for future use
 	dictionary.save('data/tmpdict.dict')
@@ -507,65 +513,76 @@ def make_full_tfidf_array(tfidf_vec, dictionary):
 
 #Remove words from dictionary based on df-value (df = document frequency)
 #of each word
-def df_word_removal(sXdoctm, dictionary):
+def df_word_removal(sXdoctm, dictionary, no_below=5, no_above=0.1):
 
-	#
-	print("update_files: df_word_removal: Removing common words from dictionary!!")
-	sX = sXdoctm
+        #
+        print("update_files: df_word_removal: Removing rare and common words",
+              "from dictionary with no_below=", no_below,
+              ", no_above=", no_above)
+        sX = sXdoctm
 
-	#Number of documents
-	N = sX.shape[0]
-	N = float(N)
+        #Number of documents
+        N = sX.shape[0]
+        N = float(N)
 
-	#Create boolean matrices
-	boolmat = sX > 0
-	boolmat = boolmat.tolil()
-	#Create zero sparse matrix
-	O = scipy.sparse.lil_matrix(np.zeros(sX.shape))
-	O[boolmat] = 1.0
-	O = O.tocsc()
+        #Create boolean matrices
+        boolmat = sX > 0
+        boolmat = boolmat.tolil()
+        #Create zero sparse matrix
+        O = scipy.sparse.lil_matrix(np.zeros(sX.shape))
+        O[boolmat] = 1.0
+        O = O.tocsc()
 
-	#print "shape of X", sX.shape
-	df_values = O.sum(0)
-	df_values = np.array(df_values)
-	df_values = df_values.T
+        #print "shape of X", sX.shape
+        df_values = O.sum(0)
+        df_values = np.array(df_values)
+        df_values = df_values.T
 
-	#Take indices of words having 1 < tf < c*N, where c in [0,1] and N = num. of docs
-	c = 0.1
-	boolvec = np.logical_or(df_values <= 1, df_values >= (c*N))
+        #print(df_values)
+        #np.save('df_values.npy', df_values)
+        #plt.hist(df_values, bins=100, log=True)
+        #hist, bin_edges = np.histogram(df_values, bins=100)
+        #plt.plot(hist, bin_edges.arange(0,100), linewidth=5, color='k')
+        #plt.savefig('hist.png')
+        #plt.show()
 
-	#print boolvec
-	inds    = np.where(boolvec == True)[0]
+        #Take indices of words having no_below < tf < no_above*N,
+        #where no_above in [0,1] and N = num. of docs
+        boolvec = np.logical_or(df_values <= no_below,
+                                df_values >= (no_above*N))
 
-	#Number of words before filtering
-	nwords_before = len(dictionary)
-	#Remove bad words from dictionary (i.e. words having tfidf < 1)
-	dictionary.filter_tokens(bad_ids = inds)
-	#Assign new word ids to all words after filtering.
-	dictionary.compactify()
-	#
-	nwords_after = len(dictionary)
+        #print boolvec
+        inds    = np.where(boolvec == True)[0]
+
+        #Number of words before filtering
+        nwords_before = len(dictionary)
+        #Remove bad words from dictionary (i.e. words having tfidf < 1)
+        dictionary.filter_tokens(bad_ids = inds)
+        #Assign new word ids to all words after filtering.
+        dictionary.compactify()
+        #
+        nwords_after = len(dictionary)
 
 
-	print("new and old ", nwords_before, nwords_after)
+        print("new and old ", nwords_before, nwords_after)
 
-	#
-	dictionary_changed = False
-	if nwords_before != nwords_after:
-		dictionary_changed = True
+        #
+        dictionary_changed = False
+        if nwords_before != nwords_after:
+                dictionary_changed = True
 
-	if dictionary_changed:
-		print("update_files: df_word_removal: Dictionary changed!")
-		#Update dictionary dependent data files
-		dictionary.save('data/tmpdict.dict')
-		update_doctm('data/')
-		update_tfidf_model('data')
-		update_doc_tfidf_list_sXdoctm_and_sX('data/')
-		update_docsim_model()
-		update_Xt_and_docindlist([0])
-		create_stopwordlist('data/')
-		#
-		#return dictionary
+        if dictionary_changed:
+                print("update_files: df_word_removal: Dictionary changed!")
+                #Update dictionary dependent data files
+                dictionary.save('data/tmpdict.dict')
+                update_doctm('data/')
+                update_tfidf_model('data')
+                update_doc_tfidf_list_sXdoctm_and_sX('data/')
+                update_docsim_model()
+                update_Xt_and_docindlist([0])
+                create_stopwordlist('data/')
+                #
+                #return dictionary
 
 
 
