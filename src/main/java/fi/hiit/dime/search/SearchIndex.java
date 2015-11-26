@@ -51,6 +51,8 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.search.BooleanClause;
@@ -62,6 +64,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -392,23 +395,40 @@ public class SearchIndex {
 	    ScoreDoc[] hits = results.scoreDocs;
 
 	    for (int i=0; i<hits.length; i++) {
-		Document doc = searcher.doc(hits[i].doc);
-		float score = hits[i].score;
-		String docId = doc.get(idField);
-		try {
-		    DiMeData obj = idToObject(docId);
-		    if (obj == null) {
-			LOG.error("Bad doc id: "+ docId);
-		    } else if (obj.user.getId().equals(userId)) {
-			obj.score = score;
-			objs.add(obj);
-		    } else {
-			LOG.warn("Lucene returned result for wrong user: " + obj.getId());
-		    }
-		} catch (NumberFormatException ex) {
-		    LOG.error("Lucene returned invalid id: {}", docId);
-		}
-	
+	    	Document doc = searcher.doc(hits[i].doc);
+	    	float score = hits[i].score;
+	    	String docId = doc.get(idField);
+	    	try {
+	    		DiMeData obj = idToObject(docId);
+	    		if (obj == null) {
+	    			LOG.error("Bad doc id: "+ docId);
+	    		} else if (obj.user.getId().equals(userId)) {
+	    			obj.score = score;
+	    			objs.add(obj);
+	    		} else {
+	    			LOG.warn("Lucene returned result for wrong user: " + obj.getId());
+	    		}
+	    	} catch (NumberFormatException ex) {
+	    		LOG.error("Lucene returned invalid id: {}", docId);
+	    	}
+	    	
+	    	// TODO: return the tf idf values to memex
+			// get the terms from the current document
+	    	Terms termVec = reader.getTermVector(hits[i].doc, textQueryField);
+			// create enumerator for the terms
+	    	TermsEnum termsEnum = termVec.iterator();
+
+	    	// iterate over all terms of the current document
+			BytesRef termText; // term in utf8 encoding
+			String term; // term converted to string
+			List<WeightedKeyword> weightedKeywords = new ArrayList<WeightedKeyword>();
+			while( (termText = termsEnum.next()) != null ){
+				term = termText.utf8ToString();
+				WeightedKeyword wk = new WeightedKeyword(term, termsEnum.docFreq());
+				weightedKeywords.add(wk);
+			}
+			// return weightedKeywords for single or all documents to memex
+
 	    }
 	} catch (QueryNodeException e) {
 	     LOG.error("Exception: " + e);
