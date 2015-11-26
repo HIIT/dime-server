@@ -316,9 +316,9 @@ def update_tfidf_model(destinationfolder, tfidf_model = 1):
 
 	#Learn tfidf model from the document term matrix
 	if tfidf_model == 1:
-		tfidf = models.TfidfModel(doctm)
+		tfidf = models.TfidfModel(doctm, normalize=True)
 	elif tfidf_model == 2:
-		tfidf = models.TfidfModel(doctm, wlocal=tf_log2, wglobal=idf)
+		tfidf = models.TfidfModel(doctm, wlocal=tf_log2, wglobal=idf, normalize=True)
 	#tfidf = models.TfidfModel(doctm, wlocal=lambda tf: math.log2(tf+1), wglobal=lambda doc_freq, total_docs: total_docs / doc_freq)
 	
 	tfidf.save(destinationfolder+'/tfidfmodel.model')

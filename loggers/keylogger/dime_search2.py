@@ -354,6 +354,8 @@ def query2relevancevector(query,dictionary,emphasize_kws=0):
     return r
 
 
+
+
 #Determines the relevance scores of observed words
 def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emphasize_winds=[]):
 
@@ -415,16 +417,52 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
             print("RELEVANCE VALUES: ",new_winds,r[new_winds])
             print("INDICES OF CLICKED KWS: ",new_winds)
             print("SCORES: ", r[new_winds], r[winds])
-
-        else:
-            #Load 
+        #Start decreasing the relevance score of the written word after the occurrence such that r(written_word) = 1/i,
+        #i = number of iterations after the occurrence of the word 'written_word'
+        elif emphasize_kws < 0:
+            #Initialize
             r             = np.zeros([test_vec_full.shape[0],1])
+            #Load
             r_old         = np.load('data/r_old.npy')
             oldwinds      = np.where(r_old)
             r[oldwinds]   = 1.0
             #Add old observed relevance vector into new one
             r             = r + r_old
             r[winds]      = 1.0
+            np.save('data/r_old.npy',r)
+
+            #Take inverse of all non-zeros of elements of r = r + r_old
+            thresval = 0.1
+            for i in range(len(r)):
+                if float(r[i]) > 0.0:
+                    #
+                    r[i] = 1.0/float(r[i])
+                    #If value is less than thresval, put to zero
+                    if float(r[i]) < thresval:
+                        #print("PUTTING TO ZERO!!!!!!")
+                        r[i] = 0.0
+        #Set the relevance score to 1.0 for each new word and 1/i for old word
+        elif emphasize_kws == 0:
+            #Initialize
+            r             = np.zeros([test_vec_full.shape[0],1])
+            #Make set out of the list of indices of words with non-zero relevance score
+            wind_set     = set(winds)            
+            #Load previous relevance vector
+            r_old         = np.load('data/r_old.npy')
+            #
+            oldwinds      = np.where(r_old)
+            oldwind_set   = set(oldwinds[0])
+            #Subtract the set of old word indices from the set of new word indices to get the newest words
+            only_old_wind_set  = set.difference(oldwind_set, wind_set)
+            only_old_wind_list = list(only_old_wind_set)
+            #
+            r[only_old_wind_list]   = 1.0
+            #Add old observed relevance vector into new one
+            r             = r_old + r
+            #Set to 1.0 the score of new words in the writing window
+            r[winds]      = 1.0
+            print("OBSERVED RELEVANCE SCORES: ", r[winds])
+            #
             np.save('data/r_old.npy',r)
 
             #Take inverse of all non-zeros of elements of r = r + r_old
@@ -721,7 +759,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
 
     #Compute XX^T
     sXtsXtT = sXt.dot(sXtT)
-    #Compute A matrix 
+    #Compute A matrix
     sdumA = mu*speye2 + sXtsXtT 
     #Compute inverse of sdumA
     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
