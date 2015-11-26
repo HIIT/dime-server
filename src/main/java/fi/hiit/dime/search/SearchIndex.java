@@ -35,6 +35,8 @@ import fi.hiit.dime.search.SearchQuery;
 import fi.hiit.dime.search.TextSearchQuery;
 import fi.hiit.dime.search.KeywordSearchQuery;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -88,6 +90,7 @@ public class SearchIndex {
     private DirectoryReader reader = null;
     private IndexSearcher searcher = null;
     private StandardQueryParser parser;
+    private Analyzer analyzer = new EnglishAnalyzer();
 
     @Autowired
     private InformationElementDAO infoElemDAO;
@@ -106,7 +109,7 @@ public class SearchIndex {
 	// FIXME: check if index was destroyed, i.e. would need
 	// reindexing
 
-	parser = new StandardQueryParser(new StandardAnalyzer());
+	parser = new StandardQueryParser(analyzer);
     }
 
     /**
@@ -116,7 +119,7 @@ public class SearchIndex {
        @return An IndexWriter instance
     */
     protected IndexWriter getIndexWriter() throws IOException {
-	IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
+	IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 
     	// Advice from Lucene example:
