@@ -41,8 +41,8 @@ public class KeywordSearchQuery extends SearchQuery {
 	this.weightedKeywords = Arrays.asList(query);
     }
 
-    public void add(String word, double weight) {
-	weightedKeywords.add(new WeightedKeyword(word, weight));
+    public void add(String term, float weight) {
+	weightedKeywords.add(new WeightedKeyword(term, weight));
     }
 
     @Override
@@ -54,7 +54,7 @@ public class KeywordSearchQuery extends SearchQuery {
     public String toString() {
 	StringBuilder s = new StringBuilder();
 	for (WeightedKeyword kw : weightedKeywords) 
-	    s.append(String.format("%s (%f) ", kw.word, kw.weight));
+	    s.append(String.format("%s (%f) ", kw.term, kw.weight));
 	return s.toString();
     }
 }

@@ -408,9 +408,21 @@ public class SearchIndex {
     }
 
     protected Query keywordSearchQuery(List<WeightedKeyword> weightedKeywords) {
-	// Andrej: remove the line below, and add your code here
+		BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
-	return new MatchAllDocsQuery();
+    	for (int i=0; i<weightedKeywords.size(); i++){
+	        // construct a term query from the current term
+	        TermQuery termQuery = new TermQuery(new Term(textQueryField, weightedKeywords.get(i).term));
+    		
+	        // boost the current term with the corresponding term frequency
+	        termQuery.setBoost(weightedKeywords.get(i).weight);
+
+	        // add the next clause to the boolean query
+	        queryBuilder.add(new BooleanClause(termQuery, BooleanClause.Occur.SHOULD));
+    	}
+    	
+		// create and return the new query
+		return queryBuilder.build();
     }
 
 }

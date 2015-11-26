@@ -27,14 +27,14 @@ package fi.hiit.dime.search;
 //------------------------------------------------------------------------------
 
 public class WeightedKeyword {
-    public String word;
+    public String term;
 
-    public double weight;
+    public float weight;
 
     public WeightedKeyword() {}
 
-    public WeightedKeyword(String word, double weight) {
-	this.word = word;
+    public WeightedKeyword(String term, float weight) {
+	this.term = term;
 	this.weight = weight;
     }
 }
