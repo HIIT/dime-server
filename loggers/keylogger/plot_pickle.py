@@ -24,15 +24,17 @@ for i in range(0,50):
 first = True
 meanvectorfn = "mean_" + sys.argv[1] +  '_'
 
-for a in sys.argv[2:]:
+clicking_starts = int(sys.argv[2])
+
+for a in sys.argv[3:]:
     print("Processing", a)
     f = open(a, 'rb')
     x = pickle.load(f)
     xmax = 0
     for i,xx in enumerate(x):
-        if xx[vindex]>xmax:
+        if i>clicking_starts-1 and xx[vindex]>xmax:
             xmax = xx[vindex]
-        if xx[vindex]<xmax:
+        if i>clicking_starts-1 and xx[vindex]<xmax:
             xx[vindex] = xmax
         if i<50 and not math.isnan(xx[vindex]):
             #print i,xx
