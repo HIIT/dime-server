@@ -203,6 +203,8 @@ parser.add_argument('--emphasize_clicked_kws', metavar='LAMBDA', action='store',
 
 parser.add_argument('--tfidf_model', metavar='N', action='store', type=int,
                     default=1, help='1: Gensims default tf-idf -model, \n 2: log(tf)*(number_of_documents/df)')
+parser.add_argument('--filter_df', metavar='A:B',
+                    help='filter keywords with df<=A or df>=B*N')
 
 #
 parser.add_argument('--c', metavar='N', action='store', type=float,
@@ -325,8 +327,10 @@ data       = json.load(json_data)
 sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
 #Load dictionary
 dictionary = corpora.Dictionary.load('data/tmpdict.dict')
-#Remove common words from dictionary
-#df_word_removal(sXdoctm, dictionary)
+#Remove rare and common words from dictionary
+if args.filter_df:
+    df_word_removal(sXdoctm, dictionary)
+
 #dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 #Load updated tfidf-matrix of the corpus
 sX         = load_sparse_csc('data/sX.sparsemat.npz')

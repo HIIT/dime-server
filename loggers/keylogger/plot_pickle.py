@@ -9,6 +9,7 @@ import numpy as np
 import os
 
 if 'DISPLAY' not in os.environ:
+# or os.environ['DISPLAY']==":0":
     import matplotlib
     matplotlib.use("Agg")
 
@@ -23,11 +24,18 @@ for i in range(0,50):
 first = True
 meanvectorfn = "mean_" + sys.argv[1] +  '_'
 
-for a in sys.argv[2:]:
+clicking_starts = int(sys.argv[2])
+
+for a in sys.argv[3:]:
     print("Processing", a)
     f = open(a, 'rb')
     x = pickle.load(f)
+    xmax = 0
     for i,xx in enumerate(x):
+        if i>clicking_starts-1 and xx[vindex]>xmax:
+            xmax = xx[vindex]
+        if i>clicking_starts-1 and xx[vindex]<xmax:
+            xx[vindex] = xmax
         if i<50 and not math.isnan(xx[vindex]):
             #print i,xx
             means[i].append(xx[vindex])
@@ -50,4 +58,5 @@ print("Saved", meanvectorfn)
 np.save(meanvectorfn, meanvector)
 
 plt.plot(np.arange(1,51), meanvector, linewidth=5, color='k')
+plt.savefig('pickle.png')
 plt.show()
