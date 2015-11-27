@@ -198,7 +198,9 @@ parser.add_argument('--knownitem', action='store_true',
 parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
                     default=-1.0, help='use MMR with parameter lambda')
 #
-parser.add_argument('--emphasize_clicked_kws', metavar='LAMBDA', action='store', type=float,
+parser.add_argument('--emphasize_clicked_kws', metavar='LAMBDA', action='store', type=int,
+                    default=0, help='Emphasize clicked keywords.')
+parser.add_argument('--emphasize_written_kws', metavar='LAMBDA', action='store', type=int,
                     default=0, help='Emphasize clicked keywords.')
 
 parser.add_argument('--tfidf_model', metavar='N', action='store', type=int,
@@ -366,7 +368,7 @@ wordlist_old = []
 filecategory_old = None
 
 #
-emphasize_clicked_kws = 0.0
+emphasize_kws = args.emphasize_written_kws
 
 #
 print("Reading simulation queries from file", args.queries)
@@ -531,17 +533,17 @@ for j, line in enumerate(f):
 
             #Search docs from DiMe and compute keywords
             if args.dime_search_method == 1:
-                jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws=emphasize_clicked_kws)
+                jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws)
             elif args.dime_search_method == 2:
                 #Number of suggested keywords added to query
                 #n_query_kws = 10
-                jsons, kws, winds, vsum = search_dime_using_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws=emphasize_clicked_kws)
+                jsons, kws, winds, vsum = search_dime_using_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws)
             elif args.dime_search_method == 3:
                 #Number of suggested keywords added to query
                 #n_query_kws = 10
-                jsons, kws, winds, vsum = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws=emphasize_clicked_kws)
+                jsons, kws, winds, vsum = search_dime_using_only_linrel_keywords(dstr2, args.n_query_kws, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws)
             #
-            emphasize_clicked_kws = 0.0
+            emphasize_clicked_kws = args.emphasize_written_kws
 
             #
             # print("KEYWORDS BEFORE RANKING: ")
