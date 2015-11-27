@@ -184,7 +184,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu, 
 
     docinds.sort()
     cpath = os.getcwd()
-    update_Xt_and_docindlist(docinds)
+    update_docindlist(docinds)
 
     return jsons, kws
 

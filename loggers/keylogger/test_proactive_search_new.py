@@ -202,9 +202,13 @@ parser.add_argument('--emphasize_clicked_kws', metavar='LAMBDA', action='store',
                     default=0, help='Emphasize clicked keywords.')
 parser.add_argument('--emphasize_written_kws', metavar='LAMBDA', action='store', type=int,
                     default=0, help='Emphasize clicked keywords.')
-
+#
 parser.add_argument('--tfidf_model', metavar='N', action='store', type=int,
                     default=1, help='1: Gensims default tf-idf -model, \n 2: log(tf)*(number_of_documents/df)')
+parser.add_argument('--normalize_tfidf_model', action='store_true',
+                    help='Normalize tf-idf model. \n If True, then the norms of feature vectors of keywords are 1.')
+
+#
 parser.add_argument('--filter_df', metavar='A:B',
                     help='filter keywords with df<=A or df>=B*N')
 
@@ -320,7 +324,7 @@ if args.writeold:
         writeold_pos = int(parts[1])
 
 #update_data(srvurl, usrname, password)
-check_update(usrname, password, args.tfidf_model)
+check_update(usrname, password, args.tfidf_model, args.normalize_tfidf_model)
 #Load necessary data files 
 json_data = open('data/json_data.txt')
 #DiMe data in json -format
@@ -331,7 +335,7 @@ sXdoctm    = load_sparse_csc('data/sXdoctm.sparsemat.npz')
 dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 #Remove rare and common words from dictionary
 if args.filter_df:
-    df_word_removal(sXdoctm, dictionary)
+    df_word_removal(sXdoctm, dictionary, args.tfidf_model, args.normalize_tfidf_model)
 
 #dictionary = corpora.Dictionary.load('/tmp/tmpdict.dict')
 #Load updated tfidf-matrix of the corpus

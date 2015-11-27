@@ -85,7 +85,7 @@ def read_user_ini():
 
 
 #
-def update_all_data(tfidf_model = 1):
+def update_all_data(tfidf_model = 1, normalize_tfidf_model=False):
 	
 	print("Update data!!")
 	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
@@ -101,14 +101,14 @@ def update_all_data(tfidf_model = 1):
 	update_data(srvurl, username, password)
 	update_dictionary()			
 	update_doctm(cpathd)
-	update_tfidf_model(cpathd, tfidf_model)	
+	update_tfidf_model(cpathd, tfidf_model, normalize_tfidf_model)	
 	update_doc_tfidf_list_sXdoctm_and_sX(cpathd)
 	update_docsim_model()
-	update_Xt_and_docindlist([0])
+	update_docindlist([0])
 	create_stopwordlist(cpathd)	
 
 #Check whether to update data files
-def check_update(_username=None, _password=None, tfidf_model = 1):
+def check_update(_username=None, _password=None, tfidf_model = 1, normalize_tfidf_model=False):
 
         #
         srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
@@ -141,7 +141,7 @@ def check_update(_username=None, _password=None, tfidf_model = 1):
                         update_docsim_model()
 
                 if not os.path.isfile('data/docindlist.list'):
-                        update_Xt_and_docindlist([0])
+                        update_docindlist([0])
 
                 if not os.path.isfile('data/tfidfmodel.model'):
                         update_tfidf_model(cpathd, tfidf_model)
@@ -157,10 +157,10 @@ def check_update(_username=None, _password=None, tfidf_model = 1):
                 update_data(srvurl, username, password)
                 update_dictionary()
                 update_doctm(cpathd)
-                update_tfidf_model(cpathd,tfidf_model)
+                update_tfidf_model(cpathd, tfidf_model, normalize_tfidf_model)
                 update_doc_tfidf_list_sXdoctm_and_sX(cpathd)
                 update_docsim_model()
-                update_Xt_and_docindlist([0])
+                update_docindlist([0])
                 create_stopwordlist(cpathd)
 
 
@@ -316,15 +316,18 @@ def update_doctm(destinationfolder):
 
 
 #
-def update_tfidf_model(destinationfolder, tfidf_model = 1):
+def update_tfidf_model(destinationfolder, tfidf_model = 1, normalize_tfidf_model = False):
+
+	print("Update tf-idf model.", tfidf_model, normalize_tfidf_model)
+
 	#Import doctm
 	doctm = pickle.load(open('data/doctm.data','rb'))
 
 	#Learn tfidf model from the document term matrix
 	if tfidf_model == 1:
-		tfidf = models.TfidfModel(doctm, normalize=True)
+		tfidf = models.TfidfModel(doctm, normalize=normalize_tfidf_model)
 	elif tfidf_model == 2:
-		tfidf = models.TfidfModel(doctm, wlocal=tf_log2, wglobal=idf, normalize=True)
+		tfidf = models.TfidfModel(doctm, wlocal=tf_log2, wglobal=idf, normalize=normalize_tfidf_model)
 	#tfidf = models.TfidfModel(doctm, wlocal=lambda tf: math.log2(tf+1), wglobal=lambda doc_freq, total_docs: total_docs / doc_freq)
 	
 	tfidf.save(destinationfolder+'/tfidfmodel.model')
@@ -424,7 +427,7 @@ def load_sparse_csc(filename):
                          shape = loader['shape'])	
 
 #
-def update_Xt_and_docindlist(docindlist):
+def update_docindlist(docindlist):
 
 	#print docindlist 
 	#Import X matrix needed in LinRel
@@ -513,7 +516,7 @@ def make_full_tfidf_array(tfidf_vec, dictionary):
 
 #Remove words from dictionary based on df-value (df = document frequency)
 #of each word
-def df_word_removal(sXdoctm, dictionary, no_below=5, no_above=0.1):
+def df_word_removal(sXdoctm, dictionary, no_below=5, no_above=0.1, tfidf_model = 1, normalize_tfidf_model=False):
 
         #
         print("update_files: df_word_removal: Removing rare and common words",
@@ -576,10 +579,10 @@ def df_word_removal(sXdoctm, dictionary, no_below=5, no_above=0.1):
                 #Update dictionary dependent data files
                 dictionary.save('data/tmpdict.dict')
                 update_doctm('data/')
-                update_tfidf_model('data')
+                update_tfidf_model('data',tfidf_model,normalize_tfidf_model)
                 update_doc_tfidf_list_sXdoctm_and_sX('data/')
                 update_docsim_model()
-                update_Xt_and_docindlist([0])
+                update_docindlist([0])
                 create_stopwordlist('data/')
                 #
                 #return dictionary
