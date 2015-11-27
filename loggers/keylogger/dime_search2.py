@@ -414,21 +414,24 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
                 r[new_winds] = r[new_winds]/np.linalg.norm(r[new_winds])
 
             #
-            print("RELEVANCE VALUES: ",new_winds,r[new_winds])
-            print("INDICES OF CLICKED KWS: ",new_winds)
-            print("SCORES: ", r[new_winds], r[winds])
+            # print("RELEVANCE VALUES: ",new_winds,r[new_winds])
+            # print("INDICES OF CLICKED KWS: ",new_winds)
+            # print("SCORES: ", r[new_winds], r[winds])
+            print("OBSERVED RELEVANCE SCORES when emphasize_kws > 0: ", r[winds])
         #Start decreasing the relevance score of the written word after the occurrence such that r(written_word) = 1/i,
         #i = number of iterations after the occurrence of the word 'written_word'
-        elif emphasize_kws < 0:
+        elif emphasize_kws == 0:
             #Initialize
             r             = np.zeros([test_vec_full.shape[0],1])
+            r[winds]      = 1.0
             #Load
             r_old         = np.load('data/r_old.npy')
+            #Take indices of non-zero elemnts
             oldwinds      = np.where(r_old)
+            oldwinds      = oldwinds[0]
             r[oldwinds]   = 1.0
             #Add old observed relevance vector into new one
             r             = r + r_old
-            r[winds]      = 1.0
             np.save('data/r_old.npy',r)
 
             #Take inverse of all non-zeros of elements of r = r + r_old
@@ -441,8 +444,13 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
                     if float(r[i]) < thresval:
                         #print("PUTTING TO ZERO!!!!!!")
                         r[i] = 0.0
-        #Set the relevance score to 1.0 for each new word and 1/i for old word
-        elif emphasize_kws == 0:
+            #
+            print(winds, oldwinds)
+            dwinds = set.union(set(winds),set(oldwinds))
+            dwinds = list(dwinds)
+            print("OBSERVED RELEVANCE SCORES when emphasize_kws == 0: ", r[dwinds])
+        #Set the relevance score to 1.0 for each new word and 1/i for old word outside the writing window
+        elif emphasize_kws < 0:
             #Initialize
             r             = np.zeros([test_vec_full.shape[0],1])
             #Make set out of the list of indices of words with non-zero relevance score
@@ -461,7 +469,7 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
             r             = r_old + r
             #Set to 1.0 the score of new words in the writing window
             r[winds]      = 1.0
-            print("OBSERVED RELEVANCE SCORES: ", r[winds])
+            print("OBSERVED RELEVANCE SCORES when emphasize_kws < 0: ", r[winds])
             #
             np.save('data/r_old.npy',r)
 
@@ -511,9 +519,11 @@ def return_and_print_estimated_keyword_indices_and_values(r, X, dictionary, c, m
 
     #Normalize relevance estimate vector
     if r_hat.sum() > 0.0:
+        print("SUM OF VALUES of r_hat: ", r_hat.sum())
         r_hat     = r_hat/r_hat.sum()
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
     if sigma_hat.sum() > 0.0:
+        print("SUM OF VALUES of sigma_hat: ", sigma_hat.sum())
         sigma_hat = sigma_hat/sigma_hat.sum()
 
     #Make unit vector from w_hat (user model)
@@ -551,163 +561,17 @@ def return_and_print_estimated_keyword_indices_and_values(r, X, dictionary, c, m
         #Take the vsum values of keywords and normalize with respect to maximum value
         if vsum.max() > 0.0:
             vsum = vsum/vsum.max()
+
+        #
         return vsinds, kws, vsum[vsinds]
+
     else:
+        #
         return [], [], []
 
 
 
-#
-def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
 
-    #Inputs
-    #y = observed relevance vector
-    #sX= tfidf matrix in scipy sparse matrix format
-    #mu= regularization parameter
-
-    #Output
-    #y_hatapp     = estimation of relevance vector 
-    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
-
-    #Load document term matrix 
-    #sX = load_sparse_csc('data/sX.sparsemat.npz')
-    #Make transpose of document term matrix 
-    sX = sX.T
-    sX = sX.tocsr()
-
-    #Take indices of non-zeros of y-vector
-    inds = np.where(y)[0]
-    #print 'inds: ', inds
-
-    #Form new y that has only non-zeros of the original y
-    if len(inds) > 1:
-        y    = y[inds]
-    else:
-        if len(inds) == 0:
-            y    = np.zeros([1,1])
-            inds = np.array([[0]])
-        else:
-            y    = np.zeros([len(inds),1])
-            #inds = np.array([[0]])
-
-    #Take rows from sX corresponding the indices of observed words from (keyboard) input
-    sXt   = sX[inds,:]
-    sXtT  = sXt.transpose()
-
-    #Make identity matrices needed in further steps
-    speye  = sparse.identity(sXtT.shape[0])
-    speye2 = sparse.identity(sXtT.shape[1])
-
-    #Compute XX^T
-    sXtsXtT = sXt.dot(sXtT)
-    #Compute A matrix 
-    sdumA = (1/mu)*sXtsXtT + speye2
-
-    #
-    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
-        if sdumA[0,0] > 0.0:
-            sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
-        else:
-            sdumAinv = sparse.csr_matrix([[1.0]])
-    else:
-        #Compute inverse of sdumA
-        sdumAinv = sparse.linalg.inv(sdumA)
-        sdumAinv.tocsr()
-
-    #print sdumAinv.shape
-    muI      = (1/mu)*speye
-    sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
-    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
-    sA       = sX.dot(sAtilde)
-
-    #
-    sy = sparse.csr_matrix(y)
-    sy_hatapp= sA.dot(sy)
-    y_hatapp= sy_hatapp.toarray()
-
-    #
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    #Convert to numpy array
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    return y_hatapp, sigma_hatapp    
-
-
-#
-def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
-
-    #Inputs
-    #y = observed relevance vector
-    #sX= tfidf matrix in scipy sparse matrix format
-    #mu= regularization parameter
-
-    #Output
-    #y_hatapp     = estimation of relevance vector 
-    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
-
-
-    #Load document term matrix 
-    #sX = load_sparse_csc('data/sX.sparsemat.npz')
-    #Make transpose of document term matrix 
-    sX = sX.T
-    sX = sX.tocsc()
-
-    #Take indices of non-zeros of y-vector
-    inds = np.where(y)[0]
-    #print 'inds: ', inds
-
-    #Form new y that has only non-zeros of the original y
-    if len(inds) > 1:
-        y    = y[inds]
-    else:
-        if len(inds) == 0:
-            y    = np.zeros([1,1])
-            inds = np.array([[0]])
-        else:
-            y    = np.zeros([len(inds),1])
-            #inds = np.array([[0]])
-
-    #Take rows from sX corresponding the indices of observed words from (keyboard) input
-    sXt   = sX[inds,:]
-    sXtT  = sXt.transpose()
-
-    #Make identity matrices needed in further steps
-    speye  = sparse.identity(sXtT.shape[0])
-    speye2 = sparse.identity(sXtT.shape[1])
-
-    #Compute XX^T
-    sXtsXtT = sXt.dot(sXtT)
-    #Compute A matrix 
-    sdumA = (1/mu)*sXtsXtT + speye2
-
-    #
-    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
-        if sdumA[0,0] > 0.0:
-            sdumAinv = sparse.csc_matrix([[1.0/sdumA[0,0]]])
-        else:
-            sdumAinv = sparse.csc_matrix([[1.0]])
-    else:
-        #Compute inverse of sdumA
-        sdumAinv = sparse.linalg.inv(sdumA)
-        sdumAinv.tocsc()
-
-    #print sdumAinv.shape
-    muI      = (1/mu)*speye
-    sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
-    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
-    sA       = sX.dot(sAtilde)
-
-    #
-    sy = sparse.csc_matrix(y)
-    sy_hatapp= sA.dot(sy)
-    y_hatapp= sy_hatapp.toarray()
-
-    #
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    #Convert to numpy array
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    return y_hatapp, sigma_hatapp    
 
 
 #
@@ -779,10 +643,12 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
 
     #Compute estimation of user intent model, w_hat
     sw_hat = sAtilde.dot(sy)
+    sw_hat = sw_hat/np.linalg.norm(sw_hat.toarray())
     w_hat  = sw_hat.toarray()
 
     #Compute estimation of y based on user model
-    sy_hat = sA.dot(sy)
+    sy_hat = sX.dot(sw_hat)
+    #sy_hat = sA.dot(sy)
     y_hat  = sy_hat.toarray()
 
     #
@@ -790,6 +656,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
     #Convert to numpy array
     sigma_hat = np.array(sigma_hat)
 
+    #
     return y_hat, sigma_hat, w_hat
 
 
@@ -1025,6 +892,80 @@ def do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat):
 
 
 
+#
+# def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
+
+#     #Inputs
+#     #y = observed relevance vector
+#     #sX= tfidf matrix in scipy sparse matrix format
+#     #mu= regularization parameter
+
+#     #Output
+#     #y_hatapp     = estimation of relevance vector 
+#     #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
+#     #Load document term matrix 
+#     #sX = load_sparse_csc('data/sX.sparsemat.npz')
+#     #Make transpose of document term matrix 
+#     sX = sX.T
+#     sX = sX.tocsr()
+
+#     #Take indices of non-zeros of y-vector
+#     inds = np.where(y)[0]
+#     #print 'inds: ', inds
+
+#     #Form new y that has only non-zeros of the original y
+#     if len(inds) > 1:
+#         y    = y[inds]
+#     else:
+#         if len(inds) == 0:
+#             y    = np.zeros([1,1])
+#             inds = np.array([[0]])
+#         else:
+#             y    = np.zeros([len(inds),1])
+#             #inds = np.array([[0]])
+
+#     #Take rows from sX corresponding the indices of observed words from (keyboard) input
+#     sXt   = sX[inds,:]
+#     sXtT  = sXt.transpose()
+
+#     #Make identity matrices needed in further steps
+#     speye  = sparse.identity(sXtT.shape[0])
+#     speye2 = sparse.identity(sXtT.shape[1])
+
+#     #Compute XX^T
+#     sXtsXtT = sXt.dot(sXtT)
+#     #Compute A matrix 
+#     sdumA = (1/mu)*sXtsXtT + speye2
+
+#     #
+#     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+#         if sdumA[0,0] > 0.0:
+#             sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
+#         else:
+#             sdumAinv = sparse.csr_matrix([[1.0]])
+#     else:
+#         #Compute inverse of sdumA
+#         sdumAinv = sparse.linalg.inv(sdumA)
+#         sdumAinv.tocsr()
+
+#     #print sdumAinv.shape
+#     muI      = (1/mu)*speye
+#     sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
+#     sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+#     sA       = sX.dot(sAtilde)
+
+#     #
+#     sy = sparse.csr_matrix(y)
+#     sy_hatapp= sA.dot(sy)
+#     y_hatapp= sy_hatapp.toarray()
+
+#     #
+#     sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+#     #Convert to numpy array
+#     sigma_hatapp= np.array(sigma_hatapp)
+
+#     return y_hatapp, sigma_hatapp    
 
 
 
@@ -1033,6 +974,82 @@ def do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat):
 
 
 
+
+#
+# def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
+
+#     #Inputs
+#     #y = observed relevance vector
+#     #sX= tfidf matrix in scipy sparse matrix format
+#     #mu= regularization parameter
+
+#     #Output
+#     #y_hatapp     = estimation of relevance vector 
+#     #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
+
+#     #Load document term matrix 
+#     #sX = load_sparse_csc('data/sX.sparsemat.npz')
+#     #Make transpose of document term matrix 
+#     sX = sX.T
+#     sX = sX.tocsc()
+
+#     #Take indices of non-zeros of y-vector
+#     inds = np.where(y)[0]
+#     #print 'inds: ', inds
+
+#     #Form new y that has only non-zeros of the original y
+#     if len(inds) > 1:
+#         y    = y[inds]
+#     else:
+#         if len(inds) == 0:
+#             y    = np.zeros([1,1])
+#             inds = np.array([[0]])
+#         else:
+#             y    = np.zeros([len(inds),1])
+#             #inds = np.array([[0]])
+
+#     #Take rows from sX corresponding the indices of observed words from (keyboard) input
+#     sXt   = sX[inds,:]
+#     sXtT  = sXt.transpose()
+
+#     #Make identity matrices needed in further steps
+#     speye  = sparse.identity(sXtT.shape[0])
+#     speye2 = sparse.identity(sXtT.shape[1])
+
+#     #Compute XX^T
+#     sXtsXtT = sXt.dot(sXtT)
+#     #Compute A matrix 
+#     sdumA = (1/mu)*sXtsXtT + speye2
+
+#     #
+#     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+#         if sdumA[0,0] > 0.0:
+#             sdumAinv = sparse.csc_matrix([[1.0/sdumA[0,0]]])
+#         else:
+#             sdumAinv = sparse.csc_matrix([[1.0]])
+#     else:
+#         #Compute inverse of sdumA
+#         sdumAinv = sparse.linalg.inv(sdumA)
+#         sdumAinv.tocsc()
+
+#     #print sdumAinv.shape
+#     muI      = (1/mu)*speye
+#     sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
+#     sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+#     sA       = sX.dot(sAtilde)
+
+#     #
+#     sy = sparse.csc_matrix(y)
+#     sy_hatapp= sA.dot(sy)
+#     y_hatapp= sy_hatapp.toarray()
+
+#     #
+#     sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+#     #Convert to numpy array
+#     sigma_hatapp= np.array(sigma_hatapp)
+
+#     return y_hatapp, sigma_hatapp    
 
 
 
