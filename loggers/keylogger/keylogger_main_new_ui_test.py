@@ -286,10 +286,18 @@ class MyApp(QWidget):
   self.hlayout3 = QHBoxLayout()
   self.hlayout4 = QHBoxLayout()
 
-  #Create buttons
+
+  #Create "previous" -button
+  self.previousbutton = QPushButton('<')
+  self.previousbutton.setHidden(True)
+  self.hlayout3.addWidget(self.previousbutton)
+  self.previousbutton.clicked.connect(self.show_previous_kw_buttons)
+
+
+  #Create kw-buttons
   self.buttonlist = []
-  numofkwbuttons = 10
-  for i in range(numofkwbuttons):
+  self.numofkwbuttons = 10
+  for i in range(self.numofkwbuttons):
                   #keywordstr = keywordstr + urlstrs[i] + ', '
                   dumbutton = QPushButton('button'+ str(i))
                   self.buttonlist.append(dumbutton)
@@ -300,6 +308,13 @@ class MyApp(QWidget):
                   self.buttonlist[i].clicked.connect(self.emit_search_command)
                   #Hide buttons initially
 
+  #Create "more" -button
+  self.morebutton = QPushButton('>')
+  self.morebutton.setHidden(True)
+  self.hlayout3.addWidget(self.morebutton)
+  self.morebutton.clicked.connect(self.show_next_kw_buttons)
+  #
+  self.kw_subset_ind = 0
 
   #
   #self.mastervlayout.addWidget(self.keywordlabel)
@@ -433,6 +448,7 @@ class MyApp(QWidget):
 
  def get_keywords_from_search_thread_and_update_visible_stuff(self, keywords):    
     self.keywords = keywords
+    print("MAIN: ",self.keywords)
     self.update_kwbuttons(self.keywords)
     self.color_kwbuttons()
 
@@ -596,19 +612,49 @@ class MyApp(QWidget):
                             #self.hlayout2.removeWidget(self.buttonlist[i])                  
                             #self.hlayout3.itemAt(i).widget().setParent(None) 
                             #self.hlayout3.itemAt(i).setParent(None)
-                            if i < ncols:
+                            if i < len(self.buttonlist):
                               #self.unicode_to_str(keywordlist[i])
                               self.buttonlist[i].setText(keywordlist[i])
                               #self.buttonlist[i].setText(self.unicode_to_str(keywordlist[i]))
                               self.buttonlist[i].show()  
+          self.morebutton.setHidden(False)
+          self.previousbutton.setHidden(True)
     return
+
+ def show_next_kw_buttons(self,keywordlist):
+  print(self.keywords)
+  if len(self.keywords) > 0:
+    self.kw_subset_ind = self.kw_subset_ind + 1
+
+    startind = self.kw_subset_ind*self.numofkwbuttons
+    self.update_kwbuttons(self.keywords[startind:startind+self.numofkwbuttons])    
+    self.previousbutton.setHidden(False)
+
+ def show_previous_kw_buttons(self,keywordlist):
+  print(self.keywords)
+  if len(self.keywords) > 0:
+    if(self.kw_subset_ind>0):
+      #
+      self.kw_subset_ind = self.kw_subset_ind - 1
+      startind = self.kw_subset_ind*self.numofkwbuttons
+      self.update_kwbuttons(self.keywords[startind:startind+self.numofkwbuttons])
+      #
+      if self.kw_subset_ind == 0:
+        self.previousbutton.setHidden(True)
+
+    else:
+      #
+      self.previousbutton.setHidden(True)
+    
+    
+        
+
 
  def clear_kw_history(self):
   if os.path.isfile('data/r_old.npy'):
     os.remove('data/r_old.npy')
 
  def color_kwbuttons(self):
-
   #
   if not self.is_non_zero_file('data/test_wordlist.list'):
    return
