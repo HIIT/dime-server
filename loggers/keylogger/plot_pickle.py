@@ -8,8 +8,7 @@ import numpy as np
 
 import os
 
-if 'DISPLAY' not in os.environ:
-# or os.environ['DISPLAY']==":0":
+if 'DISPLAY' not in os.environ or 'NOPLOT' in os.environ:
     import matplotlib
     matplotlib.use("Agg")
 
@@ -24,7 +23,10 @@ for i in range(0,50):
 first = True
 meanvectorfn = "mean_" + sys.argv[1] +  '_'
 
-clicking_starts = int(sys.argv[2])
+parts1 = sys.argv[2].split("/")
+parts2 = parts1[0].split("-")
+clicking_starts = int(parts2[-2])
+print("Clicking starts at", clicking_starts)
 
 for a in sys.argv[3:]:
     print("Processing", a)
