@@ -326,21 +326,24 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
 #
 def query2relevancevector(query,dictionary,emphasize_kws=0):
 
-    #Take the index of the latest word
-    word = query.split()[-1]
-    wind = get_wind(word,dictionary)
+    if len(query) > 0:
+        #Take the index of the latest word
+        word = query.split()[-1]
+        wind = get_wind(word,dictionary)
 
-    #store index of emphasized word if emphasize_kws > 0
-    if emphasize_kws>0 and wind == -1:
-        if os.path.isfile('data/clicked_kwinds.npy'):
-            clicked_kwinds = np.load('data/clicked_kwinds.npy')
-            clicked_kwinds = np.append(clicked_kwinds, wind)
+        #store index of emphasized word if emphasize_kws > 0
+        if emphasize_kws>0 and wind == -1:
+            if os.path.isfile('data/clicked_kwinds.npy'):
+                clicked_kwinds = np.load('data/clicked_kwinds.npy')
+                clicked_kwinds = np.append(clicked_kwinds, wind)
+            else:
+                clicked_kwinds = np.array([wind])
+            np.save('data/clicked_kwinds.npy',clicked_kwinds)
         else:
-            clicked_kwinds = np.array([wind])
-        np.save('data/clicked_kwinds.npy',clicked_kwinds)
+            if os.path.isfile('data/clicked_kwinds.npy'):
+                np.save('data/clicked_kwinds.npy',np.array([]))
+            clicked_kwinds = np.array([])
     else:
-        if os.path.isfile('data/clicked_kwinds.npy'):
-            np.save('data/clicked_kwinds.npy',np.array([]))
         clicked_kwinds = np.array([])
 
     #Convert query into bag of words representation
@@ -410,7 +413,7 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
             r[new_winds] = 1.0
 
             #Decrease the scores by dividing with the norm of new kws
-            if np.linalg.norm(r[new_winds])>0:
+            if np.linalg.norm(r[new_winds])>0 and len(new_winds):
                 r[new_winds] = r[new_winds]/np.linalg.norm(r[new_winds])
 
             #
