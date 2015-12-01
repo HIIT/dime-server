@@ -90,7 +90,8 @@ class MyApp(QWidget):
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
   self.data = []
-  self.keywords = ''
+  self.keywords = []
+  self.list_of_lists_of_old_keywords = []
 
   #Animation objects
   # self.anim1 = MyView()
@@ -171,12 +172,21 @@ class MyApp(QWidget):
   #Button for deleting keyword history
   self.clearButton  = QPushButton("Clear")
   self.clearButton.setToolTip("Clears the keyword history")
-  #self.clearButton.setGeometry(1,1,1,1)
-  #self.clearButton.setFixedWidth(60)
-  #self.clearButton.setFixedHeight(20)
+  #
   self.clearButton.released.connect(self.clear_kw_history)
   self.clearButton.released.connect(self.SearchThreadObj.clear_query_string)
   self.clearButton.released.connect(self.LoggerThreadObj.clear_dumstring)
+
+
+  #Button for getting previous keywords and search results
+  self.backButton  = QPushButton("Back")
+  self.backButton.setToolTip("Back in history")  
+  #
+  self.backButton.released.connect(self.get_old_keywords_and_update_visible_stuff)
+  
+  #self.clearButton.setGeometry(1,1,1,1)
+  #self.clearButton.setFixedWidth(60)
+  #self.clearButton.setFixedHeight(20)
 
   #
   #self.startStopButton.setDisabled(True)
@@ -239,6 +249,7 @@ class MyApp(QWidget):
   #self.movie.start()
   self.vlayout4.addWidget(self.startStopButton)
   self.vlayout4.addWidget(self.clearButton)
+  self.vlayout4.addWidget(self.backButton)
 
   #self.vlayout4.addLayout(self.subvlayout)
   #self.vlayout4.addWidget(self.clearButton)
@@ -343,10 +354,15 @@ class MyApp(QWidget):
 
   #
   self.setWindowTitle("Re:Know Proactive Search")
-  self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
+  #self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
   self.setStyleSheet('font-size: 10pt')
   screen = QDesktopWidget().screenGeometry()
   self.setGeometry(screen.width()-1024, 0, 1024, 200)
+
+ 
+ def hide_buttons(self):
+  for button in self.buttonlist:
+    button.hide()
 
  #
  def create_buttonwidget_list(self, numofkwbuttons):
@@ -542,16 +558,29 @@ class MyApp(QWidget):
    return dicti[key]
   return ''
 
+
  def get_data_from_search_thread_and_update_visible_stuff(self, data):
     self.data = data
     self.update_links(self.data)
 
+
  def get_keywords_from_search_thread_and_update_visible_stuff(self, keywords):    
+    if len(self.list_of_lists_of_old_keywords) < 11:
+      self.list_of_lists_of_old_keywords.append(self.keywords)
+    else:
+      self.list_of_lists_of_old_keywords.append(self.keywords)
+      del(self.list_of_lists_of_old_keywords[0])
+
     self.keywords = keywords
     print("MAIN: ",self.keywords)
     self.update_kwbuttons(self.keywords)
     self.color_kwbuttons()
 
+
+ def get_old_keywords_and_update_visible_stuff(self):
+      self.update_kwbuttons(self.old_keywords[-1])
+      self.color_kwbuttons()    
+      del(self.list_of_lists_of_old_keywords[-1])
  #
  def update_links(self, urlstrs):
     i = 0
@@ -737,7 +766,8 @@ class MyApp(QWidget):
 
           # self.morebutton.setHidden(False)
           # self.previousbutton.setHidden(True)
-    self.scrollArea.horizontalScrollBar().setSliderPosition(0)
+      self.scrollArea.show()
+      self.scrollArea.horizontalScrollBar().setSliderPosition(0)
     return
 
  #
@@ -851,7 +881,12 @@ if __name__ == "__main__":
   # run
   app  = QApplication(sys.argv)
   #test = MainWindow()
+  
+  #
   test = MyApp()
+  test.scrollArea.hide()
+  test.hide_buttons()
+
   test.show()
   app.exec_()
 
