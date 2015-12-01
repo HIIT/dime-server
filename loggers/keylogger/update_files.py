@@ -156,45 +156,46 @@ def check_update(_username=None, _password=None):
                 update_tfidf_model(cpathd)
                 create_stopwordlist(cpathd)
 
+# ----------------------------------------------------------------------------
 
 #Update data
 def update_data(srvurl, username, password):
-	### IMPORT DATA from DiMe #######	
-	print("Importing data from DiMe!!")
+    ### IMPORT DATA from DiMe #######
+    print("Importing data from DiMe!!")
 
-	#------------------------------------------------------------------------------
+    server_url = str(srvurl)
+    server_username = str(username)
+    server_password = str(password)
 
-	server_url = str(srvurl)
-	server_username = str(username)
-	server_password = str(password)
+    # ping server (not needed, but fun to do :-)
+    try:
+        r = requests.post(server_url + '/ping')
+    except requests.exceptions.ConnectionError:
+        print('Pinging DiMe failed!')
+        sys.exit(1)
 
-	#------------------------------------------------------------------------------
+    if r.status_code != requests.codes.ok:
+        print('No connection to DiMe server!')
+        sys.exit(1)
 
-	# ping server (not needed, but fun to do :-)
-	r = requests.post(server_url + '/ping')
+    r = requests.get(server_url + '/data/informationelements',
+                     headers={'content-type': 'application/json'},
+                     auth=(server_username, server_password),
+                     timeout=20)
 
-	if r.status_code != requests.codes.ok:
-		print('No connection to DiMe server!')
-		sys.exit(1)
+    #
+    dumdata = r.json()
+    #
+    data = []
+    for dd in dumdata:
+        if 'plainTextContent' in dd:
+            data.append(dd)
 
-	r = requests.get(server_url + '/data/informationelements',
-	                 headers={'content-type': 'application/json'},
-	                 auth=(server_username, server_password),
-	                 timeout=20)
-	
-	# 
-	dumdata = r.json()
-	#
-	data = []
-	for dd in dumdata:
-		if 'plainTextContent' in dd:
-			data.append(dd)
-	
-	#
-	f = open('data/json_data.txt','w')	
-	json.dump(data, f)
+    #
+    f = open('data/json_data.txt','w')
+    json.dump(data, f)
 
-
+# ----------------------------------------------------------------------------
 
 # Update dictionary
 def update_dictionary():
