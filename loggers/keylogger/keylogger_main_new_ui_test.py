@@ -71,8 +71,9 @@ class MainWindow(QMainWindow):
     self.main_widget = MyApp()
     #
     self.setCentralWidget(self.main_widget)
-
+    #
     self.show()
+
 
 class MyApp(QWidget):
 #class MyApp(QMainWindow):
@@ -287,32 +288,48 @@ class MyApp(QWidget):
   self.hlayout4 = QHBoxLayout()
 
 
-  #Create "previous" -button
-  self.previousbutton = QPushButton('<')
-  self.previousbutton.setHidden(True)
-  self.hlayout3.addWidget(self.previousbutton)
-  self.previousbutton.clicked.connect(self.show_previous_kw_buttons)
+  # #Create "previous" -button
+  # self.previousbutton = QPushButton('<')
+  # self.previousbutton.setHidden(True)
+  # self.hlayout3.addWidget(self.previousbutton)
+  # self.previousbutton.clicked.connect(self.show_previous_kw_buttons)
 
 
   #Create kw-buttons
-  self.buttonlist = []
-  self.numofkwbuttons = 10
-  for i in range(self.numofkwbuttons):
-                  #keywordstr = keywordstr + urlstrs[i] + ', '
-                  dumbutton = QPushButton('button'+ str(i))
-                  self.buttonlist.append(dumbutton)
-  for i in range( len(self.buttonlist) ):
-                  self.buttonlist[i].hide()
-                  #keywordstr = keywordstr + urlstrs[i] + ', '
-                  self.hlayout3.addWidget(self.buttonlist[i])
-                  self.buttonlist[i].clicked.connect(self.emit_search_command)
-                  #Hide buttons initially
+  self.numofkwbuttons = 100
+  self.buttonlist = self.create_buttonwidget_list(self.numofkwbuttons)
+  #Set the buttons hidden
+  # for i in range(len(self.buttonlist)):
+  #   self.buttonlist[i].hide()
 
-  #Create "more" -button
-  self.morebutton = QPushButton('>')
-  self.morebutton.setHidden(True)
-  self.hlayout3.addWidget(self.morebutton)
-  self.morebutton.clicked.connect(self.show_next_kw_buttons)
+  #Create scroll area for buttons
+  self.scrollArea = self.create_scroll_area_for_buttonwidget_list(self.buttonlist)
+  # self.scrollArea.hide()
+
+
+
+  # self.buttonlist = []
+  # self.numofkwbuttons = 10
+  # for i in range(self.numofkwbuttons):
+  #                 #keywordstr = keywordstr + urlstrs[i] + ', '
+  #                 dumbutton = QPushButton('button'+ str(i))
+  #                 self.buttonlist.append(dumbutton)
+
+  # for i in range( len(self.buttonlist) ):
+  #                 self.buttonlist[i].hide()
+  #                 #keywordstr = keywordstr + urlstrs[i] + ', '
+  #                 self.hlayout3.addWidget(self.buttonlist[i])
+  #                 self.buttonlist[i].clicked.connect(self.emit_search_command)
+
+
+
+
+  # #Create "more" -button
+  # self.morebutton = QPushButton('>')
+  # self.morebutton.setHidden(True)
+  # self.hlayout3.addWidget(self.morebutton)
+  # self.morebutton.clicked.connect(self.show_next_kw_buttons)
+
   #
   self.kw_subset_ind = 0
 
@@ -320,9 +337,9 @@ class MyApp(QWidget):
   #self.mastervlayout.addWidget(self.keywordlabel)
   #Add self.hlayout2 to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout2)
-  self.mastervlayout.addLayout(self.hlayout3)
+  #self.mastervlayout.addLayout(self.hlayout3)
+  self.mastervlayout.addWidget(self.scrollArea)
   self.mastervlayout.addLayout(self.hlayout4)
-
 
   #
   self.setWindowTitle("Re:Know Proactive Search")
@@ -330,6 +347,89 @@ class MyApp(QWidget):
   self.setStyleSheet('font-size: 10pt')
   screen = QDesktopWidget().screenGeometry()
   self.setGeometry(screen.width()-1024, 0, 1024, 200)
+
+ #
+ def create_buttonwidget_list(self, numofkwbuttons):
+  #Create kw-buttons
+  buttonlist = []
+  #self.numofkwbuttons = 10
+  for i in range(self.numofkwbuttons):
+                  #keywordstr = keywordstr + urlstrs[i] + ', '
+                  dumbutton = QPushButton('button'+ str(i))
+                  buttonlist.append(dumbutton)
+  #Initially hide the buttons
+  # for i in range(len(buttonlist)):
+  #   buttonlist[i].setVisible(False)
+  #Connect each button to the 'emit_search_command' -function
+  for i in range(len(buttonlist)):
+    buttonlist[i].clicked.connect(self.emit_search_command)
+
+  return buttonlist
+
+ #
+ def create_buttonwidget_list2(self, numofbtns):
+
+    #Create button labels
+    btnwidgetlist = []
+    numshow = 10
+    numofbtns = 10
+
+    #Create buttons
+    for i in range(numofbtns):
+        
+        #
+        btnname = 'Button '+str(i)
+        btnwidget = button_with_x(btnname,str(i))
+        btnwidget.layout().itemAt(1).widget().clicked.connect(self.removeButton)
+        btnwidget.layout().itemAt(0).widget().clicked.connect(self.printText)
+        btnwidget.setFixedWidth(100)
+
+        #
+        print("WIDTH: ",btnwidget.width())
+        if(i>numshow):
+            btnwidget.hide()
+        print(type(btnwidget))
+
+        #
+        btnwidgetlist.append(btnwidget)
+
+        #
+        print(btnwidgetlist[i])
+
+        # print(isinstance(btnwidget, QtGui.QWidget))
+        print(isinstance(btnwidget, QWidget))        
+
+    return btnwidgetlist
+
+
+ #Create scroll area for buttons
+ def create_scroll_area_for_buttonwidget_list(self, btnwidgetlist):
+    #
+    #Create layout for buttonlist
+    self.btnlayout = QHBoxLayout()        
+    self.btnlayout.setSpacing(1)
+    #Add buttons to the layout
+    for i,btnwidget in enumerate(btnwidgetlist):
+        self.btnlayout.addWidget(btnwidget)
+
+    #Add spaces to the right end of the layout
+    #self.btnlayout.addSpacing(self.btnlayout.)
+
+    #Create a QWidget containing self.btnlayout
+    self.dwidget = QWidget()
+    self.dwidget.setLayout(self.btnlayout)
+    self.dwidget.layout().setContentsMargins(0,0,0,0)
+    self.dwidget.layout().insertStretch(-1,0)
+
+    #Create Scroll area
+    scrollArea = QScrollArea()
+    scrollArea.setWidget(self.dwidget)    
+    scrollArea.setFixedHeight(50)
+    scrollArea.setFrameStyle(0)
+
+    return scrollArea
+
+
 
  def stop_animation(self):
   self.animlabel.setMovie(None)
@@ -444,7 +544,7 @@ class MyApp(QWidget):
 
  def get_data_from_search_thread_and_update_visible_stuff(self, data):
     self.data = data
-    self.update_links_and_kwbuttons(self.data)
+    self.update_links(self.data)
 
  def get_keywords_from_search_thread_and_update_visible_stuff(self, keywords):    
     self.keywords = keywords
@@ -453,7 +553,7 @@ class MyApp(QWidget):
     self.color_kwbuttons()
 
  #
- def update_links_and_kwbuttons(self, urlstrs):
+ def update_links(self, urlstrs):
     i = 0
     j = 0
     k = 0
@@ -468,6 +568,9 @@ class MyApp(QWidget):
             self.listWidget2.item(dj).setHidden(True)
           for dj in range(self.listWidget3.count()):
             self.listWidget3.item(dj).setHidden(True)      
+
+          #
+          self.kw_subset_ind = 0
 
           #Initialize rake object
           #rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
@@ -587,15 +690,25 @@ class MyApp(QWidget):
                                           self.listWidget1.item(i).setText(visiblestr) 
                                           self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
                                           self.listWidget1.item(i).setToolTip(tooltipstr)
-                                          self.listWidget1.item(i).setHidden(False)
+                                          
+                                          self.listWidget1.item(i).setHidden(True)
+
+
                                         i = i + 1  
                                         #print i
 
-
+ #
  def update_kwbuttons(self, keywordlist):
+    
+    #First hide all buttons
+    for i in range(len(self.buttonlist)):
+      self.buttonlist[i].hide()
+
+    #
     i = 0
     j = 0
     k = 0
+
     #print 'Main: update_links_and_kwbuttons: urlstrs: ', urlstrs[len(urlstrs)-1]
     #print 'type of el.: ', type(urlstrs[10])
     if type(keywordlist) is list:
@@ -616,35 +729,43 @@ class MyApp(QWidget):
                               #self.unicode_to_str(keywordlist[i])
                               self.buttonlist[i].setText(keywordlist[i])
                               #self.buttonlist[i].setText(self.unicode_to_str(keywordlist[i]))
-                              self.buttonlist[i].show()  
-          self.morebutton.setHidden(False)
-          self.previousbutton.setHidden(True)
+
+                              #self.btnlayout.itemAt(i).widget().setVisible(True)
+                              self.buttonlist[i].show()
+                              
+                              #print("IS HIDDEN ",self.buttonlist[i].isHidden())
+
+          # self.morebutton.setHidden(False)
+          # self.previousbutton.setHidden(True)
+    self.scrollArea.horizontalScrollBar().setSliderPosition(0)
     return
 
- def show_next_kw_buttons(self,keywordlist):
-  print(self.keywords)
-  if len(self.keywords) > 0:
-    self.kw_subset_ind = self.kw_subset_ind + 1
+ #
+ # def show_next_kw_buttons(self,keywordlist):
+ #  print(self.keywords)
+ #  if len(self.keywords) > 0:
+ #    self.kw_subset_ind = self.kw_subset_ind + 1
 
-    startind = self.kw_subset_ind*self.numofkwbuttons
-    self.update_kwbuttons(self.keywords[startind:startind+self.numofkwbuttons])    
-    self.previousbutton.setHidden(False)
+ #    startind = self.kw_subset_ind*self.numofkwbuttons
+ #    self.update_kwbuttons(self.keywords[startind:startind+self.numofkwbuttons])    
+ #    self.previousbutton.setHidden(False)
 
- def show_previous_kw_buttons(self,keywordlist):
-  print(self.keywords)
-  if len(self.keywords) > 0:
-    if(self.kw_subset_ind>0):
-      #
-      self.kw_subset_ind = self.kw_subset_ind - 1
-      startind = self.kw_subset_ind*self.numofkwbuttons
-      self.update_kwbuttons(self.keywords[startind:startind+self.numofkwbuttons])
-      #
-      if self.kw_subset_ind == 0:
-        self.previousbutton.setHidden(True)
+ # #
+ # def show_previous_kw_buttons(self,keywordlist):
+ #  print(self.keywords)
+ #  if len(self.keywords) > 0:
+ #    if(self.kw_subset_ind>0):
+ #      #
+ #      self.kw_subset_ind = self.kw_subset_ind - 1
+ #      startind = self.kw_subset_ind*self.numofkwbuttons
+ #      self.update_kwbuttons(self.keywords[startind:startind+self.numofkwbuttons])
+ #      #
+ #      if self.kw_subset_ind == 0:
+ #        self.previousbutton.setHidden(True)
 
-    else:
-      #
-      self.previousbutton.setHidden(True)
+ #    else:
+ #      #
+ #      self.previousbutton.setHidden(True)
     
     
         
