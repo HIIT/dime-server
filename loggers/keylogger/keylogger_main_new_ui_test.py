@@ -17,6 +17,8 @@ import os
 #import queue
 import threading
 
+import argparse
+
 #For updating data and other files (dictionary, Document term matrices etc.)
 from update_files import *
 
@@ -251,7 +253,8 @@ class MyApp(QWidget):
   self.vlayout2.addWidget(self.listWidget2)
   #  
   self.vlayout3 = QVBoxLayout()
-  self.vlayout3.addWidget(self.gbtitle3)
+  if not args.singlelist:
+    self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
   #
   self.vlayout4 = QVBoxLayout()
@@ -273,25 +276,40 @@ class MyApp(QWidget):
   self.vlayout4.addLayout(self.smallhlayout)
   #self.vlayout4.addWidget(self.backButton)
 
+  self.vlayout4.addStretch()
+  self.vlayout4.addWidget(self.animlabel)
+  self.animlabel.setAlignment(Qt.AlignCenter)
+  self.vlayout4.addStretch()
+  #self.vlayout4.itemAt(3).setAlignment(Qt.AlignCenter)
+  #self.movie.start()
+
   #self.vlayout4.addLayout(self.subvlayout)
   #self.vlayout4.addWidget(self.clearButton)
 
   #self.subhlayout2= QHBoxLayout()
-  self.vlayout4.addWidget(self.eesliderl2)
-  self.vlayout4.addWidget(self.eeslider)
-  self.vlayout4.addWidget(self.eesliderl1)
+  #self.vlayout4.addWidget(self.eesliderl2)
+  #self.vlayout4.addWidget(self.eeslider)
+  #self.vlayout4.addWidget(self.eesliderl1)
   #Align the slider to center
-  self.vlayout4.itemAt(2).setAlignment(Qt.AlignCenter)
-  self.vlayout4.itemAt(3).setAlignment(Qt.AlignCenter)
-  self.vlayout4.itemAt(4).setAlignment(Qt.AlignCenter)
+  #self.vlayout4.itemAt(2).setAlignment(Qt.AlignCenter)
+  #self.vlayout4.itemAt(3).setAlignment(Qt.AlignCenter)
+  #self.vlayout4.itemAt(4).setAlignment(Qt.AlignCenter)
 
   #self.vlayout4.addLayout(self.subhlayout2)
   #vlayout5 is a sub layout for vlayout4
   self.vlayout5 = QVBoxLayout()
-  self.vlayout5.addWidget(self.radiobutton1)
-  self.vlayout5.addWidget(self.radiobutton2)
-  self.vlayout5.addWidget(self.radiobutton3)
-  self.vlayout5.addWidget(self.radiobutton4)
+  self.vlayout5.setSpacing(5)
+  self.vlayout5.setAlignment(Qt.AlignCenter)
+  self.vlayout5.addWidget(self.eesliderl2)
+  self.vlayout5.addWidget(self.eeslider)
+  self.vlayout5.addWidget(self.eesliderl1)
+  self.vlayout5.itemAt(0).setAlignment(Qt.AlignCenter)
+  self.vlayout5.itemAt(1).setAlignment(Qt.AlignCenter)
+  self.vlayout5.itemAt(2).setAlignment(Qt.AlignCenter)
+  #self.vlayout5.addWidget(self.radiobutton1)
+  #self.vlayout5.addWidget(self.radiobutton2)
+  #self.vlayout5.addWidget(self.radiobutton3)
+  #self.vlayout5.addWidget(self.radiobutton4)
 
   #Groupbox for radiobuttons
   # self.mygroupbox = QGroupBox('Search Method')
@@ -300,10 +318,13 @@ class MyApp(QWidget):
 
   #Add layouts
   self.hlayout = QHBoxLayout()
-  self.hlayout.addLayout(self.vlayout1)
-  self.hlayout.addLayout(self.vlayout2)
+
+  if not args.singlelist:
+    self.hlayout.addLayout(self.vlayout1)
+    self.hlayout.addLayout(self.vlayout2)
   self.hlayout.addLayout(self.vlayout3)
   self.hlayout.addLayout(self.vlayout4)
+  self.hlayout.addLayout(self.vlayout5)
 
   #Master vertical layout:
   self.mastervlayout = QVBoxLayout(self)
@@ -376,7 +397,7 @@ class MyApp(QWidget):
 
   #
   self.setWindowTitle("Re:Know Proactive Search")
-  #self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
+  self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
   self.setStyleSheet('font-size: 10pt')
   screen = QDesktopWidget().screenGeometry()
   self.setGeometry(screen.width()-1024, 0, 1024, 200)
@@ -385,6 +406,15 @@ class MyApp(QWidget):
  def hide_buttons(self):
   for button in self.buttonlist:
     button.hide()
+
+ def disable_buttons(self):
+  for button in self.buttonlist:
+    button.setText("")
+    button.setEnabled(False)
+
+ def enable_buttons(self):
+  for button in self.buttonlist:
+    button.setEnabled(True)
 
  #
  def create_buttonwidget_list(self, numofkwbuttons):
@@ -445,7 +475,8 @@ class MyApp(QWidget):
     #
     #Create layout for buttonlist
     self.btnlayout = QHBoxLayout()        
-    self.btnlayout.setSpacing(1)
+    if sys.platform == "linux":
+        self.btnlayout.setSpacing(1)
     #Add buttons to the layout
     for i,btnwidget in enumerate(btnwidgetlist):
         self.btnlayout.addWidget(btnwidget)
@@ -470,10 +501,12 @@ class MyApp(QWidget):
 
 
  def stop_animation(self):
+  self.enable_buttons()
   self.animlabel.setMovie(None)
   self.animlabel.setPixmap(QPixmap('empty.gif'))
 
  def start_animation(self):
+  self.disable_buttons()
   self.animlabel.setMovie(self.animation)
   self.animation.start()
 
@@ -957,14 +990,20 @@ class MyApp(QWidget):
 
 if __name__ == "__main__":
 
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--singlelist", action='store_true',
+                      help="single list mode")
+  args = parser.parse_args()
+  
   # run
   app  = QApplication(sys.argv)
   #test = MainWindow()
   
   #
   test = MyApp()
-  test.scrollArea.hide()
-  test.hide_buttons()
+  #test.scrollArea.hide()
+  test.disable_buttons()
 
   test.show()
   app.exec_()
