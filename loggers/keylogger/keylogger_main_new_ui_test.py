@@ -633,7 +633,7 @@ class MyApp(QWidget):
       self.old_queries.append(query_string_and_corresponding_relevance_vector)
       del(self.old_queries[0])
     #
-    self.hist_ind = len(self.old_queries)
+    self.hist_ind = len(self.old_queries)-1
     #
     if self.hist_ind > 0:
       self.backButton.setEnabled(True)
@@ -660,12 +660,11 @@ class MyApp(QWidget):
 
 
  def repeat_old_query(self):
+      #
       print("NUMBER OF STATES: ", self.hist_ind)
-
       #
       sender = self.sender()
       sender_text = sender.text()
-
       #
       if sender_text == "<":
         #
@@ -694,7 +693,7 @@ class MyApp(QWidget):
           self.send_old_dumstring.emit(self.old_queries[self.hist_ind][0])        
           self.forwardButton.setEnabled(False)
         else:
-          self.hist_ind = len(self.old_queries)
+          self.hist_ind = len(self.old_queries)-1
           self.forwardButton.setEnabled(False)
 
         #
@@ -930,7 +929,7 @@ class MyApp(QWidget):
   #f = open('data/test_wordlist.list','r')
   #test_wordlist = pickle.load(f)
   test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
-  print("MAIN: written words: ", test_wordlist)
+  #print("MAIN: written words: ", test_wordlist)
   for i in range(len(self.buttonlist)):
     buttext = self.buttonlist[i].text()
     #print buttext
