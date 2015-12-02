@@ -75,12 +75,15 @@ class MainWindow(QMainWindow):
     self.show()
 
 
+
 class MyApp(QWidget):
 #class MyApp(QMainWindow):
 
  finished = pyqtSignal(int)
  update = pyqtSignal(str)
  do_old_query = pyqtSignal(list)
+ #Signal for sending old written string to logger thread
+ send_old_dumstring = pyqtSignal(str)
  
  def __init__(self, parent=None):
   QWidget.__init__(self, parent)
@@ -95,6 +98,8 @@ class MyApp(QWidget):
   self.list_of_lists_of_old_keywords = []
   self.old_queries = []
 
+  #Index for current element in history list
+  self.hist_ind = 0
   #Animation objects
   # self.anim1 = MyView()
   # self.anim1.scale(0.3,0.3)
@@ -140,10 +145,12 @@ class MyApp(QWidget):
   #self.SearchThreadObj.all_done.connect(self.animation.stop)
   self.SearchThreadObj.all_done.connect(self.stop_animation)
 
-  #Data connections from main thread to search thread
+  #Data connections via signals from main thread to search and logger thread 
   self.finished.connect(self.SearchThreadObj.change_search_function)
   self.update.connect(self.SearchThreadObj.get_new_word_from_main_thread)
   self.do_old_query.connect(self.SearchThreadObj.get_old_query_from_main_thread)
+  self.send_old_dumstring.connect(self.LoggerThreadObj.insert_old_dumstring)
+
 
   #Create visible stuff
   val = 5
@@ -184,10 +191,15 @@ class MyApp(QWidget):
 
 
   #Button for getting previous keywords and search results
-  self.backButton  = QPushButton("Back")
+  self.backButton  = QPushButton("<")
   self.backButton.setToolTip("Back in history")  
+  self.backButton.setEnabled(False)
+  self.forwardButton  = QPushButton(">")
+  self.forwardButton.setToolTip("Forward in history")    
+  self.forwardButton.setEnabled(False)
   #
   self.backButton.released.connect(self.repeat_old_query)
+  self.forwardButton.released.connect(self.repeat_old_query)
   
   #self.clearButton.setGeometry(1,1,1,1)
   #self.clearButton.setFixedWidth(60)
@@ -254,7 +266,12 @@ class MyApp(QWidget):
   #self.movie.start()
   self.vlayout4.addWidget(self.startStopButton)
   self.vlayout4.addWidget(self.clearButton)
-  self.vlayout4.addWidget(self.backButton)
+
+  self.smallhlayout = QHBoxLayout()
+  self.smallhlayout.addWidget(self.backButton)
+  self.smallhlayout.addWidget(self.forwardButton)
+  self.vlayout4.addLayout(self.smallhlayout)
+  #self.vlayout4.addWidget(self.backButton)
 
   #self.vlayout4.addLayout(self.subvlayout)
   #self.vlayout4.addWidget(self.clearButton)
@@ -462,7 +479,7 @@ class MyApp(QWidget):
 
  #Runs the Keylogger and Search 
  def test_pressed(self):
-  print('Main: Test')
+  #print('Main: Test')
   #self.startStopButton.setDisabled(True)
   #self.stopButton.setDisabled(False)  
   #self.listwidget.clear()
@@ -570,14 +587,20 @@ class MyApp(QWidget):
 
 
  def get_query_string_from_search_thread(self, query_string_and_corresponding_relevance_vector):
+
     #inputs:
     #query_string_and_corresponding_relevance_vector = [query_string, r]
-
     if len(self.old_queries) < 11:
       self.old_queries.append(query_string_and_corresponding_relevance_vector)
     else:
       self.old_queries.append(query_string_and_corresponding_relevance_vector)
       del(self.old_queries[0])
+    #
+    self.hist_ind = len(self.old_queries)
+    #
+    if self.hist_ind > 0:
+      self.backButton.setEnabled(True)
+      self.forwardButton.setEnabled(False)
 
 
  def get_keywords_from_search_thread_and_update_visible_stuff(self, keywords):    
@@ -588,7 +611,7 @@ class MyApp(QWidget):
       del(self.list_of_lists_of_old_keywords[0])
 
     self.keywords = keywords
-    print("MAIN: ",self.keywords)
+    #print("MAIN: ",self.keywords)
     self.update_kwbuttons(self.keywords)
     self.color_kwbuttons()
 
@@ -600,12 +623,44 @@ class MyApp(QWidget):
 
 
  def repeat_old_query(self):
-      if len(self.old_queries) > 1:
-        del(self.old_queries[-1])
-        old_query_and_corresponding_relevance_vector = self.old_queries[-1]
-        self.do_old_query.emit(old_query_and_corresponding_relevance_vector)
+      print("NUMBER OF STATES: ", self.hist_ind)
 
- #
+      #
+      sender = self.sender()
+      sender_text = sender.text()
+
+      #
+      if sender_text == "<":
+        #
+        self.hist_ind = self.hist_ind - 1
+        if self.hist_ind > 0:
+          print("NUMBER OF STATES: ", self.hist_ind)
+          self.do_old_query.emit(self.old_queries[self.hist_ind])
+          self.send_old_dumstring.emit(self.old_queries[self.hist_ind][0])
+          self.forwardButton.setEnabled(True)
+        elif self.hist_ind == 0:
+          self.do_old_query.emit(self.old_queries[self.hist_ind])
+          self.send_old_dumstring.emit(self.old_queries[self.hist_ind][0])          
+          self.backButton.setEnabled(False)
+        else: 
+          self.hist_ind = 0
+          self.backButton.setEnabled(False)
+      elif sender_text == ">":
+        #
+        self.hist_ind = self.hist_ind + 1
+        if self.hist_ind < len(self.old_queries)-1:
+          self.do_old_query.emit(self.old_queries[self.hist_ind])
+          self.send_old_dumstring.emit(self.old_queries[self.hist_ind][0])
+          self.backButton.setEnabled(True)
+        elif self.hist_ind == len(self.old_queries)-1:
+          self.do_old_query.emit(self.old_queries[self.hist_ind])
+          self.send_old_dumstring.emit(self.old_queries[self.hist_ind][0])        
+          self.forwardButton.setEnabled(False)
+        else:
+          self.hist_ind = len(self.old_queries)
+          self.forwardButton.setEnabled(False)
+
+        #
  def update_links(self, urlstrs):
     i = 0
     j = 0
@@ -838,7 +893,7 @@ class MyApp(QWidget):
   #f = open('data/test_wordlist.list','r')
   #test_wordlist = pickle.load(f)
   test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
-  print(test_wordlist)
+  print("MAIN: written words: ", test_wordlist)
   for i in range(len(self.buttonlist)):
     buttext = self.buttonlist[i].text()
     #print buttext

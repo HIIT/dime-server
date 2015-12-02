@@ -16,6 +16,7 @@ class LoggerThread(QtCore.QThread):
 
   def __init__(self):
     QtCore.QThread.__init__(self)
+    self.dumstr2 = ''
     self.var = True
 
   def start_logger_loop(self):
@@ -25,9 +26,15 @@ class LoggerThread(QtCore.QThread):
     self.var = False
 
   def clear_dumstring(self):
+    print("Logger thread: dum string cleared!!")
     self.dumstr2 = ''
     self.wordlist = []
 
+
+  def insert_old_dumstring(self, old_dumstring):
+    print("Logger thread: old dum string inserted!!")
+    self.dumstr2 = old_dumstring
+    self.wordlist = old_dumstring.split()
 
   #Keylogger 
   def run(self):
@@ -53,7 +60,7 @@ class LoggerThread(QtCore.QThread):
     #starttime = datetime.datetime.now().time().second
     now = time.time()
     dumstr = ''
-    wordlist = []
+    self.wordlist = []
     
     string_to_send = None
     timestamp = now
@@ -104,26 +111,26 @@ class LoggerThread(QtCore.QThread):
             print('Logger thread: keys: ', keys)
             print('Logger thread: changed: ', changed[0])
             #keys = ' '
-            wordlist.append(dumstr)
+            self.wordlist.append(dumstr)
             #print wordlist
-            print('Logger thread: wordlist:', wordlist[-nwords:])
-            dwordlist = wordlist[-nwords:]
+            print('Logger thread: wordlist:', self.wordlist[-nwords:])
+            dwordlist = self.wordlist[-nwords:]
             #dumstr = dumstr + keys
             countspaces = countspaces + 1
             dumstr = ''
-            dumstr2 = ''
+            self.dumstr2 = ''
             for i in range( len(dwordlist) ):
-              dumstr2 = dumstr2 + dwordlist[i] + ' '
+              self.dumstr2 = self.dumstr2 + dwordlist[i] + ' '
 
             #Print the typed words to a file 'typedwords.txt'
             f = open('typedwords.txt', 'a')
-            f.write(str(cdate) + ' ' + str(ctime) + ' ' + dumstr2 + '\n')
+            f.write(str(cdate) + ' ' + str(ctime) + ' ' + self.dumstr2 + '\n')
 
-            string_to_send = dumstr2
+            string_to_send = self.dumstr2
 
             if var2:
               #Empty the dumstr2 after time_interval period of time
-              dumstr2 = ''
+              self.dumstr2 = ''
 
           else:
             cdate = datetime.datetime.now().date()
