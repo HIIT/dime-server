@@ -45,8 +45,10 @@ def get_item_id(json_item):
 #
 class SearchThread(QThread):
 
+ #Signals
  send_links = pyqtSignal(list)
  send_keywords = pyqtSignal(list)
+ send_query_string_and_corresponding_relevance_vector = pyqtSignal(list)
  start_search = pyqtSignal()
  all_done = pyqtSignal()
  
@@ -57,6 +59,7 @@ class SearchThread(QThread):
   self.oldquery2 = None
   self.searchfuncid = 0
   self.extrasearch = False
+  self.old_search  = False
   #Exploration/Exploitation -coefficient
   self.c          = 0.0
 
@@ -134,10 +137,14 @@ class SearchThread(QThread):
   print("Search thread: got new query from logger: [%s]" % newquery)
   self.query = newquery
 
+
+ #
  def clear_query_string(self):
   self.query = ''
   print("searchthread: query string cleared!!")
 
+ 
+ #
  def get_new_word_from_main_thread(self, keywords):
   if self.query is None:
     self.query = ''
@@ -149,6 +156,19 @@ class SearchThread(QThread):
 
   print("Search thread: got new query from main:", self.query)
   self.extrasearch = True
+
+
+ #
+ def get_old_query_from_main_thread(self, old_query_and_corresponding_relevance_vector):  
+  #
+  if self.query is None:
+    self.query = ''
+  #
+  self.query = old_query_and_corresponding_relevance_vector[0]
+  self.old_r = old_query_and_corresponding_relevance_vector[1]
+  #
+  print("Search thread: got old query from main:", self.query)
+  self.old_search = True  
 
  def run(self):
    self.search()
@@ -207,23 +227,19 @@ class SearchThread(QThread):
 
     #
     if self.extrasearch:
-
       #
       print('Search thread: got extra search command from main!')      
-
       #
       #iteration['click'] = dstr
       iteration['click'] = self.query.split()[-1]
-      print("ITER 1",iteration)
+      print("ITER 1",iteration, self.query)
 
-      #Search function causing clicking results up to 4.10.2015
-      #jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
-      #
-      jsons = search_dime(self.srvurl, self.usrname, self.password, dstr, self.n_results)
+      #jsons = search_dime(self.srvurl, self.usrname, self.password, dstr, self.n_results)
 
       #
-      self.extrasearch = False    
+      self.extrasearch = False
 
+ 
     #
     if self.query is not None and self.query != self.oldquery2:
       #print 'self.query!!!!!'
@@ -234,7 +250,16 @@ class SearchThread(QThread):
     #do the following:
     if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + self.nokeypress_interval:
 
-      print("ITER 2",iteration)
+      #
+      if self.old_search:
+        print("Do OLD SEARCH and then continue.")
+        #
+        jsons, kws, winds, vsum, r = repeat_old_search(self.query, self.old_r, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+        self.old_search = False
+        continue
+
+      #
+      print("ITER 2",iteration, self.query)
       
       #Add to dstr the content of query text
       dstr = self.query      
@@ -254,12 +279,12 @@ class SearchThread(QThread):
         print('Search thread: Does nothing!')
       elif self.searchfuncid == 1:
         #Search from dime using written input and do LinRel keyword computation
-        jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
+        jsons, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
       elif self.searchfuncid == 2:
         #Determine number of keywords to be added to the query
         n_query_kws = 10
         #Search from DiMe using the written text input and keywords
-        jsons, kws, winds, vsum = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+        jsons, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
       # elif self.searchfuncid == 3:
       #   #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
 
@@ -283,7 +308,8 @@ class SearchThread(QThread):
               #print(mmr_scores)
               for di in range(20):
                   #
-                  print(kws_rr[di], mmr_scores[di], vsum_rr[di])
+                  #print(kws_rr[di], mmr_scores[di], vsum_rr[di])
+
                   #Store the MMR- and LinRel scores (stored in 'vsum') of keywords
                   iteration['kws'] = {}
                   for l,kw in enumerate(kws):
@@ -301,7 +327,7 @@ class SearchThread(QThread):
         known_item_target = "rec.autos/102802"
         for ji, js in enumerate(jsons):
             suggested_item = get_item_id(js)
-            print("SUGGESTED ITEM: ", suggested_item, "KNOWN ITEM: ", known_item_target)
+            #print("SUGGESTED ITEM: ", suggested_item, "KNOWN ITEM: ", known_item_target)
             if suggested_item == known_item_target:
                 # categoryid = 1
                 # nsamecategory = nsamecategory + 1.0
@@ -326,6 +352,8 @@ class SearchThread(QThread):
         self.send_links.emit(jsons)
         #Send keywords
         self.send_keywords.emit(kws)
+        #Send query text
+        self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
 
         #Write first url's appearing in jsons list to a 'suggested_pages.txt'
         cdate = datetime.datetime.now().date()
@@ -340,7 +368,8 @@ class SearchThread(QThread):
       #Send signal to Main thread that search is done
       self.all_done.emit()
 
-      print(iteration)
+      #Print 'iteration' dict
+      #print(iteration)
 
       #
       i = i + 1

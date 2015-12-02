@@ -204,6 +204,9 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
     #Outputs:
     #jsons = list jsons corresponding each resource 
     #kws   = keywords computed by LinRel
+    #winds = indices of keywords
+    #vsum  = r_hat + c*sigma_hat
+    #r     = observed relevance vector
 
     #
     r = query2relevancevector(query,dictionary,emphasize_kws)
@@ -217,7 +220,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
     #Search resources from DiMe using Dime-servers own search function
     jsons = search_dime(srvurl, username, password, query, n_results)
 
-    return jsons, kws, winds, vsum
+    return jsons, kws, winds, vsum, r
 
 
 
@@ -275,7 +278,7 @@ def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
 
     #
-    return jsons, kws, winds, vsum
+    return jsons, kws, winds, vsum, r
 
 
 #
@@ -320,7 +323,41 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     print("Number of returned jsons: ", len(jsons))
     
     #
-    return jsons, kws, winds, vsum
+    return jsons, kws, winds, vsum, r
+
+
+
+
+#Repeats search and the keyword computation using some old 
+#query and its corresponding observed relevance vector r
+def repeat_old_search(old_query, r_old, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+
+    #Inputs:
+    #old_query = string from keyboard
+    #old_r = observed relevance vector corresponding the old query string
+    #X     = document term matrix as tfidf form
+    #tfidf = tfidf -model by which the query is transformed into a tfidf vector
+    #dictionary = list of words and their indices ['word    ']
+    #c     = Exploitation/Exploration coefficient
+
+    #Outputs:
+    #jsons = list jsons corresponding each resource 
+    #kws   = keywords computed by LinRel
+    #winds = indices of keywords
+    #vsum  = r_hat + c*sigma_hat
+    #r     = observed relevance vector
+
+    #Get keywords related to input query string 
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(r_old, X, dictionary, c, mu)
+
+    #Search resources from DiMe using Dime-servers own search function
+    jsons = search_dime(srvurl, username, password, old_query, n_results)
+
+    return jsons, kws, winds, vsum, r_old
+
+
+
+
 
 
 #
@@ -350,7 +387,7 @@ def query2relevancevector(query,dictionary,emphasize_kws=0):
     test_vec      = query2bow(query, dictionary)
 
     #Determine the relevance score of observed words
-    print("INDICES OF EMPHASIZED WORDS: ", clicked_kwinds)
+    #print("INDICES OF EMPHASIZED WORDS: ", clicked_kwinds)
     r = relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws, clicked_kwinds.tolist())
 
     #
@@ -416,11 +453,8 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
             if np.linalg.norm(r[new_winds])>0 and len(new_winds):
                 r[new_winds] = r[new_winds]/np.linalg.norm(r[new_winds])
 
-            #
-            # print("RELEVANCE VALUES: ",new_winds,r[new_winds])
-            # print("INDICES OF CLICKED KWS: ",new_winds)
-            # print("SCORES: ", r[new_winds], r[winds])
-            print("OBSERVED RELEVANCE SCORES when emphasize_kws > 0: ", r[winds])
+            #print("OBSERVED RELEVANCE SCORES when emphasize_kws > 0: ", r[winds])
+
         #Start decreasing the relevance score of the written word after the occurrence such that r(written_word) = 1/i,
         #i = number of iterations after the occurrence of the word 'written_word'
         elif emphasize_kws == 0:
@@ -451,7 +485,8 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
             print(winds, oldwinds)
             dwinds = set.union(set(winds),set(oldwinds))
             dwinds = list(dwinds)
-            print("OBSERVED RELEVANCE SCORES when emphasize_kws == 0: ", r[dwinds])
+            #print("OBSERVED RELEVANCE SCORES when emphasize_kws == 0: ", r[dwinds])
+
         #Set the relevance score to 1.0 for each new word and 1/i for old word outside the writing window
         elif emphasize_kws < 0:
             #Initialize
@@ -472,7 +507,8 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
             r             = r_old + r
             #Set to 1.0 the score of new words in the writing window
             r[winds]      = 1.0
-            print("OBSERVED RELEVANCE SCORES when emphasize_kws < 0: ", r[winds])
+            #print("OBSERVED RELEVANCE SCORES when emphasize_kws < 0: ", r[winds])
+
             #
             np.save('data/r_old.npy',r)
 
@@ -524,16 +560,22 @@ def return_and_print_estimated_keyword_indices_and_values(r, X, dictionary, c, m
     if r_hat.sum() > 0.0:
         print("SUM OF VALUES of r_hat: ", r_hat.sum())
         r_hat     = r_hat/r_hat.sum()
+        print("SUM OF VALUES of r_hat: ", r_hat.max())
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
     if sigma_hat.sum() > 0.0:
         print("SUM OF VALUES of sigma_hat: ", sigma_hat.sum())
         sigma_hat = sigma_hat/sigma_hat.sum()
+        print("SUM OF VALUES of sigma_hat: ", sigma_hat.max())
 
     #Make unit vector from w_hat (user model)
     norm_w_hat = np.linalg.norm(w_hat)
     if norm_w_hat > 0.0:
         w_hat = w_hat/norm_w_hat
         norm_w_hat = np.linalg.norm(w_hat)
+
+    #Save current r_hat and sigma_hat, and w_hat
+    np.save('data/r_hat.npy',r_hat)
+    np.save('data/sigma_hat.npy',sigma_hat)        
 
     #Sum r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
     print("VALUE OF c: ",c)

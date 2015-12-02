@@ -80,6 +80,7 @@ class MyApp(QWidget):
 
  finished = pyqtSignal(int)
  update = pyqtSignal(str)
+ do_old_query = pyqtSignal(list)
  
  def __init__(self, parent=None):
   QWidget.__init__(self, parent)
@@ -92,6 +93,7 @@ class MyApp(QWidget):
   self.data = []
   self.keywords = []
   self.list_of_lists_of_old_keywords = []
+  self.old_queries = []
 
   #Animation objects
   # self.anim1 = MyView()
@@ -128,6 +130,8 @@ class MyApp(QWidget):
   #Data connections from search thread to main thread
   self.SearchThreadObj.send_links.connect(self.get_data_from_search_thread_and_update_visible_stuff)
   self.SearchThreadObj.send_keywords.connect(self.get_keywords_from_search_thread_and_update_visible_stuff)
+  self.SearchThreadObj.send_query_string_and_corresponding_relevance_vector.connect(self.get_query_string_from_search_thread)  
+
   #self.SearchThreadObj.start_search.connect(self.anim1.tl.start)
   #self.SearchThreadObj.start_search.connect(self.animation.start)
   self.SearchThreadObj.start_search.connect(self.start_animation)
@@ -139,20 +143,21 @@ class MyApp(QWidget):
   #Data connections from main thread to search thread
   self.finished.connect(self.SearchThreadObj.change_search_function)
   self.update.connect(self.SearchThreadObj.get_new_word_from_main_thread)
+  self.do_old_query.connect(self.SearchThreadObj.get_old_query_from_main_thread)
 
   #Create visible stuff
   val = 5
   iconfile = 'web.png'
   self.gbtitle = QLabel('Web sites')
-  self.gbtitle.hide()
-  self.listWidget1 = self.create_QListWidget(20, iconfile)
-  self.listWidget1.hide()
+  self.listWidget1 = self.create_QListWidget(20, iconfile)  
+  # self.gbtitle.hide()
+  # self.listWidget1.hide()
 
   iconfile = 'mail.png'
   self.gbtitle2 = QLabel('E-Mails')
-  self.gbtitle2.hide()
   self.listWidget2 = self.create_QListWidget(20, iconfile)
-  self.listWidget2.hide()
+  # self.gbtitle2.hide()
+  # self.listWidget2.hide()
 
   #
   iconfile = 'doc.png'
@@ -182,7 +187,7 @@ class MyApp(QWidget):
   self.backButton  = QPushButton("Back")
   self.backButton.setToolTip("Back in history")  
   #
-  self.backButton.released.connect(self.get_old_keywords_and_update_visible_stuff)
+  self.backButton.released.connect(self.repeat_old_query)
   
   #self.clearButton.setGeometry(1,1,1,1)
   #self.clearButton.setFixedWidth(60)
@@ -564,6 +569,17 @@ class MyApp(QWidget):
     self.update_links(self.data)
 
 
+ def get_query_string_from_search_thread(self, query_string_and_corresponding_relevance_vector):
+    #inputs:
+    #query_string_and_corresponding_relevance_vector = [query_string, r]
+
+    if len(self.old_queries) < 11:
+      self.old_queries.append(query_string_and_corresponding_relevance_vector)
+    else:
+      self.old_queries.append(query_string_and_corresponding_relevance_vector)
+      del(self.old_queries[0])
+
+
  def get_keywords_from_search_thread_and_update_visible_stuff(self, keywords):    
     if len(self.list_of_lists_of_old_keywords) < 11:
       self.list_of_lists_of_old_keywords.append(self.keywords)
@@ -581,6 +597,14 @@ class MyApp(QWidget):
       self.update_kwbuttons(self.old_keywords[-1])
       self.color_kwbuttons()    
       del(self.list_of_lists_of_old_keywords[-1])
+
+
+ def repeat_old_query(self):
+      if len(self.old_queries) > 1:
+        del(self.old_queries[-1])
+        old_query_and_corresponding_relevance_vector = self.old_queries[-1]
+        self.do_old_query.emit(old_query_and_corresponding_relevance_vector)
+
  #
  def update_links(self, urlstrs):
     i = 0
@@ -612,7 +636,7 @@ class MyApp(QWidget):
                                       storedas  = str(self.safe_get_value(urlstrs[ijson], "isStoredAs"))
                                       dataid    = str(self.safe_get_value(urlstrs[ijson], "id"))
                                       storedasl = storedas.split('#')[1]
-                                      print("LINKSTR: linkstr")
+                                      #print("LINKSTR: linkstr")
 
 
                                       #print 'Main: storedasl: ', storedasl
@@ -685,7 +709,7 @@ class MyApp(QWidget):
 
                                           k = k + 1                                  
                                       else:
-                                        #print 'Main: web ', linkstr
+                                        #print('Main: web ', linkstr)
                                         title = None
 
                                         #title = str(urlstrs[ijson]["Title"])
@@ -720,7 +744,7 @@ class MyApp(QWidget):
                                           self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
                                           self.listWidget1.item(i).setToolTip(tooltipstr)
                                           
-                                          self.listWidget1.item(i).setHidden(True)
+                                          self.listWidget1.item(i).setHidden(False)
 
 
                                         i = i + 1  
@@ -744,8 +768,8 @@ class MyApp(QWidget):
       if len(keywordlist) > 0:
         #
         if type(keywordlist[0]) is str:
-          print('Main: update_links: got a list of keywords!!!')
-          print('Main: keyword button labels keywords: ', keywordlist)
+          #print('Main: update_links: got a list of keywords!!!')
+          #print('Main: keyword button labels keywords: ', keywordlist)
           ncols = self.hlayout3.count()
           #print 'Num of widgets ', ncols
           #Remove old buttons
