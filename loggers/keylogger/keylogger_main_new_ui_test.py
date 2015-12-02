@@ -392,6 +392,7 @@ class MyApp(QWidget):
  def disable_buttons(self):
   for button in self.buttonlist:
     button.setText("")
+    button.setStyleSheet("background-color: white")
     button.setEnabled(False)
 
  def enable_buttons(self):
@@ -406,6 +407,8 @@ class MyApp(QWidget):
   for i in range(self.numofkwbuttons):
                   #keywordstr = keywordstr + urlstrs[i] + ', '
                   dumbutton = QPushButton('button'+ str(i))
+                  #dumbutton.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+                  dumbutton.setStyleSheet("background-color: white")
                   buttonlist.append(dumbutton)
   #Initially hide the buttons
   # for i in range(len(buttonlist)):
@@ -457,6 +460,7 @@ class MyApp(QWidget):
     #
     #Create layout for buttonlist
     self.btnlayout = QHBoxLayout()        
+    self.btnlayout.setSizeConstraint(QLayout.SetMinimumSize)
     if sys.platform == "linux":
         self.btnlayout.setSpacing(1)
     #Add buttons to the layout
@@ -470,7 +474,7 @@ class MyApp(QWidget):
     self.dwidget = QWidget()
     self.dwidget.setLayout(self.btnlayout)
     self.dwidget.layout().setContentsMargins(0,0,0,0)
-    self.dwidget.layout().insertStretch(-1,0)
+    #self.dwidget.layout().insertStretch(-1,0)
 
     #Create Scroll area
     scrollArea = QScrollArea()
@@ -786,8 +790,8 @@ class MyApp(QWidget):
  def update_kwbuttons(self, keywordlist):
     
     #First hide all buttons
-    for i in range(len(self.buttonlist)):
-      self.buttonlist[i].hide()
+ #   for i in range(len(self.buttonlist)):
+ #     self.buttonlist[i].hide()
 
     #
     i = 0
