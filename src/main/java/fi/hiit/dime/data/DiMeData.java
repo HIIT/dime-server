@@ -32,6 +32,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 
 /**
 */
@@ -65,5 +66,6 @@ public class DiMeData extends AbstractPersistable<Long> {
     */
     public void autoFill() {} 
 
+    @Transient
     public Float score;
 }

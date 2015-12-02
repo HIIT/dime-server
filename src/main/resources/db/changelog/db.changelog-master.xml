@@ -364,4 +364,10 @@
     <changeSet author="mvsjober (generated)" id="1448019447210-2">
         <dropColumn columnName="SAMPLE_RATE" tableName="EVENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449067707888-1">
+        <dropColumn columnName="SCORE" tableName="EVENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449067707888-2">
+        <dropColumn columnName="SCORE" tableName="INFORMATION_ELEMENT"/>
+    </changeSet>
 </databaseChangeLog>
