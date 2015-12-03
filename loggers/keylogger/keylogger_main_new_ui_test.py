@@ -394,8 +394,8 @@ class MyApp(QWidget):
 
   #
   self.mastervlayout.addLayout(self.hlayout2)
-  #self.mastervlayout.addWidget(self.scrollArea)
-  self.hlayout.addWidget(self.scrollArea)
+  self.mastervlayout.addWidget(self.scrollArea)
+  #self.hlayout.addWidget(self.scrollArea)
   self.mastervlayout.addLayout(self.hlayout4)
 
   #
