@@ -361,8 +361,8 @@ class MyApp(QWidget):
   #   self.buttonlist[i].hide()
 
   #Create scroll area for buttons
-  # self.scrollArea = self.create_horizontal_scroll_area_for_buttonwidget_list(self.buttonlist)
-  self.scrollArea = self.create_vertical_scroll_area_for_buttonwidget_list(self.buttonlist)
+  self.scrollArea = self.create_horizontal_scroll_area_for_buttonwidget_list(self.buttonlist)
+  #self.scrollArea = self.create_vertical_scroll_area_for_buttonwidget_list(self.buttonlist)
     # self.scrollArea.hide()
 
 
