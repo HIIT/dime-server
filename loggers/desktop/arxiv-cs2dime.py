@@ -100,7 +100,7 @@ def create_payload(doc, i, do_stem, do_lemma):
     print i
     print
 
-    uri, title, abstract = '', '', ''
+    uri, title, abstract, year = '', '', '', ''
     keywords = []
     finaltags = []
     for field in doc:
@@ -114,6 +114,8 @@ def create_payload(doc, i, do_stem, do_lemma):
             title = text
         elif nameattr == 'abstract':
             abstract = text
+        elif nameattr == 'year':
+            year = text
         elif nameattr == 'keyword':
             keywords.append(text)
         elif nameattr == 'subject' and text2cat.has_key(text):
@@ -132,6 +134,7 @@ def create_payload(doc, i, do_stem, do_lemma):
         'type': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument',
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#EmbeddedFileDataObject',
         'keywords': keywords,
+        'year': year,
         'title': filter_string(title, do_stem, do_lemma), 
         'tags' : finaltags
     }
