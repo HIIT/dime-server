@@ -190,6 +190,7 @@ class MyApp(QWidget):
   self.clearButton.setToolTip("Clears the keyword history")
   #
   self.clearButton.released.connect(self.clear_kw_history)
+  self.clearButton.released.connect(self.hide_lists)
   self.clearButton.released.connect(self.SearchThreadObj.clear_query_string)
   self.clearButton.released.connect(self.LoggerThreadObj.clear_dumstring)
 
@@ -632,7 +633,10 @@ class MyApp(QWidget):
         icon = QIcon(icon_file)
         dumitem.setIcon(icon)
         dumitem.setHidden(True)
+        dumitem.setFlags(Qt.ItemIsUserCheckable)
+        dumitem.setCheckState(Qt.Unchecked)
 
+    listWidget.itemDoubleClicked.connect(self.check_item)
     listWidget.itemClicked.connect(self.open_url)
 
     return listWidget
@@ -731,6 +735,15 @@ class MyApp(QWidget):
           self.forwardButton.setEnabled(False)
 
         #
+
+ def hide_lists(self):
+   for dj in range(self.listWidget1.count()):
+     self.listWidget1.item(dj).setHidden(True)    
+   for dj in range(self.listWidget2.count()):
+     self.listWidget2.item(dj).setHidden(True)
+   for dj in range(self.listWidget3.count()):
+     self.listWidget3.item(dj).setHidden(True)      
+
  def update_links(self, urlstrs):
     i = 0
     j = 0
@@ -740,12 +753,7 @@ class MyApp(QWidget):
       if len(urlstrs) > 0:
         if type(urlstrs[0]) is dict:
           #Set hidden listWidgetItems that are not used
-          for dj in range(self.listWidget1.count()):
-            self.listWidget1.item(dj).setHidden(True)    
-          for dj in range(self.listWidget2.count()):
-            self.listWidget2.item(dj).setHidden(True)
-          for dj in range(self.listWidget3.count()):
-            self.listWidget3.item(dj).setHidden(True)      
+          self.hide_lists()
 
           #
           self.kw_subset_ind = 0
@@ -1018,6 +1026,10 @@ class MyApp(QWidget):
     return ""
 
 
+ #
+ def check_item(self, listWidgetitem):
+  listWidgetitem.setCheckState(Qt.Checked)
+  
  #
  def open_url(self, listWidgetitem):
   #global urlstr
