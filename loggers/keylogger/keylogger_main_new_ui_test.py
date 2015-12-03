@@ -759,18 +759,33 @@ class MyApp(QWidget):
                                       if storedasl in ["LocalFileDataObject" ] or storedasl in ["EmbeddedFileDataObject"]:
                                           #print 'Main: doc', linkstr
 
-                                          try:
-                                            title   = urlstrs[ijson]["title"]
-                                          except KeyError:
-                                            title   = linkstrshort
+                                          if "title" in urlstrs[ijson]:
+                                            title = urlstrs[ijson]["title"]
+                                            title = title.replace('\n', '').replace('\r', '')
+                                          else:
+                                            title = linkstrshort
+
+                                          if "authors" in urlstrs[ijson]:
+                                            authors = self.process_authors(urlstrs[ijson]["authors"])
+                                          else:
+                                            authors = ""
+
+                                          yearstr = ""
+                                          if "year" in urlstrs[ijson]:
+                                            year = urlstrs[ijson]["year"]
+                                            if year>0:
+                                              yearstr = str(year)
 
                                           #Create link to DiMe server
                                           dumlink = self.srvurl.split('/')[2]
                                           linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
                                           
-                                          parts = linkstr.rsplit("/",1)                                          
+                                          #parts = linkstr.rsplit("/",1)
                                           #visiblestr = parts[-1] + '  (' + datestr + ')'
-                                          visiblestr = title + '  (' + datestr + ')'
+                                          if args.singlelist:
+                                            visiblestr = title + '. ' + authors + '. ' + yearstr
+                                          else:
+                                            visiblestr = title + '  (' + datestr + ')'
                                           
                                           if j < len(self.listWidget3):
                                             self.listWidget3.item(j).setText(visiblestr) 
@@ -840,6 +855,22 @@ class MyApp(QWidget):
 
                                         i = i + 1  
                                         #print i
+
+
+
+ def process_authors(self, alist):
+   authorstring = ""
+   first = True;
+   for a in alist:
+     if not first:
+       authorstring += ", "
+     first = False
+     if "firstName" in a:
+       fn = a["firstName"].strip()
+       authorstring += fn[0] + ". "
+     if "lastName" in a:
+        authorstring += a["lastName"].strip()
+   return authorstring
 
  #
  def update_kwbuttons(self, keywordlist):
@@ -961,7 +992,10 @@ class MyApp(QWidget):
   dimelink = listWidgetitem.whatsThis().split('*')[1]
   #webbrowser.open(str(listWidgetitem.whatsThis()))
   #webbrowser.open(webpagel)
-  webbrowser.open(dimelink)
+  if args.singlelist:
+    webbrowser.open(webpagel)
+  else:
+    webbrowser.open(dimelink)
 
  #
  def stopstart(self):
