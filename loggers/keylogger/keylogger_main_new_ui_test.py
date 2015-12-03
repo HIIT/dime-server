@@ -76,7 +76,17 @@ class MainWindow(QMainWindow):
     #
     self.show()
 
+class MyListWidget(QListWidget):
+    def __init__(self, parent=None):
+        super(MyListWidget, self).__init__(parent)
 
+    def mousePressEvent(self, event):
+        button = event.button()
+        print("mousePressEvent", button)
+        item = self.itemAt(event.pos())
+        if item is not None and button == 2:
+            self.itemDoubleClicked.emit(item)
+        super(MyListWidget, self).mousePressEvent(event)
 
 class MyApp(QWidget):
 #class MyApp(QMainWindow):
@@ -623,7 +633,7 @@ class MyApp(QWidget):
 
 
  def create_QListWidget(self, val, icon_file):
-    listWidget = QListWidget()
+    listWidget = MyListWidget()
     for i in range(val):
         dumitem = QListWidgetItem(listWidget)
         dstr = ''
@@ -812,7 +822,7 @@ class MyApp(QWidget):
                                           else:
                                             authors = ""
 
-                                          yearstr = ""
+                                          yearstr = "20xx"
                                           if "year" in urlstrs[ijson]:
                                             year = urlstrs[ijson]["year"]
                                             if year>0:
@@ -1028,7 +1038,10 @@ class MyApp(QWidget):
 
  #
  def check_item(self, listWidgetitem):
-  listWidgetitem.setCheckState(Qt.Checked)
+   if listWidgetitem.checkState() == Qt.Checked:
+     listWidgetitem.setCheckState(Qt.Unchecked)
+   else:
+     listWidgetitem.setCheckState(Qt.Checked)
   
  #
  def open_url(self, listWidgetitem):
