@@ -94,7 +94,7 @@ def filter_string(string, do_stem=True, do_lemma=False):
 
 #------------------------------------------------------------------------------
 
-def create_payload(doc, i, do_stem, do_lemma):
+def create_payload(doc, i, do_stem, do_lemma, add_title):
 
     print "---###---###---###---###---###---###---###---###---###---###---"
     print i
@@ -102,6 +102,7 @@ def create_payload(doc, i, do_stem, do_lemma):
 
     uri, title, abstract, year = '', '', '', ''
     keywords = []
+    authors = []
     finaltags = []
     for field in doc:
         text = field.text
@@ -118,6 +119,12 @@ def create_payload(doc, i, do_stem, do_lemma):
             year = text
         elif nameattr == 'keyword':
             keywords.append(text)
+        elif nameattr == 'author':
+            parts = text.split(",")
+            author = {'@type': 'Person', 'lastName': parts[0]}
+            if len(parts)>1:
+                author['firstName'] = parts[1]            
+            authors.append(author)
         elif nameattr == 'subject' and text2cat.has_key(text):
             finaltags = ['category='+text2cat[text], 'categorytext='+text]
 
@@ -135,7 +142,8 @@ def create_payload(doc, i, do_stem, do_lemma):
         'isStoredAs': 'http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#EmbeddedFileDataObject',
         'keywords': keywords,
         'year': year,
-        'title': filter_string(title, do_stem, do_lemma), 
+        'title': title, 
+        'authors': authors,
         'tags' : finaltags
     }
 
@@ -144,7 +152,10 @@ def create_payload(doc, i, do_stem, do_lemma):
     payload['targettedResource']['id'] = targettedResource['id']
     payload['id'] = common.to_json_sha1(payload)
 
-    targettedResource['plainTextContent'] = filter_string(abstract, do_stem, do_lemma)
+    targettedResource['plainTextContent'] = ""
+    if add_title:
+        targettedResource['plainTextContent'] += filter_string(title, do_stem, do_lemma) + " "
+    targettedResource['plainTextContent'] += filter_string(abstract, do_stem, do_lemma)
 
     payload['targettedResource'] = targettedResource.copy()
 
@@ -170,6 +181,8 @@ if __name__ == "__main__":
                         default=-1.0, help='probability of skipping an abstract')
     parser.add_argument('--lemmatize', action='store_true',
                         help='enable Wordnet lemmatization of tokens')
+    parser.add_argument('--addtitle', action='store_true',
+                        help='add title to plainTextContent')
 
     args = parser.parse_args()
 
@@ -204,7 +217,7 @@ if __name__ == "__main__":
 
         print "Processing", j, doc
 
-        json_payload = create_payload(doc, i, not args.nostem, args.lemmatize)
+        json_payload = create_payload(doc, i, not args.nostem, args.lemmatize, args.addtitle)
         if json_payload is None:
             continue
         print "PAYLOAD:\n" + json_payload
