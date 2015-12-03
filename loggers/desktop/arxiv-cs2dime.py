@@ -115,8 +115,9 @@ def create_payload(doc, i, do_stem, do_lemma, add_title):
             title = text
         elif nameattr == 'abstract':
             abstract = text
-        elif nameattr == 'year':
-            year = text
+        elif nameattr == 'last_modified':
+            parts = text.split("-")
+            year = parts[0]
         elif nameattr == 'keyword':
             keywords.append(text)
         elif nameattr == 'author':
