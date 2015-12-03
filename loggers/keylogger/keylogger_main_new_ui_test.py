@@ -126,6 +126,8 @@ class MyApp(QWidget):
   #Create  thread objects
   self.LoggerThreadObj  = LoggerThread()
   self.SearchThreadObj = SearchThread()
+  #Set the emphasize_kws mode for the search thread
+  self.SearchThreadObj.emphasize_kws = args.emphasize_kws
 
   #Data connection from logger thread to search thread
   self.LoggerThreadObj.update.connect(self.SearchThreadObj.get_new_word)
@@ -253,6 +255,7 @@ class MyApp(QWidget):
   self.vlayout2.addWidget(self.listWidget2)
   #  
   self.vlayout3 = QVBoxLayout()
+  #
   if not args.singlelist:
     self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
@@ -357,8 +360,9 @@ class MyApp(QWidget):
   #   self.buttonlist[i].hide()
 
   #Create scroll area for buttons
-  self.scrollArea = self.create_scroll_area_for_buttonwidget_list(self.buttonlist)
-  # self.scrollArea.hide()
+  # self.scrollArea = self.create_horizontal_scroll_area_for_buttonwidget_list(self.buttonlist)
+  self.scrollArea = self.create_vertical_scroll_area_for_buttonwidget_list(self.buttonlist)
+    # self.scrollArea.hide()
 
 
 
@@ -388,11 +392,9 @@ class MyApp(QWidget):
   self.kw_subset_ind = 0
 
   #
-  #self.mastervlayout.addWidget(self.keywordlabel)
-  #Add self.hlayout2 to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout2)
-  #self.mastervlayout.addLayout(self.hlayout3)
-  self.mastervlayout.addWidget(self.scrollArea)
+  #self.mastervlayout.addWidget(self.scrollArea)
+  self.hlayout.addWidget(self.scrollArea)
   self.mastervlayout.addLayout(self.hlayout4)
 
   #
@@ -474,7 +476,7 @@ class MyApp(QWidget):
 
 
  #Create scroll area for buttons
- def create_scroll_area_for_buttonwidget_list(self, btnwidgetlist):
+ def create_horizontal_scroll_area_for_buttonwidget_list(self, btnwidgetlist):
     #
     #Create layout for buttonlist
     self.btnlayout = QHBoxLayout()        
@@ -501,6 +503,38 @@ class MyApp(QWidget):
     scrollArea.setFrameStyle(0)
 
     return scrollArea
+
+
+ #Create scroll area for buttons
+ def create_vertical_scroll_area_for_buttonwidget_list(self, btnwidgetlist):
+    #
+    #Create layout for buttonlist
+    self.btnlayout = QVBoxLayout()        
+    self.btnlayout.setSizeConstraint(QLayout.SetMinimumSize)
+    if sys.platform == "linux":
+        self.btnlayout.setSpacing(1)
+    #Add buttons to the layout
+    for i,btnwidget in enumerate(btnwidgetlist):
+        self.btnlayout.addWidget(btnwidget)
+
+    #Add spaces to the right end of the layout
+    #self.btnlayout.addSpacing(self.btnlayout.)
+
+    #Create a QWidget containing self.btnlayout
+    self.dwidget = QWidget()
+    self.dwidget.setLayout(self.btnlayout)
+    self.dwidget.layout().setContentsMargins(0,0,0,0)
+    #self.dwidget.layout().insertStretch(-1,0)
+
+    #Create Scroll area
+    scrollArea = QScrollArea()
+    scrollArea.setWidget(self.dwidget)    
+    #scrollArea.setFixedHeight(50)
+    scrollArea.setFrameStyle(0)
+    scrollArea.verticalScrollBar()
+
+    return scrollArea
+
 
 
 
@@ -1029,8 +1063,12 @@ if __name__ == "__main__":
 
 
   parser = argparse.ArgumentParser()
+  
   parser.add_argument("--singlelist", action='store_true',
                       help="single list mode")
+  parser.add_argument('--emphasize_kws', metavar='LAMBDA', action='store', type=int,
+                    default=0, help='Emphasize clicked keywords.')
+
   args = parser.parse_args()
   
   # run

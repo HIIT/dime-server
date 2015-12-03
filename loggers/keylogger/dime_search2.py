@@ -423,6 +423,8 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
         #If emphasize_kws < 1 , decrease the observed relevance of other
         #words, except the last observed words
         if emphasize_kws>0:
+            print("VALUE OF emphasize_kws: ", emphasize_kws)
+            
             #Load 
             r            = np.zeros([test_vec_full.shape[0],1])
             #Make set out of the list of indices of words with non-zero relevance score
@@ -458,6 +460,8 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
         #Start decreasing the relevance score of the written word after the occurrence such that r(written_word) = 1/i,
         #i = number of iterations after the occurrence of the word 'written_word'
         elif emphasize_kws == 0:
+            print("VALUE OF emphasize_kws: ", emphasize_kws)
+
             #Initialize
             r             = np.zeros([test_vec_full.shape[0],1])
             r[winds]      = 1.0
@@ -489,6 +493,8 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
 
         #Set the relevance score to 1.0 for each new word and 1/i for old word outside the writing window
         elif emphasize_kws < 0:
+            print("VALUE OF emphasize_kws: ", emphasize_kws)
+
             #Initialize
             r             = np.zeros([test_vec_full.shape[0],1])
             #Make set out of the list of indices of words with non-zero relevance score

@@ -58,6 +58,8 @@ class SearchThread(QThread):
   self.oldquery  = None
   self.oldquery2 = None
   self.searchfuncid = 0
+  #Mode by which the relevance vector is determined from written/clicked input
+  self.emphasize_kws = 0
   self.extrasearch = False
   self.old_search  = False
   #Exploration/Exploitation -coefficient
@@ -272,14 +274,14 @@ class SearchThread(QThread):
           print('Search thread: Does nothing!')
         elif self.searchfuncid == 1:
           #Search from dime using written input and do LinRel keyword computation
-          jsons, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
+          jsons, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, self.emphasize_kws)        
           #Send query text and its corresponding relevance vector
           self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
         elif self.searchfuncid == 2:
           #Determine number of keywords to be added to the query
           n_query_kws = 10
           #Search from DiMe using the written text input and keywords
-          jsons, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+          jsons, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, self.emphasize_kws)
           #Send query text and its corresponding relevance vector
           self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
 
