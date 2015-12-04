@@ -749,10 +749,13 @@ class MyApp(QWidget):
  def hide_lists(self):
    for dj in range(self.listWidget1.count()):
      self.listWidget1.item(dj).setHidden(True)    
+     self.listWidget1.item(dj).setCheckState(Qt.Unchecked)
    for dj in range(self.listWidget2.count()):
      self.listWidget2.item(dj).setHidden(True)
+     self.listWidget2.item(dj).setCheckState(Qt.Unchecked)
    for dj in range(self.listWidget3.count()):
-     self.listWidget3.item(dj).setHidden(True)      
+     self.listWidget3.item(dj).setHidden(True)
+     self.listWidget3.item(dj).setCheckState(Qt.Unchecked)
 
  def update_links(self, urlstrs):
     i = 0
