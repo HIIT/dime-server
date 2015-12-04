@@ -85,12 +85,32 @@ class MyListWidget(QListWidget):
         super(MyListWidget, self).__init__(parent)
 
     def mousePressEvent(self, event):
+        #button = event.button()
+        # print("mousePressEvent", button)
+        print("mousePressEvent", event)
+        item = self.itemAt(event.pos())
+        print(item)
+        # if item is not None and button == 2:
+        #     self.itemDoubleClicked.emit(item)
+        # super(MyListWidget, self).mousePressEvent(event)
+
+
+class MyQLineEdit(QLineEdit):
+
+    explicitQueryFieldClicked = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super(MyQLineEdit, self).__init__(parent)
+
+    def mousePressEvent(self, event):
+
         button = event.button()
         print("mousePressEvent", button)
-        item = self.itemAt(event.pos())
-        if item is not None and button == 2:
-            self.itemDoubleClicked.emit(item)
-        super(MyListWidget, self).mousePressEvent(event)
+        #item = self.itemAt(event.pos())
+        #if item is not None and button == 2:
+        self.explicitQueryFieldClicked.emit()
+        #super(MyListWidget, self).mousePressEvent(event)
+
 
 
 
@@ -100,8 +120,12 @@ class MyApp(QWidget):
  finished = pyqtSignal(int)
  update = pyqtSignal(str)
  do_old_query = pyqtSignal(list)
+
  #Signal for sending old written string to logger thread
  send_old_dumstring = pyqtSignal(str)
+
+ #Signal for sending explicit search string
+ send_explicit_search_query = pyqtSignal(str)
  
  def __init__(self, parent=None):
   QWidget.__init__(self, parent)
@@ -173,7 +197,8 @@ class MyApp(QWidget):
   self.update.connect(self.SearchThreadObj.get_new_word_from_main_thread)
   self.do_old_query.connect(self.SearchThreadObj.get_old_query_from_main_thread)
   self.send_old_dumstring.connect(self.LoggerThreadObj.insert_old_dumstring)
-
+  #
+  #self.send_explicit_search_query.connect(self.LoggerThreadObj.insert_the_latest_old_dumstring_and_explicit_query)
 
   #Create visible stuff
   val = 5
@@ -227,6 +252,16 @@ class MyApp(QWidget):
   #
   self.backButton.released.connect(self.repeat_old_query)
   self.forwardButton.released.connect(self.repeat_old_query)
+
+  #Text field for explicit queries
+  self.explicit_query_field = MyQLineEdit()
+  self.explicit_query_field.explicitQueryFieldClicked.connect(self.only_stop_keylogger)
+
+  #Add search button for explicit search
+  self.explicit_query_button = QPushButton("Search!")
+  self.explicit_query_button.clicked.connect(self.emit_explicit_search)
+
+  #self.explicit_query_button.connect(self.emit_explicit_query)
   
   #self.clearButton.setGeometry(1,1,1,1)
   #self.clearButton.setFixedWidth(60)
@@ -359,7 +394,15 @@ class MyApp(QWidget):
   self.hlayout.addLayout(self.vlayout5)
 
   #Master vertical layout:
+  self.mastermaterhlayout = QHBoxLayout(self)
   self.mastervlayout = QVBoxLayout(self)
+
+  #Add the text field for explicit query field
+  self.explicit_query_layout = QHBoxLayout()
+  self.explicit_query_layout.addWidget(self.explicit_query_field)
+  self.explicit_query_layout.addWidget(self.explicit_query_button)
+
+  self.mastervlayout.addLayout(self.explicit_query_layout)
 
   #Add self.hlayout to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout)
@@ -389,8 +432,8 @@ class MyApp(QWidget):
   #   self.buttonlist[i].hide()
 
   #Create scroll area for buttons
-  self.scrollArea = self.create_horizontal_scroll_area_for_buttonwidget_list(self.buttonlist)
-  #self.scrollArea = self.create_vertical_scroll_area_for_buttonwidget_list(self.buttonlist)
+  #self.scrollArea = self.create_horizontal_scroll_area_for_buttonwidget_list(self.buttonlist)
+  self.scrollArea = self.create_vertical_scroll_area_for_buttonwidget_list(self.buttonlist)
     # self.scrollArea.hide()
 
 
@@ -420,15 +463,20 @@ class MyApp(QWidget):
   #
   self.kw_subset_ind = 0
 
+
   #
   self.mastervlayout.addLayout(self.hlayout2)
   #Add scrollArea of useful documents
   self.mastervlayout.addWidget(self.useful_docs_title)
   self.mastervlayout.addWidget(self.useful_docs_listWidget)
   #Add scrollArea of keyword buttons
-  self.mastervlayout.addWidget(self.scrollArea)
+  #self.mastervlayout.addWidget(self.scrollArea)
   #self.hlayout.addWidget(self.scrollArea)
   self.mastervlayout.addLayout(self.hlayout4)
+
+  #
+  self.mastermaterhlayout.addWidget(self.scrollArea)
+  self.mastermaterhlayout.addLayout(self.mastervlayout)
 
   #
   self.setWindowTitle("Re:Know Proactive Search")
@@ -599,6 +647,11 @@ class MyApp(QWidget):
  #   self.startStopButton.setDisabled(False)
  #   self.LoggerThreadObj.stop_logger_loop()
 
+ def only_stop_keylogger(self):
+    if self.startStopButton.text() == "Stop":
+      self.startStopButton.setText("Start")
+      self.LoggerThreadObj.stop_logger_loop()
+
  def start_stop_keylogger(self):
     print('Start or stop logger!')
     #self.stopButton.setDisabled(False)
@@ -613,6 +666,19 @@ class MyApp(QWidget):
  def change_c(self,value):
     print('Value: ', value)
     #self.emit(QtCore.SIGNAL(''))
+
+
+ def emit_explicit_search(self):
+    print("Explicit search: ", self.explicit_query_field.text())
+    if self.startStopButton.text() == "Start":
+      self.startStopButton.setText("Stop")
+      self.LoggerThreadObj.start_logger_loop()
+      self.LoggerThreadObj.start()
+
+    #Clear the query field    
+    self.explicit_query_field.clear()
+
+    #self.send_explicit_search_query.emit(self.explicit_query_field.text())
 
  def emit_search_command(self):
   #if searchfuncid == 0:
