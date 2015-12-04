@@ -76,7 +76,11 @@ class MainWindow(QMainWindow):
     #
     self.show()
 
+
 class MyListWidget(QListWidget):
+
+    itemDoubleClicked = pyqtSignal('QListWidgetItem')
+
     def __init__(self, parent=None):
         super(MyListWidget, self).__init__(parent)
 
@@ -87,6 +91,8 @@ class MyListWidget(QListWidget):
         if item is not None and button == 2:
             self.itemDoubleClicked.emit(item)
         super(MyListWidget, self).mousePressEvent(event)
+
+
 
 class MyApp(QWidget):
 #class MyApp(QMainWindow):
@@ -109,6 +115,9 @@ class MyApp(QWidget):
   self.keywords = []
   self.list_of_lists_of_old_keywords = []
   self.old_queries = []
+
+  #List of documents checked as useful by the user
+  self.useful_docs = {}
 
   #Index for current element in history list
   self.hist_ind = 0
@@ -185,6 +194,10 @@ class MyApp(QWidget):
   self.gbtitle3 = QLabel('Docs')
   self.listWidget3 = self.create_QListWidget(20, iconfile)
 
+  #List of useful docs
+  self.useful_docs_listWidget = self.create_QListWidget(0,iconfile)  
+
+
 
   #Buttons
   #Start button
@@ -254,6 +267,7 @@ class MyApp(QWidget):
   #
   self.buttonlist = []
 
+  #
 
 
   #Layout for Web Pages
@@ -270,6 +284,10 @@ class MyApp(QWidget):
   if not args.singlelist:
     self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
+
+  #Add list widget of useful docs
+  #self.vlayout3.addWidget(self.useful_docs_listWidget)
+
   #
   self.vlayout4 = QVBoxLayout()
   self.vlayout4.setSpacing(5)
@@ -336,6 +354,8 @@ class MyApp(QWidget):
   if not args.singlelist:
     self.hlayout.addLayout(self.vlayout1)
     self.hlayout.addLayout(self.vlayout2)
+
+  #
   self.hlayout.addLayout(self.vlayout3)
   self.hlayout.addLayout(self.vlayout4)
   self.hlayout.addLayout(self.vlayout5)
@@ -404,6 +424,9 @@ class MyApp(QWidget):
 
   #
   self.mastervlayout.addLayout(self.hlayout2)
+  #Add scrollArea of useful documents
+  self.mastervlayout.addWidget(self.useful_docs_listWidget)
+  #Add scrollArea of keyword buttons
   self.mastervlayout.addWidget(self.scrollArea)
   #self.hlayout.addWidget(self.scrollArea)
   self.mastervlayout.addLayout(self.hlayout4)
@@ -709,7 +732,7 @@ class MyApp(QWidget):
 
  def repeat_old_query(self):
       #
-      print("NUMBER OF STATES: ", self.hist_ind)
+      #print("NUMBER OF STATES: ", self.hist_ind)
       #
       sender = self.sender()
       sender_text = sender.text()
@@ -718,7 +741,7 @@ class MyApp(QWidget):
         #
         self.hist_ind = self.hist_ind - 1
         if self.hist_ind > 0:
-          print("NUMBER OF STATES: ", self.hist_ind)
+          #print("NUMBER OF STATES: ", self.hist_ind)
           self.do_old_query.emit(self.old_queries[self.hist_ind])
           self.send_old_dumstring.emit(self.old_queries[self.hist_ind][0])
           self.forwardButton.setEnabled(True)
@@ -745,7 +768,7 @@ class MyApp(QWidget):
           self.forwardButton.setEnabled(False)
 
         #
-
+ 
  def hide_lists(self):
    for dj in range(self.listWidget1.count()):
      self.listWidget1.item(dj).setHidden(True)    
@@ -782,8 +805,6 @@ class MyApp(QWidget):
                                       storedas  = str(self.safe_get_value(urlstrs[ijson], "isStoredAs"))
                                       dataid    = str(self.safe_get_value(urlstrs[ijson], "id"))
                                       storedasl = storedas.split('#')[1]
-                                      #print("LINKSTR: linkstr")
-
 
                                       #print 'Main: storedasl: ', storedasl
                                       #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
@@ -847,6 +868,11 @@ class MyApp(QWidget):
                                             self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
                                             self.listWidget3.item(j).setToolTip(tooltipstr)
                                             self.listWidget3.item(j).setHidden(False)
+                                            #If linkstr already in useful_docs, mark as checked
+                                            if linkstr in self.useful_docs.keys():
+                                              self.listWidget3.item(j).setCheckState(Qt.Checked)
+
+
                                           #self.datelist3[j].setText(datestr)
                                           #self.labellist3[j].setAlignment(Qt.AlignLeft)
                                           j = j + 1
@@ -866,6 +892,10 @@ class MyApp(QWidget):
                                             self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
                                             self.listWidget2.item(k).setToolTip(tooltipstr)
                                             self.listWidget2.item(k).setHidden(False)
+                                            #If linkstr already in useful_docs, mark as checked
+                                            if linkstr in self.useful_docs.keys():
+                                              self.listWidget2.item(j).setCheckState(Qt.Checked)                                            
+
                                           #self.labellist3[j].setAlignment(Qt.AlignLeft)
 
                                           k = k + 1                                  
@@ -903,16 +933,17 @@ class MyApp(QWidget):
                                           visiblestr = title + '  (' + datestr + ')'
                                           self.listWidget1.item(i).setText(visiblestr) 
                                           self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
-                                          self.listWidget1.item(i).setToolTip(tooltipstr)
-                                          
+                                          self.listWidget1.item(i).setToolTip(tooltipstr)                
                                           self.listWidget1.item(i).setHidden(False)
-
+                                          #If linkstr already in useful_docs, mark as checked
+                                          if linkstr in self.useful_docs.keys():
+                                            self.listWidget1.item(j).setCheckState(Qt.Checked)
 
                                         i = i + 1  
                                         #print i
 
 
-
+ #                                     
  def process_authors(self, alist):
    authorstring = ""
    first = True;
@@ -1011,17 +1042,11 @@ class MyApp(QWidget):
   if not self.is_non_zero_file('data/test_wordlist.list'):
    return
 
-  #
-  #f = open('data/test_wordlist.list','r')
-  #test_wordlist = pickle.load(f)
   test_wordlist = pickle.load(open('data/test_wordlist.list','rb'))
-  #print("MAIN: written words: ", test_wordlist)
   for i in range(len(self.buttonlist)):
     buttext = self.buttonlist[i].text()
-    #print buttext
     if buttext in test_wordlist:
       self.buttonlist[i].setStyleSheet("background-color: GreenYellow")
-      #self.hlayout4.addWidget(self.buttonlist[i])
     else:
       self.buttonlist[i].setStyleSheet("background-color: white")
 
@@ -1043,15 +1068,43 @@ class MyApp(QWidget):
  def check_item(self, listWidgetitem):
    if listWidgetitem.checkState() == Qt.Checked:
      listWidgetitem.setCheckState(Qt.Unchecked)
+     
+     #Remove from useful_docs
+     linkstr = listWidgetitem.whatsThis()
+     del(self.useful_docs[linkstr])
+     
+     #Remove from useful_docs_listWidget
+     for i in range(self.useful_docs_listWidget.count()):
+       print("i ",self.useful_docs_listWidget.item(i).whatsThis())
+       if self.useful_docs_listWidget.item(i).whatsThis() == linkstr:
+         #print("TAKE ITEM")
+         self.useful_docs_listWidget.takeItem(i)
+         break
+
    else:
      listWidgetitem.setCheckState(Qt.Checked)
-  
+     #Add to useful_docs dict
+     linkstr = listWidgetitem.whatsThis()
+     self.useful_docs[linkstr] = listWidgetitem.text()
+
+     #Add to useful_docs_listWidget
+     listWidgetItem = QListWidgetItem(self.useful_docs[linkstr])
+     listWidgetItem.setWhatsThis(linkstr)
+     self.useful_docs_listWidget.addItem(listWidgetItem)
+
+
+
  #
  def open_url(self, listWidgetitem):
   #global urlstr
   #webbrowser.open(urlstr)
-  webpagel = listWidgetitem.whatsThis().split('*')[0]
-  dimelink = listWidgetitem.whatsThis().split('*')[1]
+  whatsThisString = listWidgetitem.whatsThis()
+  if "*" in whatsThisString:
+    webpagel = listWidgetitem.whatsThis().split('*')[0]
+    dimelink = listWidgetitem.whatsThis().split('*')[1]
+  else:
+    webpagel = listWidgetitem.whatsThis()
+    dimelink = webpagel
   #webbrowser.open(str(listWidgetitem.whatsThis()))
   #webbrowser.open(webpagel)
   if args.singlelist:
