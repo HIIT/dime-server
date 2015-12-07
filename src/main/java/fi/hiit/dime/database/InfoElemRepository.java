@@ -101,5 +101,7 @@ public interface InfoElemRepository extends CrudRepository<InformationElement, L
 
     List<InformationElement> findByUser(User user);
 
+    Long countByUser(User user);
+
     Long deleteByUser(User user);
 }

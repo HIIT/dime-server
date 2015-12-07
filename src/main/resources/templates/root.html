@@ -8,14 +8,42 @@
 
     <div class="starter-template">
 
-      <h1>Welcome to your friendly local Digital Work Me server at <span th:text="${hostname}">some unknown computer</span>!</h1>
-      
+      <h1>Welcome to your friendly local Digital Me server <span th:text="'at ' + ${hostname}"></span>!</h1>
+
       <div th:if="${#httpServletRequest.remoteUser}">
-        <form th:action="@{/logout}" method="post">
-          <input type="submit" value="Sign Out"/>
-        </form>
+	<p th:text="'So far you have logged ' + ${event_count} + ' events and ' + ${elem_count} + ' information elements.'"></p>
+
+	<div th:unless="${events}" class="alert alert-danger" role="alert">
+	  <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 
+	  <span th:text="'No loggers seen in last ' + ${minutes} +' minutes!'">
+	  </span>
+	</div>
+	
+	<span th:if="${events}">
+	<div class="alert alert-success" role="alert">
+	  <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> 
+	  DiMe is alive and logging!
+	</div>
+
+	<h2 th:text="'Loggers seen in last ' + ${minutes} +' minutes'"></h2>
+	<table class="table table-striped">
+	  <thead>
+	    <tr>
+	      <th>Application</th>
+	      <th>Device</th>
+	      <th>Most recent event</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <tr th:each="event,iterStat : ${events}">
+	      <td th:text="${event.actor}"></td>
+	      <td th:text="${event.origin}"></td>
+	      <td><a th:href="@{/event(id=${event.id})}" th:text="${event.start}"></a></td>
+	    </tr>
+	  </tbody>
+	</table>
+	</span>
       </div>
-      
       <div th:unless="${#httpServletRequest.remoteUser}">
 	<p>Please <a th:href="@{/login}">sign in</a> or
 	<a th:href="@{/user/create}">register</a>.</p>

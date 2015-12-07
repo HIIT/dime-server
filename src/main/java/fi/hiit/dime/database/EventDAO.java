@@ -36,6 +36,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +109,11 @@ public class EventDAO extends BaseDAO<Event> {
     @Transactional
     public long removeForUser(Long id) {
 	return repo.deleteByUser(User.makeUser(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Event> eventsSince(Long userId, Date since) {
+	return repo.findByUserAndStartIsAfterOrderByStartDesc(User.makeUser(userId), since);
     }
     
 }

@@ -125,6 +125,11 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 	return repo.findByUser(User.makeUser(id));
     }
 
+    @Transactional(readOnly = true)
+    public long count(Long id) {
+	return repo.countByUser(User.makeUser(id));
+    }
+
     /**
        Removes all items for user.
 

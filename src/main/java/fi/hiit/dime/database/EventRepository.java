@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +105,8 @@ public interface EventRepository extends CrudRepository<Event, Long>,
 
     Event findOneByAppIdAndUser(String appId, User user);
 
-    List<ResourcedEvent> findByTargettedResourceAndUser(InformationElement elem, User user);
+    List<ResourcedEvent> findByTargettedResourceAndUser(InformationElement elem,
+							User user);
     
     List<Event> findByUserOrderByStartDesc(User user, Pageable pageable);
 
@@ -113,5 +115,8 @@ public interface EventRepository extends CrudRepository<Event, Long>,
     Long countByUser(User user);
 
     Long deleteByUser(User user);
+
+    List<Event> findByUserAndStartIsAfterOrderByStartDesc(User user,
+							  Date start);
 }
 

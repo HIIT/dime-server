@@ -62,7 +62,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import javax.validation.Valid;
 import java.net.UnknownHostException;
@@ -76,6 +79,8 @@ import java.net.UnknownHostException;
 public class WebController extends WebMvcConfigurerAdapter {
     private static final Logger LOG = 
 	LoggerFactory.getLogger(WebController.class);
+
+    private static final int loggerMinutesFrame = 30;
 
     @Autowired
     private DiMeProperties dimeConfig;
@@ -101,13 +106,34 @@ public class WebController extends WebMvcConfigurerAdapter {
     //------------------------------------------------------------------------------
 
     @RequestMapping("/")
-    public String root(Model model, @RequestHeader("host") String hostName) {	
+    public String root(Authentication authentication, Model model,
+		       @RequestHeader("host") String hostName) {	
 	try {
 	    hostName = InetAddress.getLocalHost().getHostName();
 	} catch (UnknownHostException e) {
 	}
-
 	model.addAttribute("hostname", hostName);
+
+	if (authentication != null) {
+	    Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+
+	    Calendar cal = Calendar.getInstance();
+	    cal.add(Calendar.MINUTE, -loggerMinutesFrame);
+	    List<Event> events = eventDAO.eventsSince(userId, cal.getTime());
+	    if (events.size() > 0) {
+		Map<String, Event> hist = new HashMap<String, Event>();
+		for (Event event : events) {
+		    String key = event.actor + "|" + event.origin;
+		    if (!hist.containsKey(key))
+			hist.put(key, event);
+		}
+		model.addAttribute("events", hist.values());
+	    }		    
+	    model.addAttribute("minutes", loggerMinutesFrame);
+	    
+	    model.addAttribute("event_count", eventDAO.count(userId));
+	    model.addAttribute("elem_count", infoElemDAO.count(userId));
+	}
         return "root";
     }
 
