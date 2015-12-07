@@ -161,6 +161,14 @@ class SearchThread(QThread):
 
 
  #
+ def get_explicit_query_from_main_thread(self, query_from_main):
+  if query_from_main is None:
+    self.query = ''
+  else: 
+    self.query = query_from_main
+  print("Search thread: got explicit query from main:", self.query)
+
+ #
  def get_old_query_from_main_thread(self, old_query_and_corresponding_relevance_vector):  
   #
   if self.query is None:
@@ -286,7 +294,7 @@ class SearchThread(QThread):
           jsons, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, self.emphasize_kws)
           #Send query text and its corresponding relevance vector
           self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
-
+      #
       elif self.old_search:
         print("Do OLD SEARCH and then continue.")
         #

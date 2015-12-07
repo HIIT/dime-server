@@ -173,7 +173,8 @@ class MyApp(QWidget):
   self.SearchThreadObj.emphasize_kws = args.emphasize_kws
 
   #Data connection from logger thread to search thread
-  self.LoggerThreadObj.update.connect(self.SearchThreadObj.get_new_word)
+  if not args.only_explicit_search:
+    self.LoggerThreadObj.update.connect(self.SearchThreadObj.get_new_word)
 
   #self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
   #self.connect(self, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
@@ -196,10 +197,10 @@ class MyApp(QWidget):
   self.finished.connect(self.SearchThreadObj.change_search_function)
   self.update.connect(self.SearchThreadObj.get_new_word_from_main_thread)
   self.do_old_query.connect(self.SearchThreadObj.get_old_query_from_main_thread)
+  self.send_explicit_search_query.connect(self.SearchThreadObj.get_explicit_query_from_main_thread)
   self.send_old_dumstring.connect(self.LoggerThreadObj.insert_old_dumstring)
-  #
-  #self.send_explicit_search_query.connect(self.LoggerThreadObj.insert_the_latest_old_dumstring_and_explicit_query)
 
+  
   #Create visible stuff
   val = 5
   self.iconfile1 = 'web.png'
@@ -332,14 +333,14 @@ class MyApp(QWidget):
   #self.subhlayout.addWidget(self.anim1)
   #self.subvlayout.addWidget(self.animlabel)
   #self.movie.start()
-  self.vlayout4.addWidget(self.startStopButton)
-  self.vlayout4.addWidget(self.clearButton)
+ 
 
-  self.smallhlayout = QHBoxLayout()
-  self.smallhlayout.addWidget(self.backButton)
-  self.smallhlayout.addWidget(self.forwardButton)
-  self.vlayout4.addLayout(self.smallhlayout)
-  #self.vlayout4.addWidget(self.backButton)
+  #self.vlayout4.addWidget(self.startStopButton)
+  #self.vlayout4.addWidget(self.clearButton)
+
+
+
+  #self.vlayout4.addLayout(self.smallhlayout)
 
   self.vlayout4.addStretch()
   self.vlayout4.addWidget(self.animlabel)
@@ -397,8 +398,14 @@ class MyApp(QWidget):
   self.mastermaterhlayout = QHBoxLayout(self)
   self.mastervlayout = QVBoxLayout(self)
 
-  #Add the text field for explicit query field
+  #Create layout for back/forward, search field, and search button
+  self.smallhlayout = QHBoxLayout()
+  self.smallhlayout.addWidget(self.backButton)
+  self.smallhlayout.addWidget(self.forwardButton)  
+  self.smallhlayout.addWidget(self.clearButton)
+  self.smallhlayout.addWidget(self.startStopButton)
   self.explicit_query_layout = QHBoxLayout()
+  self.explicit_query_layout.addLayout(self.smallhlayout)
   self.explicit_query_layout.addWidget(self.explicit_query_field)
   self.explicit_query_layout.addWidget(self.explicit_query_button)
 
@@ -676,10 +683,12 @@ class MyApp(QWidget):
       self.LoggerThreadObj.start_logger_loop()
       self.LoggerThreadObj.start()
 
+    #Send the explicit query string by emitting 'send_explicit_search_query'-signal
+    self.send_explicit_search_query.emit(self.explicit_query_field.text())
+   
     #Clear the query field    
     self.explicit_query_field.clear()
 
-    #self.send_explicit_search_query.emit(self.explicit_query_field.text())
 
  def emit_search_command(self):
   #if searchfuncid == 0:
@@ -1228,6 +1237,8 @@ if __name__ == "__main__":
   
   parser.add_argument("--singlelist", action='store_true',
                       help="single list mode")
+  parser.add_argument("--only_explicit_search", action='store_true', 
+                      help="Keylogging and LinRel computations are disbled.")
   parser.add_argument('--emphasize_kws', metavar='LAMBDA', action='store', type=int,
                     default=0, help='Emphasize clicked keywords.')
 
