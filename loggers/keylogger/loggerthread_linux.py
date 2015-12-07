@@ -18,6 +18,7 @@ class LoggerThread(QtCore.QThread):
     QtCore.QThread.__init__(self)
     self.dumstr2 = ''
     self.var = True
+    self.wordlist = []
 
   def start_logger_loop(self):
     self.var = True
@@ -30,19 +31,22 @@ class LoggerThread(QtCore.QThread):
     self.dumstr2 = ''
     self.wordlist = []
 
-
+  #
   def insert_old_dumstring(self, old_dumstring):
-    print("Logger thread: old dum string inserted!!")
     self.dumstr2 = old_dumstring
-    self.wordlist = old_dumstring.split()
+    #self.wordlist = old_dumstring.split()
+    self.wordlist = self.dumstr2.split()
+    print("Logger thread: old dum string inserted:", self.dumstr2, self.wordlist)
+
+
 
   #Keylogger 
   def run(self):
     print('Logger thread: Run Run')
 
     #Read user.ini
-    srvurl, username, password, time_interval, nspaces, nwords, updateinterval = read_user_ini()
-    settingsl = [srvurl, username, password, time_interval, nspaces, nwords, updateinterval]
+    srvurl, username, password, time_interval, nspaces, numwords, updateinterval = read_user_ini()
+    settingsl = [srvurl, username, password, time_interval, nspaces, numwords, updateinterval]
 
     #Number 
     numoftopics = 10
@@ -52,15 +56,13 @@ class LoggerThread(QtCore.QThread):
 
     #global urlstr
     global var
-
-    countspaces = 0
+    #
     sleep_interval = 0.005
     nokeypress_interval = 4.0
 
     #starttime = datetime.datetime.now().time().second
     now = time.time()
     dumstr = ''
-    self.wordlist = []
     
     string_to_send = None
     timestamp = now
@@ -93,7 +95,7 @@ class LoggerThread(QtCore.QThread):
             #self.emit( QtCore.SIGNAL('update(QString)'), string_to_send)
             self.update.emit(string_to_send)
             string_to_send = None
-
+        #
         else:
           timestamp = time.time()
                                   
@@ -113,10 +115,9 @@ class LoggerThread(QtCore.QThread):
             #keys = ' '
             self.wordlist.append(dumstr)
             #print wordlist
-            print('Logger thread: wordlist:', self.wordlist[-nwords:])
-            dwordlist = self.wordlist[-nwords:]
-            #dumstr = dumstr + keys
-            countspaces = countspaces + 1
+            print('Logger thread: wordlist:', self.wordlist[-numwords:])
+            dwordlist = self.wordlist[-numwords:]
+
             dumstr = ''
             self.dumstr2 = ''
             for i in range( len(dwordlist) ):

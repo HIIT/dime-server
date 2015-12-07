@@ -198,6 +198,7 @@ class MyApp(QWidget):
   self.update.connect(self.SearchThreadObj.get_new_word_from_main_thread)
   self.do_old_query.connect(self.SearchThreadObj.get_old_query_from_main_thread)
   self.send_explicit_search_query.connect(self.SearchThreadObj.get_explicit_query_from_main_thread)
+  self.send_explicit_search_query.connect(self.LoggerThreadObj.insert_old_dumstring)
   self.send_old_dumstring.connect(self.LoggerThreadObj.insert_old_dumstring)
 
   
@@ -342,10 +343,6 @@ class MyApp(QWidget):
 
   #self.vlayout4.addLayout(self.smallhlayout)
 
-  self.vlayout4.addStretch()
-  self.vlayout4.addWidget(self.animlabel)
-  self.animlabel.setAlignment(Qt.AlignCenter)
-  self.vlayout4.addStretch()
   #self.vlayout4.itemAt(3).setAlignment(Qt.AlignCenter)
   #self.movie.start()
 
@@ -366,12 +363,13 @@ class MyApp(QWidget):
   self.vlayout5 = QVBoxLayout()
   self.vlayout5.setSpacing(5)
   self.vlayout5.setAlignment(Qt.AlignCenter)
-  self.vlayout5.addWidget(self.eesliderl2)
-  self.vlayout5.addWidget(self.eeslider)
-  self.vlayout5.addWidget(self.eesliderl1)
-  self.vlayout5.itemAt(0).setAlignment(Qt.AlignCenter)
-  self.vlayout5.itemAt(1).setAlignment(Qt.AlignCenter)
-  self.vlayout5.itemAt(2).setAlignment(Qt.AlignCenter)
+  if not args.only_explicit_search:
+    self.vlayout5.addWidget(self.eesliderl2)
+    self.vlayout5.addWidget(self.eeslider)
+    self.vlayout5.addWidget(self.eesliderl1)
+    self.vlayout5.itemAt(0).setAlignment(Qt.AlignCenter)
+    self.vlayout5.itemAt(1).setAlignment(Qt.AlignCenter)
+    self.vlayout5.itemAt(2).setAlignment(Qt.AlignCenter)
   #self.vlayout5.addWidget(self.radiobutton1)
   #self.vlayout5.addWidget(self.radiobutton2)
   #self.vlayout5.addWidget(self.radiobutton3)
@@ -402,12 +400,25 @@ class MyApp(QWidget):
   self.smallhlayout = QHBoxLayout()
   self.smallhlayout.addWidget(self.backButton)
   self.smallhlayout.addWidget(self.forwardButton)  
-  self.smallhlayout.addWidget(self.clearButton)
-  self.smallhlayout.addWidget(self.startStopButton)
+
+  if not args.only_explicit_search:
+    self.smallhlayout.addWidget(self.clearButton)
+    self.smallhlayout.addWidget(self.startStopButton)
+  #
+  # self.vlayout4.addStretch()
+  # self.vlayout4.addWidget(self.animlabel)
+  # self.animlabel.setAlignment(Qt.AlignCenter)
+  # self.vlayout4.addStretch()
+
+
   self.explicit_query_layout = QHBoxLayout()
   self.explicit_query_layout.addLayout(self.smallhlayout)
   self.explicit_query_layout.addWidget(self.explicit_query_field)
   self.explicit_query_layout.addWidget(self.explicit_query_button)
+  #self.explicit_query_layout.addStretch()
+  self.explicit_query_layout.addWidget(self.animlabel)
+  self.explicit_query_layout.setAlignment(Qt.AlignCenter)
+  #self.explicit_query_layout.addStretch()
 
   self.mastervlayout.addLayout(self.explicit_query_layout)
 
@@ -470,7 +481,6 @@ class MyApp(QWidget):
   #
   self.kw_subset_ind = 0
 
-
   #
   self.mastervlayout.addLayout(self.hlayout2)
   #Add scrollArea of useful documents
@@ -482,7 +492,9 @@ class MyApp(QWidget):
   self.mastervlayout.addLayout(self.hlayout4)
   
   #
-  self.mastermaterhlayout.addWidget(self.scrollArea)
+  if not args.only_explicit_search:
+    self.mastermaterhlayout.addWidget(self.scrollArea)
+  #
   self.mastermaterhlayout.addLayout(self.mastervlayout)
 
   #
@@ -679,7 +691,7 @@ class MyApp(QWidget):
 
 
  def emit_explicit_search(self):
-    print("Explicit search: ", self.explicit_query_field.text())
+    print("Main: Explicit search: ", self.explicit_query_field.text())
     if self.startStopButton.text() == "Start":
       self.startStopButton.setText("Stop")
       self.LoggerThreadObj.start_logger_loop()
@@ -1080,8 +1092,10 @@ class MyApp(QWidget):
 
           # self.morebutton.setHidden(False)
           # self.previousbutton.setHidden(True)
-      self.scrollArea.show()
-      self.scrollArea.verticalScrollBar().setSliderPosition(0)
+      if not args.only_explicit_search:
+        self.scrollArea.show()
+        self.scrollArea.verticalScrollBar().setSliderPosition(0)
+
     return
 
  #
