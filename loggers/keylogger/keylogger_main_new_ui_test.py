@@ -239,6 +239,7 @@ class MyApp(QWidget):
   self.clearButton.setToolTip("Clears the keyword history")
   #
   self.clearButton.released.connect(self.clear_kw_history)
+  self.clearButton.released.connect(self.disable_buttons)
   self.clearButton.released.connect(self.hide_lists)
   self.clearButton.released.connect(self.SearchThreadObj.clear_query_string)
   self.clearButton.released.connect(self.LoggerThreadObj.clear_dumstring)
