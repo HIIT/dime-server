@@ -1065,7 +1065,7 @@ class MyApp(QWidget):
           # self.morebutton.setHidden(False)
           # self.previousbutton.setHidden(True)
       self.scrollArea.show()
-      self.scrollArea.horizontalScrollBar().setSliderPosition(0)
+      self.scrollArea.verticalScrollBar().setSliderPosition(0)
     return
 
  #

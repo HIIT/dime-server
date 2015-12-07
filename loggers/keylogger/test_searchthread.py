@@ -233,8 +233,10 @@ class SearchThread(QThread):
       print('Search thread: got extra search command from main!')      
       #
       #iteration['click'] = dstr
-      iteration['click'] = self.query.split()[-1]
-      print("ITER 1",iteration, self.query)
+      parts = self.query.split()
+      if(len(parts)>1):
+        iteration['click'] = parts[-1]
+        print("ITER 1",iteration, self.query)
 
       #jsons = search_dime(self.srvurl, self.usrname, self.password, dstr, self.n_results)
 

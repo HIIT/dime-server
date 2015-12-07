@@ -363,9 +363,10 @@ def repeat_old_search(old_query, r_old, X, dictionary, c, mu, srvurl, username, 
 #
 def query2relevancevector(query,dictionary,emphasize_kws=0):
 
-    if len(query) > 0:
+    parts = query.split()
+    if len(parts) > 0:
         #Take the index of the latest word
-        word = query.split()[-1]
+        word = parts[-1]
         wind = get_wind(word,dictionary)
 
         #store index of emphasized word if emphasize_kws > 0
@@ -424,7 +425,7 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
         #words, except the last observed words
         if emphasize_kws>0:
             print("VALUE OF emphasize_kws: ", emphasize_kws)
-            
+
             #Load 
             r            = np.zeros([test_vec_full.shape[0],1])
             #Make set out of the list of indices of words with non-zero relevance score
