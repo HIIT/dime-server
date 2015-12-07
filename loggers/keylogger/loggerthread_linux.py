@@ -20,12 +20,15 @@ class LoggerThread(QtCore.QThread):
     self.var = True
     self.wordlist = []
 
+  #
   def start_logger_loop(self):
     self.var = True
 
+  #
   def stop_logger_loop(self):
     self.var = False
 
+  #
   def clear_dumstring(self):
     print("Logger thread: dum string cleared!!")
     self.dumstr2 = ''
@@ -110,9 +113,9 @@ class LoggerThread(QtCore.QThread):
               dumstr = "".join(duml)
 
           elif keys in ['<enter>', '<tab>','<right ctrl>','<left ctrl>',' ']:
+            #
             print('Logger thread: keys: ', keys)
             print('Logger thread: changed: ', changed[0])
-            #keys = ' '
             self.wordlist.append(dumstr)
             #print wordlist
             print('Logger thread: wordlist:', self.wordlist[-numwords:])
