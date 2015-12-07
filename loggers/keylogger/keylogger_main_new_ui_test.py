@@ -202,27 +202,26 @@ class MyApp(QWidget):
 
   #Create visible stuff
   val = 5
-  iconfile = 'web.png'
+  self.iconfile1 = 'web.png'
   self.gbtitle = QLabel('Web sites')
-  self.listWidget1 = self.create_QListWidget(20, iconfile)  
+  self.listWidget1 = self.create_QListWidget(20, self.iconfile1)
   # self.gbtitle.hide()
   # self.listWidget1.hide()
 
-  iconfile = 'mail.png'
+  self.iconfile2 = 'mail.png'
   self.gbtitle2 = QLabel('E-Mails')
-  self.listWidget2 = self.create_QListWidget(20, iconfile)
+  self.listWidget2 = self.create_QListWidget(20, self.iconfile2)
   # self.gbtitle2.hide()
   # self.listWidget2.hide()
 
   #
-  iconfile = 'doc.png'
-  self.gbtitle3 = QLabel('Docs')
-  self.listWidget3 = self.create_QListWidget(20, iconfile)
+  self.iconfile3 = 'doc.png'
+  self.gbtitle3 = QLabel('Suggested documents')
+  self.listWidget3 = self.create_QListWidget(20, self.iconfile3)
 
   #List of useful docs
-  self.useful_docs_listWidget = self.create_QListWidget(0,iconfile)  
-
-
+  self.useful_docs_title = QLabel('Found documents [0]')
+  self.useful_docs_listWidget = self.create_QListWidget(0, self.iconfile3)
 
   #Buttons
   #Start button
@@ -316,8 +315,7 @@ class MyApp(QWidget):
   #  
   self.vlayout3 = QVBoxLayout()
   #
-  if not args.singlelist:
-    self.vlayout3.addWidget(self.gbtitle3)
+  self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
 
   #Add list widget of useful docs
@@ -469,6 +467,7 @@ class MyApp(QWidget):
   #
   self.mastervlayout.addLayout(self.hlayout2)
   #Add scrollArea of useful documents
+  self.mastervlayout.addWidget(self.useful_docs_title)
   self.mastervlayout.addWidget(self.useful_docs_listWidget)
   #Add scrollArea of keyword buttons
   #self.mastervlayout.addWidget(self.scrollArea)
@@ -931,11 +930,12 @@ class MyApp(QWidget):
                                           
                                           if j < len(self.listWidget3):
                                             self.listWidget3.item(j).setText(visiblestr) 
-                                            self.listWidget3.item(j).setWhatsThis(linkstr+"*"+linkstr2)
                                             self.listWidget3.item(j).setToolTip(tooltipstr)
                                             self.listWidget3.item(j).setHidden(False)
+                                            whatsthisstr = linkstr+"*"+linkstr2
+                                            self.listWidget3.item(j).setWhatsThis(whatsthisstr)
                                             #If linkstr already in useful_docs, mark as checked
-                                            if linkstr in self.useful_docs.keys():
+                                            if whatsthisstr in self.useful_docs.keys():
                                               self.listWidget3.item(j).setCheckState(Qt.Checked)
 
 
@@ -953,14 +953,16 @@ class MyApp(QWidget):
                                           linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
                                           #print 'Main: linkstr ', linkstr
                                           visiblestr = subj + '  (' + datestr + ')'
+                                          
                                           if k < len(self.listWidget2):
-                                            self.listWidget2.item(k).setText(visiblestr) 
-                                            self.listWidget2.item(k).setWhatsThis(linkstr+'*'+linkstr2)
-                                            self.listWidget2.item(k).setToolTip(tooltipstr)
-                                            self.listWidget2.item(k).setHidden(False)
+                                            self.listWidget2.item(j).setText(visiblestr) 
+                                            self.listWidget2.item(j).setToolTip(tooltipstr)
+                                            self.listWidget2.item(j).setHidden(False)
+                                            whatsthisstr = linkstr+"*"+linkstr2
+                                            self.listWidget2.item(j).setWhatsThis(whatsthisstr)
                                             #If linkstr already in useful_docs, mark as checked
-                                            if linkstr in self.useful_docs.keys():
-                                              self.listWidget2.item(j).setCheckState(Qt.Checked)                                            
+                                            if whatsthisstr in self.useful_docs.keys():
+                                              self.listWidget2.item(j).setCheckState(Qt.Checked)
 
                                           #self.labellist3[j].setAlignment(Qt.AlignLeft)
 
@@ -995,14 +997,16 @@ class MyApp(QWidget):
                                         #Create link to DiMe server
                                         dumlink = self.srvurl.split('/')[2]
                                         linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid                                    
+
                                         if i < len(self.listWidget1):
                                           visiblestr = title + '  (' + datestr + ')'
-                                          self.listWidget1.item(i).setText(visiblestr) 
-                                          self.listWidget1.item(i).setWhatsThis(linkstr+'*'+linkstr2)
-                                          self.listWidget1.item(i).setToolTip(tooltipstr)                
-                                          self.listWidget1.item(i).setHidden(False)
+                                          self.listWidget1.item(j).setText(visiblestr) 
+                                          self.listWidget1.item(j).setToolTip(tooltipstr)
+                                          self.listWidget1.item(j).setHidden(False)
+                                          whatsthisstr = linkstr+"*"+linkstr2
+                                          self.listWidget1.item(j).setWhatsThis(whatsthisstr)
                                           #If linkstr already in useful_docs, mark as checked
-                                          if linkstr in self.useful_docs.keys():
+                                          if whatsthisstr in self.useful_docs.keys():
                                             self.listWidget1.item(j).setCheckState(Qt.Checked)
 
                                         i = i + 1  
@@ -1156,8 +1160,18 @@ class MyApp(QWidget):
      #Add to useful_docs_listWidget
      listWidgetItem = QListWidgetItem(self.useful_docs[linkstr])
      listWidgetItem.setWhatsThis(linkstr)
+     listWidgetItem.setToolTip('')
+     icon = QIcon(self.iconfile3)
+     listWidgetItem.setIcon(icon)
+     listWidgetItem.setHidden(False)
+     listWidgetItem.setFlags(Qt.ItemIsUserCheckable)
+     listWidgetItem.setCheckState(Qt.Checked)
+
      self.useful_docs_listWidget.addItem(listWidgetItem)
 
+   udc = 'Found documents [{0}]'.format(self.useful_docs_listWidget.count()) 
+   self.useful_docs_title.setText(udc)
+   self.update_links(self.data)
 
 
  #
