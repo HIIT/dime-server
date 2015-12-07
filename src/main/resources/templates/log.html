@@ -8,13 +8,23 @@
 
       <div class="starter-template">
 
-	<h1 th:text="'Digital Work Me with ' + ${count} + ' entries'"></h1>
-        <h2 th:text="'Hello ' + ${currentUser.username} + '!'"></h2>
+	<h1 th:text="'You have logged ' + ${count} + ' events'"></h1>
 
-	<span th:each="event,iterStat : ${events}">
-	  <hr/>
-	  <p th:replace="event :: eventview (${event})"></p>
-	</span>
+	<div th:each="event,iterStat : ${events}" class="panel panel-default">
+	  <div class="panel-heading">
+	    <b th:text="${#strings.substringAfter(event.type,'#')}"></b>: 
+	    <span th:text="${event.actor}"></span>
+	    <a th:href="@{/event(id=${event.id})}" 
+	       th:text="${event.start}" class="pull-right text-muted"></a>
+	  </div>
+	  <div class="panel-body">
+	    <span th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
+	      <b th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></b>: <a th:href="${event.targettedResource.uri}" th:text="${event.targettedResource.uri}"></a><br/>
+
+	    </span>
+	  </div>
+	</div>
+
       </div>
     </div>
     
