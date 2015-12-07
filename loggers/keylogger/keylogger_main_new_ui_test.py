@@ -101,7 +101,8 @@ class MyQLineEdit(QLineEdit):
 
     def __init__(self, parent=None):
         super(MyQLineEdit, self).__init__(parent)
-
+        self.setFixedWidth(300)
+        
     def mousePressEvent(self, event):
 
         button = event.button()
@@ -257,6 +258,7 @@ class MyApp(QWidget):
   #Text field for explicit queries
   self.explicit_query_field = MyQLineEdit()
   self.explicit_query_field.explicitQueryFieldClicked.connect(self.only_stop_keylogger)
+  self.explicit_query_field.returnPressed.connect(self.emit_explicit_search)
 
   #Add search button for explicit search
   self.explicit_query_button = QPushButton("Search!")
@@ -345,6 +347,7 @@ class MyApp(QWidget):
   self.vlayout4.addStretch()
   self.vlayout4.addWidget(self.animlabel)
   self.animlabel.setAlignment(Qt.AlignCenter)
+  self.animlabel.setFixedWidth(50)
   self.vlayout4.addStretch()
   #self.vlayout4.itemAt(3).setAlignment(Qt.AlignCenter)
   #self.movie.start()
@@ -391,8 +394,8 @@ class MyApp(QWidget):
 
   #
   self.hlayout.addLayout(self.vlayout3)
-  self.hlayout.addLayout(self.vlayout4)
-  self.hlayout.addLayout(self.vlayout5)
+  #self.hlayout.addLayout(self.vlayout4)
+  #self.hlayout.addLayout(self.vlayout5)
 
   #Master vertical layout:
   self.mastermaterhlayout = QHBoxLayout(self)
@@ -404,12 +407,19 @@ class MyApp(QWidget):
   self.smallhlayout.addWidget(self.forwardButton)  
   self.smallhlayout.addWidget(self.clearButton)
   self.smallhlayout.addWidget(self.startStopButton)
-  self.explicit_query_layout = QHBoxLayout()
-  self.explicit_query_layout.addLayout(self.smallhlayout)
-  self.explicit_query_layout.addWidget(self.explicit_query_field)
-  self.explicit_query_layout.addWidget(self.explicit_query_button)
 
-  self.mastervlayout.addLayout(self.explicit_query_layout)
+  self.smallhlayout.addStretch()
+  self.smallhlayout.addWidget(self.animlabel)
+  self.animlabel.setAlignment(Qt.AlignCenter)
+  self.smallhlayout.addStretch()
+
+  #self.explicit_query_layout = QHBoxLayout()
+  #self.explicit_query_layout.addLayout(self.smallhlayout)
+  self.smallhlayout.addWidget(self.explicit_query_field)
+  self.smallhlayout.addWidget(self.explicit_query_button)
+
+  self.mastervlayout.addLayout(self.smallhlayout)
+  #self.mastervlayout.addLayout(self.explicit_query_layout)
 
   #Add self.hlayout to self.mastervlayout
   self.mastervlayout.addLayout(self.hlayout)
