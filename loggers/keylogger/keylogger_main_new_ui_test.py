@@ -481,9 +481,9 @@ class MyApp(QWidget):
   #
   self.setWindowTitle("Re:Know Proactive Search")
   self.setWindowFlags(Qt.WindowStaysOnTopHint|Qt.FramelessWindowHint)
-  self.setStyleSheet('font-size: 10pt')
+  #self.setStyleSheet('font-size: 10pt')
   screen = QDesktopWidget().screenGeometry()
-  self.setGeometry(screen.width()-1024, 0, 1024, 200)
+  self.setGeometry(screen.width()-1024, 0, 1024, 600)
 
  
  def hide_buttons(self):
@@ -509,7 +509,7 @@ class MyApp(QWidget):
                   #keywordstr = keywordstr + urlstrs[i] + ', '
                   dumbutton = QPushButton('button'+ str(i))
                   #dumbutton.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-                  dumbutton.setStyleSheet("background-color: white")
+                  dumbutton.setStyleSheet("background-color: white; width: 100")
                   buttonlist.append(dumbutton)
   #Initially hide the buttons
   # for i in range(len(buttonlist)):
@@ -611,7 +611,7 @@ class MyApp(QWidget):
     scrollArea = QScrollArea()
     #scrollArea.setMinimumWidth(100)
     scrollArea.setWidget(self.dwidget)    
-    scrollArea.setFixedWidth(105)
+    scrollArea.setFixedWidth(140)
     #scrollArea.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
     #scrollArea.setFixedHeight(50)
     scrollArea.setFrameStyle(0)
@@ -737,8 +737,8 @@ class MyApp(QWidget):
         dumitem.setFlags(Qt.ItemIsUserCheckable)
         dumitem.setCheckState(Qt.Unchecked)
     #
-    listWidget.itemDoubleClicked.connect(self.check_item)
-    listWidget.itemClicked.connect(self.open_url)
+    listWidget.itemDoubleClicked.connect(self.open_url)
+    listWidget.itemClicked.connect(self.check_item)
 
     return listWidget
 
@@ -1216,7 +1216,7 @@ class MyApp(QWidget):
  def quitting(self):
   global var
   var = False
-  QtCore.QCoreApplication.instance().quit()
+  #QtCore.QCoreApplication.instance().quit()
 
  #Quit
  def closeEvent(self, event):
