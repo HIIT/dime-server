@@ -136,7 +136,7 @@ class SearchThread(QThread):
   #newquery = unicode(asciiquery, 'utf-8')
   #newquery = unicode(newquery)
   newquery = newquery.strip() # to get rid of extra spaces, enters
-  print("Search thread: got new query from logger: [%s]" % newquery)
+  print("Search thread: got new query from logger: %s" % newquery)
   self.query = newquery
 
 

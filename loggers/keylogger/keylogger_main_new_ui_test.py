@@ -407,10 +407,9 @@ class MyApp(QWidget):
 
   #Create layout for back/forward, search field, and search button
   self.smallhlayout = QHBoxLayout()
-  self.smallhlayout.addWidget(self.backButton)
-  self.smallhlayout.addWidget(self.forwardButton)  
-
   if not args.only_explicit_search:
+    self.smallhlayout.addWidget(self.backButton)
+    self.smallhlayout.addWidget(self.forwardButton)  
     self.smallhlayout.addWidget(self.clearButton)
     self.smallhlayout.addWidget(self.startStopButton)
 
@@ -707,7 +706,8 @@ class MyApp(QWidget):
     self.send_explicit_search_query.emit(self.explicit_query_field.text())
    
     #Clear the query field    
-    self.explicit_query_field.clear()
+    if not args.only_explicit_search:
+      self.explicit_query_field.clear()
 
 
  def emit_search_command(self):
