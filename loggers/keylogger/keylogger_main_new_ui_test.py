@@ -85,14 +85,14 @@ class MyListWidget(QListWidget):
         super(MyListWidget, self).__init__(parent)
 
     def mousePressEvent(self, event):
-        #button = event.button()
+        button = event.button()
         # print("mousePressEvent", button)
         print("mousePressEvent", event)
         item = self.itemAt(event.pos())
         print(item)
-        # if item is not None and button == 2:
-        #     self.itemDoubleClicked.emit(item)
-        # super(MyListWidget, self).mousePressEvent(event)
+        if item is not None and button == 2:
+            self.itemDoubleClicked.emit(item)
+        super(MyListWidget, self).mousePressEvent(event)
 
 
 class MyQLineEdit(QLineEdit):
@@ -609,6 +609,7 @@ class MyApp(QWidget):
 
     #Create Scroll area
     scrollArea = QScrollArea()
+    scrollArea.setMinimumWidth(100)
     scrollArea.setWidget(self.dwidget)    
     #scrollArea.setFixedHeight(50)
     scrollArea.setFrameStyle(0)
@@ -733,7 +734,7 @@ class MyApp(QWidget):
         dumitem.setHidden(True)
         dumitem.setFlags(Qt.ItemIsUserCheckable)
         dumitem.setCheckState(Qt.Unchecked)
-
+    #
     listWidget.itemDoubleClicked.connect(self.check_item)
     listWidget.itemClicked.connect(self.open_url)
 
