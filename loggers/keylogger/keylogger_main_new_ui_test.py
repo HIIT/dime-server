@@ -243,10 +243,10 @@ class MyApp(QWidget):
 
 
   #Button for getting previous keywords and search results
-  self.backButton  = QPushButton("<")
+  self.backButton  = QPushButton("<-")
   self.backButton.setToolTip("Back in history")  
   self.backButton.setEnabled(False)
-  self.forwardButton  = QPushButton(">")
+  self.forwardButton  = QPushButton("->")
   self.forwardButton.setToolTip("Forward in history")    
   self.forwardButton.setEnabled(False)
   #
@@ -473,7 +473,7 @@ class MyApp(QWidget):
   #self.mastervlayout.addWidget(self.scrollArea)
   #self.hlayout.addWidget(self.scrollArea)
   self.mastervlayout.addLayout(self.hlayout4)
-
+  
   #
   self.mastermaterhlayout.addWidget(self.scrollArea)
   self.mastermaterhlayout.addLayout(self.mastervlayout)
@@ -604,13 +604,15 @@ class MyApp(QWidget):
     #Create a QWidget containing self.btnlayout
     self.dwidget = QWidget()
     self.dwidget.setLayout(self.btnlayout)
-    self.dwidget.layout().setContentsMargins(0,0,0,0)
+    #self.dwidget.layout().setContentsMargins(0,0,0,0)
     #self.dwidget.layout().insertStretch(-1,0)
 
     #Create Scroll area
     scrollArea = QScrollArea()
-    scrollArea.setMinimumWidth(100)
+    #scrollArea.setMinimumWidth(100)
     scrollArea.setWidget(self.dwidget)    
+    scrollArea.setFixedWidth(105)
+    #scrollArea.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
     #scrollArea.setFixedHeight(50)
     scrollArea.setFrameStyle(0)
     scrollArea.verticalScrollBar()
