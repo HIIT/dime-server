@@ -24,6 +24,7 @@
 
 package fi.hiit.dime.search;
 
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
@@ -367,6 +368,11 @@ public class SearchIndex {
 	return true;
     }
 
+    /**
+       Map a list of DiMeData objects to a list of
+       InformationElements, doing appropriate conversions. E.g. a
+       ReadingEvent is mapped to its corresponding Document.
+    */
     public static List<InformationElement>
 	mapToElementList(List<DiMeData> dataList) 
     {
@@ -388,6 +394,41 @@ public class SearchIndex {
 
 	return elemList;
     }
+
+    /**
+       Map a list of DiMeData objects to a list of Events, doing
+       appropriate conversions. E.g. a Document is mapped to its
+       corresponding ReadingEvents.
+    */
+    public List<Event> mapToEventList(List<DiMeData> dataList, User user) {
+	List<Event> events = new ArrayList<Event>();
+	Set<Long> seen = new HashSet<Long>();
+
+	for (DiMeData data : dataList) {
+	    if (data instanceof InformationElement) {
+		List<ResourcedEvent> expandedEvents =
+		    eventDAO.findByElement((InformationElement)data, user);
+		for (ResourcedEvent event : expandedEvents) {
+		    event.targettedResource.plainTextContent = null;
+		    event.score = event.targettedResource.score;
+		    if (!seen.contains(event.getId())) {
+			events.add(event);
+			seen.add(event.getId());
+		    }
+		}
+	    } else if (data instanceof Event) {
+		Event event = (Event)data;
+		if (!seen.contains(event.getId())) {
+		    if (event instanceof ResourcedEvent)
+			((ResourcedEvent)event).targettedResource.plainTextContent = null;
+		    events.add(event);
+		    seen.add(event.getId());
+		}
+	    }
+	}
+	return events;
+    }
+
 
     /**
        Perform text search to Lucene index.

@@ -137,13 +137,68 @@ public class WebController extends WebMvcConfigurerAdapter {
         return "root";
     }
 
-    /* Show log of all data */
+    /* Event log + search */
     @RequestMapping("/log")
-    public String log(Authentication authentication, Model model) {
+    public String log(@ModelAttribute TextSearchQuery query,
+		      Authentication authentication, 
+		      Model model) 
+    {
 	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        model.addAttribute("events", eventDAO.eventsForUser(userId, 100));
 	model.addAttribute("count", eventDAO.count(userId));
+
+	if (!query.isEmpty()) {
+	    List<Event> results = null;
+	    try {
+		searchIndex.updateIndex(true);
+		List<DiMeData> dataRes =
+		    searchIndex.search(query, null, null, 100, userId);
+		results = searchIndex.mapToEventList(dataRes,
+						     User.makeUser(userId));
+	    } catch (IOException e) {
+		LOG.warn("Lucene search failed [" + e + "].");
+		model.addAttribute("error", e);
+	    }
+
+	    model.addAttribute("results", results);
+	} else {
+	    model.addAttribute("results", eventDAO.eventsForUser(userId, 100));
+	}
+
+        model.addAttribute("search", query);
+
         return "log";
+    }
+
+    /* Data log + search */
+    @RequestMapping("/data")
+    public String data(@ModelAttribute TextSearchQuery query,
+		       Authentication authentication,
+		       Model model) {
+
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	model.addAttribute("count", infoElemDAO.count(userId));
+
+	if (!query.isEmpty()) {
+	    List<InformationElement> results = null;
+	    try {
+		searchIndex.updateIndex(true);
+		List<DiMeData> dataRes =
+		    searchIndex.search(query, null, null, 100, userId);
+		results = searchIndex.mapToElementList(dataRes);
+	    } catch (IOException e) {
+		LOG.warn("Lucene search failed [" + e + "].");
+		model.addAttribute("error", e);
+	    }
+
+	    model.addAttribute("results", results);
+	} else {
+	    model.addAttribute("results",
+			       infoElemDAO.elementsForUser(userId, 100));
+	}
+
+        model.addAttribute("search", query);
+
+        return "data";
     }
 
     /* Show a specific event */
@@ -183,38 +238,6 @@ public class WebController extends WebMvcConfigurerAdapter {
 	if (elem.user.getId().equals(userId))
 	    model.addAttribute("elem", elem);
         return "message";
-    }
-
-    /* Data page - informationelement list */
-    @RequestMapping("/data")
-    public String data(@ModelAttribute TextSearchQuery query,
-		       Authentication authentication,
-		       Model model) {
-
-	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-	model.addAttribute("count", infoElemDAO.count(userId));
-
-	if (!query.isEmpty()) {
-	    List<InformationElement> results = null;
-	    try {
-		searchIndex.updateIndex(true);
-		List<DiMeData> dataRes =
-		    searchIndex.search(query, null, null, 100, userId);
-		results = searchIndex.mapToElementList(dataRes);
-	    } catch (IOException e) {
-		LOG.warn("Lucene search failed [" + e + "].");
-		model.addAttribute("error", e);
-	    }
-
-	    model.addAttribute("results", results);
-	} else {
-	    model.addAttribute("results",
-			       infoElemDAO.elementsForUser(userId, 100));
-	}
-
-        model.addAttribute("search", query);
-
-        return "data";
     }
 
     /* Search page */

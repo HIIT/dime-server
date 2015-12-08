@@ -152,31 +152,7 @@ public class ApiController extends AuthorizedController {
 	List<DiMeData> dataList = searchIndex.search(query, className, typeName,
 						     limit, user.getId());
 
-	List<Event> events = new ArrayList<Event>();
-	Set<Long> seen = new HashSet<Long>();
-
-	for (DiMeData data : dataList) {
-	    if (data instanceof InformationElement) {
-		List<ResourcedEvent> expandedEvents =
-		    eventDAO.findByElement((InformationElement)data, user);
-		for (ResourcedEvent event : expandedEvents) {
-		    event.targettedResource.plainTextContent = null;
-		    event.score = event.targettedResource.score;
-		    if (!seen.contains(event.getId())) {
-			events.add(event);
-			seen.add(event.getId());
-		    }
-		}
-	    } else if (data instanceof Event) {
-		Event event = (Event)data;
-		if (!seen.contains(event.getId())) {
-		    if (event instanceof ResourcedEvent)
-			((ResourcedEvent)event).targettedResource.plainTextContent = null;
-		    events.add(event);
-		    seen.add(event.getId());
-		}
-	    }
-	}
+	List<Event> events = searchIndex.mapToEventList(dataList, user);
 	    
 	Event[] results = new Event[events.size()];
 	events.toArray(results);

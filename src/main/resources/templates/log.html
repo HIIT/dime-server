@@ -8,23 +8,38 @@
 
       <div class="starter-template">
 
-	<h1 th:text="'You have logged ' + ${count} + ' events'"></h1>
+	<p class="text-info" th:text="'You have logged ' + ${count} + '
+	events.'"></p>
 
-	<div th:each="event,iterStat : ${events}" class="panel panel-default">
-	  <div class="panel-heading">
-	    <b th:text="${#strings.substringAfter(event.type,'#')}"></b>: 
-	    <span th:text="${event.actor}"></span>
-	    <a th:href="@{/event(id=${event.id})}" 
-	       th:text="${event.start}" class="pull-right text-muted"></a>
+	<form class="form-inline" th:object="${search}" th:action="@{/log}"
+	      method="get">
+	  <div class="form-group col-xs-4">
+	    <label class="sr-only" for="query">Text query</label>
+	    <input style="width: 100%" type="text" class="form-control"
+		   id="query" name="query" placeholder="Text query"
+		   th:field="*{query}" autofocus="true" />
 	  </div>
-	  <div class="panel-body">
-	    <span th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
-	      <b th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></b>: <a th:href="${event.targettedResource.uri}" th:text="${event.targettedResource.uri}"></a><br/>
+	  <button type="submit" class="btn btn-primary">Search</button>
+	</form>
 
-	    </span>
+	<div th:if="${error}" th:text="${error}" class="alert alert-danger" role="alert"></div>
+	
+	<hr/>
+
+	<div th:if="${results}">
+	  <p th:if="!${search.isEmpty()}" th:text="'Found ' + ${results.size()} + ' events.'"></p>
+	  <div th:each="event,iterStat : ${results}" class="panel panel-default">
+	    <div class="panel-heading">
+	      <b th:text="${#strings.substringAfter(event.type,'#')}"></b>: 
+	      <span th:text="${event.actor}"></span>
+	      <a th:href="@{/event(id=${event.id})}" 
+		 th:text="${event.start}" class="pull-right"></a>
+	    </div>
+	    <div class="panel-body" th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
+	      <b th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></b>: <a th:href="${event.targettedResource.uri}" th:text="${event.targettedResource.uri}"></a>
+	    </div>
 	  </div>
 	</div>
-
       </div>
     </div>
     
