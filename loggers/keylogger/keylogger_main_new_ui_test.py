@@ -127,12 +127,15 @@ class MyApp(QWidget):
 
  #Signal for sending explicit search string
  send_explicit_search_query = pyqtSignal(str)
- 
+
  def __init__(self, parent=None):
   QWidget.__init__(self, parent)
   #QMainWindow.__init__(self, parent)
   #widget = QWidget(self)
   #self.setCentralWidget(widget)
+
+  #Variable for counting iteration
+  self.iteration_index = 0
   
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
@@ -717,6 +720,16 @@ class MyApp(QWidget):
     print('Main: Sending new word from main: ', sender_text , type(sender_text))
     self.update.emit(sender_text)
 
+    if args.record:
+      for i,button in enumerate(self.buttonlist):
+        if sender_text==button.text():
+          button_ind = i
+      f = open('data/suggested_resources.list','a')
+      f.write("CLICKED: \n")
+      f.write(str(self.iteration_index)+", "+sender_text+", "+str(button_ind)+"\n")                                      
+      f.close()
+
+
  def choose_search_function1(self):
   #if searchfuncid == 0:
     print('Main: Search function is DocSim')
@@ -832,7 +845,7 @@ class MyApp(QWidget):
       sender = self.sender()
       sender_text = sender.text()
       #
-      if sender_text == "<":
+      if sender_text == "<-":
         #
         self.hist_ind = self.hist_ind - 1
         if self.hist_ind > 0:
@@ -847,7 +860,7 @@ class MyApp(QWidget):
         else: 
           self.hist_ind = 0
           self.backButton.setEnabled(False)
-      elif sender_text == ">":
+      elif sender_text == "->":
         #
         self.hist_ind = self.hist_ind + 1
         if self.hist_ind < len(self.old_queries)-1:
@@ -876,6 +889,12 @@ class MyApp(QWidget):
      self.listWidget3.item(dj).setCheckState(Qt.Unchecked)
 
  def update_links(self, urlstrs):
+
+    #For indicating the beginning of new iteration,
+    #increase the value of self.iteration_index 
+    self.iteration_index = self.iteration_index + 1
+
+
     i = 0
     j = 0
     k = 0
@@ -1043,6 +1062,16 @@ class MyApp(QWidget):
                                         #print i
 
 
+                                      #If record-mode chosen, record the resouce id and uri
+                                      if args.record:
+                                        #Record suggestions
+                                        if ijson == 0:
+                                          f = open('data/suggested_resources.list','a')
+                                          f.write("RESOURCES: \n")
+                                        f.write(str(self.iteration_index)+", "+dataid+", "+title+", "+linkstr+", "+str(ijson)+"\n")                                      
+          if args.record:            
+            f.close()      
+
  #                                     
  def process_authors(self, alist):
    authorstring = ""
@@ -1090,17 +1119,27 @@ class MyApp(QWidget):
                               #self.unicode_to_str(keywordlist[i])
                               self.buttonlist[i].setText(keywordlist[i])
                               #self.buttonlist[i].setText(self.unicode_to_str(keywordlist[i]))
-
                               #self.btnlayout.itemAt(i).widget().setVisible(True)
                               self.buttonlist[i].show()
-                              
-                              #print("IS HIDDEN ",self.buttonlist[i].isHidden())
 
-          # self.morebutton.setHidden(False)
-          # self.previousbutton.setHidden(True)
+                              #If record-mode chosen, record the suggested keywords
+                              if args.record:
+                                #Record suggestions
+                                if i == 0:
+                                  f = open('data/suggested_resources.list','a')
+                                  f.write("KEYWORDS: \n")
+                                f.write(str(self.iteration_index)+", "+keywordlist[i]+", "+str(i)+"\n")
+            if args.record:
+              f.close()
+
       if not args.only_explicit_search:
         self.scrollArea.show()
         self.scrollArea.verticalScrollBar().setSliderPosition(0)
+
+
+
+
+
 
     return
 
@@ -1184,7 +1223,20 @@ class MyApp(QWidget):
          break
 
    else:
+     #Set checked the chosen item
      listWidgetitem.setCheckState(Qt.Checked)
+
+     #Take the position of the checked item in the list of suggested resources
+     if self.listWidget1.row(listWidgetitem) > 0:
+       row = self.listWidget1.row(listWidgetitem)
+     elif self.listWidget2.row(listWidgetitem) > 0:
+       row = self.listWidget2.row(listWidgetitem)
+     elif self.listWidget3.row(listWidgetitem) > 0:  
+       row = self.listWidget3.row(listWidgetitem)
+     else:
+       row = 0
+     print("ROW:",row)
+
      #Add to useful_docs dict
      linkstr = listWidgetitem.whatsThis()
      self.useful_docs[linkstr] = listWidgetitem.text()
@@ -1201,9 +1253,21 @@ class MyApp(QWidget):
 
      self.useful_docs_listWidget.addItem(listWidgetItem)
 
+     #If recording enabled, record the checked items for current iteration
+     if args.record:
+       #Record suggestions
+       f = open('data/suggested_resources.list','a')
+       f.write("CHECKED: \n")
+       f.write(str(self.iteration_index)+", "+linkstr+", "+str(row)+", "+"\n")
+       f.close()
+
+   #
    udc = 'Found documents [{0}]'.format(self.useful_docs_listWidget.count()) 
    self.useful_docs_title.setText(udc)
-   self.update_links(self.data)
+   #self.update_links(self.data)
+
+
+
 
 
  #
@@ -1263,6 +1327,9 @@ if __name__ == "__main__":
                       help="Keylogging and LinRel computations are disbled.")
   parser.add_argument('--emphasize_kws', metavar='LAMBDA', action='store', type=int,
                     default=0, help='Emphasize clicked keywords.')
+  #
+  parser.add_argument("--record", action='store_true',
+                      help="Records suggested resources, keywords and user interaction.")
 
   args = parser.parse_args()
   
