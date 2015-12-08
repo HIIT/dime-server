@@ -635,7 +635,7 @@ class MyApp(QWidget):
     scrollArea = QScrollArea()
     #scrollArea.setMinimumWidth(100)
     scrollArea.setWidget(self.dwidget)    
-    scrollArea.setFixedWidth(140)
+    scrollArea.setFixedWidth(145)
     #scrollArea.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
     #scrollArea.setFixedHeight(50)
     scrollArea.setFrameStyle(0)
@@ -902,10 +902,6 @@ class MyApp(QWidget):
                                       storedasl = storedas.split('#')[1]
 
                                       #print 'Main: storedasl: ', storedasl
-                                      #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
-                                      content = ''
-                                      #keywords = rake_object.run(content)
-                                      keywords = ''
                                       #print ctime 
                                       timeint = int(ctime) / 1000
                                       #print timeint
@@ -917,14 +913,23 @@ class MyApp(QWidget):
                                       else:
                                         linkstrshort = linkstr
                                       
-
-                                      if len(keywords) > 0:
-                                        tooltipstr = re.sub("[^\w]", " ", content)
-                                        #self.labellist[i].setToolTip(tooltipstr)
-                                        tooltipstr = "Keywords: " + keywords[0][0]
+                                      if "keywords" in urlstrs[ijson]:
+                                        tooltipstr = self.process_keywords(urlstrs[ijson]["keywords"])
                                       else:
-                                        tooltipstr = 'Keywords: '
-                                        #self.labellist[i].setText(keywords[0][0])
+                                        tooltipstr = ""
+
+                                      # #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
+                                      # content = ''
+                                      # #keywords = rake_object.run(content)
+                                      # keywords = ''
+
+                                      # if len(keywords) > 0:
+                                      #   tooltipstr = re.sub("[^\w]", " ", content)
+                                      #   #self.labellist[i].setToolTip(tooltipstr)
+                                      #   tooltipstr = "Keywords: " + keywords[0][0]
+                                      # else:
+                                      #   tooltipstr = 'Keywords: '
+                                      #   #self.labellist[i].setText(keywords[0][0])
 
                                       #if storedasl in ["LocalFileDataObject" ]:
                                       if storedasl in ["LocalFileDataObject" ] or storedasl in ["EmbeddedFileDataObject"]:
@@ -1043,7 +1048,7 @@ class MyApp(QWidget):
                                         #print i
 
 
- #                                     
+ #
  def process_authors(self, alist):
    authorstring = ""
    first = True;
@@ -1057,6 +1062,17 @@ class MyApp(QWidget):
      if "lastName" in a:
         authorstring += a["lastName"].strip()
    return authorstring
+
+ #
+ def process_keywords(self, kwlist):
+   keywordsstring = "Keywords:\n"
+   first = True;
+   for kw in kwlist:
+     if not first:
+       keywordsstring += ";\n"
+     first = False
+     keywordsstring += kw
+   return keywordsstring
 
  #
  def update_kwbuttons(self, keywordlist):
