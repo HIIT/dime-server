@@ -175,6 +175,8 @@ class MyApp(QWidget):
   self.SearchThreadObj = SearchThread()
   #Set the emphasize_kws mode for the search thread
   self.SearchThreadObj.emphasize_kws = args.emphasize_kws
+  self.SearchThreadObj.c = args.c
+  self.SearchThreadObj.mmr_lambda = args.mmr
 
   #Data connection from logger thread to search thread
   if not args.only_explicit_search:
@@ -451,7 +453,7 @@ class MyApp(QWidget):
 
 
   #Create kw-buttons
-  self.numofkwbuttons = 100
+  self.numofkwbuttons = 50
   self.buttonlist = self.create_buttonwidget_list(self.numofkwbuttons)
   #Set the buttons hidden
   # for i in range(len(self.buttonlist)):
@@ -638,7 +640,7 @@ class MyApp(QWidget):
     scrollArea = QScrollArea()
     #scrollArea.setMinimumWidth(100)
     scrollArea.setWidget(self.dwidget)    
-    scrollArea.setFixedWidth(140)
+    scrollArea.setFixedWidth(145)
     #scrollArea.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
     #scrollArea.setFixedHeight(50)
     scrollArea.setFrameStyle(0)
@@ -921,10 +923,6 @@ class MyApp(QWidget):
                                       storedasl = storedas.split('#')[1]
 
                                       #print 'Main: storedasl: ', storedasl
-                                      #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
-                                      content = ''
-                                      #keywords = rake_object.run(content)
-                                      keywords = ''
                                       #print ctime 
                                       timeint = int(ctime) / 1000
                                       #print timeint
@@ -936,14 +934,23 @@ class MyApp(QWidget):
                                       else:
                                         linkstrshort = linkstr
                                       
-
-                                      if len(keywords) > 0:
-                                        tooltipstr = re.sub("[^\w]", " ", content)
-                                        #self.labellist[i].setToolTip(tooltipstr)
-                                        tooltipstr = "Keywords: " + keywords[0][0]
+                                      if "keywords" in urlstrs[ijson]:
+                                        tooltipstr = self.process_keywords(urlstrs[ijson]["keywords"])
                                       else:
-                                        tooltipstr = 'Keywords: '
-                                        #self.labellist[i].setText(keywords[0][0])
+                                        tooltipstr = ""
+
+                                      # #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
+                                      # content = ''
+                                      # #keywords = rake_object.run(content)
+                                      # keywords = ''
+
+                                      # if len(keywords) > 0:
+                                      #   tooltipstr = re.sub("[^\w]", " ", content)
+                                      #   #self.labellist[i].setToolTip(tooltipstr)
+                                      #   tooltipstr = "Keywords: " + keywords[0][0]
+                                      # else:
+                                      #   tooltipstr = 'Keywords: '
+                                      #   #self.labellist[i].setText(keywords[0][0])
 
                                       #if storedasl in ["LocalFileDataObject" ]:
                                       if storedasl in ["LocalFileDataObject" ] or storedasl in ["EmbeddedFileDataObject"]:
@@ -1062,6 +1069,7 @@ class MyApp(QWidget):
                                         #print i
 
 
+<<<<<<< HEAD
                                       #If record-mode chosen, record the resouce id and uri
                                       if args.record:
                                         #Record suggestions
@@ -1073,6 +1081,9 @@ class MyApp(QWidget):
             f.close()      
 
  #                                     
+=======
+ #
+>>>>>>> 15a5afe828f81eb0bdfcedb05a07da34a83bc895
  def process_authors(self, alist):
    authorstring = ""
    first = True;
@@ -1086,6 +1097,17 @@ class MyApp(QWidget):
      if "lastName" in a:
         authorstring += a["lastName"].strip()
    return authorstring
+
+ #
+ def process_keywords(self, kwlist):
+   keywordsstring = "Keywords:\n"
+   first = True;
+   for kw in kwlist:
+     if not first:
+       keywordsstring += ";\n"
+     first = False
+     keywordsstring += kw
+   return keywordsstring
 
  #
  def update_kwbuttons(self, keywordlist):
@@ -1330,6 +1352,11 @@ if __name__ == "__main__":
   #
   parser.add_argument("--record", action='store_true',
                       help="Records suggested resources, keywords and user interaction.")
+                      default=0, help='Emphasize clicked keywords.')
+  parser.add_argument('--c', metavar='N', action='store', type=float,
+                      default=1.0, help='Exploration/Exploitation coeff.')
+  parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
+                      default=-1.0, help='use MMR with parameter lambda')
 
   args = parser.parse_args()
   

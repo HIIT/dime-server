@@ -64,6 +64,7 @@ class SearchThread(QThread):
   self.old_search  = False
   #Exploration/Exploitation -coefficient
   self.c          = 0.0
+  self.mmr_lambda = -1.0
 
   #DiMe server path, username and password
   self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
@@ -306,13 +307,12 @@ class SearchThread(QThread):
 
 
       #If MMR enable, do MMR-reranking of kws
-      lambda_coeff = 0.7
-      if lambda_coeff > 0:
-          frac_sizeS = 0.001
-          frackws = 0.001
-          kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, self.sX, frackws)
-          #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
-          print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")
+      if self.mmr_lambda > 0:
+          frac_sizeS = 0.003
+          frackws = 0.003
+          kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(self.mmr_lambda, winds, kws, vsum, frac_sizeS, self.sX, frackws)
+          #kws, winds_re = mmr_reranking_of_kws(self.mmr_lambda, winds, kws, vsum, frac_sizeS, sX, frackws)
+          print("RERANKED KEYWORDS with lambda=",self.mmr_lambda,":")
 
           if(len(vsum)>0 and len(mmr_scores)>0):
               #print(len(vsum))
