@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import *
 # For Keylogger
 import sys
 import datetime #For import date and time
-from time import sleep, time
+from time import sleep, time, strftime, localtime
 import ctypes as ct
 from ctypes.util import find_library
 
@@ -181,6 +181,7 @@ class MyApp(QWidget):
   #Data connection from logger thread to search thread
   if not args.only_explicit_search:
     self.LoggerThreadObj.update.connect(self.SearchThreadObj.get_new_word)
+    self.LoggerThreadObj.update.connect(self.log_new_word)
 
   #self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
   #self.connect(self, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
@@ -226,6 +227,7 @@ class MyApp(QWidget):
   self.iconfile3 = 'doc.png'
   self.gbtitle3 = QLabel('Suggested documents')
   self.listWidget3 = self.create_QListWidget(20, self.iconfile3)
+  self.listWidget3.verticalScrollBar().sliderReleased.connect(self.dwslider_released)
 
   #List of useful docs
   self.useful_docs_title = QLabel('Found documents [0]')
@@ -644,12 +646,36 @@ class MyApp(QWidget):
     #scrollArea.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
     #scrollArea.setFixedHeight(50)
     scrollArea.setFrameStyle(0)
-    scrollArea.verticalScrollBar()
+    scrollArea.verticalScrollBar().sliderReleased.connect(self.bwslider_released)
 
     return scrollArea
 
 
 
+ def bwslider_released(self):
+   self.slider_released("buttonslider")
+
+ def dwslider_released(self):
+   self.slider_released("documentslider")
+
+ def slider_released(self, slidertype):
+   if args.record:
+     f = open('data/test_output.txt','a')
+     f.write(self.titlerow("SLIDER"))
+     f.write(str(self.iteration_index)+", "+slidertype+"\n")
+     f.close()
+
+ def titlerow(self, titletype):
+   now = time()
+   return "#{0}: {1} {2}\n".format(titletype, str(now),
+                                   strftime("%c", localtime(now)))
+
+ def log_new_word(self, newquery):
+   if args.record:
+     f = open('data/test_output.txt','a')
+     f.write(self.titlerow("INPUT"))
+     f.write(str(self.iteration_index)+", "+newquery+"\n")
+     f.close()
 
  def stop_animation(self):
   self.enable_buttons()
@@ -709,6 +735,12 @@ class MyApp(QWidget):
 
     #Send the explicit query string by emitting 'send_explicit_search_query'-signal
     self.send_explicit_search_query.emit(self.explicit_query_field.text())
+
+    if args.record:
+      f = open('data/test_output.txt','a')
+      f.write(self.titlerow("EXPLICIT"))
+      f.write(str(self.iteration_index)+", "+self.explicit_query_field.text()+"\n")
+      f.close()
    
     #Clear the query field    
     if not args.only_explicit_search:
@@ -727,7 +759,7 @@ class MyApp(QWidget):
         if sender_text==button.text():
           button_ind = i
       f = open('data/test_output.txt','a')
-      f.write("CLICKED: "+str(time())+"\n")
+      f.write(self.titlerow("CLICKED"))
       f.write(str(self.iteration_index)+", "+sender_text+", "+str(button_ind)+"\n")                                      
       f.close()
 
@@ -1073,7 +1105,7 @@ class MyApp(QWidget):
                                         #Record suggestions
                                         if ijson == 0:
                                           f = open('data/test_output.txt','a')
-                                          f.write("RESOURCES: "+str(time())+"\n")
+                                          f.write(self.titlerow("RESOURCES"))
                                         f.write(str(self.iteration_index)+", "+dataid+", "+title+", "+linkstr+", "+str(ijson)+"\n")                                      
           if args.record:            
             f.close()      
@@ -1143,7 +1175,7 @@ class MyApp(QWidget):
                                 #Record suggestions
                                 if i == 0:
                                   f = open('data/test_output.txt','a')
-                                  f.write("KEYWORDS: "+str(time())+" \n")
+                                  f.write(self.titlerow("KEYWORDS"))
                                 f.write(str(self.iteration_index)+", "+keywordlist[i]+", "+str(i)+"\n")
             if args.record:
               f.close()
@@ -1254,7 +1286,7 @@ class MyApp(QWidget):
      if args.record:
        #Record suggestions
        f = open('data/test_output.txt','a')
-       f.write("UNCHECKED: "+str(time())+" \n")
+       f.write(self.titlerow("UNCHECKED"))
        f.write(str(self.iteration_index)+", "+listWidgetitem.text()+", "+linkstr+", "+str(row)+", "+"\n")
        f.close()         
 
@@ -1282,7 +1314,7 @@ class MyApp(QWidget):
      if args.record:
        #Record suggestions
        f = open('data/test_output.txt','a')
-       f.write("CHECKED: "+str(time())+" \n")
+       f.write(self.titlerow("CHECKED"))
        f.write(str(self.iteration_index)+", "+listWidgetitem.text()+", "+linkstr+", "+str(row)+", "+"\n")
        f.close()
 
@@ -1328,7 +1360,7 @@ class MyApp(QWidget):
   #
   if args.record:
     f = open('data/test_output.txt','a')
-    f.write("VISITED: "+str(time())+" \n")
+    f.write(self.titlerow("VISITED"))
     f.write(str(self.iteration_index)+", "+listWidgetitem.text()+", "+whatsThisString+", "+str(row)+"\n")
     f.close()
 
