@@ -33,6 +33,7 @@ import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.Message;
+import fi.hiit.dime.database.EventCount;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.search.SearchIndex;
@@ -108,33 +109,37 @@ public class WebController extends WebMvcConfigurerAdapter {
     @RequestMapping("/")
     public String root(Authentication authentication, Model model,
 		       @RequestHeader("host") String hostName) {	
+	if (authentication == null)
+	    return "login";
+
 	try {
 	    hostName = InetAddress.getLocalHost().getHostName();
 	} catch (UnknownHostException e) {
 	}
 	model.addAttribute("hostname", hostName);
 
-	if (authentication != null) {
-	    Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 
-	    Calendar cal = Calendar.getInstance();
-	    cal.add(Calendar.MINUTE, -loggerMinutesFrame);
-	    List<Event> events = eventDAO.eventsSince(userId, cal.getTime());
-	    if (events.size() > 0) {
-		Map<String, Event> hist = new HashMap<String, Event>();
-		for (Event event : events) {
-		    String key = event.actor + "|" + event.origin;
-		    if (!hist.containsKey(key))
-			hist.put(key, event);
-		}
-		model.addAttribute("events", hist.values());
-	    }		    
-	    model.addAttribute("minutes", loggerMinutesFrame);
-	    
-	    model.addAttribute("event_count", eventDAO.count(userId));
-	    model.addAttribute("elem_count", infoElemDAO.count(userId));
-	}
-        return "root";
+	Calendar cal = Calendar.getInstance();
+	cal.add(Calendar.MINUTE, -loggerMinutesFrame);
+	List<Event> events = eventDAO.eventsSince(userId, cal.getTime());
+	if (events.size() > 0) {
+	    Map<String, Event> hist = new HashMap<String, Event>();
+	    for (Event event : events) {
+		String key = event.actor + "|" + event.origin;
+		if (!hist.containsKey(key))
+		    hist.put(key, event);
+	    }
+	    model.addAttribute("events", hist.values());
+	}		    
+	model.addAttribute("minutes", loggerMinutesFrame);
+	
+	model.addAttribute("event_count", eventDAO.count(userId));
+	model.addAttribute("elem_count", infoElemDAO.count(userId));
+	
+	model.addAttribute("actor_hist", eventDAO.getActorHistogram());
+	
+	return "root";
     }
 
     /* Event log + search */
@@ -239,36 +244,6 @@ public class WebController extends WebMvcConfigurerAdapter {
 	    model.addAttribute("elem", elem);
         return "message";
     }
-
-    /* Search page */
-    @RequestMapping("/search")
-    public String search(@ModelAttribute TextSearchQuery query,
-			 Authentication authentication,
-			 Model model) {
-
-	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-	model.addAttribute("info", "");
-
-	if (!query.isEmpty()) {
-	    List<DiMeData> results = null;
-	    try {
-		searchIndex.updateIndex(true);
-		results = searchIndex.search(query, null, null, 100, userId);
-		model.addAttribute("info", "(Lucene)");
-	    } catch (IOException e) {
-		LOG.warn("Lucene search failed [" + e + "].");
-		model.addAttribute("error", e);
-	    }
-
-	    model.addAttribute("results", results);
-	}
-
-        model.addAttribute("search", query);
-
-
-        return "search";
-    }
-
 
     //------------------------------------------------------------------------------
     // User management

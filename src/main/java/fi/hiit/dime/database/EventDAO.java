@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -120,5 +121,23 @@ public class EventDAO extends BaseDAO<Event> {
     public List<Event> eventsSince(Long userId, Date since) {
 	return repo.findByUserAndStartIsAfterOrderByStartDesc(User.makeUser(userId), since);
     }
-    
+
+    public List<EventCount> getActorHistogram() {
+	List<EventCount> hist = repo.actorHistogram();
+
+	// filter list a bit ...
+	long totCount = 0;
+	for (Iterator<EventCount> it = hist.iterator(); it.hasNext(); ) {
+	    EventCount ec = it.next();
+	    if (ec.value == null || ec.count == 0)
+		it.remove();
+	    else
+		totCount += ec.count;
+	}
+
+	for (EventCount ec : hist)
+	    ec.perc = ec.count/(double)totCount*100.0;
+
+	return hist;
+    }    
 }

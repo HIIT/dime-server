@@ -31,6 +31,7 @@ import fi.hiit.dime.authentication.User;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -99,6 +100,10 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
 
 public interface EventRepository extends CrudRepository<Event, Long>,
 					 EventRepositoryCustom {
+
+    @Query("select new fi.hiit.dime.database.EventCount(actor, count(actor)) from Event e group by actor order by count(actor) desc")
+    List<EventCount> actorHistogram();
+
     Event findOne(Long id);
 
     Event findOneByIdAndUser(Long id, User user);
