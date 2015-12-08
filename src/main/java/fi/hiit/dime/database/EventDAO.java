@@ -49,12 +49,17 @@ public class EventDAO extends BaseDAO<Event> {
 
     @Transactional
     public void save(Event obj) {
+	if (obj.timeCreated == null)
+	    obj.timeCreated = new Date();
+	obj.timeModified = new Date();
+
 	notIndexed.add(obj);
 	repo.save(obj);
     }
 
     @Transactional
     public Event replace(Event oldObj, Event newObj) {
+	newObj.timeModified = new Date();
 	return repo.replace(oldObj, newObj);
     }
 

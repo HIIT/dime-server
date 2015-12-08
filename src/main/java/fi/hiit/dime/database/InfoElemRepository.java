@@ -27,6 +27,7 @@ package fi.hiit.dime.database;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.authentication.User;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.HashMap;
@@ -100,6 +101,9 @@ public interface InfoElemRepository extends CrudRepository<InformationElement, L
     InformationElement findOneByAppIdAndUser(String appId, User user);
 
     List<InformationElement> findByUser(User user);
+
+    List<InformationElement> 
+    	findByUserOrderByTimeModifiedDesc(User user, Pageable pageable);
 
     Long countByUser(User user);
 

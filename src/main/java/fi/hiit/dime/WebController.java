@@ -80,7 +80,7 @@ public class WebController extends WebMvcConfigurerAdapter {
     private static final Logger LOG = 
 	LoggerFactory.getLogger(WebController.class);
 
-    private static final int loggerMinutesFrame = 30;
+    private static final int loggerMinutesFrame = 5;
 
     @Autowired
     private DiMeProperties dimeConfig;
@@ -183,6 +183,38 @@ public class WebController extends WebMvcConfigurerAdapter {
 	if (elem.user.getId().equals(userId))
 	    model.addAttribute("elem", elem);
         return "message";
+    }
+
+    /* Data page - informationelement list */
+    @RequestMapping("/data")
+    public String data(@ModelAttribute TextSearchQuery query,
+		       Authentication authentication,
+		       Model model) {
+
+	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+	model.addAttribute("count", infoElemDAO.count(userId));
+
+	if (!query.isEmpty()) {
+	    List<InformationElement> results = null;
+	    try {
+		searchIndex.updateIndex(true);
+		List<DiMeData> dataRes =
+		    searchIndex.search(query, null, null, 100, userId);
+		results = searchIndex.mapToElementList(dataRes);
+	    } catch (IOException e) {
+		LOG.warn("Lucene search failed [" + e + "].");
+		model.addAttribute("error", e);
+	    }
+
+	    model.addAttribute("results", results);
+	} else {
+	    model.addAttribute("results",
+			       infoElemDAO.elementsForUser(userId, 100));
+	}
+
+        model.addAttribute("search", query);
+
+        return "data";
     }
 
     /* Search page */

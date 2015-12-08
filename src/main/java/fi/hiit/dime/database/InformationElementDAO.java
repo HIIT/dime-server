@@ -30,10 +30,12 @@ import fi.hiit.dime.authentication.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,10 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
 
     @Transactional
     public void save(InformationElement obj) {
+	if (obj.timeCreated == null)
+	    obj.timeCreated = new Date();
+	obj.timeModified = new Date();
+
 	notIndexed.add(obj);
 	repo.save(obj);
     }
@@ -54,6 +60,7 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
     @Transactional
     public InformationElement replace(InformationElement oldObj, 
 				      InformationElement newObj) {
+	newObj.timeModified = new Date();
 	return repo.replace(oldObj, newObj);
     }
 
@@ -121,8 +128,9 @@ public class InformationElementDAO extends BaseDAO<InformationElement> {
        @return List of all InformationElement objects for user
     */
     @Transactional(readOnly = true)
-    public List<InformationElement> elementsForUser(Long id) {
-	return repo.findByUser(User.makeUser(id));
+    public List<InformationElement> elementsForUser(Long id, int limit) {
+	return repo.findByUserOrderByTimeModifiedDesc(User.makeUser(id),
+					       new PageRequest(0, limit));
     }
 
     @Transactional(readOnly = true)

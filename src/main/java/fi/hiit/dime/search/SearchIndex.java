@@ -28,6 +28,7 @@ import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.ReadingEvent;
+import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.data.SearchEvent;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
@@ -366,6 +367,28 @@ public class SearchIndex {
 	return true;
     }
 
+    public static List<InformationElement>
+	mapToElementList(List<DiMeData> dataList) 
+    {
+	List<InformationElement> elemList = new ArrayList<InformationElement>();
+	Set<Long> seen = new HashSet<Long>();
+
+	for (DiMeData data : dataList) {
+	    InformationElement elem = null;
+	    if (data instanceof InformationElement)
+		elem = (InformationElement)data;
+	    else if (data instanceof ResourcedEvent)
+		elem = ((ResourcedEvent)data).targettedResource;
+	    
+	    if (elem != null && !seen.contains(elem.getId())) {
+		elemList.add(elem);
+		seen.add(elem.getId());
+	    }
+	}
+
+	return elemList;
+    }
+
     /**
        Perform text search to Lucene index.
 
@@ -373,8 +396,8 @@ public class SearchIndex {
        @param limit Maximum number of results to return
        @param userId DiMe user id.
     */
-    public List<DiMeData> search(SearchQuery query, String className, String typeName, 
-				 int limit, Long userId)
+    public List<DiMeData> search(SearchQuery query, String className,
+				 String typeName, int limit, Long userId)
 	throws IOException
     {
 	if (limit < 0)
@@ -404,14 +427,15 @@ public class SearchIndex {
 	    if (query instanceof TextSearchQuery) {
 		textQuery = basicTextQuery(((TextSearchQuery)query).query);
 	    } else if (query instanceof KeywordSearchQuery) {
-		textQuery = 
-		    keywordSearchQuery(((KeywordSearchQuery)query).weightedKeywords);
+		textQuery = keywordSearchQuery(((KeywordSearchQuery)query).
+					       weightedKeywords);
 	    } else {
 		textQuery = new MatchAllDocsQuery();
 	    }
 	    queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
 
-	    queryBuilder.add(new TermQuery(new Term(userIdField, userId.toString())),
+	    queryBuilder.add(new TermQuery(new Term(userIdField, 
+						    userId.toString())),
 			     BooleanClause.Occur.FILTER);
 
 	    if (className != null)
@@ -437,7 +461,8 @@ public class SearchIndex {
 			obj.score = score;
 			objs.add(obj);
 		    } else {
-			LOG.warn("Lucene returned result for wrong user: " + obj.getId());
+			LOG.warn("Lucene returned result for wrong user: " +
+				 obj.getId());
 		    }
 		} catch (NumberFormatException ex) {
 		    LOG.error("Lucene returned invalid id: {}", docId);

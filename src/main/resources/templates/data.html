@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="bootstrap :: head"></head>
+<body>
+  <div th:replace="bootstrap :: navbar (data)"></div>
+    <div class="container">
+      <div class="starter-template">
+	<p class="text-info" th:text="'You have logged ' + ${count} + '
+	information elements.'"></p>
+
+	<p>These are all the documents, web pages and other data items
+	that you have logged with DiMe.</p>
+
+	<form class="form-inline" th:object="${search}" th:action="@{/data}"
+	      method="get">
+	  <div class="form-group col-xs-4">
+	    <label class="sr-only" for="query">Text query</label>
+	    <input style="width: 100%" type="text" class="form-control"
+		   id="query" name="query" placeholder="Text query"
+		   th:field="*{query}" autofocus="true" />
+	  </div>
+	  <button type="submit" class="btn btn-primary">Search</button>
+	</form>
+
+	<div th:if="${error}" th:text="${error}" class="alert alert-danger" role="alert"></div>
+
+	<div th:if="${results}">
+	  <p th:if="!${search.isEmpty()}" th:text="'Found ' + ${results.size()} + ' results.'"></p>
+	  <span th:each="targettedResource,iterStat : ${results}">
+	    <hr/>
+	      <p th:replace="infoelem :: infoelemview (${targettedResource})"></p>
+	  </span>
+	</div>
+      </div>
+    </div>
+  <div th:replace="bootstrap :: js"></div>
+</body>
+</html>

@@ -126,21 +126,8 @@ public class ApiController extends AuthorizedController {
 	List<DiMeData> dataList =
 	    searchIndex.search(query, className, typeName, limit, user.getId());
 	
-	List<InformationElement> elemList = new ArrayList<InformationElement>();
-	Set<Long> seen = new HashSet<Long>();
-
-	for (DiMeData data : dataList) {
-	    InformationElement elem = null;
-	    if (data instanceof InformationElement)
-		elem = (InformationElement)data;
-	    else if (data instanceof ResourcedEvent)
-		elem = ((ResourcedEvent)data).targettedResource;
-	    
-	    if (elem != null && !seen.contains(elem.getId())) {
-		elemList.add(elem);
-		seen.add(elem.getId());
-	    }
-	}
+	List<InformationElement> elemList =
+	    searchIndex.mapToElementList(dataList);
 
 	InformationElement[] results = new InformationElement[elemList.size()];
 	elemList.toArray(results);	
