@@ -370,4 +370,24 @@
     <changeSet author="mvsjober (generated)" id="1449067707888-2">
         <dropColumn columnName="SCORE" tableName="INFORMATION_ELEMENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449573575062-1">
+        <addColumn tableName="EVENT">
+            <column name="TIME_CREATED" type="TIMESTAMP(23, 10)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449573575062-2">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="TIME_CREATED" type="TIMESTAMP(23, 10)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449573575062-3">
+        <addColumn tableName="EVENT">
+            <column name="TIME_MODIFIED" type="TIMESTAMP(23, 10)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449573575062-4">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="TIME_MODIFIED" type="TIMESTAMP(23, 10)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
