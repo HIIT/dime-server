@@ -726,7 +726,7 @@ class MyApp(QWidget):
       for i,button in enumerate(self.buttonlist):
         if sender_text==button.text():
           button_ind = i
-      f = open('data/suggested_resources.list','a')
+      f = open('data/test_output.txt','a')
       f.write("CLICKED: \n")
       f.write(str(self.iteration_index)+", "+sender_text+", "+str(button_ind)+"\n")                                      
       f.close()
@@ -1072,7 +1072,7 @@ class MyApp(QWidget):
                                       if args.record:
                                         #Record suggestions
                                         if ijson == 0:
-                                          f = open('data/suggested_resources.list','a')
+                                          f = open('data/test_output.txt','a')
                                           f.write("RESOURCES: \n")
                                         f.write(str(self.iteration_index)+", "+dataid+", "+title+", "+linkstr+", "+str(ijson)+"\n")                                      
           if args.record:            
@@ -1142,7 +1142,7 @@ class MyApp(QWidget):
                               if args.record:
                                 #Record suggestions
                                 if i == 0:
-                                  f = open('data/suggested_resources.list','a')
+                                  f = open('data/test_output.txt','a')
                                   f.write("KEYWORDS: \n")
                                 f.write(str(self.iteration_index)+", "+keywordlist[i]+", "+str(i)+"\n")
             if args.record:
@@ -1272,7 +1272,7 @@ class MyApp(QWidget):
      #If recording enabled, record the checked items for current iteration
      if args.record:
        #Record suggestions
-       f = open('data/suggested_resources.list','a')
+       f = open('data/test_output.txt','a')
        f.write("CHECKED: \n")
        f.write(str(self.iteration_index)+", "+linkstr+", "+str(row)+", "+"\n")
        f.close()
