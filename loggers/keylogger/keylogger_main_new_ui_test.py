@@ -1068,8 +1068,6 @@ class MyApp(QWidget):
                                         i = i + 1  
                                         #print i
 
-
-<<<<<<< HEAD
                                       #If record-mode chosen, record the resouce id and uri
                                       if args.record:
                                         #Record suggestions
@@ -1080,10 +1078,6 @@ class MyApp(QWidget):
           if args.record:            
             f.close()      
 
- #                                     
-=======
- #
->>>>>>> 15a5afe828f81eb0bdfcedb05a07da34a83bc895
  def process_authors(self, alist):
    authorstring = ""
    first = True;
