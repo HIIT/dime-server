@@ -308,8 +308,8 @@ class SearchThread(QThread):
       #If MMR enable, do MMR-reranking of kws
       lambda_coeff = 0.7
       if lambda_coeff > 0:
-          frac_sizeS = 0.001
-          frackws = 0.001
+          frac_sizeS = 0.003
+          frackws = 0.003
           kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, self.sX, frackws)
           #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
           print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")

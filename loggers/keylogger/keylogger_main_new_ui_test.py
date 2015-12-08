@@ -448,7 +448,7 @@ class MyApp(QWidget):
 
 
   #Create kw-buttons
-  self.numofkwbuttons = 100
+  self.numofkwbuttons = 50
   self.buttonlist = self.create_buttonwidget_list(self.numofkwbuttons)
   #Set the buttons hidden
   # for i in range(len(self.buttonlist)):
