@@ -1341,12 +1341,12 @@ if __name__ == "__main__":
                       help="single list mode")
   parser.add_argument("--only_explicit_search", action='store_true', 
                       help="Keylogging and LinRel computations are disbled.")
-  parser.add_argument('--emphasize_kws', metavar='LAMBDA', action='store', type=int,
-                    default=0, help='Emphasize clicked keywords.')
+  parser.add_argument('--emphasize_kws', metavar='LAMBDA', action='store', type=int, default=0, help='Emphasize clicked keywords.')
+
   #
   parser.add_argument("--record", action='store_true',
                       help="Records suggested resources, keywords and user interaction.")
-                      default=0, help='Emphasize clicked keywords.')
+
   parser.add_argument('--c', metavar='N', action='store', type=float,
                       default=1.0, help='Exploration/Exploitation coeff.')
   parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
