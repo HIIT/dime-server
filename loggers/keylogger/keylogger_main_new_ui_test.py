@@ -727,7 +727,7 @@ class MyApp(QWidget):
         if sender_text==button.text():
           button_ind = i
       f = open('data/test_output.txt','a')
-      f.write("CLICKED: \n")
+      f.write("CLICKED: "+str(time())+"\n")
       f.write(str(self.iteration_index)+", "+sender_text+", "+str(button_ind)+"\n")                                      
       f.close()
 
@@ -1073,7 +1073,7 @@ class MyApp(QWidget):
                                         #Record suggestions
                                         if ijson == 0:
                                           f = open('data/test_output.txt','a')
-                                          f.write("RESOURCES: \n")
+                                          f.write("RESOURCES: "+str(time())+"\n")
                                         f.write(str(self.iteration_index)+", "+dataid+", "+title+", "+linkstr+", "+str(ijson)+"\n")                                      
           if args.record:            
             f.close()      
@@ -1143,7 +1143,7 @@ class MyApp(QWidget):
                                 #Record suggestions
                                 if i == 0:
                                   f = open('data/test_output.txt','a')
-                                  f.write("KEYWORDS: \n")
+                                  f.write("KEYWORDS: "+str(time())+" \n")
                                 f.write(str(self.iteration_index)+", "+keywordlist[i]+", "+str(i)+"\n")
             if args.record:
               f.close()
@@ -1223,6 +1223,18 @@ class MyApp(QWidget):
 
  #
  def check_item(self, listWidgetitem):
+
+   #Take the position of the checked item in the list of suggested resources
+   if self.listWidget1.row(listWidgetitem) > 0:
+     row = self.listWidget1.row(listWidgetitem)
+   elif self.listWidget2.row(listWidgetitem) > 0:
+     row = self.listWidget2.row(listWidgetitem)
+   elif self.listWidget3.row(listWidgetitem) > 0:  
+     row = self.listWidget3.row(listWidgetitem)
+   else:
+     row = 0
+   print("ROW:",row)
+
    if listWidgetitem.checkState() == Qt.Checked:
      listWidgetitem.setCheckState(Qt.Unchecked)
      
@@ -1238,20 +1250,17 @@ class MyApp(QWidget):
          self.useful_docs_listWidget.takeItem(i)
          break
 
+     #If recording enabled, record the checked items for current iteration
+     if args.record:
+       #Record suggestions
+       f = open('data/test_output.txt','a')
+       f.write("UNCHECKED: "+str(time())+" \n")
+       f.write(str(self.iteration_index)+", "+listWidgetitem.text()+", "+linkstr+", "+str(row)+", "+"\n")
+       f.close()         
+
    else:
      #Set checked the chosen item
      listWidgetitem.setCheckState(Qt.Checked)
-
-     #Take the position of the checked item in the list of suggested resources
-     if self.listWidget1.row(listWidgetitem) > 0:
-       row = self.listWidget1.row(listWidgetitem)
-     elif self.listWidget2.row(listWidgetitem) > 0:
-       row = self.listWidget2.row(listWidgetitem)
-     elif self.listWidget3.row(listWidgetitem) > 0:  
-       row = self.listWidget3.row(listWidgetitem)
-     else:
-       row = 0
-     print("ROW:",row)
 
      #Add to useful_docs dict
      linkstr = listWidgetitem.whatsThis()
@@ -1273,8 +1282,8 @@ class MyApp(QWidget):
      if args.record:
        #Record suggestions
        f = open('data/test_output.txt','a')
-       f.write("CHECKED: \n")
-       f.write(str(self.iteration_index)+", "+linkstr+", "+str(row)+", "+"\n")
+       f.write("CHECKED: "+str(time())+" \n")
+       f.write(str(self.iteration_index)+", "+listWidgetitem.text()+", "+linkstr+", "+str(row)+", "+"\n")
        f.close()
 
    #
@@ -1288,6 +1297,18 @@ class MyApp(QWidget):
 
  #
  def open_url(self, listWidgetitem):
+
+  #Take the position of the checked item in the list of suggested resources
+  if self.listWidget1.row(listWidgetitem) > 0:
+   row = self.listWidget1.row(listWidgetitem)
+  elif self.listWidget2.row(listWidgetitem) > 0:
+   row = self.listWidget2.row(listWidgetitem)
+  elif self.listWidget3.row(listWidgetitem) > 0:  
+   row = self.listWidget3.row(listWidgetitem)
+  else:
+   row = 0
+  print("ROW:",row)
+
   #global urlstr
   #webbrowser.open(urlstr)
   whatsThisString = listWidgetitem.whatsThis()
@@ -1303,6 +1324,13 @@ class MyApp(QWidget):
     webbrowser.open(webpagel)
   else:
     webbrowser.open(dimelink)
+
+  #
+  if args.record:
+    f = open('data/test_output.txt','a')
+    f.write("VISITED: "+str(time())+" \n")
+    f.write(str(self.iteration_index)+", "+listWidgetitem.text()+", "+whatsThisString+", "+str(row)+"\n")
+    f.close()
 
  #
  def stopstart(self):
