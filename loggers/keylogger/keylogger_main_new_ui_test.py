@@ -172,6 +172,8 @@ class MyApp(QWidget):
   self.SearchThreadObj = SearchThread()
   #Set the emphasize_kws mode for the search thread
   self.SearchThreadObj.emphasize_kws = args.emphasize_kws
+  self.SearchThreadObj.c = args.c
+  self.SearchThreadObj.mmr_lambda = args.mmr
 
   #Data connection from logger thread to search thread
   if not args.only_explicit_search:
@@ -1278,7 +1280,11 @@ if __name__ == "__main__":
   parser.add_argument("--only_explicit_search", action='store_true', 
                       help="Keylogging and LinRel computations are disbled.")
   parser.add_argument('--emphasize_kws', metavar='LAMBDA', action='store', type=int,
-                    default=0, help='Emphasize clicked keywords.')
+                      default=0, help='Emphasize clicked keywords.')
+  parser.add_argument('--c', metavar='N', action='store', type=float,
+                      default=1.0, help='Exploration/Exploitation coeff.')
+  parser.add_argument('--mmr', metavar='LAMBDA', action='store', type=float,
+                      default=-1.0, help='use MMR with parameter lambda')
 
   args = parser.parse_args()
   
