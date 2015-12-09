@@ -96,6 +96,8 @@ public class SearchIndex {
     private IndexSearcher searcher = null;
     private StandardQueryParser parser;
 
+    private static boolean firstUpdate = true;
+
     @Autowired
     private InformationElementDAO infoElemDAO;
 
@@ -232,12 +234,15 @@ public class SearchIndex {
     }
 
     /**
-       call to update index, e.g. after adding new information elements.
+       Call to update index, e.g. after adding new information elements.
+
+       NOTE: will perform a more thorough, slow, update when running
+       the first time.
 
        @return Number of elements that were newly indexed
     */
-    public long updateIndex(boolean quickUpdate) {
-	if (quickUpdate && !infoElemDAO.hasUnIndexed())
+    public long updateIndex() {
+	if (!firstUpdate && !infoElemDAO.hasUnIndexed())
 	    return 0;
 	
 	long count = 0;
@@ -260,7 +265,7 @@ public class SearchIndex {
 
 	    List<DiMeData> toIndex = new ArrayList<DiMeData>();
 
-	    if (quickUpdate) {
+	    if (!forceReindex && !firstUpdate) {
 		// Just use our internal book keeping of new objects
 		toIndex.addAll(infoElemDAO.getNotIndexed());
 		toIndex.addAll(eventDAO.getNotIndexed());
@@ -327,6 +332,7 @@ public class SearchIndex {
 	    LOG.error("Exception while updating search index: " + e);
 	}
 
+	firstUpdate = false;
 	return count;
     }
 

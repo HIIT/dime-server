@@ -81,7 +81,7 @@ public class WebController extends WebMvcConfigurerAdapter {
     private static final Logger LOG = 
 	LoggerFactory.getLogger(WebController.class);
 
-    private static final int loggerMinutesFrame = 5;
+    private static final int loggerMinutesFrame = 30;
 
     @Autowired
     private DiMeProperties dimeConfig;
@@ -154,7 +154,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	if (!query.isEmpty()) {
 	    List<Event> results = null;
 	    try {
-		searchIndex.updateIndex(true);
+		searchIndex.updateIndex();
 		List<DiMeData> dataRes =
 		    searchIndex.search(query, null, null, 100, userId);
 		results = searchIndex.mapToEventList(dataRes,
@@ -186,7 +186,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	if (!query.isEmpty()) {
 	    List<InformationElement> results = null;
 	    try {
-		searchIndex.updateIndex(true);
+		searchIndex.updateIndex();
 		List<DiMeData> dataRes =
 		    searchIndex.search(query, null, null, 100, userId);
 		results = searchIndex.mapToElementList(dataRes);

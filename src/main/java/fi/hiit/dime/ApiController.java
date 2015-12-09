@@ -121,7 +121,7 @@ public class ApiController extends AuthorizedController {
 	if (query.isEmpty())
 	    return new InformationElement[0];
 
-	searchIndex.updateIndex(true);
+	searchIndex.updateIndex();
 	
 	List<DiMeData> dataList =
 	    searchIndex.search(query, className, typeName, limit, user.getId());
@@ -148,7 +148,7 @@ public class ApiController extends AuthorizedController {
 	if (query.isEmpty())
 	    return new Event[0];
 
-	searchIndex.updateIndex(true);
+	searchIndex.updateIndex();
 	List<DiMeData> dataList = searchIndex.search(query, className, typeName,
 						     limit, user.getId());
 
