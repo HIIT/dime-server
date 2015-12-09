@@ -143,6 +143,7 @@ class MyApp(QWidget):
   self.keywords = []
   self.list_of_lists_of_old_keywords = []
   self.old_queries = []
+  self.solrmode = False
 
   #List of documents checked as useful by the user
   self.useful_docs = {}
@@ -177,6 +178,8 @@ class MyApp(QWidget):
   self.SearchThreadObj.emphasize_kws = args.emphasize_kws
   self.SearchThreadObj.c = args.c
   self.SearchThreadObj.mmr_lambda = args.mmr
+  if self.solrmode:
+    self.SearchThreadObj.servertype = "solr"
 
   #Data connection from logger thread to search thread
   if not args.only_explicit_search:
@@ -232,6 +235,7 @@ class MyApp(QWidget):
   #List of useful docs
   self.useful_docs_title = QLabel('Found documents [0]')
   self.useful_docs_listWidget = self.create_QListWidget(0, self.iconfile3)
+  self.useful_docs_listWidget.setFixedHeight(150)
 
   #Buttons
   #Start button
@@ -256,10 +260,10 @@ class MyApp(QWidget):
 
   #Button for getting previous keywords and search results
   self.backButton  = QPushButton("<-")
-  self.backButton.setToolTip("Back in history")  
+  self.backButton.setToolTip("Back in history")
   self.backButton.setEnabled(False)
   self.forwardButton  = QPushButton("->")
-  self.forwardButton.setToolTip("Forward in history")    
+  self.forwardButton.setToolTip("Forward in history")
   self.forwardButton.setEnabled(False)
   #
   self.backButton.released.connect(self.repeat_old_query)
@@ -327,7 +331,7 @@ class MyApp(QWidget):
   self.vlayout2 = QVBoxLayout()
   self.vlayout2.addWidget(self.gbtitle2)
   self.vlayout2.addWidget(self.listWidget2)
-  #  
+  #
   self.vlayout3 = QVBoxLayout()
   #
   self.vlayout3.addWidget(self.gbtitle3)
@@ -347,7 +351,7 @@ class MyApp(QWidget):
   #self.subhlayout.addWidget(self.anim1)
   #self.subvlayout.addWidget(self.animlabel)
   #self.movie.start()
- 
+
 
   #self.vlayout4.addWidget(self.startStopButton)
   #self.vlayout4.addWidget(self.clearButton)
@@ -519,6 +523,10 @@ class MyApp(QWidget):
   screen = QDesktopWidget().screenGeometry()
   self.setGeometry(screen.width()-1024, 0, 1024, 600)
 
+  self.solrdict = {"uri": "url",
+                   "keywords": "keyword",
+                   "authors": "author",
+                   "year": "last_modified"}
  
  def hide_buttons(self):
   for button in self.buttonlist:
@@ -846,12 +854,31 @@ class MyApp(QWidget):
         listitem.setText('No heippa!')
         listitem.setWhatsThis('https://www.gmail.com')
 
-
- def safe_get_value(self, dicti, key):
+ def get_value(self, dicti, key):
+  if self.solrmode:
+    key = self.solrkey(key)
   if key in dicti:
-   return dicti[key]
+    val = dicti[key]
+    if self.solrmode:
+      if key in ["url", "title"]:
+        val = val[0]
+      elif key == "last_modified":
+        parts = val[0].split("-")
+        val = int(parts[0])
+    return val
   return ''
 
+ def has_key(self, dicti, key):
+  if self.solrmode:
+    key = self.solrkey(key)
+  if key in dicti:
+    return True
+  return False
+
+ def solrkey(self, key):
+   if key in self.solrdict:
+     return self.solrdict[key]
+   return key
 
  def get_data_from_search_thread_and_update_visible_stuff(self, data):
     self.data = data
@@ -932,10 +959,10 @@ class MyApp(QWidget):
           self.forwardButton.setEnabled(False)
 
         #
- 
+
  def hide_lists(self):
    for dj in range(self.listWidget1.count()):
-     self.listWidget1.item(dj).setHidden(True)    
+     self.listWidget1.item(dj).setHidden(True)
      self.listWidget1.item(dj).setCheckState(Qt.Unchecked)
    for dj in range(self.listWidget2.count()):
      self.listWidget2.item(dj).setHidden(True)
@@ -944,193 +971,141 @@ class MyApp(QWidget):
      self.listWidget3.item(dj).setHidden(True)
      self.listWidget3.item(dj).setCheckState(Qt.Unchecked)
 
- def update_links(self, urlstrs):
+ def update_links(self, resultlist):
 
-    #For indicating the beginning of new iteration,
-    #increase the value of self.iteration_index 
-    self.iteration_index = self.iteration_index + 1
+   #For indicating the beginning of new iteration,
+   #increase the value of self.iteration_index
+   self.iteration_index = self.iteration_index + 1
 
+   i, j, k = 0, 0, 0
 
-    i = 0
-    j = 0
-    k = 0
+   if (type(resultlist) is list and len(resultlist) > 0
+       and type(resultlist[0]) is dict):
 
-    if type(urlstrs) is list:
-      if len(urlstrs) > 0:
-        if type(urlstrs[0]) is dict:
-          #Set hidden listWidgetItems that are not used
-          self.hide_lists()
+     #Set hidden listWidgetItems that are not used
+     self.hide_lists()
 
-          #
-          self.kw_subset_ind = 0
+     for resultidx, resultitem in enumerate(resultlist):
 
-          #Initialize rake object
-          #rake_object = rake.Rake("SmartStoplist.txt", 5, 5, 4)
-          for ijson in range( len(urlstrs) ):
-                                      #title    = None
-                                      #linkstr   = self.unicode_to_str( urlstrs[ijson]["uri"] )
-                                      linkstr   = self.safe_get_value(urlstrs[ijson], "uri")
-                                      ctime     = str(self.safe_get_value(urlstrs[ijson], "timeCreated"))
-                                      typestr   = str(self.safe_get_value(urlstrs[ijson], "type"))
-                                      storedas  = str(self.safe_get_value(urlstrs[ijson], "isStoredAs"))
-                                      dataid    = str(self.safe_get_value(urlstrs[ijson], "id"))
-                                      storedasl = storedas.split('#')[1]
+       linkstr   = self.get_value(resultitem, "uri")
+       dataid    = str(self.get_value(resultitem, "id"))
 
-                                      #print 'Main: storedasl: ', storedasl
-                                      #print ctime 
-                                      timeint = int(ctime) / 1000
-                                      #print timeint
-                                      date = datetime.datetime.fromtimestamp(timeint)
-                                      datestr = date.__str__()
+       if self.has_key(resultitem, "isStoredAs"):
+         storedas  = str(self.get_value(resultitem, "isStoredAs"))
+         storedasl = storedas.split('#')[1]
+       else:
+         storedasl = "LocalFileDataObject"
 
-                                      if len(linkstr) > 20:
-                                        linkstrshort = linkstr[0:40]
-                                      else:
-                                        linkstrshort = linkstr
-                                      
-                                      if "keywords" in urlstrs[ijson]:
-                                        tooltipstr = self.process_keywords(urlstrs[ijson]["keywords"])
-                                      else:
-                                        tooltipstr = ""
+       if self.has_key(resultitem, "timeCreated"):
+         ctime = str(self.get_value(resultitem, "timeCreated"))
+         date = datetime.datetime.fromtimestamp(int(ctime) / 1000)
+         datestr = date.__str__()
+       else:
+         datestr = ""
 
-                                      # #content  = self.safe_get_value(urlstrs[ijson], "plainTextContent") 
-                                      # content = ''
-                                      # #keywords = rake_object.run(content)
-                                      # keywords = ''
+       if len(linkstr) > 20:
+         linkstrshort = linkstr[0:40]
+       else:
+         linkstrshort = linkstr
 
-                                      # if len(keywords) > 0:
-                                      #   tooltipstr = re.sub("[^\w]", " ", content)
-                                      #   #self.labellist[i].setToolTip(tooltipstr)
-                                      #   tooltipstr = "Keywords: " + keywords[0][0]
-                                      # else:
-                                      #   tooltipstr = 'Keywords: '
-                                      #   #self.labellist[i].setText(keywords[0][0])
+       tooltipstr = self.process_keywords(self.get_value(resultitem,
+                                                         "keywords"))
 
-                                      #if storedasl in ["LocalFileDataObject" ]:
-                                      if storedasl in ["LocalFileDataObject" ] or storedasl in ["EmbeddedFileDataObject"]:
-                                          #print 'Main: doc', linkstr
+       if storedasl in ["LocalFileDataObject", "EmbeddedFileDataObject"]:
 
-                                          if "title" in urlstrs[ijson]:
-                                            title = urlstrs[ijson]["title"]
-                                            title = title.replace('\n', '').replace('\r', '')
-                                          else:
-                                            title = linkstrshort
+         if self.has_key(resultitem, "title"):
+           title = self.get_value(resultitem, "title")
+           title = title.replace('\n', '').replace('\r', '')
+         else:
+           title = linkstrshort
 
-                                          if "authors" in urlstrs[ijson]:
-                                            authors = self.process_authors(urlstrs[ijson]["authors"])
-                                          else:
-                                            authors = ""
+         authors = self.process_authors(self.get_value(resultitem, "authors"))
 
-                                          yearstr = "20xx"
-                                          if "year" in urlstrs[ijson]:
-                                            year = urlstrs[ijson]["year"]
-                                            if year>0:
-                                              yearstr = str(year)
+         yearstr = ""
+         if self.has_key(resultitem, "year"):
+           year = self.get_value(resultitem, "year")
+           if year>0:
+             yearstr = str(year)+"."
 
-                                          #Create link to DiMe server
-                                          dumlink = self.srvurl.split('/')[2]
-                                          linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
-                                          
-                                          #parts = linkstr.rsplit("/",1)
-                                          #visiblestr = parts[-1] + '  (' + datestr + ')'
-                                          if args.singlelist:
-                                            visiblestr = title + '. ' + authors + '. ' + yearstr
-                                          else:
-                                            visiblestr = title + '  (' + datestr + ')'
-                                          
-                                          if j < len(self.listWidget3):
-                                            self.listWidget3.item(j).setText(visiblestr) 
-                                            self.listWidget3.item(j).setToolTip(tooltipstr)
-                                            self.listWidget3.item(j).setHidden(False)
-                                            whatsthisstr = linkstr+"*"+linkstr2
-                                            self.listWidget3.item(j).setWhatsThis(whatsthisstr)
-                                            #If linkstr already in useful_docs, mark as checked
-                                            if whatsthisstr in self.useful_docs.keys():
-                                              self.listWidget3.item(j).setCheckState(Qt.Checked)
+         #Create link to DiMe server
+         dumlink = self.srvurl.split('/')[2]
+         linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
 
+         if args.singlelist:
+           visiblestr = title + '. ' + authors + '. ' + yearstr
+         else:
+           visiblestr = title + '  (' + datestr + ')'
 
-                                          #self.datelist3[j].setText(datestr)
-                                          #self.labellist3[j].setAlignment(Qt.AlignLeft)
-                                          j = j + 1
-                                      elif storedasl in ["MailboxDataObject"]:
-                                          #print 'Main: mail ', storedasl
-                                          subj = "[no subject]"
-                                          if "subject" in urlstrs[ijson]:
-                                            #subj = self.unicode_to_str(urlstrs[ijson]["subject"])
-                                            subj = urlstrs[ijson]["subject"]
-                                          #Create link to DiMe server
-                                          dumlink = self.srvurl.split('/')[2]
-                                          linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
-                                          #print 'Main: linkstr ', linkstr
-                                          visiblestr = subj + '  (' + datestr + ')'
-                                          
-                                          if k < len(self.listWidget2):
-                                            self.listWidget2.item(j).setText(visiblestr) 
-                                            self.listWidget2.item(j).setToolTip(tooltipstr)
-                                            self.listWidget2.item(j).setHidden(False)
-                                            whatsthisstr = linkstr+"*"+linkstr2
-                                            self.listWidget2.item(j).setWhatsThis(whatsthisstr)
-                                            #If linkstr already in useful_docs, mark as checked
-                                            if whatsthisstr in self.useful_docs.keys():
-                                              self.listWidget2.item(j).setCheckState(Qt.Checked)
+         if j < len(self.listWidget3):
+           self.listWidget3.item(j).setText(visiblestr)
+           self.listWidget3.item(j).setToolTip(tooltipstr)
+           self.listWidget3.item(j).setHidden(False)
+           whatsthisstr = linkstr+"*"+linkstr2
+           self.listWidget3.item(j).setWhatsThis(whatsthisstr)
+           #If linkstr already in useful_docs, mark as checked
+           if whatsthisstr in self.useful_docs.keys():
+             self.listWidget3.item(j).setCheckState(Qt.Checked)
 
-                                          #self.labellist3[j].setAlignment(Qt.AlignLeft)
+         j = j + 1
 
-                                          k = k + 1                                  
-                                      else:
-                                        #print('Main: web ', linkstr)
-                                        title = None
+       elif storedasl in ["MailboxDataObject"]:
 
-                                        #title = str(urlstrs[ijson]["Title"])
-                                        # try:
-                                        #   #print 'Finding Web page title:'
-                                        #   dumt = urllib2.urlopen(linkstr)
-                                        #   soup = BeautifulSoup(dumt)
-                                        #   #print 'Soup title: ', soup.title.string
-                                        #   try: 
-                                        #     if soup.title.string is not None:                                        
-                                        #       title = soup.title.string
-                                        #       #print 'Soup title2 :', title
-                                        #   except (AttributeError, ValueError):
-                                        #     #print 'attr. error'
-                                        #     pass
-                                        # except (urllib2.HTTPError, urllib2.URLError, ValueError):
-                                        #   pass
+         subj = "[no subject]"
+         if self.has_key(resultitem, "subject"):
+           subj = self.get_value(resultitem, "subject")
 
-                                        # if title is None:
-                                        #   title = linkstrshort
-                                        try:
-                                          title   = urlstrs[ijson]["title"]
-                                        except KeyError:
-                                          title   = linkstrshort
+         #Create link to DiMe server
+         dumlink = self.srvurl.split('/')[2]
+         linkstr = linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
 
-                                        #Create link to DiMe server
-                                        dumlink = self.srvurl.split('/')[2]
-                                        linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid                                    
+         visiblestr = subj + '  (' + datestr + ')'
 
-                                        if i < len(self.listWidget1):
-                                          visiblestr = title + '  (' + datestr + ')'
-                                          self.listWidget1.item(j).setText(visiblestr) 
-                                          self.listWidget1.item(j).setToolTip(tooltipstr)
-                                          self.listWidget1.item(j).setHidden(False)
-                                          whatsthisstr = linkstr+"*"+linkstr2
-                                          self.listWidget1.item(j).setWhatsThis(whatsthisstr)
-                                          #If linkstr already in useful_docs, mark as checked
-                                          if whatsthisstr in self.useful_docs.keys():
-                                            self.listWidget1.item(j).setCheckState(Qt.Checked)
+         if k < len(self.listWidget2):
+           self.listWidget2.item(j).setText(visiblestr)
+           self.listWidget2.item(j).setToolTip(tooltipstr)
+           self.listWidget2.item(j).setHidden(False)
+           whatsthisstr = linkstr+"*"+linkstr2
+           self.listWidget2.item(j).setWhatsThis(whatsthisstr)
+           #If linkstr already in useful_docs, mark as checked
+           if whatsthisstr in self.useful_docs.keys():
+             self.listWidget2.item(j).setCheckState(Qt.Checked)
 
-                                        i = i + 1  
-                                        #print i
+         k = k + 1
 
-                                      #If record-mode chosen, record the resouce id and uri
-                                      if args.record:
-                                        #Record suggestions
-                                        if ijson == 0:
-                                          f = open('data/test_output.txt','a')
-                                          f.write(self.titlerow("RESOURCES"))
-                                        f.write(str(self.iteration_index)+", "+dataid+", "+title+", "+linkstr+", "+str(ijson)+"\n")                                      
-          if args.record:            
-            f.close()      
+       else: # Assuming web item
+
+         if self.has_key(resultitem, "title"):
+           title = self.get_value(resultitem, "title")
+         else:
+           title   = linkstrshort
+
+         #Create link to DiMe server
+         dumlink = self.srvurl.split('/')[2]
+         linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
+
+         if i < len(self.listWidget1):
+           visiblestr = title + '  (' + datestr + ')'
+           self.listWidget1.item(j).setText(visiblestr)
+           self.listWidget1.item(j).setToolTip(tooltipstr)
+           self.listWidget1.item(j).setHidden(False)
+           whatsthisstr = linkstr+"*"+linkstr2
+           self.listWidget1.item(j).setWhatsThis(whatsthisstr)
+           #If linkstr already in useful_docs, mark as checked
+           if whatsthisstr in self.useful_docs.keys():
+             self.listWidget1.item(j).setCheckState(Qt.Checked)
+
+         i = i + 1
+
+       #If record-mode chosen, record the resouce id and uri
+       if args.record:
+         if resultidx == 0:
+           f = open('data/test_output.txt','a')
+         f.write(self.titlerow("RESOURCES"))
+         f.write(str(self.iteration_index)+", "+dataid+", "+title+", "
+                 +linkstr+", "+str(resultidx)+"\n")
+
+     if args.record:
+       f.close()
 
  def process_authors(self, alist):
    authorstring = ""
@@ -1139,11 +1114,19 @@ class MyApp(QWidget):
      if not first:
        authorstring += ", "
      first = False
-     if "firstName" in a:
-       fn = a["firstName"].strip()
-       authorstring += fn[0] + ". "
-     if "lastName" in a:
-        authorstring += a["lastName"].strip()
+
+     if self.solrmode:
+       parts = a.split(",")
+       if len(parts)>1:
+         fn = parts[1].strip()
+         authorstring += fn[0] + ". "
+       authorstring += parts[0].strip()
+     else:
+       if "firstName" in a:
+         fn = a["firstName"].strip()
+         authorstring += fn[0] + ". "
+       if "lastName" in a:
+         authorstring += a["lastName"].strip()
    return authorstring
 
  #
@@ -1159,7 +1142,7 @@ class MyApp(QWidget):
 
  #
  def update_kwbuttons(self, keywordlist):
-    
+
     #First hide all buttons
  #   for i in range(len(self.buttonlist)):
  #     self.buttonlist[i].hide()

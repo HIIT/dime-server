@@ -27,6 +27,9 @@ from update_files import *
 import math
 
 #
+import argparse
+
+#
 from math_utils import *
 
 #
@@ -35,19 +38,19 @@ import scipy.cluster
 #import matplotlib.pyplot as plt
 
 ################################################################
-#Search functions 
+#Search functions
 ################################################################
 
 #Search using DiMe-server's own search function
 def search_dime(srvurl, username, password, query, n_results):
-    #------------------------------------------------------------------------------
 
-    #server_url = 'http://localhost:8080/api'
+    #-----------------------------------------------------------
+
     server_url = str(srvurl)
     server_username = str(username)
     server_password = str(password)
 
-    #------------------------------------------------------------------------------
+    #-----------------------------------------------------------
 
     # ping server (not needed, but fun to do :-)
     try:
@@ -60,45 +63,81 @@ def search_dime(srvurl, username, password, query, n_results):
         print('Ping failed: no connection to DiMe server', r.status_code)
         return []
 
-    #try:
-    #    query_str = query.encode('utf-8')
-    #except UnicodeEncodeError:
-    #    print("<UnicodeEncodeError>")
-    #    return []
-
     #print("DiMe query string:", query)
 
-    #Number of results from DiMe 
+    #Number of results from DiMe
     n_results = str(n_results)
-    
+
     #print("Number of results set to: ", n_results, "type: ", type(n_results))
 
     #Query for DiMe server
-    query_string = server_url + '/search?query={}&limit={}'.format(query, n_results)
+    query_string = server_url + '/search?query={}&limit={}'.format(query,
+                                                                   n_results)
     #
     r = requests.get(query_string,
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=100)
 
-    # r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
-    #                  headers={'content-type': 'application/json'},
-    #                  auth=(server_username, server_password),
-    #                  timeout=100)
-
-
     if r.status_code != requests.codes.ok:
         print('Query failed: no connection to DiMe server', r.status_code)
         print('  Query string was:', query_string)
         return []
-    elif len(r.json()) > 0:
-            r = r.json()
-            print('Search thread: number of data objects: ', len(r))
-            return r
-    else: 
-        print('Search thread: number of data objects: 0')
+
+    res = r.json()
+    print('Search thread: DiMe returned {0} data objects: '.format(len(res)))
+
+    if len(res) > 0:
+        return res
+    else:
         return []
 
+#Search using Solr-server's own search function
+def search_solr(srvurl, query, n_results):
+
+    #--------------------------------------------------------------
+
+    server_url = str(srvurl)
+
+    #--------------------------------------------------------------
+
+    #print("Solr query string:", query)
+
+    #Number of results from DiMe
+    n_results = str(n_results)
+
+    #print("Number of results set to: ", n_results, "type: ", type(n_results))
+
+    #Query for Solr server
+    query_string = server_url+'/select?q={}&wt=json&fl=*,score&rows={}'.format(query,
+                                                                               n_results)
+    #
+    r = requests.get(query_string,
+                     headers={'content-type': 'application/json'},
+                     timeout=100)
+
+    if r.status_code != requests.codes.ok:
+        print('Query failed: no connection to Solr server', r.status_code)
+        print('  Query string was:', query_string)
+        return []
+
+    res = r.json()['response']['docs']
+    print('Search thread: Solr returned {0} data objects: '.format(len(res)))
+
+    if len(res) > 0:
+        return res
+    else:
+        return []
+
+def search(srvurl, username, password, query, n_results, servertype="dime"):
+    if servertype == "solr":
+        return search_solr(srvurl, query, n_results)
+
+    return search_dime(srvurl, username, password, query, n_results)
+
+################################################################
+#Other functions
+################################################################
 
 #Search using gensim's cossim-function (cosine similarity)
 def search_dime_docsim(query, data, index, dictionary):
@@ -192,7 +231,8 @@ def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu, 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function, 'search_dime'
 #def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
-def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, srvurl, username, password, n_results,
+                                                  emphasize_kws=0, servertype="dime"):
 
     #Inputs:
     #query = string from keyboard
@@ -218,7 +258,7 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
     query = '%s' % query
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, query, n_results)
+    jsons = search(srvurl, username, password, query, n_results, servertype)
 
     return jsons, kws, winds, vsum, r
 
@@ -226,7 +266,8 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function 'search_dime_with_word_weights'
-def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results,
+                                      emphasize_kws=0, servertype="dime"):
 
     #INPUTS:
     #query = string from keyboard
@@ -274,7 +315,7 @@ def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl
     #print(dum_word_list)
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, dum_query, n_results)
+    jsons = search(srvurl, username, password, dum_query, n_results, servertype)
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
 
     #
@@ -282,7 +323,8 @@ def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl
 
 
 #
-def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results,
+                                           emphasize_kws=0, servertype="dime"):
 
     #INPUTS:
     #query = string from keyboard
@@ -318,7 +360,7 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     #print(dum_word_list)
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, dum_query, n_results)
+    jsons = search(srvurl, username, password, dum_query, n_results, servertype)
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
     print("Number of returned jsons: ", len(jsons))
     
@@ -330,7 +372,8 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
 
 #Repeats search and the keyword computation using some old 
 #query and its corresponding observed relevance vector r
-def repeat_old_search(old_query, r_old, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+def repeat_old_search(old_query, r_old, X, dictionary, c, mu, srvurl, username, password, n_results,
+                      emphasize_kws=0, servertype="dime"):
 
     #Inputs:
     #old_query = string from keyboard
@@ -351,7 +394,7 @@ def repeat_old_search(old_query, r_old, X, dictionary, c, mu, srvurl, username, 
     winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(r_old, X, dictionary, c, mu)
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, old_query, n_results)
+    jsons = search(srvurl, username, password, old_query, n_results, servertype)
 
     return jsons, kws, winds, vsum, r_old
 
@@ -896,6 +939,32 @@ def do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat):
 
 
 
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--dimetest", action='store_true',
+                        help="test DiMe search")
+    parser.add_argument("--solrtest", action='store_true',
+                        help="test Solr search")
+    parser.add_argument("query", metavar = "QUERYSTRING",
+                        help="query to submit")
+
+    args = parser.parse_args()
+
+    (srvurl, usrname, password, time_interval, nspaces, numwords,
+     updateinterval, data_update_interval, nokeypress_interval,
+     mu, n_results) = read_user_ini()
+
+    if args.dimetest:
+        jsons = search(srvurl, usrname, password, args.query, 5,
+                       servertype="dime")
+        print(json.dumps(jsons, indent=2))
+
+    if args.solrtest:
+        jsons = search("http://focus.hiit.fi/solr/arxiv-cs", usrname, password,
+                       args.query, 5, servertype="solr")
+        print(json.dumps(jsons, indent=2))
 
 
 

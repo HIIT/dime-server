@@ -65,6 +65,7 @@ class SearchThread(QThread):
   #Exploration/Exploitation -coefficient
   self.c          = 0.0
   self.mmr_lambda = -1.0
+  self.servertype = "dime"
 
   #DiMe server path, username and password
   self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
@@ -285,21 +286,21 @@ class SearchThread(QThread):
           print('Search thread: Does nothing!')
         elif self.searchfuncid == 1:
           #Search from dime using written input and do LinRel keyword computation
-          jsons, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, self.emphasize_kws)        
+          jsons, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
           #Send query text and its corresponding relevance vector
           self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
         elif self.searchfuncid == 2:
           #Determine number of keywords to be added to the query
           n_query_kws = 10
           #Search from DiMe using the written text input and keywords
-          jsons, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, self.emphasize_kws)
+          jsons, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
           #Send query text and its corresponding relevance vector
           self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
       #
       elif self.old_search:
         print("Do OLD SEARCH and then continue.")
         #
-        jsons, kws, winds, vsum, r = repeat_old_search(self.query, self.old_r, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+        jsons, kws, winds, vsum, r = repeat_old_search(self.query, self.old_r, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, servertype=self.servertype)
         self.old_search = False        
 
       # elif self.searchfuncid == 3:
@@ -339,43 +340,18 @@ class SearchThread(QThread):
       print('Search thread: len jsons ', len(jsons))
       if len(jsons) > 0:
 
-        #Compute the inverse rank of the known item
-        known_item_target = "rec.autos/102802"
-        for ji, js in enumerate(jsons):
-            suggested_item = get_item_id(js)
-            #print("SUGGESTED ITEM: ", suggested_item, "KNOWN ITEM: ", known_item_target)
-            if suggested_item == known_item_target:
-                # categoryid = 1
-                # nsamecategory = nsamecategory + 1.0
+          #Send jsons
+          self.send_links.emit(jsons)
+          #Send keywords
+          self.send_keywords.emit(kws)
 
-                #Compute the inverse of rank
-                print("RANK in suggestions:", ji+1)
-                invrank = 1.0/float(ji+1)
-
-                #Add to 'iteration' dict        
-                iteration['inv_rank'] = invrank
-                iteration['rank'] = float(ji+1)
-                #
-                print("GOT SAME CATEGORY AS CURRENT! ", invrank)
-            else:
-                categoryid = 0
-                iteration['inv_rank'] = 0.0
-                iteration['rank'] = 0.0
-
-        #Return keyword list
-        #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
-        #Send jsons
-        self.send_links.emit(jsons)
-        #Send keywords
-        self.send_keywords.emit(kws)
-
-
-        #Write first url's appearing in jsons list to a 'suggested_pages.txt'
-        cdate = datetime.datetime.now().date()
-        ctime = datetime.datetime.now().time()
-        f = open("suggested_pages.txt","a")
-        f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
-        f.close()
+          #Write first url's appearing in jsons to 'suggested_pages.txt'
+          if self.servertype == "dime":
+              cdate = datetime.datetime.now().date()
+              ctime = datetime.datetime.now().time()
+              f = open("suggested_pages.txt","a")
+              f.write(str(cdate)+' '+str(ctime)+' '+str(jsons[0]["uri"])+'\n')
+              f.close()
 
       #
       self.oldquery = dstr
