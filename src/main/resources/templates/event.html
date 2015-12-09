@@ -45,7 +45,6 @@
 
         <span th:if="${event instanceof T(fi.hiit.dime.data.ReadingEvent)}">
           <b>Start Time:</b> <span th:text="${event.start}"></span>, <b>End Time:</b> <span th:text="${event.end}"></span><br/><br/>
-          <b>Scale factor:</b> <span th:text="${event.scaleFactor}"></span><br/><br/>
           <b>Text content:</b> <pre th:text="${event.plainTextContent}"></pre><br/>
           <b>Rectangles:</b>
             <table class="table">
@@ -57,6 +56,7 @@
                         <th>Height</th>
                         <th>Class</th>
                         <th>Class source</th>
+                        <th>Scale factor</th>
                 </tr></thead>
               <tbody>
                   <tr th:each="rect, iterationStatus : ${event.pageRects}">
@@ -67,6 +67,7 @@
                       <td th:text="${#numbers.formatDecimal(rect.size.height, 0, 'COMMA', 2, 'POINT')}"></td>
                       <td th:text="${rect.readingClass}"></td>
                       <td th:text="${rect.classSource}"></td>
+                      <td th:text="${#numbers.formatDecimal(rect.scaleFactor, 1, 'COMMA', 5, 'POINT')}"></td>
                   </tr>
               </tbody>
             </table>
