@@ -76,7 +76,7 @@ import java.net.UnknownHostException;
 @Controller
 public class WebController extends WebMvcConfigurerAdapter {
     private static final Logger LOG = 
-	LoggerFactory.getLogger(WebController.class);
+        LoggerFactory.getLogger(WebController.class);
 
     @Autowired
     private DiMeProperties dimeConfig;
@@ -102,48 +102,48 @@ public class WebController extends WebMvcConfigurerAdapter {
     //------------------------------------------------------------------------------
 
     @RequestMapping("/")
-    public String root(Model model, @RequestHeader("host") String hostName) {	
-	try {
-	    hostName = InetAddress.getLocalHost().getHostName();
-	} catch (UnknownHostException e) {
-	}
+    public String root(Model model, @RequestHeader("host") String hostName) {
+        try {
+            hostName = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+        }
 
-	model.addAttribute("hostname", hostName);
+        model.addAttribute("hostname", hostName);
         return "root";
     }
 
     /* Show log of all data */
     @RequestMapping("/log")
     public String log(Authentication authentication, Model model) {
-	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
         model.addAttribute("events", eventDAO.eventsForUser(userId, 100));
-	model.addAttribute("count", eventDAO.count(userId));
+        model.addAttribute("count", eventDAO.count(userId));
         return "log";
     }
 
     /* Show a specific event */
     @RequestMapping("/event")
     public String event(Authentication authentication, Model model,
-		      @RequestParam(value="id") Long eventId) {
-	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-	Event event = eventDAO.findById(eventId);
+                      @RequestParam(value="id") Long eventId) {
+        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+        Event event = eventDAO.findById(eventId);
 
-	if (event.user.getId().equals(userId))
-	    model.addAttribute("event", event);
+        if (event.user.getId().equals(userId))
+            model.addAttribute("event", event);
         return "event";
     }
 
     /* Show a specific information element */
     @RequestMapping("/infoelem")
     public String infoElem(Authentication authentication, Model model,
-			   @RequestParam(value="id") Long elemId) {
-	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-	InformationElement elem = infoElemDAO.findById(elemId);
+                           @RequestParam(value="id") Long elemId) {
+        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+        InformationElement elem = infoElemDAO.findById(elemId);
 
-	if (elem.user.getId().equals(userId)) {
-	    model.addAttribute("elem", elem);
-	    model.addAttribute("long", true);
-	}
+        if (elem.user.getId().equals(userId)) {
+            model.addAttribute("elem", elem);
+            model.addAttribute("long", true);
+        }
 
         return "infoelem";
     }
@@ -151,42 +151,40 @@ public class WebController extends WebMvcConfigurerAdapter {
     /* Show a specific message object */
     @RequestMapping("/message")
     public String message(Authentication authentication, Model model,
-			  @RequestParam(value="id") Long elemId) {
-	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-	Message elem = (Message)infoElemDAO.findById(elemId);
+                          @RequestParam(value="id") Long elemId) {
+        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+        Message elem = (Message)infoElemDAO.findById(elemId);
 
-	if (elem.user.getId().equals(userId))
-	    model.addAttribute("elem", elem);
+        if (elem.user.getId().equals(userId))
+            model.addAttribute("elem", elem);
         return "message";
     }
 
     /* Search page */
     @RequestMapping("/search")
     public String search(@ModelAttribute TextSearchQuery query,
-			 Authentication authentication,
-			 Model model) {
+                         Authentication authentication,
+                         Model model) {
 
-	Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-	model.addAttribute("info", "");
+        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+        model.addAttribute("info", "");
 
-	if (!query.isEmpty()) {
-	    List<DiMeData> results = null;
-	    try {
-		searchIndex.updateIndex(true);
+        if (!query.isEmpty()) {
+            try {
+                searchIndex.updateIndex(true);
                 SearchResults res = searchIndex.search(query, 100, userId);
-                results = res.docs;
-		model.addAttribute("info", "(Lucene)");
-	    } catch (IOException e) {
-		LOG.warn("Lucene search failed [" + e + "].");
-		model.addAttribute("error", e);
-	    }
 
-	    model.addAttribute("results", results);
-	}
+                model.addAttribute("info", "(Lucene)");
+                model.addAttribute("results", res.getDocs());
+            } catch (IOException e) {
+                LOG.warn("Lucene search failed [" + e + "].");
+                model.addAttribute("error", e);
+            }
+            
+        }
 
         model.addAttribute("search", query);
-
-
+        
         return "search";
     }
 
@@ -214,21 +212,21 @@ public class WebController extends WebMvcConfigurerAdapter {
     /* Handles processing of the new user registration form */
     @RequestMapping(value = "/user/create", method = RequestMethod.POST)
     public String handleUserCreateForm(@Valid @ModelAttribute("form") 
-				       UserCreateForm form,
-				       BindingResult bindingResult) {
+                                       UserCreateForm form,
+                                       BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return "user_create";
         }
         try {
-	    // FIXME: check that only admin can create other admin user
+            // FIXME: check that only admin can create other admin user
             userService.create(form);
         } catch (DataIntegrityViolationException e) {
             bindingResult.rejectValue("username", "exists",
-				      "This user name is no longer available.");
+                                      "This user name is no longer available.");
             return "user_create";
         }
         return "redirect:/";
-    }    
+    }
 
     /* Viewing users */
     @RequestMapping("/users")
@@ -239,10 +237,10 @@ public class WebController extends WebMvcConfigurerAdapter {
     @PreAuthorize("@currentUserServiceImpl.canAccessUser(principal, #name)")
     @RequestMapping("/user/{name}")
     public ModelAndView getUserPage(@PathVariable("name") String name) {
-	User user = userService.getUserByUsername(name);
-	if (user == null)
-	    throw new NoSuchElementException(String.format("User %s not found",
-							   name));
+        User user = userService.getUserByUsername(name);
+        if (user == null)
+            throw new NoSuchElementException(String.format("User %s not found",
+                                                           name));
         return new ModelAndView("user", "user", user);
     }
 }

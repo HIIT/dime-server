@@ -26,13 +26,22 @@ package fi.hiit.dime.search;
 
 import fi.hiit.dime.data.DiMeData;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /** Class for containing search results and metadata. Similar to JSON
     "response" part of Solr.
 */
-public class SearchResults { 
+@JsonInclude(value=JsonInclude.Include.NON_NULL)
+public class SearchResults {
+    private long numFound;
+
+    private List<DiMeData> docs;
+
+    public List<String> queryTerms;
+
     public SearchResults() {
         this.docs = new ArrayList<DiMeData>();
     }
@@ -43,9 +52,12 @@ public class SearchResults {
         return numFound;
     }
 
-    public long numFound;
+    public List<DiMeData> getDocs() { return docs; }
 
-    public List<String> queryTerms;
+    public void setDocs(List<DiMeData> docs) {
+        this.docs = docs;
+        numFound = docs.size();
+    }
 
-    public List<DiMeData> docs;
+    public long getNumFound() { return numFound; }
 }

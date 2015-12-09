@@ -69,7 +69,7 @@ public class ApiControllerTest extends RestTest {
     public void testEmptySearch() throws Exception {
         SearchResults res = doSearch("");
 
-        assertEquals(0, res.docs.size());
+        assertEquals(0, res.getDocs().size());
     }
 
     private SearchResults doSearch(String query) {
@@ -87,7 +87,7 @@ public class ApiControllerTest extends RestTest {
 
         // Search without events should return zero
         SearchResults searchResEmpty = doSearch(magicWord);
-        assertEquals(0, searchResEmpty.docs.size());
+        assertEquals(0, searchResEmpty.getDocs().size());
 
         // Create some events with messages
         int numEvents = 11;
@@ -139,11 +139,11 @@ public class ApiControllerTest extends RestTest {
         dumpData("searchRes", searchRes);
 
         // Check that we have the expected number of results
-        assertEquals(idxToFind.size(), searchRes.docs.size());
-        assertEquals(idxToFind.size(), searchRes.numFound);
+        assertEquals(idxToFind.size(), searchRes.getDocs().size());
+        assertEquals(idxToFind.size(), searchRes.getNumFound());
 
         Set<Long> idFound = new HashSet<Long>();
-        for (DiMeData data : searchRes.docs) {
+        for (DiMeData data : searchRes.getDocs()) {
             assertTrue(data instanceof InformationElement);
             InformationElement elem = (InformationElement)data;
             // Check that each returned document contains the expected word
@@ -161,10 +161,10 @@ public class ApiControllerTest extends RestTest {
 
         // Check that we have the expected number of results
         // +1 because we added a last event with duplicate msg
-        assertEquals(idxToFind.size()+1, searchEventsRes.docs.size());
+        assertEquals(idxToFind.size()+1, searchEventsRes.getDocs().size());
 
         Set<Long> idFound2 = new HashSet<Long>();
-        for (DiMeData data : searchEventsRes.docs) {
+        for (DiMeData data : searchEventsRes.getDocs()) {
             assertTrue(data instanceof ResourcedEvent);
 
             ResourcedEvent revent = (ResourcedEvent)data;
@@ -189,12 +189,12 @@ public class ApiControllerTest extends RestTest {
 
         dumpData("searchEventsRes", searchEventsRes);
 
-        assertEquals(1, searchEventsRes.docs.size());
-        assertEquals(1, searchEventsRes.numFound);
+        assertEquals(1, searchEventsRes.getDocs().size());
+        assertEquals(1, searchEventsRes.getNumFound());
 
-        assertTrue(searchEventsRes.docs.get(0) instanceof ReadingEvent);
+        assertTrue(searchEventsRes.getDocs().get(0) instanceof ReadingEvent);
 
-        ReadingEvent res = (ReadingEvent)searchEventsRes.docs.get(0);
+        ReadingEvent res = (ReadingEvent)searchEventsRes.getDocs().get(0);
 
         assertEquals(re.appId, res.appId);
         assertEquals(re.plainTextContent, res.plainTextContent);
@@ -222,7 +222,7 @@ public class ApiControllerTest extends RestTest {
                                        SearchResults.class);
 
         dumpData("keyword search results", res);
-        assertEquals(1, res.docs.size());
-        assertEquals(1, res.numFound);
+        assertEquals(1, res.getDocs().size());
+        assertEquals(1, res.getNumFound());
     }
 }

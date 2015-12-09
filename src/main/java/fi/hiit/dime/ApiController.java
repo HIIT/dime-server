@@ -128,7 +128,7 @@ public class ApiController extends AuthorizedController {
         List<DiMeData> elemList = new ArrayList<DiMeData>();
         Set<Long> seen = new HashSet<Long>();
 
-        for (DiMeData data : res.docs) {
+        for (DiMeData data : res.getDocs()) {
             InformationElement elem = null;
             if (data instanceof InformationElement)
                 elem = (InformationElement)data;
@@ -141,11 +141,10 @@ public class ApiController extends AuthorizedController {
             }
         }
 
-        res.docs = elemList;
-        res.numFound = elemList.size();
+        res.setDocs(elemList);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
-                 query, limit, res.numFound);
+                 query, limit, res.getNumFound());
         return res;
     }
 
@@ -167,7 +166,7 @@ public class ApiController extends AuthorizedController {
         List<DiMeData> events = new ArrayList<DiMeData>();
         Set<Long> seen = new HashSet<Long>();
 
-        for (DiMeData data : res.docs) {
+        for (DiMeData data : res.getDocs()) {
             if (data instanceof InformationElement) {
                 List<ResourcedEvent> expandedEvents =
                     eventDAO.findByElement((InformationElement)data, user);
@@ -192,11 +191,10 @@ public class ApiController extends AuthorizedController {
             }
         }
 
-        res.docs = events;
-        res.numFound = events.size();
+        res.setDocs(events);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
-                 query, limit, res.numFound);
+                 query, limit, res.getNumFound());
 
         return res;
     }
