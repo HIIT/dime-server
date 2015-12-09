@@ -24,17 +24,28 @@
 
 package fi.hiit.dime.search;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.data.DiMeData;
 
-public class WeightedKeyword {
-    public String term;
+import java.util.ArrayList;
+import java.util.List;
 
-    public float weight;
-
-    public WeightedKeyword() {}
-
-    public WeightedKeyword(String term, float weight) {
-        this.term = term;
-        this.weight = weight;
+/** Class for containing search results and metadata. Similar to JSON
+    "response" part of Solr.
+*/
+public class SearchResults { 
+    public SearchResults() {
+        this.docs = new ArrayList<DiMeData>();
     }
+
+    public long add(DiMeData obj) {
+        docs.add(obj);
+        numFound = docs.size();
+        return numFound;
+    }
+
+    public long numFound;
+
+    public List<String> queryTerms;
+
+    public List<DiMeData> docs;
 }

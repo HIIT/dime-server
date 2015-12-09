@@ -34,27 +34,27 @@ public class KeywordSearchQuery extends SearchQuery {
     public List<WeightedKeyword> weightedKeywords;
 
     public KeywordSearchQuery() {
-	weightedKeywords = new ArrayList<WeightedKeyword>();
+        weightedKeywords = new ArrayList<WeightedKeyword>();
     }
 
     public KeywordSearchQuery(WeightedKeyword[] query) {
-	this.weightedKeywords = Arrays.asList(query);
+        this.weightedKeywords = Arrays.asList(query);
     }
 
     public void add(String term, float weight) {
-	weightedKeywords.add(new WeightedKeyword(term, weight));
+        weightedKeywords.add(new WeightedKeyword(term, weight));
     }
 
     @Override
     public boolean isEmpty() {
-	return weightedKeywords == null || weightedKeywords.size() == 0;
+        return weightedKeywords == null || weightedKeywords.size() == 0;
     }
 
     @Override
     public String toString() {
-	StringBuilder s = new StringBuilder();
-	for (WeightedKeyword kw : weightedKeywords) 
-	    s.append(String.format("%s (%f) ", kw.term, kw.weight));
-	return s.toString();
+        StringBuilder s = new StringBuilder();
+        for (WeightedKeyword kw : weightedKeywords) 
+            s.append(String.format("%s (%f) ", kw.term, kw.weight));
+        return s.toString();
     }
 }

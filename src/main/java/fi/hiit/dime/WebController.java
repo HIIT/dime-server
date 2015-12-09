@@ -36,6 +36,7 @@ import fi.hiit.dime.data.Message;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.search.SearchIndex;
+import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
 
 import org.slf4j.Logger;
@@ -172,7 +173,8 @@ public class WebController extends WebMvcConfigurerAdapter {
 	    List<DiMeData> results = null;
 	    try {
 		searchIndex.updateIndex(true);
-		results = searchIndex.search(query, 100, userId);
+                SearchResults res = searchIndex.search(query, 100, userId);
+                results = res.docs;
 		model.addAttribute("info", "(Lucene)");
 	    } catch (IOException e) {
 		LOG.warn("Lucene search failed [" + e + "].");

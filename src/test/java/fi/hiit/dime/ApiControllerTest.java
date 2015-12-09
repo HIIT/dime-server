@@ -25,6 +25,7 @@
 package fi.hiit.dime;
 
 import fi.hiit.dime.ApiController.ApiMessage;
+import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.Message;
@@ -34,6 +35,7 @@ import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.data.ScientificDocument;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
+import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.util.RandomPassword;
 
 import org.junit.Test;
@@ -56,169 +58,171 @@ public class ApiControllerTest extends RestTest {
 
     @Test
     public void testPing() throws Exception {
-	ResponseEntity<ApiMessage> res = 
-	    getRest().getForEntity(apiUrl("/ping"), ApiMessage.class);
+        ResponseEntity<ApiMessage> res =
+            getRest().getForEntity(apiUrl("/ping"), ApiMessage.class);
 
-	assertSuccessful(res);
-	assertEquals(res.getBody().message, "pong");
+        assertSuccessful(res);
+        assertEquals(res.getBody().message, "pong");
     }
 
     @Test
     public void testEmptySearch() throws Exception {
-	ResponseEntity<InformationElement[]> res = 
-	    getRest().getForEntity(apiUrl("/search?query="),
-				   InformationElement[].class);
+        SearchResults res = doSearch("");
 
-	assertSuccessful(res);
-
-	InformationElement[] elems = res.getBody();
-	assertEquals(0, elems.length);
+        assertEquals(0, res.docs.size());
     }
 
-    private InformationElement[] doSearch(String query) {
-	return getData(apiUrl("/search?query=" + query), InformationElement[].class);
+    private SearchResults doSearch(String query) {
+        return getData(apiUrl("/search?query=" + query), SearchResults.class);
     }
 
-    private Event[] doEventSearch(String query) {
-	return getData(apiUrl("/eventsearch?query=" + query), Event[].class);
+    private SearchResults doEventSearch(String query) {
+        return getData(apiUrl("/eventsearch?query=" + query),
+                       SearchResults.class);
     }
 
     @Test
     public void testSearch() throws Exception {
-	final String magicWord = "foobar";
+        final String magicWord = "foobar";
 
-	// Search without events should return zero
-	InformationElement[] searchResEmpty = doSearch(magicWord);
-    	assertEquals(0, searchResEmpty.length);
+        // Search without events should return zero
+        SearchResults searchResEmpty = doSearch(magicWord);
+        assertEquals(0, searchResEmpty.docs.size());
 
-	// Create some events with messages
-	int numEvents = 11;
-	MessageEvent[] events = new MessageEvent[numEvents];
+        // Create some events with messages
+        int numEvents = 11;
+        MessageEvent[] events = new MessageEvent[numEvents];
 
-	Set<Integer> idxToFind = new HashSet<Integer>();
-	idxToFind.add(2);
-	idxToFind.add(5);
-	idxToFind.add(6);
-	idxToFind.add(9);
+        Set<Integer> idxToFind = new HashSet<Integer>();
+        idxToFind.add(2);
+        idxToFind.add(5);
+        idxToFind.add(6);
+        idxToFind.add(9);
 
-	RandomPassword rand = new RandomPassword();
+        RandomPassword rand = new RandomPassword();
 
-	for (int i=0; i<numEvents-1; i++) {
-	    String content = rand.getPassword(10, false, false);
-	    if (idxToFind.contains(i)) 
-		content += " " + magicWord;
-	    content += " " + rand.getPassword(10, false, false);
-	    Message msg = createTestEmail(content, "Hello");
-	    msg.appId = "fgieruhgieruhg_msg_" + i;
-	    MessageEvent event = new MessageEvent();
-	    event.targettedResource = msg;
+        for (int i=0; i<numEvents-1; i++) {
+            String content = rand.getPassword(10, false, false);
+            if (idxToFind.contains(i)) 
+                content += " " + magicWord;
+            content += " " + rand.getPassword(10, false, false);
+            Message msg = createTestEmail(content, "Hello");
+            msg.appId = "fgieruhgieruhg_msg_" + i;
+            MessageEvent event = new MessageEvent();
+            event.targettedResource = msg;
 
-	    events[i] = event;
-	}
-	
-	// Make a last event which contains a duplicate message
-	MessageEvent lastEvent = new MessageEvent();
-	lastEvent.targettedResource = events[5].targettedResource;
+            events[i] = event;
+        }
 
-	events[numEvents-1] = lastEvent;
+        // Make a last event which contains a duplicate message
+        MessageEvent lastEvent = new MessageEvent();
+        lastEvent.targettedResource = events[5].targettedResource;
 
-	// Upload them to DiMe
-	MessageEvent[] uploadedEvents = uploadEvents(events, MessageEvent[].class);
+        events[numEvents-1] = lastEvent;
 
-	assertEquals(numEvents, uploadedEvents.length);
+        // Upload them to DiMe
+        MessageEvent[] uploadedEvents = 
+            uploadEvents(events, MessageEvent[].class);
 
-	// Record ids of messages to be found by search
-	Set<Long> idToFind = new HashSet<Long>();
-	for (int i=0; i<numEvents; i++) {
-	    if (idxToFind.contains(i))
-		idToFind.add(uploadedEvents[i].targettedResource.getId());
-	}
+        assertEquals(numEvents, uploadedEvents.length);
 
-	// Now try searching for the ones in idxToFind
-	InformationElement[] searchRes = doSearch(magicWord);
+        // Record ids of messages to be found by search
+        Set<Long> idToFind = new HashSet<Long>();
+        for (int i=0; i<numEvents; i++) {
+            if (idxToFind.contains(i))
+                idToFind.add(uploadedEvents[i].targettedResource.getId());
+        }
 
-	dumpData("searchRes", searchRes);
+        // Now try searching for the ones in idxToFind
+        SearchResults searchRes = doSearch(magicWord);
 
-	// Check that we have the expected number of results
-    	assertEquals(idxToFind.size(), searchRes.length);
-	
-	Set<Long> idFound = new HashSet<Long>();
-    	for (InformationElement elem : searchRes) {
-	    // Check that each returned document contains the expected word
-    	    assertTrue(elem.plainTextContent.contains(magicWord));
-	    idFound.add(elem.getId());
-    	}
+        dumpData("searchRes", searchRes);
 
-	// Check that the ids are exactly those expected
-	assertEquals(idToFind, idFound);
+        // Check that we have the expected number of results
+        assertEquals(idxToFind.size(), searchRes.docs.size());
+        assertEquals(idxToFind.size(), searchRes.numFound);
 
-	// Try searching as events
-	Event[] searchEventsRes = doEventSearch(magicWord);
-	
-	dumpData("searchEventsRes", searchEventsRes);
+        Set<Long> idFound = new HashSet<Long>();
+        for (DiMeData data : searchRes.docs) {
+            assertTrue(data instanceof InformationElement);
+            InformationElement elem = (InformationElement)data;
+            // Check that each returned document contains the expected word
+            assertTrue(elem.plainTextContent.contains(magicWord));
+            idFound.add(elem.getId());
+        }
 
-	// Check that we have the expected number of results
-	// +1 because we added a last event with duplicate msg
-    	assertEquals(idxToFind.size()+1, searchEventsRes.length);
-	
-	Set<Long> idFound2 = new HashSet<Long>();
-    	for (Event event : searchEventsRes) {
-	    assertTrue(event instanceof ResourcedEvent);
+        // Check that the ids are exactly those expected
+        assertEquals(idToFind, idFound);
 
-	    ResourcedEvent revent = (ResourcedEvent)event;
-    	    //assertTrue(revent.targettedResource.plainTextContent.contains(magicWord));
+        // Try searching as events
+        SearchResults searchEventsRes = doEventSearch(magicWord);
 
-	    idFound2.add(revent.targettedResource.getId());
-    	}
+        dumpData("searchEventsRes", searchEventsRes);
 
-	// Check that the ids are exactly those expected
-	assertEquals(idToFind, idFound2);
+        // Check that we have the expected number of results
+        // +1 because we added a last event with duplicate msg
+        assertEquals(idxToFind.size()+1, searchEventsRes.docs.size());
+
+        Set<Long> idFound2 = new HashSet<Long>();
+        for (DiMeData data : searchEventsRes.docs) {
+            assertTrue(data instanceof ResourcedEvent);
+
+            ResourcedEvent revent = (ResourcedEvent)data;
+
+            idFound2.add(revent.targettedResource.getId());
+        }
+
+        // Check that the ids are exactly those expected
+        assertEquals(idToFind, idFound2);
     }
 
     @Test
     public void testReadingEventSearch() throws Exception {
-	String magicText = "foobarbaz";
- 	ScientificDocument doc = createScientificDocument(randomText);
-	ReadingEvent re = createReadingEvent(doc, magicText);
-	re.appId = "hgfewiuhoi543rughierh";
+        String magicText = "foobarbaz";
+        ScientificDocument doc = createScientificDocument(randomText);
+        ReadingEvent re = createReadingEvent(doc, magicText);
+        re.appId = "hgfewiuhoi543rughierh";
 
-	uploadEvent(re, ReadingEvent.class);
+        uploadEvent(re, ReadingEvent.class);
 
-	Event[] searchEventsRes = doEventSearch(magicText);
-	
-	dumpData("searchEventsRes", searchEventsRes);
+        SearchResults searchEventsRes = doEventSearch(magicText);
 
-    	assertEquals(1, searchEventsRes.length);
+        dumpData("searchEventsRes", searchEventsRes);
 
-	assertTrue(searchEventsRes[0] instanceof ReadingEvent);
+        assertEquals(1, searchEventsRes.docs.size());
+        assertEquals(1, searchEventsRes.numFound);
 
-	ReadingEvent res = (ReadingEvent)searchEventsRes[0];
+        assertTrue(searchEventsRes.docs.get(0) instanceof ReadingEvent);
 
-	assertEquals(re.appId, res.appId);
-	assertEquals(re.plainTextContent, res.plainTextContent);
+        ReadingEvent res = (ReadingEvent)searchEventsRes.docs.get(0);
 
-	// Because we are nulling the document content
-	assertEquals(null, res.targettedResource.plainTextContent);	
+        assertEquals(re.appId, res.appId);
+        assertEquals(re.plainTextContent, res.plainTextContent);
+
+        // Because we are nulling the document content
+        assertEquals(null, res.targettedResource.plainTextContent);
     }
 
     @Test
     public void testKeywordSearch() throws Exception {
-	String magicText = "foobarbaz";
- 	ScientificDocument doc = createScientificDocument(randomText);
-	ReadingEvent re = createReadingEvent(doc, magicText);
-	re.appId = "hgfewiuhoi543rughierh";
+        String magicText = "foobarbaz";
+        ScientificDocument doc = createScientificDocument(randomText);
+        ReadingEvent re = createReadingEvent(doc, magicText);
+        re.appId = "hgfewiuhoi543rughierh";
 
-	uploadEvent(re, ReadingEvent.class);
+        uploadEvent(re, ReadingEvent.class);
 
-	KeywordSearchQuery query = new KeywordSearchQuery();
-	query.add("foobarbaz", 0.4);
-	query.add("tellus", 0.1);
+        KeywordSearchQuery query = new KeywordSearchQuery();
+        query.add("foobarbaz", 0.4f);
+        query.add("tellus", 0.1f);
 
-	dumpData("query", query);
-	Event[] res = uploadData(apiUrl("/eventkeywordsearch"), query.weightedKeywords,
-				 Event[].class);
+        dumpData("query", query);
+        SearchResults res = uploadData(apiUrl("/eventkeywordsearch"),
+                                       query.weightedKeywords,
+                                       SearchResults.class);
 
-	dumpData("keyword search results", res);
-	assertEquals(1, res.length);
+        dumpData("keyword search results", res);
+        assertEquals(1, res.docs.size());
+        assertEquals(1, res.numFound);
     }
 }
