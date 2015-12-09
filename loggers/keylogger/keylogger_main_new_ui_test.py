@@ -207,8 +207,8 @@ class MyApp(QWidget):
   self.send_explicit_search_query.connect(self.SearchThreadObj.get_explicit_query_from_main_thread)
   self.send_explicit_search_query.connect(self.LoggerThreadObj.insert_old_dumstring)
   self.send_old_dumstring.connect(self.LoggerThreadObj.insert_old_dumstring)
+  self.send_old_dumstring.connect(self.log_new_word)
 
-  
   #Create visible stuff
   val = 5
   self.iconfile1 = 'web.png'
@@ -238,6 +238,7 @@ class MyApp(QWidget):
   self.startStopButton  = QPushButton("Stop")
   #self.connect(self.startStopButton, QtCore.SIGNAL("released()"), self.test_pressed)
   self.startStopButton.released.connect(self.start_stop_keylogger)
+  self.startStopButton.released.connect(self.log_startstopbutton)
   #
   #self.stopButton  = QPushButton("Stop")
   #self.stopButton.released.connect(self.stop_keylogger)
@@ -251,7 +252,7 @@ class MyApp(QWidget):
   self.clearButton.released.connect(self.hide_lists)
   self.clearButton.released.connect(self.SearchThreadObj.clear_query_string)
   self.clearButton.released.connect(self.LoggerThreadObj.clear_dumstring)
-
+  self.clearButton.released.connect(self.log_clearbutton)
 
   #Button for getting previous keywords and search results
   self.backButton  = QPushButton("<-")
@@ -262,7 +263,9 @@ class MyApp(QWidget):
   self.forwardButton.setEnabled(False)
   #
   self.backButton.released.connect(self.repeat_old_query)
+  self.backButton.released.connect(self.log_backbutton)
   self.forwardButton.released.connect(self.repeat_old_query)
+  self.forwardButton.released.connect(self.log_forwardbutton)
 
   #Text field for explicit queries
   self.explicit_query_field = MyQLineEdit()
@@ -675,6 +678,25 @@ class MyApp(QWidget):
      f = open('data/test_output.txt','a')
      f.write(self.titlerow("INPUT"))
      f.write(str(self.iteration_index)+", "+newquery+"\n")
+     f.close()
+
+ def log_clearbutton(self):
+   self.log_button("clear")
+
+ def log_startstopbutton(self):
+   self.log_button("startstop")
+
+ def log_backbutton(self):
+   self.log_button("back")
+
+ def log_forwardbutton(self):
+   self.log_button("forward")
+
+ def log_button(self, buttontype):
+   if args.record:
+     f = open('data/test_output.txt','a')
+     f.write(self.titlerow("BUTTON"))
+     f.write(str(self.iteration_index)+", "+buttontype+"\n")
      f.close()
 
  def stop_animation(self):
