@@ -121,7 +121,7 @@ public interface EventRepository extends CrudRepository<Event, Long>,
 
     Long deleteByUser(User user);
 
-    List<Event> findByUserAndStartIsAfterOrderByStartDesc(User user,
-							  Date start);
+    List<Event> findByUserAndTimeModifiedIsAfterOrderByStartDesc(User user,
+                                                                 Date start);
 }
 

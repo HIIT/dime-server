@@ -119,7 +119,7 @@ public class EventDAO extends BaseDAO<Event> {
 
     @Transactional(readOnly = true)
     public List<Event> eventsSince(Long userId, Date since) {
-	return repo.findByUserAndStartIsAfterOrderByStartDesc(User.makeUser(userId), since);
+	return repo.findByUserAndTimeModifiedIsAfterOrderByStartDesc(User.makeUser(userId), since);
     }
 
     public List<EventCount> getActorHistogram(Long userId) {
