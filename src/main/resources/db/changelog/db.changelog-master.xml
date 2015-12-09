@@ -390,4 +390,14 @@
             <column name="TIME_MODIFIED" type="TIMESTAMP(23, 10)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449650955633-1">
+        <addColumn tableName="EVENT">
+            <column name="FUNF_VALUE" type="CLOB(2147483647)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1449650955633-2">
+        <addColumn tableName="EVENT">
+            <column name="PROBE_NAME" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

@@ -11,9 +11,14 @@
 	    <b>ID:</b> <a th:href="@{/event(id=${event.id})}" th:text="${event.id}"></a>
 	    <b>Origin:</b> <span th:text="${event.origin}"></span>
 	    <b>Actor:</b> <span th:text="${event.actor}"></span><br/>
-	    <b>Type:</b> <a th:href="${event.type}" 
+	    <b>Type:</b> <a th:if="${event.type}" th:href="${event.type}" 
 			    th:text="${#strings.substringAfter(event.type,'#')}"></a><br/>
 	    <b>Time:</b> <span th:text="${event.start}"></span><br/>
+
+	    <span th:if="${event instanceof T(fi.hiit.dime.data.FunfEvent)}">
+	      <b>Probe name:</b> <span th:text="${event.probeName}"></span><br/>
+	      <b>Funf value:</b> <pre th:text="${event.funfValue}"></pre><br/>
+	    </span>
 
 	    <!-- <span th:if="${event.tags}"> -->
 	    <!--   <b>Tags:</b>  -->

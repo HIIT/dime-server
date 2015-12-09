@@ -50,6 +50,7 @@ import javax.persistence.JoinColumn;
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.ReadingEvent.class, name="ReadingEvent"),
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.MessageEvent.class, name="MessageEvent"),
 	    @JsonSubTypes.Type(value=fi.hiit.dime.data.SearchEvent.class, name="SearchEvent"),
+	    @JsonSubTypes.Type(value=fi.hiit.dime.data.FunfEvent.class, name="FunfEvent"),
 })
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
@@ -97,5 +98,6 @@ public abstract class Event extends DiMeData {
 	} else if (start != null && !start.equals(end)) {
 	    duration = (end.getTime() - start.getTime())/1000.0;
 	}
+	super.autoFill();
     } 
 }

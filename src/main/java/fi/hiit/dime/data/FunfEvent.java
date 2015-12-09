@@ -24,22 +24,29 @@
 
 package fi.hiit.dime.data;
 
-import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 /**
-   Abstract class representing events that link to an
-   InformationElement.
+   Class representing Funf probe events
 */
 @Entity
-public abstract class ResourcedEvent extends Event {
-    /**
-       The InformationElement object that is targetted by this event.
-    */
-    @ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
-    @JoinColumn(name = "resource_id")
-    public InformationElement targettedResource;
+public class FunfEvent extends Event {
+    /** Name of funf probe, e.g. "WifiProbe" */
+    public String probeName;
+
+    /** The raw data value of the funf probe. Typically a JSON object
+	to be interpreted separately. */
+    @Column(columnDefinition="longtext")
+    public String funfValue;
+
+    /** Automatically update the type according to probeName
+     */
+    @Override
+    public void autoFill() {
+	if (probeName != null && !probeName.isEmpty())
+	    type = "http://www.hiit.fi/ontologies/dime/#" + probeName;
+
+	super.autoFill();
+    }
 }

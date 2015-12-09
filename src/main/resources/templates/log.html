@@ -30,7 +30,7 @@
 	  <p th:if="!${search.isEmpty()}" th:text="'Found ' + ${results.size()} + ' events.'"></p>
 	  <div th:each="event,iterStat : ${results}" class="panel panel-default">
 	    <div class="panel-heading">
-	      <b th:text="${#strings.substringAfter(event.type,'#')}"></b>: 
+	      <b th:if="${event.type}" th:text="${#strings.substringAfter(event.type,'#')} + ': '"></b> 
 	      <span th:text="${event.actor}"></span>
 	      <a th:href="@{/event(id=${event.id})}" 
 		 th:text="${event.start}" class="pull-right"></a>
