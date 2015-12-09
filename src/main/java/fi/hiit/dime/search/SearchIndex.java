@@ -63,6 +63,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.Weight;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
@@ -74,9 +75,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
    Class that encapsulates the search index.
@@ -377,21 +381,44 @@ public class SearchIndex {
             BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
             Query textQuery = null;
-        
+
             if (query instanceof TextSearchQuery) {
                 textQuery = basicTextQuery(((TextSearchQuery)query).query);
+                
+                // extract the terms of a string query
+                Weight w = searcher.createWeight(textQuery, false);
+                TreeSet<Term> textQueryTerms = new TreeSet<Term>();
+                w.extractTerms(textQueryTerms);
+
+                // add the terms to query terms                
+                Iterator<Term> termsEnum = textQueryTerms.iterator();
+                List<WeightedKeyword> queryTerms = new ArrayList<WeightedKeyword>();
+                while (termsEnum.hasNext()){
+                    // FIXME: if boosting in string is used, the weights are not 1 
+                    queryTerms.add(new WeightedKeyword(termsEnum.next().text(), (float) 1));
+                }
+                
+                // return the extracted terms
+                res.queryTerms = queryTerms;
+                
             } else if (query instanceof KeywordSearchQuery) {
                 textQuery = 
-                    keywordSearchQuery(((KeywordSearchQuery)query).weightedKeywords);
+                        keywordSearchQuery(((KeywordSearchQuery)query).weightedKeywords);
+                
+                // return the weighted keywords as query terms                
+                res.queryTerms = ((KeywordSearchQuery)query).weightedKeywords;
+
             } else {
                 textQuery = new MatchAllDocsQuery();
             }
+
             queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
 
             Query userQuery = new TermQuery(new Term(userIdField, 
-                                                     userId.toString()));
+                    userId.toString()));
             queryBuilder.add(userQuery, BooleanClause.Occur.FILTER);
-
+            
+            // search for the documents with the query
             TopDocs results = searcher.search(queryBuilder.build(), limit);
             ScoreDoc[] hits = results.scoreDocs;
 
@@ -408,28 +435,28 @@ public class SearchIndex {
 
                         // get the terms from the current document
                         Terms termVec = reader.getTermVector(hits[i].doc, 
-                                                             textQueryField);
+                                textQueryField);
 
                         // create enumerator for the terms
                         TermsEnum termsEnum = termVec.iterator();
-                
+
                         // iterate over all terms of the current document
                         BytesRef termText; // term in utf8 encoding
                         String term; // term converted to string
 
                         obj.weightedKeywords = new ArrayList<WeightedKeyword>();
-                
+
                         while ((termText = termsEnum.next()) != null) {
                             term = termText.utf8ToString();
                             WeightedKeyword wk = 
-                                new WeightedKeyword(term, termsEnum.docFreq());
+                                    new WeightedKeyword(term, termsEnum.docFreq());
                             obj.weightedKeywords.add(wk);
                         }
 
                         res.add(obj);
                     } else {
                         LOG.warn("Lucene returned result for wrong user: " + 
-                                 obj.getId());
+                                obj.getId());
                     }
                 } catch (NumberFormatException ex) {
                     LOG.error("Lucene returned invalid id: {}", docId);
@@ -438,9 +465,6 @@ public class SearchIndex {
         } catch (QueryNodeException e) {
             LOG.error("Exception: " + e);
         }        
-
-        // TODO here you can add queryTerms to the results:
-        // res.queryTerms = ...
 
         return res;
     }
