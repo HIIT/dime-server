@@ -246,6 +246,8 @@ public abstract class RestTest {
 	    ed.durations = Arrays.asList(1l, 1l, 2l);
 
 	    ed.pageIndex = i;
+
+        ed.scaleFactor = 1.685;
 	    eyeData.add(ed);
 	}
 
@@ -258,12 +260,11 @@ public abstract class RestTest {
 	r.origin = new Point(0.0, 453.5);
 	r.readingClass = Rect.CLASS_VIEWPORT;
 	r.pageIndex = 0;
+    r.scaleFactor = 1.685;
 	r.classSource = 1;
 	r.size = new Size(612.0, 338.5);
 	rs.add(r);
 	re.pageRects = rs;
-
-	re.scaleFactor = 1.685;
 
 	return re;
     }

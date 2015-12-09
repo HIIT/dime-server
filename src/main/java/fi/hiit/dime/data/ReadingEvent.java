@@ -86,10 +86,6 @@ public class ReadingEvent extends DesktopEvent {
     @JoinColumn(name="event_id", referencedColumnName="id")
     public List<Rect> pageRects;
 
-    /** The scale factor currently being used (1 = 100% size, 2 = 200%, etc).
-     */
-    public double scaleFactor;
-
     /** Eye tracking data for this event, one entry per page (pageEyeData contains page index, from 0).
      */
     @OneToMany(cascade=CascadeType.ALL)

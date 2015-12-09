@@ -400,4 +400,28 @@
             <column name="PROBE_NAME" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="marco (generated)" id="1449653974792-1">
+        <addColumn tableName="PAGE_EYE_DATA">
+            <column name="SCALE_FACTOR" type="DOUBLE(17)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1449653974792-2">
+        <addColumn tableName="RECT">
+            <column name="SCALE_FACTOR" type="DOUBLE(17)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1449653974792-3">
+        <dropColumn columnName="SCALE_FACTOR" tableName="EVENT"/>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1449654675382-1">
+        <addColumn tableName="PAGE_EYE_DATA">
+            <column name="UNIXT" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
