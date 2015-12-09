@@ -101,8 +101,8 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
 public interface EventRepository extends CrudRepository<Event, Long>,
 					 EventRepositoryCustom {
 
-    @Query("select new fi.hiit.dime.database.EventCount(actor, count(actor)) from Event e group by actor order by count(actor) desc")
-    List<EventCount> actorHistogram();
+    @Query("select new fi.hiit.dime.database.EventCount(actor, count(actor)) from Event e where user = ?1 group by actor order by count(actor) desc")
+    List<EventCount> actorHistogram(User user);
 
     Event findOne(Long id);
 

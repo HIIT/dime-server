@@ -122,8 +122,8 @@ public class EventDAO extends BaseDAO<Event> {
 	return repo.findByUserAndStartIsAfterOrderByStartDesc(User.makeUser(userId), since);
     }
 
-    public List<EventCount> getActorHistogram() {
-	List<EventCount> hist = repo.actorHistogram();
+    public List<EventCount> getActorHistogram(Long userId) {
+	List<EventCount> hist = repo.actorHistogram(User.makeUser(userId));
 
 	// filter list a bit ...
 	long totCount = 0;

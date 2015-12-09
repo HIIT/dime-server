@@ -137,7 +137,7 @@ public class WebController extends WebMvcConfigurerAdapter {
 	model.addAttribute("event_count", eventDAO.count(userId));
 	model.addAttribute("elem_count", infoElemDAO.count(userId));
 	
-	model.addAttribute("actor_hist", eventDAO.getActorHistogram());
+	model.addAttribute("actor_hist", eventDAO.getActorHistogram(userId));
 	
 	return "root";
     }
