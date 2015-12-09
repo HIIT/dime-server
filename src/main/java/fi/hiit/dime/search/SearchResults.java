@@ -40,7 +40,7 @@ public class SearchResults {
 
     private List<DiMeData> docs;
 
-    public List<String> queryTerms;
+    public List<WeightedKeyword> queryTerms;
 
     public SearchResults() {
         this.docs = new ArrayList<DiMeData>();
