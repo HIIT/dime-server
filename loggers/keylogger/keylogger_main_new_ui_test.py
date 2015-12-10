@@ -139,7 +139,7 @@ class MyApp(QWidget):
   
   #Read user.ini file
   self.srvurl, self.username, self.password, self.time_interval, self.nspaces, self.nwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
-  self.data = []
+  #self.data = []
   self.keywords = []
   self.list_of_lists_of_old_keywords = []
   self.old_queries = []
@@ -174,7 +174,8 @@ class MyApp(QWidget):
   #Create  thread objects
   self.LoggerThreadObj  = LoggerThread()
   self.SearchThreadObj = SearchThread()
-  #Set the emphasize_kws mode for the search thread
+
+  #Set parameter values for the search thread
   self.SearchThreadObj.emphasize_kws = args.emphasize_kws
   self.SearchThreadObj.c = args.c
   self.SearchThreadObj.mmr_lambda = args.mmr
@@ -186,21 +187,12 @@ class MyApp(QWidget):
     self.LoggerThreadObj.update.connect(self.SearchThreadObj.get_new_word)
     self.LoggerThreadObj.update.connect(self.log_new_word)
 
-  #self.connect(self.LoggerThreadObj, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
-  #self.connect(self, QtCore.SIGNAL("update(QString)"), self.anim1.tl.start)
-  #self.connect(self.SearchThreadObj, QtCore.SIGNAL("finished(PyQt_PyObject)"), self.update_links_and_kwbuttons)
-
   #Data connections from search thread to main thread
   self.SearchThreadObj.send_links.connect(self.get_data_from_search_thread_and_update_visible_stuff)
   self.SearchThreadObj.send_keywords.connect(self.get_keywords_from_search_thread_and_update_visible_stuff)
   self.SearchThreadObj.send_query_string_and_corresponding_relevance_vector.connect(self.get_query_string_from_search_thread)  
 
-  #self.SearchThreadObj.start_search.connect(self.anim1.tl.start)
-  #self.SearchThreadObj.start_search.connect(self.animation.start)
   self.SearchThreadObj.start_search.connect(self.start_animation)
-
-  #self.SearchThreadObj.all_done.connect(self.anim1.tl.stop)
-  #self.SearchThreadObj.all_done.connect(self.animation.stop)
   self.SearchThreadObj.all_done.connect(self.stop_animation)
 
   #Data connections via signals from main thread to search and logger thread 
@@ -717,17 +709,17 @@ class MyApp(QWidget):
   self.animlabel.setMovie(self.animation)
   self.animation.start()
 
- #Runs the Keylogger and Search 
- def test_pressed(self):
-  #print('Main: Test')
-  #self.startStopButton.setDisabled(True)
-  #self.stopButton.setDisabled(False)  
-  #self.listwidget.clear()
+ # #Runs the Keylogger and Search 
+ # def test_pressed(self):
+ #  #print('Main: Test')
+ #  #self.startStopButton.setDisabled(True)
+ #  #self.stopButton.setDisabled(False)  
+ #  #self.listwidget.clear()
 
-  #Start thread processes
-  check_update()
-  self.LoggerThreadObj.start()
-  self.SearchThreadObj.start()
+ #  #Start thread processes
+ #  check_update()
+ #  self.LoggerThreadObj.start()
+ #  self.SearchThreadObj.start()
  
  #def stop_keylogger(self):
  #   print 'Stop logger!'
@@ -881,8 +873,8 @@ class MyApp(QWidget):
    return key
 
  def get_data_from_search_thread_and_update_visible_stuff(self, data):
-    self.data = data
-    self.update_links(self.data)
+    #self.data = data
+    self.update_links(data, self.listWidget3)
 
 
  def get_query_string_from_search_thread(self, query_string_and_corresponding_relevance_vector):
@@ -971,7 +963,7 @@ class MyApp(QWidget):
      self.listWidget3.item(dj).setHidden(True)
      self.listWidget3.item(dj).setCheckState(Qt.Unchecked)
 
- def update_links(self, resultlist):
+ def update_links(self, resultlist, listwidget):
 
    #For indicating the beginning of new iteration,
    #increase the value of self.iteration_index
@@ -1031,20 +1023,20 @@ class MyApp(QWidget):
          dumlink = self.srvurl.split('/')[2]
          linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
 
-         if args.singlelist:
+         if self.solrmode: #if args.singlelist:
            visiblestr = title + '. ' + authors + '. ' + yearstr
          else:
-           visiblestr = title + '  (' + datestr + ')'
+           visiblestr = linkstr + '  (' + datestr + ')'
 
-         if j < len(self.listWidget3):
-           self.listWidget3.item(j).setText(visiblestr)
-           self.listWidget3.item(j).setToolTip(tooltipstr)
-           self.listWidget3.item(j).setHidden(False)
+         if j < len(listwidget):
+           listwidget.item(j).setText(visiblestr)
+           listwidget.item(j).setToolTip(tooltipstr)
+           listwidget.item(j).setHidden(False)
            whatsthisstr = linkstr+"*"+linkstr2
-           self.listWidget3.item(j).setWhatsThis(whatsthisstr)
+           listwidget.item(j).setWhatsThis(whatsthisstr)
            #If linkstr already in useful_docs, mark as checked
            if whatsthisstr in self.useful_docs.keys():
-             self.listWidget3.item(j).setCheckState(Qt.Checked)
+             listwidget.item(j).setCheckState(Qt.Checked)
 
          j = j + 1
 
