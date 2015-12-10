@@ -72,10 +72,10 @@ public class PageEyeData extends AbstractPersistable<Long> {
 
     /** The scale factor (zoom level) used when these data were collected (1 = 100% size, 2 = 200%, etc).
      */
-    public double scaleFactor;
+    public Double scaleFactor;
 
     /** Unix time (note: milliseconds) indicating when this chunk of data was created (when the first chunk of fixations was received).
      */
-    public long unixt;
+    public Long unixt;
 
 }

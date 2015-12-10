@@ -402,16 +402,12 @@
     </changeSet>
     <changeSet author="marco (generated)" id="1449653974792-1">
         <addColumn tableName="PAGE_EYE_DATA">
-            <column name="SCALE_FACTOR" type="DOUBLE(17)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="SCALE_FACTOR" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
     <changeSet author="marco (generated)" id="1449653974792-2">
         <addColumn tableName="RECT">
-            <column name="SCALE_FACTOR" type="DOUBLE(17)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="SCALE_FACTOR" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
     <changeSet author="marco (generated)" id="1449653974792-3">
@@ -419,9 +415,7 @@
     </changeSet>
     <changeSet author="marco (generated)" id="1449654675382-1">
         <addColumn tableName="PAGE_EYE_DATA">
-            <column name="UNIXT" type="BIGINT(19)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="UNIXT" type="BIGINT(19)"/>
         </addColumn>
     </changeSet>
 </databaseChangeLog>
