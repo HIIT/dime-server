@@ -323,10 +323,12 @@ public class SearchIndex {
 		     "added {} new objects, skipped {} objects with empty content.",
 		     count, skipped);
 
-	    LOG.debug("Indexed of different classes:");
-	    for (Map.Entry<String, Long> entry : cHist.entrySet()) {
-		LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
-	    }
+            if (cHist.size() > 0) {
+                LOG.debug("Indexed of different classes:");
+                for (Map.Entry<String, Long> entry : cHist.entrySet()) {
+                    LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
+                }
+            }
 		     
 	} catch (IOException e) {
 	    LOG.error("Exception while updating search index: " + e);
