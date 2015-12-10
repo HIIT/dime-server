@@ -338,8 +338,8 @@ class SearchThread(QThread):
           winds = winds_rr
 
       print('Search thread: Ready for new search!')
-      print('Search thread: len dimedata ', len(dimedata))
-      if len(dimedata) > 0:
+      print('Search thread: len(dimedata)={0}, len(solrdata)={0} '.format(len(dimedata), len(solrdata)))
+      if len(dimedata) > 0 or len(solrdata) > 0:
 
           #Send dimedata
           self.send_links.emit(dimedata, solrdata)
