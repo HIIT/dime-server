@@ -1125,7 +1125,11 @@ class MyApp(QWidget):
        if args.record:
          if resultidx == 0:
            f = open('data/test_output.txt','a')
-         f.write(self.titlerow("RESOURCES"))
+           if solrmode:
+             f.write(self.titlerow("SOLR_RESOURCES"))
+           else:
+             f.write(self.titlerow("DIME_RESOURCES"))
+
          f.write(str(self.iteration_index)+", "+dataid+", "+title+", "
                  +linkstr+", "+str(resultidx)+"\n")
 
