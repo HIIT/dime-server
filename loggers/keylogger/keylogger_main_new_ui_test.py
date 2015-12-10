@@ -226,7 +226,7 @@ class MyApp(QWidget):
   #List of useful docs
   self.useful_docs_title = QLabel('Found documents [0]')
   self.useful_docs_listWidget = self.create_QListWidget(0, self.iconfile3)
-  self.useful_docs_listWidget.setFixedHeight(120)
+  #self.useful_docs_listWidget.setFixedHeight(120)
 
   #Buttons
   #Start button
@@ -319,13 +319,26 @@ class MyApp(QWidget):
   self.vlayout1.addWidget(self.gbtitle)
   self.vlayout1.addWidget(self.listWidget1)
   #
+  self.vlayout2w = QWidget()
   self.vlayout2 = QVBoxLayout()
+  self.vlayout2.setContentsMargins(0,0,0,2)
   self.vlayout2.addWidget(self.gbtitle2)
   self.vlayout2.addWidget(self.listWidget2)
+  self.vlayout2w.setLayout(self.vlayout2)
   #
+  self.vlayout3w = QWidget()
   self.vlayout3 = QVBoxLayout()
+  self.vlayout3.setContentsMargins(0,3,0,2)
   self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
+  self.vlayout3w.setLayout(self.vlayout3)
+  #
+  self.vlayout6w = QWidget()
+  self.vlayout6 = QVBoxLayout()
+  self.vlayout6.setContentsMargins(0,3,0,2)
+  self.vlayout6.addWidget(self.useful_docs_title)
+  self.vlayout6.addWidget(self.useful_docs_listWidget)
+  self.vlayout6w.setLayout(self.vlayout6)
 
   #
   self.vlayout4 = QVBoxLayout()
@@ -424,23 +437,29 @@ class MyApp(QWidget):
   self.mastervlayout.addLayout(self.smallhlayout)
   #self.mastervlayout.addLayout(self.explicit_query_layout)
 
+  self.splitter = QSplitter(Qt.Vertical)
+  self.splitter.setHandleWidth(1)
   #Add self.hlayout to self.mastervlayout
   if not args.solronly:
-    self.mastervlayout.addLayout(self.vlayout2)
+    self.splitter.addWidget(self.vlayout2w)
 
   if args.solr or args.solronly:
-    self.mastervlayout.addLayout(self.vlayout3)
+    self.splitter.addWidget(self.vlayout3w)
+
+  self.splitter.addWidget(self.vlayout6w)
+
+  self.mastervlayout.addWidget(self.splitter)
 
   #self.mastervlayout.addLayout(self.hlayout)
   #
-  self.hlayout2 = QHBoxLayout()
+  #self.hlayout2 = QHBoxLayout()
   #self.keywordlabel = QLabel('Suggested keywords: ')
   #self.keywordlabel.setStyleSheet('color: green')
   #self.hlayout2.addWidget(self.keywordlabel)
 
   #Horizontal layouts for keyword buttons
   self.hlayout3 = QHBoxLayout()
-  self.hlayout4 = QHBoxLayout()
+  #self.hlayout4 = QHBoxLayout()
 
 
   # #Create "previous" -button
@@ -490,14 +509,11 @@ class MyApp(QWidget):
   self.kw_subset_ind = 0
 
   #
-  self.mastervlayout.addLayout(self.hlayout2)
-  #Add scrollArea of useful documents
-  self.mastervlayout.addWidget(self.useful_docs_title)
-  self.mastervlayout.addWidget(self.useful_docs_listWidget)
+  #self.mastervlayout.addLayout(self.hlayout2)
   #Add scrollArea of keyword buttons
   #self.mastervlayout.addWidget(self.scrollArea)
   #self.hlayout.addWidget(self.scrollArea)
-  self.mastervlayout.addLayout(self.hlayout4)
+  #self.mastervlayout.addLayout(self.hlayout4)
   
   #
   if not args.only_explicit_search:
