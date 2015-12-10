@@ -537,7 +537,7 @@ for j, line in enumerate(f):
 
             #Search docs from DiMe and compute keywords
             if args.dime_search_method == 1:
-                jsons, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws)
+                jsons, dummy, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr2, sX, dictionary, c, mu, srvurl, usrname, password, n_results, emphasize_kws)
             elif args.dime_search_method == 2:
                 #Number of suggested keywords added to query
                 #n_query_kws = 10

@@ -143,7 +143,6 @@ class MyApp(QWidget):
   self.keywords = []
   self.list_of_lists_of_old_keywords = []
   self.old_queries = []
-  self.solrmode = False
 
   #List of documents checked as useful by the user
   self.useful_docs = {}
@@ -179,7 +178,9 @@ class MyApp(QWidget):
   self.SearchThreadObj.emphasize_kws = args.emphasize_kws
   self.SearchThreadObj.c = args.c
   self.SearchThreadObj.mmr_lambda = args.mmr
-  if self.solrmode:
+  if args.solr:
+    self.SearchThreadObj.servertype = "both"
+  elif args.solronly:
     self.SearchThreadObj.servertype = "solr"
 
   #Data connection from logger thread to search thread
@@ -212,22 +213,20 @@ class MyApp(QWidget):
   # self.gbtitle.hide()
   # self.listWidget1.hide()
 
-  self.iconfile2 = 'mail.png'
-  self.gbtitle2 = QLabel('E-Mails')
-  self.listWidget2 = self.create_QListWidget(20, self.iconfile2)
-  # self.gbtitle2.hide()
-  # self.listWidget2.hide()
-
-  #
+  #self.iconfile2 = 'mail.png'
   self.iconfile3 = 'doc.png'
-  self.gbtitle3 = QLabel('Suggested documents')
+  self.gbtitle2 = QLabel('Read documents')
+  self.listWidget2 = self.create_QListWidget(20, self.iconfile3)
+  self.listWidget2.verticalScrollBar().sliderReleased.connect(self.rdwslider_released)
+
+  self.gbtitle3 = QLabel('External documents')
   self.listWidget3 = self.create_QListWidget(20, self.iconfile3)
-  self.listWidget3.verticalScrollBar().sliderReleased.connect(self.dwslider_released)
+  self.listWidget3.verticalScrollBar().sliderReleased.connect(self.edwslider_released)
 
   #List of useful docs
   self.useful_docs_title = QLabel('Found documents [0]')
   self.useful_docs_listWidget = self.create_QListWidget(0, self.iconfile3)
-  self.useful_docs_listWidget.setFixedHeight(150)
+  self.useful_docs_listWidget.setFixedHeight(120)
 
   #Buttons
   #Start button
@@ -325,12 +324,8 @@ class MyApp(QWidget):
   self.vlayout2.addWidget(self.listWidget2)
   #
   self.vlayout3 = QVBoxLayout()
-  #
   self.vlayout3.addWidget(self.gbtitle3)
   self.vlayout3.addWidget(self.listWidget3)
-
-  #Add list widget of useful docs
-  #self.vlayout3.addWidget(self.useful_docs_listWidget)
 
   #
   self.vlayout4 = QVBoxLayout()
@@ -396,20 +391,16 @@ class MyApp(QWidget):
   # self.vlayout4.addWidget(self.mygroupbox)
 
   #Add layouts
-  self.hlayout = QHBoxLayout()
+  #self.hlayout = QHBoxLayout()
 
-  if not args.singlelist:
-    self.hlayout.addLayout(self.vlayout1)
-    self.hlayout.addLayout(self.vlayout2)
+  #self.hlayout.addLayout(self.vlayout1)
 
-  #
-  self.hlayout.addLayout(self.vlayout3)
   #self.hlayout.addLayout(self.vlayout4)
   #self.hlayout.addLayout(self.vlayout5)
 
   #Master vertical layout:
   self.mastermaterhlayout = QHBoxLayout(self)
-  self.mastervlayout = QVBoxLayout(self)
+  self.mastervlayout = QVBoxLayout()
 
   #Create layout for back/forward, search field, and search button
   self.smallhlayout = QHBoxLayout()
@@ -434,7 +425,13 @@ class MyApp(QWidget):
   #self.mastervlayout.addLayout(self.explicit_query_layout)
 
   #Add self.hlayout to self.mastervlayout
-  self.mastervlayout.addLayout(self.hlayout)
+  if not args.solronly:
+    self.mastervlayout.addLayout(self.vlayout2)
+
+  if args.solr or args.solronly:
+    self.mastervlayout.addLayout(self.vlayout3)
+
+  #self.mastervlayout.addLayout(self.hlayout)
   #
   self.hlayout2 = QHBoxLayout()
   #self.keywordlabel = QLabel('Suggested keywords: ')
@@ -658,8 +655,11 @@ class MyApp(QWidget):
  def bwslider_released(self):
    self.slider_released("buttonslider")
 
- def dwslider_released(self):
-   self.slider_released("documentslider")
+ def rdwslider_released(self):
+   self.slider_released("readdocumentslider")
+
+ def edwslider_released(self):
+   self.slider_released("externaldocumentslider")
 
  def slider_released(self, slidertype):
    if args.record:
@@ -846,12 +846,12 @@ class MyApp(QWidget):
         listitem.setText('No heippa!')
         listitem.setWhatsThis('https://www.gmail.com')
 
- def get_value(self, dicti, key):
-  if self.solrmode:
+ def get_value(self, dicti, key, solrmode=False):
+  if solrmode:
     key = self.solrkey(key)
   if key in dicti:
     val = dicti[key]
-    if self.solrmode:
+    if solrmode:
       if key in ["url", "title"]:
         val = val[0]
       elif key == "last_modified":
@@ -860,8 +860,8 @@ class MyApp(QWidget):
     return val
   return ''
 
- def has_key(self, dicti, key):
-  if self.solrmode:
+ def has_key(self, dicti, key, solrmode=False):
+  if solrmode:
     key = self.solrkey(key)
   if key in dicti:
     return True
@@ -872,10 +872,13 @@ class MyApp(QWidget):
      return self.solrdict[key]
    return key
 
- def get_data_from_search_thread_and_update_visible_stuff(self, data):
-    #self.data = data
-    self.update_links(data, self.listWidget3)
-
+ def get_data_from_search_thread_and_update_visible_stuff(self, dimedata, solrdata):
+   print("Main: got {0} DiMe items, {1} Solr items".format(len(dimedata), len(solrdata)))
+   self.hide_lists()
+   if len(dimedata)>0:
+     self.update_links(dimedata, self.listWidget2, False)
+   if len(solrdata)>0:
+     self.update_links(solrdata, self.listWidget3, True)
 
  def get_query_string_from_search_thread(self, query_string_and_corresponding_relevance_vector):
 
@@ -963,7 +966,7 @@ class MyApp(QWidget):
      self.listWidget3.item(dj).setHidden(True)
      self.listWidget3.item(dj).setCheckState(Qt.Unchecked)
 
- def update_links(self, resultlist, listwidget):
+ def update_links(self, resultlist, listwidget, solrmode):
 
    #For indicating the beginning of new iteration,
    #increase the value of self.iteration_index
@@ -971,26 +974,31 @@ class MyApp(QWidget):
 
    i, j, k = 0, 0, 0
 
+   seen_uris = set()
+   
    if (type(resultlist) is list and len(resultlist) > 0
        and type(resultlist[0]) is dict):
 
      #Set hidden listWidgetItems that are not used
-     self.hide_lists()
 
      for resultidx, resultitem in enumerate(resultlist):
 
-       linkstr   = self.get_value(resultitem, "uri")
-       dataid    = str(self.get_value(resultitem, "id"))
+       linkstr   = self.get_value(resultitem, "uri", solrmode)
+       if linkstr in seen_uris:
+         continue
+       seen_uris.add(linkstr)
 
-       if self.has_key(resultitem, "isStoredAs"):
-         storedas  = str(self.get_value(resultitem, "isStoredAs"))
+       dataid    = str(self.get_value(resultitem, "id", solrmode))
+
+       if self.has_key(resultitem, "isStoredAs", solrmode):
+         storedas  = str(self.get_value(resultitem, "isStoredAs", solrmode))
          storedasl = storedas.split('#')[1]
        else:
          storedasl = "LocalFileDataObject"
 
-       if self.has_key(resultitem, "timeCreated"):
-         ctime = str(self.get_value(resultitem, "timeCreated"))
-         date = datetime.datetime.fromtimestamp(int(ctime) / 1000)
+       if self.has_key(resultitem, "timeCreated", solrmode):
+         ctime = str(self.get_value(resultitem, "timeCreated", solrmode))
+         date = datetime.datetime.fromtimestamp(int(int(ctime) / 1000))
          datestr = date.__str__()
        else:
          datestr = ""
@@ -1001,21 +1009,24 @@ class MyApp(QWidget):
          linkstrshort = linkstr
 
        tooltipstr = self.process_keywords(self.get_value(resultitem,
-                                                         "keywords"))
+                                                         "keywords",
+                                                         solrmode))
 
        if storedasl in ["LocalFileDataObject", "EmbeddedFileDataObject"]:
 
-         if self.has_key(resultitem, "title"):
-           title = self.get_value(resultitem, "title")
+         if self.has_key(resultitem, "title", solrmode):
+           title = self.get_value(resultitem, "title", solrmode)
            title = title.replace('\n', '').replace('\r', '')
          else:
            title = linkstrshort
 
-         authors = self.process_authors(self.get_value(resultitem, "authors"))
+         authors = self.process_authors(self.get_value(resultitem, "authors",
+                                                       solrmode),
+                                        solrmode)
 
          yearstr = ""
-         if self.has_key(resultitem, "year"):
-           year = self.get_value(resultitem, "year")
+         if self.has_key(resultitem, "year", solrmode):
+           year = self.get_value(resultitem, "year", solrmode)
            if year>0:
              yearstr = str(year)+"."
 
@@ -1023,10 +1034,12 @@ class MyApp(QWidget):
          dumlink = self.srvurl.split('/')[2]
          linkstr2 = 'http://' + dumlink + '/infoelem?id=' + dataid
 
-         if self.solrmode: #if args.singlelist:
+         if solrmode: #if args.singlelist:
            visiblestr = title + '. ' + authors + '. ' + yearstr
          else:
-           visiblestr = linkstr + '  (' + datestr + ')'
+           visiblestr = linkstr
+           if len(datestr) > 0:
+              visiblestr +=  ' (' + datestr + ')'
 
          if j < len(listwidget):
            listwidget.item(j).setText(visiblestr)
@@ -1099,7 +1112,7 @@ class MyApp(QWidget):
      if args.record:
        f.close()
 
- def process_authors(self, alist):
+ def process_authors(self, alist, solrmode):
    authorstring = ""
    first = True;
    for a in alist:
@@ -1107,7 +1120,7 @@ class MyApp(QWidget):
        authorstring += ", "
      first = False
 
-     if self.solrmode:
+     if solrmode:
        parts = a.split(",")
        if len(parts)>1:
          fn = parts[1].strip()
@@ -1349,7 +1362,7 @@ class MyApp(QWidget):
     dimelink = webpagel
   #webbrowser.open(str(listWidgetitem.whatsThis()))
   #webbrowser.open(webpagel)
-  if args.singlelist:
+  if True: #args.singlelist:
     webbrowser.open(webpagel)
   else:
     webbrowser.open(dimelink)
@@ -1394,8 +1407,10 @@ if __name__ == "__main__":
 
   parser = argparse.ArgumentParser()
   
-  parser.add_argument("--singlelist", action='store_true',
-                      help="single list mode")
+  parser.add_argument("--solr", action='store_true',
+                      help="show also Solr documents")
+  parser.add_argument("--solronly", action='store_true',
+                      help="show only Solr documents")
   parser.add_argument("--only_explicit_search", action='store_true', 
                       help="Keylogging and LinRel computations are disbled.")
   parser.add_argument('--emphasize_kws', metavar='LAMBDA', action='store', type=int, default=0, help='Emphasize clicked keywords.')
@@ -1410,7 +1425,11 @@ if __name__ == "__main__":
                       default=-1.0, help='use MMR with parameter lambda')
 
   args = parser.parse_args()
-  
+
+  if args.solr and args.solronly:
+      print('Both "--solr" and "--solronly" cannot be set')
+      sys.exit()
+
   # run
   app  = QApplication(sys.argv)
   #test = MainWindow()

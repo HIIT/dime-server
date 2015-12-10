@@ -87,6 +87,8 @@ def search_dime(srvurl, username, password, query, n_results):
     res = r.json()
     print('Search thread: DiMe returned {0} data objects: '.format(len(res)))
 
+    #print(json.dumps(res, indent=2))
+
     if len(res) > 0:
         return res
     else:
@@ -123,6 +125,8 @@ def search_solr(srvurl, query, n_results):
 
     res = r.json()['response']['docs']
     print('Search thread: Solr returned {0} data objects: '.format(len(res)))
+
+    #print(json.dumps(res, indent=2))
 
     if len(res) > 0:
         return res
@@ -257,11 +261,15 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
     #make string of keywords 
     query = '%s' % query
 
+    dimedata = []
+    solrdata = []
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search(srvurl, username, password, query, n_results, servertype)
+    if servertype in ["dime", "both"]:
+        dimedata = search(srvurl, username, password, query, n_results, "dime")
+    if servertype in ["solr", "both"]:
+        solrdata = search("http://focus.hiit.fi/solr/arxiv-cs", username, password, query, n_results, "solr")
 
-    return jsons, kws, winds, vsum, r
-
+    return dimedata, solrdata, kws, winds, vsum, r
 
 
 #Function that computes keywords using LinRel and makes search using

@@ -46,7 +46,7 @@ def get_item_id(json_item):
 class SearchThread(QThread):
 
  #Signals
- send_links = pyqtSignal(list)
+ send_links = pyqtSignal(list, list)
  send_keywords = pyqtSignal(list)
  send_query_string_and_corresponding_relevance_vector = pyqtSignal(list)
  start_search = pyqtSignal()
@@ -280,31 +280,32 @@ class SearchThread(QThread):
       #Send signal to GUI that the search has begun
       self.start_search.emit()
 
+      solrdata = []
       #
       if not self.old_search:
         if self.searchfuncid == 0:
           print('Search thread: Does nothing!')
         elif self.searchfuncid == 1:
           #Search from dime using written input and do LinRel keyword computation
-          jsons, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
+          dimedata, solrdata, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
           #Send query text and its corresponding relevance vector
           self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
         elif self.searchfuncid == 2:
           #Determine number of keywords to be added to the query
           n_query_kws = 10
           #Search from DiMe using the written text input and keywords
-          jsons, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
+          dimedata, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
           #Send query text and its corresponding relevance vector
           self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
       #
       elif self.old_search:
         print("Do OLD SEARCH and then continue.")
         #
-        jsons, kws, winds, vsum, r = repeat_old_search(self.query, self.old_r, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, servertype=self.servertype)
+        dimedata, kws, winds, vsum, r = repeat_old_search(self.query, self.old_r, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, servertype=self.servertype)
         self.old_search = False        
 
       # elif self.searchfuncid == 3:
-      #   #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
+      #   #dimedata, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
 
 
       #If MMR enable, do MMR-reranking of kws
@@ -337,20 +338,20 @@ class SearchThread(QThread):
           winds = winds_rr
 
       print('Search thread: Ready for new search!')
-      print('Search thread: len jsons ', len(jsons))
-      if len(jsons) > 0:
+      print('Search thread: len dimedata ', len(dimedata))
+      if len(dimedata) > 0:
 
-          #Send jsons
-          self.send_links.emit(jsons)
+          #Send dimedata
+          self.send_links.emit(dimedata, solrdata)
           #Send keywords
           self.send_keywords.emit(kws)
 
-          #Write first url's appearing in jsons to 'suggested_pages.txt'
-          if self.servertype == "dime":
+          #Write first url's appearing in dimedata to 'suggested_pages.txt'
+          if self.servertype in ["dime", "both"]:
               cdate = datetime.datetime.now().date()
               ctime = datetime.datetime.now().time()
               f = open("suggested_pages.txt","a")
-              f.write(str(cdate)+' '+str(ctime)+' '+str(jsons[0]["uri"])+'\n')
+              f.write(str(cdate)+' '+str(ctime)+' '+str(dimedata[0]["uri"])+'\n')
               f.close()
 
       #
