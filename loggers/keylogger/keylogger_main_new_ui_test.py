@@ -1005,6 +1005,7 @@ class MyApp(QWidget):
        seen_uris.add(linkstr)
 
        dataid    = str(self.get_value(resultitem, "id", solrmode))
+       score    = str(self.get_value(resultitem, "score"))
 
        if self.has_key(resultitem, "isStoredAs", solrmode):
          storedas  = str(self.get_value(resultitem, "isStoredAs", solrmode))
@@ -1056,6 +1057,9 @@ class MyApp(QWidget):
            visiblestr = linkstr
            if len(datestr) > 0:
               visiblestr +=  ' (' + datestr + ')'
+
+         if len(score) > 0:
+           visiblestr += ' [' + score + ']'
 
          if j < len(listwidget):
            listwidget.item(j).setText(visiblestr)
@@ -1322,7 +1326,12 @@ class MyApp(QWidget):
 
      #Add to useful_docs dict
      linkstr = listWidgetitem.whatsThis()
-     self.useful_docs[linkstr] = listWidgetitem.text()
+     text = listWidgetitem.text()
+     parts = text.split("[")
+     if len(parts)>1:
+       text = parts[0]
+
+     self.useful_docs[linkstr] = text
 
      #Add to useful_docs_listWidget
      listWidgetItem = QListWidgetItem(self.useful_docs[linkstr])
@@ -1341,7 +1350,7 @@ class MyApp(QWidget):
        #Record suggestions
        f = open('data/test_output.txt','a')
        f.write(self.titlerow("CHECKED"))
-       f.write(str(self.iteration_index)+", "+listWidgetitem.text()+", "+linkstr+", "+str(row)+", "+"\n")
+       f.write(str(self.iteration_index)+", "+text+", "+linkstr+", "+str(row)+", "+"\n")
        f.close()
 
    #
