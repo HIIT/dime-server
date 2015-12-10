@@ -347,7 +347,7 @@ class SearchThread(QThread):
           self.send_keywords.emit(kws)
 
           #Write first url's appearing in dimedata to 'suggested_pages.txt'
-          if self.servertype in ["dime", "both"]:
+          if self.servertype in ["dime", "both"] and len(dimedata) > 0:
               cdate = datetime.datetime.now().date()
               ctime = datetime.datetime.now().time()
               f = open("suggested_pages.txt","a")
