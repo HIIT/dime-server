@@ -388,13 +388,17 @@ public class SearchIndex {
 	Set<Long> seen = new HashSet<Long>();
 
 	for (DiMeData data : dataList) {
+            Float score = data.score;
+
 	    InformationElement elem = null;
-	    if (data instanceof InformationElement)
+	    if (data instanceof InformationElement) {
 		elem = (InformationElement)data;
-	    else if (data instanceof ResourcedEvent)
+	    } else if (data instanceof ResourcedEvent) {
 		elem = ((ResourcedEvent)data).targettedResource;
+            }
 	    
 	    if (elem != null && !seen.contains(elem.getId())) {
+                elem.score = score;  // copy the original search score
 		elemList.add(elem);
 		seen.add(elem.getId());
 	    }
