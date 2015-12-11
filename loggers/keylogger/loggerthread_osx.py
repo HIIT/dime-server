@@ -30,8 +30,16 @@ class LoggerThread(QThread):
 
 
   def clear_dumstring(self):
+    print("Logger thread: dum string cleared!!")
     self.dumstr2 = ''
     self.wordlist = []
+
+  #
+  def insert_old_dumstring(self, old_dumstring):
+    self.dumstr2 = old_dumstring
+    self.wordlist = self.dumstr2.split()
+    print("Logger thread: old dum string inserted:", self.dumstr2, self.wordlist)
+
 
   def stop_logger_loop(self):
     self.var = False
@@ -60,7 +68,6 @@ class LoggerThread(QThread):
     #starttime = datetime.datetime.now().time().second
     now = time.time()
     dumstr = ''
-    self.wordlist = []
 
     string_to_send = None
     timestamp = now

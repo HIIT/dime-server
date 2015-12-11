@@ -215,7 +215,7 @@ class SearchThread(QThread):
       elif self.searchfuncid == 1:
         #Create/update relevant data files if necessary and store into 'data/' folder in current path 
         #jsons, kws = search_dime_linrel_summing_previous_estimates(dstr)
-        jsons, kws, winds = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
+        jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
         print('Search thread: Ready for new search!')
         print(len(jsons))
         if len(jsons) > 0:

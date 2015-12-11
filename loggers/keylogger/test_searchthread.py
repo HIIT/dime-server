@@ -45,8 +45,10 @@ def get_item_id(json_item):
 #
 class SearchThread(QThread):
 
- send_links = pyqtSignal(list)
+ #Signals
+ send_links = pyqtSignal(list, list)
  send_keywords = pyqtSignal(list)
+ send_query_string_and_corresponding_relevance_vector = pyqtSignal(list)
  start_search = pyqtSignal()
  all_done = pyqtSignal()
  
@@ -56,9 +58,14 @@ class SearchThread(QThread):
   self.oldquery  = None
   self.oldquery2 = None
   self.searchfuncid = 0
+  #Mode by which the relevance vector is determined from written/clicked input
+  self.emphasize_kws = 0
   self.extrasearch = False
+  self.old_search  = False
   #Exploration/Exploitation -coefficient
   self.c          = 0.0
+  self.mmr_lambda = -1.0
+  self.servertype = "dime"
 
   #DiMe server path, username and password
   self.srvurl, self.usrname, self.password, self.time_interval, self.nspaces, self.numwords, self.updateinterval, self.data_update_interval, self.nokeypress_interval, self.mu, self.n_results = read_user_ini()
@@ -131,13 +138,17 @@ class SearchThread(QThread):
   #newquery = unicode(asciiquery, 'utf-8')
   #newquery = unicode(newquery)
   newquery = newquery.strip() # to get rid of extra spaces, enters
-  print("Search thread: got new query from logger: [%s]" % newquery)
+  print("Search thread: got new query from logger: %s" % newquery)
   self.query = newquery
 
+
+ #
  def clear_query_string(self):
   self.query = ''
   print("searchthread: query string cleared!!")
 
+ 
+ #
  def get_new_word_from_main_thread(self, keywords):
   if self.query is None:
     self.query = ''
@@ -149,6 +160,27 @@ class SearchThread(QThread):
 
   print("Search thread: got new query from main:", self.query)
   self.extrasearch = True
+
+
+ #
+ def get_explicit_query_from_main_thread(self, query_from_main):
+  if query_from_main is None:
+    self.query = ''
+  else: 
+    self.query = query_from_main
+  print("Search thread: got explicit query from main:", self.query)
+
+ #
+ def get_old_query_from_main_thread(self, old_query_and_corresponding_relevance_vector):  
+  #
+  if self.query is None:
+    self.query = ''
+  #
+  self.query = old_query_and_corresponding_relevance_vector[0]
+  self.old_r = old_query_and_corresponding_relevance_vector[1]
+  #
+  print("Search thread: got old query from main:", self.query)
+  self.old_search = True  
 
  def run(self):
    self.search()
@@ -207,23 +239,21 @@ class SearchThread(QThread):
 
     #
     if self.extrasearch:
-
       #
       print('Search thread: got extra search command from main!')      
-
       #
       #iteration['click'] = dstr
-      iteration['click'] = self.query.split()[-1]
-      print("ITER 1",iteration)
+      parts = self.query.split()
+      if(len(parts)>1):
+        iteration['click'] = parts[-1]
+        print("ITER 1",iteration, self.query)
 
-      #Search function causing clicking results up to 4.10.2015
-      #jsons, docinds = search_dime_docsim(dstr, self.data, self.index, self.dictionary)
+      #jsons = search_dime(self.srvurl, self.usrname, self.password, dstr, self.n_results)
+
       #
-      jsons = search_dime(self.srvurl, self.usrname, self.password, dstr, self.n_results)
+      self.extrasearch = False
 
-      #
-      self.extrasearch = False    
-
+ 
     #
     if self.query is not None and self.query != self.oldquery2:
       #print 'self.query!!!!!'
@@ -234,11 +264,12 @@ class SearchThread(QThread):
     #do the following:
     if self.query is not None and self.query != self.oldquery and cmachtime > timestamp + self.nokeypress_interval:
 
-      print("ITER 2",iteration)
+      #
+      print("ITER 2",iteration, self.query)
       
       #Add to dstr the content of query text
       dstr = self.query      
-      print('Search thread: QUERY: ', dstr)
+      #print('Search thread: QUERY: ', dstr)
 
       #
       iteration['write'] = dstr
@@ -249,29 +280,41 @@ class SearchThread(QThread):
       #Send signal to GUI that the search has begun
       self.start_search.emit()
 
+      solrdata = []
       #
-      if self.searchfuncid == 0:
-        print('Search thread: Does nothing!')
-      elif self.searchfuncid == 1:
-        #Search from dime using written input and do LinRel keyword computation
-        jsons, kws, winds, vsum = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)        
-      elif self.searchfuncid == 2:
-        #Determine number of keywords to be added to the query
-        n_query_kws = 10
-        #Search from DiMe using the written text input and keywords
-        jsons, kws, winds, vsum = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results)
+      if not self.old_search:
+        if self.searchfuncid == 0:
+          print('Search thread: Does nothing!')
+        elif self.searchfuncid == 1:
+          #Search from dime using written input and do LinRel keyword computation
+          dimedata, solrdata, kws, winds, vsum, r = search_dime_linrel_keyword_search_dime_search(dstr, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
+          #Send query text and its corresponding relevance vector
+          self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
+        elif self.searchfuncid == 2:
+          #Determine number of keywords to be added to the query
+          n_query_kws = 10
+          #Search from DiMe using the written text input and keywords
+          dimedata, kws, winds, vsum, r = search_dime_using_linrel_keywords(dstr, n_query_kws, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, emphasize_kws=self.emphasize_kws, servertype=self.servertype)
+          #Send query text and its corresponding relevance vector
+          self.send_query_string_and_corresponding_relevance_vector.emit([self.query, r])
+      #
+      elif self.old_search:
+        print("Do OLD SEARCH and then continue.")
+        #
+        dimedata, kws, winds, vsum, r = repeat_old_search(self.query, self.old_r, self.sX, self.dictionary, self.c, self.mu, self.srvurl, self.usrname, self.password, self.n_results, servertype=self.servertype)
+        self.old_search = False        
+
       # elif self.searchfuncid == 3:
-      #   #jsons, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
+      #   #dimedata, kws = search_dime_linrel_keyword_search(dstr, self.sX, self.data, self.index, self.dictionary, self.c, self.mu)
 
 
       #If MMR enable, do MMR-reranking of kws
-      lambda_coeff = 0.7
-      if lambda_coeff > 0:
-          frac_sizeS = 0.001
-          frackws = 0.001
-          kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, self.sX, frackws)
-          #kws, winds_re = mmr_reranking_of_kws(lambda_coeff, winds, kws, vsum, frac_sizeS, sX, frackws)
-          print("RERANKED KEYWORDS with lambda=",lambda_coeff,":")
+      if self.mmr_lambda > 0:
+          frac_sizeS = 0.003
+          frackws = 0.003
+          kws_rr, winds_rr, mmr_scores = mmr_reranking_of_kws(self.mmr_lambda, winds, kws, vsum, frac_sizeS, self.sX, frackws)
+          #kws, winds_re = mmr_reranking_of_kws(self.mmr_lambda, winds, kws, vsum, frac_sizeS, sX, frackws)
+          print("RERANKED KEYWORDS with lambda=",self.mmr_lambda,":")
 
           if(len(vsum)>0 and len(mmr_scores)>0):
               #print(len(vsum))
@@ -283,7 +326,8 @@ class SearchThread(QThread):
               #print(mmr_scores)
               for di in range(20):
                   #
-                  print(kws_rr[di], mmr_scores[di], vsum_rr[di])
+                  #print(kws_rr[di], mmr_scores[di], vsum_rr[di])
+
                   #Store the MMR- and LinRel scores (stored in 'vsum') of keywords
                   iteration['kws'] = {}
                   for l,kw in enumerate(kws):
@@ -294,45 +338,21 @@ class SearchThread(QThread):
           winds = winds_rr
 
       print('Search thread: Ready for new search!')
-      print('Search thread: len jsons ', len(jsons))
-      if len(jsons) > 0:
+      print('Search thread: len(dimedata)={0}, len(solrdata)={0} '.format(len(dimedata), len(solrdata)))
+      if len(dimedata) > 0 or len(solrdata) > 0:
 
-        #Compute the inverse rank of the known item
-        known_item_target = "rec.autos/102802"
-        for ji, js in enumerate(jsons):
-            suggested_item = get_item_id(js)
-            print("SUGGESTED ITEM: ", suggested_item, "KNOWN ITEM: ", known_item_target)
-            if suggested_item == known_item_target:
-                # categoryid = 1
-                # nsamecategory = nsamecategory + 1.0
+          #Send dimedata
+          self.send_links.emit(dimedata, solrdata)
+          #Send keywords
+          self.send_keywords.emit(kws)
 
-                #Compute the inverse of rank
-                print("RANK in suggestions:", ji+1)
-                invrank = 1.0/float(ji+1)
-
-                #Add to 'iteration' dict        
-                iteration['inv_rank'] = invrank
-                iteration['rank'] = float(ji+1)
-                #
-                print("GOT SAME CATEGORY AS CURRENT! ", invrank)
-            else:
-                categoryid = 0
-                iteration['inv_rank'] = 0.0
-                iteration['rank'] = 0.0
-
-        #Return keyword list
-        #self.emit( QtCore.SIGNAL('finished(PyQt_PyObject)'), kws)
-        #Send jsons
-        self.send_links.emit(jsons)
-        #Send keywords
-        self.send_keywords.emit(kws)
-
-        #Write first url's appearing in jsons list to a 'suggested_pages.txt'
-        cdate = datetime.datetime.now().date()
-        ctime = datetime.datetime.now().time()
-        f = open("suggested_pages.txt","a")
-        f.write(str(cdate) + ' ' + str(ctime) + ' ' + str(jsons[0]["uri"]) + '\n')
-        f.close()
+          #Write first url's appearing in dimedata to 'suggested_pages.txt'
+          if self.servertype in ["dime", "both"] and len(dimedata) > 0:
+              cdate = datetime.datetime.now().date()
+              ctime = datetime.datetime.now().time()
+              f = open("suggested_pages.txt","a")
+              f.write(str(cdate)+' '+str(ctime)+' '+str(dimedata[0]["uri"])+'\n')
+              f.close()
 
       #
       self.oldquery = dstr
@@ -340,7 +360,8 @@ class SearchThread(QThread):
       #Send signal to Main thread that search is done
       self.all_done.emit()
 
-      print(iteration)
+      #Print 'iteration' dict
+      #print(iteration)
 
       #
       i = i + 1

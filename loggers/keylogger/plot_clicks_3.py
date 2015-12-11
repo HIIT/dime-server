@@ -42,7 +42,7 @@ for i in range(len(sys.argv)):
 #Plot settings
 plt.rc('font', family='Times New Roman')
 plt.figure(figsize=(7,4)) 
-plt.axis([0, 50, 0.05, 0.45])
+plt.axis([0, 50, 0.05, 0.8])
 
 
 #List of label strings

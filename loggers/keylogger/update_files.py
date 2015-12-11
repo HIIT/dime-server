@@ -31,6 +31,13 @@ import rake
 import difflib
 
 #
+import math
+
+#
+#import matplotlib.pyplot as plt
+
+#import matplotlib
+#matplotlib.use("Agg")
 #import matplotlib.pyplot as plt
 
 #
@@ -78,7 +85,7 @@ def read_user_ini():
 
 
 #
-def update_all_data():
+def update_all_data(tfidf_model = 1, normalize_tfidf_model=False):
 	
 	print("Update data!!")
 	srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
@@ -94,14 +101,14 @@ def update_all_data():
 	update_data(srvurl, username, password)
 	update_dictionary()			
 	update_doctm(cpathd)
-	update_doc_tfidf_list(cpathd)
+	update_tfidf_model(cpathd, tfidf_model, normalize_tfidf_model)	
+	update_doc_tfidf_list_sXdoctm_and_sX(cpathd)
 	update_docsim_model()
-	update_Xt_and_docindlist([0])
-	update_tfidf_model(cpathd)
+	update_docindlist([0])
 	create_stopwordlist(cpathd)	
 
 #Check whether to update data files
-def check_update(_username=None, _password=None):
+def check_update(_username=None, _password=None, tfidf_model = 1, normalize_tfidf_model=False):
 
         #
         srvurl, username, password, time_interval, nspaces, nwords, updateinterval, data_update_interval, nokeypress_interval, mu, n_results = read_user_ini()
@@ -127,17 +134,17 @@ def check_update(_username=None, _password=None):
 
                 if not os.path.isfile('data/doctm.data'):
                         update_doctm(cpathd)
-                        update_doc_tfidf_list(cpathd)
+                        update_doc_tfidf_list_sXdoctm_and_sX(cpathd)
 
                 #if not os.path.isfile('/tmp/similarityvec'):
                 if not os.path.isfile('data/similarityvec'):
                         update_docsim_model()
 
                 if not os.path.isfile('data/docindlist.list'):
-                        update_Xt_and_docindlist([0])
+                        update_docindlist([0])
 
                 if not os.path.isfile('data/tfidfmodel.model'):
-                        update_tfidf_model(cpathd)
+                        update_tfidf_model(cpathd, tfidf_model)
 
                 if not os.path.isfile('data/stopwordlist.list'):
                         create_stopwordlist(cpathd)
@@ -150,10 +157,10 @@ def check_update(_username=None, _password=None):
                 update_data(srvurl, username, password)
                 update_dictionary()
                 update_doctm(cpathd)
-                update_doc_tfidf_list(cpathd)
+                update_tfidf_model(cpathd, tfidf_model, normalize_tfidf_model)
+                update_doc_tfidf_list_sXdoctm_and_sX(cpathd)
                 update_docsim_model()
-                update_Xt_and_docindlist([0])
-                update_tfidf_model(cpathd)
+                update_docindlist([0])
                 create_stopwordlist(cpathd)
 
 # ----------------------------------------------------------------------------
@@ -245,6 +252,8 @@ def update_dictionary():
 	#Create dictionary
 	dictionary = corpora.Dictionary([wordlist])
 
+        #dictionary.filter_extremes(no_below=5, no_above=0.5)
+
 	#Save dictionary for future use
 	dictionary.save('data/tmpdict.dict')
 	#dictionaryvalues = dictionary.values()
@@ -297,97 +306,114 @@ def update_doctm(destinationfolder):
 	for i in range(len(documentlist)):
 		test_vec_dum = dictionary.doc2bow(documentlist[i].lower().split())
 		doctm.append(test_vec_dum)
-		#print test_vec_dum
 
 	#Store number of docs
 	ndocs = len(doctm)
 	varlist = [nwords, ndocs]
-	# f = open(destinationfolder+'/varlist.list', 'w')
-	# pickle.dump(varlist, f)
 	pickle.dump(varlist, open(destinationfolder+'/varlist.list', 'wb'))
-	# f.close()
 
 	#Store the data of doctm
-	# f = open(destinationfolder+'/doctm.data','w')
-	# pickle.dump(doctm, f)
 	pickle.dump(doctm, open(destinationfolder+'/doctm.data','wb'))
 
 
-def update_tfidf_model(destinationfolder):
+#
+def update_tfidf_model(destinationfolder, tfidf_model = 1, normalize_tfidf_model = False):
+
+	print("Update tf-idf model.", tfidf_model, normalize_tfidf_model)
+
 	#Import doctm
-	# f = open('data/doctm.data','r')
-	# doctm = pickle.load(f)
 	doctm = pickle.load(open('data/doctm.data','rb'))
 
 	#Learn tfidf model from the document term matrix
-	tfidf = models.TfidfModel(doctm)
+	if tfidf_model == 1:
+		tfidf = models.TfidfModel(doctm, normalize=normalize_tfidf_model)
+	elif tfidf_model == 2:
+		tfidf = models.TfidfModel(doctm, wlocal=tf_log2, wglobal=idf, normalize=normalize_tfidf_model)
+	#tfidf = models.TfidfModel(doctm, wlocal=lambda tf: math.log2(tf+1), wglobal=lambda doc_freq, total_docs: total_docs / doc_freq)
+	
 	tfidf.save(destinationfolder+'/tfidfmodel.model')
+
+#Functions needed in formation of the tf-idf model
+def tf_log2(tf):
+	return math.log2(tf+1)
+#
+def idf(doc_freq, total_docs):
+	if doc_freq > 0:
+		return total_docs / doc_freq
+	else:
+		return 0
 
 
 #Updates the tfidf version of doctm (denoted by 'doc_tfidf_list')
 #and saves the 'doc_tfidf_list also in sparse matrix form (more specifically in scipy sparse csc_matrix form)
-def update_doc_tfidf_list(destinationfolder):
+def update_doc_tfidf_list_sXdoctm_and_sX(destinationfolder):
 
+	#
 	print("Update doc tfidf list and its corresponding sparse matrix repr.!")
 
 	#Import dictionary
 	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 
-	#
-	# f = open('data/doctm.data','r')
-	# doctm = pickle.load(f)
+	#Load list of bows of documents
 	doctm = pickle.load(open('data/doctm.data','rb'))
-	#print 'rows doctm', len(doctm)
 
+	#Learn tfidf model from the list of bows
+	tfidf = models.TfidfModel.load('data/tfidfmodel.model')
+	#tfidf = models.TfidfModel(doctm, wlocal=lambda tf: math.log2(tf+1), wglobal=lambda doc_freq, total_docs: total_docs / doc_freq)
 
-	#Learn tfidf model from the document term matrix
-	tfidf = models.TfidfModel(doctm, normalize = True)
-
-	#Make tfidf-list from doctm using tfidf-model
+	#Make tfidf-list from doctm using the learned tfidf-model
 	doc_tfidf_list = []
 	for i in range(len(doctm)):
 	    doc_tfidf_dum = tfidf[doctm[i]]
 	    doc_tfidf_list.append(doc_tfidf_dum)
 
-	#
-	# f = open(destinationfolder+'/doc_tfidf_list.data','w')
-	# pickle.dump(doc_tfidf_list,f)
+	#Save the list of tf-idf-lists of documents
 	pickle.dump(doc_tfidf_list, open(destinationfolder+'/doc_tfidf_list.data','wb'))
 
-	#Make also sparse matrix representation of doctm and doc_tfidf_list
+	#Make sXdoct from list of bows, from 'doctm'
 	sparsemat = list_of_lists_to_sparsemat(doctm)
 	print('Search thread: doctm sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sXdoctm.sparsemat',sparsemat)
-	#
+
+	#Make sparse tf-idf matrix 'sX' from list of tf-idf lists, 'doc_tfidf_list'
 	sparsemat = list_of_lists_to_sparsemat(doc_tfidf_list)
 	print('Search thread: sparsemat shape, ', sparsemat.shape)
 	save_sparse_csc(destinationfolder+'/sX.sparsemat',sparsemat)
 
 
+def log_tf(tf):
+	if tf > 0:
+		return math.log2(tf)
+	else:
+		return 0
 
 #Converts doc_tfidf_list to scipy sparse matrix format (as csc_matrix)
-def list_of_lists_to_sparsemat(doc_tfidf_list):
+def list_of_lists_to_sparsemat(list_of_lists):
+
+	#INPUT:
+	#list_of_lists = list of lists having the same length
+	#OUTPUT:
+	#sparse_matrix = sparse matrix of the SciPy csc-format
+
 	#Import dictionary
 	dictionary = corpora.Dictionary.load('data/tmpdict.dict')
 	nwords = len(dictionary)
 
-	#Number of lists in doc_tfidf_list
-	nrow = len(doc_tfidf_list)
+	#Number of lists in list_of_lists
+	nrow = len(list_of_lists)
 	#Initialize sparse matrix
-	sparsemat = sparse.lil_matrix((nrow, nwords))
-	print("Size of a matrix ",sparsemat.data.nbytes)
-	#
-	print("Dimensions of a matrix ",sparsemat.shape)
+	sparse_matrix = sparse.lil_matrix((nrow, nwords))
+	print("Dimensions of the created matrix ",sparse_matrix.shape)
+
 	#
 	row = 0
-	for d in doc_tfidf_list:
-		for c in d:
-			sparsemat[row,c[0]] = c[1]
+	for l in list_of_lists:
+		for el in l:
+			sparse_matrix[row,el[0]] = el[1]
 		row = row + 1
-	sparsemat = sparsemat.tocsc()
-	print("Size of a matrix ",sparsemat.data.nbytes)
-	#
-	return sparsemat
+	sparse_matrix = sparse_matrix.tocsc()
+
+	return sparse_matrix
 
 
 #Saves the scipy sparse matrix of form csc_matrix
@@ -402,7 +428,7 @@ def load_sparse_csc(filename):
                          shape = loader['shape'])	
 
 #
-def update_Xt_and_docindlist(docindlist):
+def update_docindlist(docindlist):
 
 	#print docindlist 
 	#Import X matrix needed in LinRel
@@ -410,7 +436,7 @@ def update_Xt_and_docindlist(docindlist):
 	if os.path.isfile('data/sX.sparsemat.npz'):
 		sX = load_sparse_csc('data/sX.sparsemat.npz')
 	else:
-		update_doc_tfidf_list()
+		update_doc_tfidf_list_sXdoctm_and_sX(os.getcwd()+'/data')
 		sX = load_sparse_csc('data/sX.sparsemat.npz')
 
 	#Save docindlist 
@@ -491,65 +517,76 @@ def make_full_tfidf_array(tfidf_vec, dictionary):
 
 #Remove words from dictionary based on df-value (df = document frequency)
 #of each word
-def df_word_removal(sXdoctm, dictionary):
+def df_word_removal(sXdoctm, dictionary, no_below=5, no_above=0.1, tfidf_model = 1, normalize_tfidf_model=False):
 
-	#
-	print("update_files: df_word_removal: Removing common words from dictionary!!")
-	sX = sXdoctm
+        #
+        print("update_files: df_word_removal: Removing rare and common words",
+              "from dictionary with no_below=", no_below,
+              ", no_above=", no_above)
+        sX = sXdoctm
 
-	#Number of documents
-	N = sX.shape[0]
-	N = float(N)
+        #Number of documents
+        N = sX.shape[0]
+        N = float(N)
 
-	#Create boolean matrices
-	boolmat = sX > 0
-	boolmat = boolmat.tolil()
-	#Create zero sparse matrix
-	O = scipy.sparse.lil_matrix(np.zeros(sX.shape))
-	O[boolmat] = 1.0
-	O = O.tocsc()
+        #Create boolean matrices
+        boolmat = sX > 0
+        boolmat = boolmat.tolil()
+        #Create zero sparse matrix
+        O = scipy.sparse.lil_matrix(np.zeros(sX.shape))
+        O[boolmat] = 1.0
+        O = O.tocsc()
 
-	#print "shape of X", sX.shape
-	df_values = O.sum(0)
-	df_values = np.array(df_values)
-	df_values = df_values.T
+        #print "shape of X", sX.shape
+        df_values = O.sum(0)
+        df_values = np.array(df_values)
+        df_values = df_values.T
 
-	#Take indices of words having 1 < tf < c*N, where c in [0,1] and N = num. of docs
-	c = 0.1
-	boolvec = np.logical_or(df_values <= 1, df_values >= (c*N))
+        #print(df_values)
+        #np.save('df_values.npy', df_values)
+        #plt.hist(df_values, bins=100, log=True)
+        #hist, bin_edges = np.histogram(df_values, bins=100)
+        #plt.plot(hist, bin_edges.arange(0,100), linewidth=5, color='k')
+        #plt.savefig('hist.png')
+        #plt.show()
 
-	#print boolvec
-	inds    = np.where(boolvec == True)[0]
+        #Take indices of words having no_below < tf < no_above*N,
+        #where no_above in [0,1] and N = num. of docs
+        boolvec = np.logical_or(df_values <= no_below,
+                                df_values >= (no_above*N))
 
-	#Number of words before filtering
-	nwords_before = len(dictionary)
-	#Remove bad words from dictionary (i.e. words having tfidf < 1)
-	dictionary.filter_tokens(bad_ids = inds)
-	#Assign new word ids to all words after filtering.
-	dictionary.compactify()
-	#
-	nwords_after = len(dictionary)
+        #print boolvec
+        inds    = np.where(boolvec == True)[0]
+
+        #Number of words before filtering
+        nwords_before = len(dictionary)
+        #Remove bad words from dictionary (i.e. words having tfidf < 1)
+        dictionary.filter_tokens(bad_ids = inds)
+        #Assign new word ids to all words after filtering.
+        dictionary.compactify()
+        #
+        nwords_after = len(dictionary)
 
 
-	print("new and old ", nwords_before, nwords_after)
+        print("new and old ", nwords_before, nwords_after)
 
-	#
-	dictionary_changed = False
-	if nwords_before != nwords_after:
-		dictionary_changed = True
+        #
+        dictionary_changed = False
+        if nwords_before != nwords_after:
+                dictionary_changed = True
 
-	if dictionary_changed:
-		print("update_files: df_word_removal: Dictionary changed!")
-		#Update dictionary dependent data files
-		dictionary.save('data/tmpdict.dict')
-		update_doctm('data/')
-		update_doc_tfidf_list('data/')
-		update_docsim_model()
-		update_Xt_and_docindlist([0])
-		update_tfidf_model('data/')
-		create_stopwordlist('data/')
-		#
-		#return dictionary
+        if dictionary_changed:
+                print("update_files: df_word_removal: Dictionary changed!")
+                #Update dictionary dependent data files
+                dictionary.save('data/tmpdict.dict')
+                update_doctm('data/')
+                update_tfidf_model('data',tfidf_model,normalize_tfidf_model)
+                update_doc_tfidf_list_sXdoctm_and_sX('data/')
+                update_docsim_model()
+                update_docindlist([0])
+                create_stopwordlist('data/')
+                #
+                #return dictionary
 
 
 

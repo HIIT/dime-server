@@ -27,6 +27,9 @@ from update_files import *
 import math
 
 #
+import argparse
+
+#
 from math_utils import *
 
 #
@@ -35,19 +38,19 @@ import scipy.cluster
 #import matplotlib.pyplot as plt
 
 ################################################################
-#Search functions 
+#Search functions
 ################################################################
 
 #Search using DiMe-server's own search function
 def search_dime(srvurl, username, password, query, n_results):
-    #------------------------------------------------------------------------------
 
-    #server_url = 'http://localhost:8080/api'
+    #-----------------------------------------------------------
+
     server_url = str(srvurl)
     server_username = str(username)
     server_password = str(password)
 
-    #------------------------------------------------------------------------------
+    #-----------------------------------------------------------
 
     # ping server (not needed, but fun to do :-)
     try:
@@ -60,45 +63,85 @@ def search_dime(srvurl, username, password, query, n_results):
         print('Ping failed: no connection to DiMe server', r.status_code)
         return []
 
-    #try:
-    #    query_str = query.encode('utf-8')
-    #except UnicodeEncodeError:
-    #    print("<UnicodeEncodeError>")
-    #    return []
-
     #print("DiMe query string:", query)
 
-    #Number of results from DiMe 
+    #Number of results from DiMe
     n_results = str(n_results)
-    
+
     #print("Number of results set to: ", n_results, "type: ", type(n_results))
 
     #Query for DiMe server
-    query_string = server_url + '/search?query={}&limit={}'.format(query, n_results)
+    query_string = server_url + '/search?query={}&limit={}'.format(query,
+                                                                   n_results)
     #
     r = requests.get(query_string,
                      headers={'content-type': 'application/json'},
                      auth=(server_username, server_password),
                      timeout=100)
 
-    # r = requests.get(server_url + '/search?query={}&limit=60'.format(query),
-    #                  headers={'content-type': 'application/json'},
-    #                  auth=(server_username, server_password),
-    #                  timeout=100)
-
-
     if r.status_code != requests.codes.ok:
         print('Query failed: no connection to DiMe server', r.status_code)
         print('  Query string was:', query_string)
         return []
-    elif len(r.json()) > 0:
-            r = r.json()
-            print('Search thread: number of data objects: ', len(r))
-            return r
-    else: 
-        print('Search thread: number of data objects: 0')
+
+    res = r.json()
+    print('Search thread: DiMe returned {0} data objects: '.format(len(res)))
+
+    #print(json.dumps(res, indent=2))
+
+    if len(res) > 0:
+        return res
+    else:
         return []
 
+#Search using Solr-server's own search function
+def search_solr(srvurl, query, n_results):
+
+    #--------------------------------------------------------------
+
+    server_url = str(srvurl)
+
+    #--------------------------------------------------------------
+
+    #print("Solr query string:", query)
+
+    #Number of results from DiMe
+    n_results = str(n_results)
+
+    #print("Number of results set to: ", n_results, "type: ", type(n_results))
+
+    #Query for Solr server
+    query_string = server_url+'/select?q={}&wt=json&fl=*,score&rows={}'.format(query,
+                                                                               n_results)
+    #
+    r = requests.get(query_string,
+                     headers={'content-type': 'application/json'},
+                     timeout=100)
+
+    if r.status_code != requests.codes.ok:
+        print('Query failed: no connection to Solr server', r.status_code)
+        print('  Query string was:', query_string)
+        return []
+
+    res = r.json()['response']['docs']
+    print('Search thread: Solr returned {0} data objects: '.format(len(res)))
+
+    #print(json.dumps(res, indent=2))
+
+    if len(res) > 0:
+        return res
+    else:
+        return []
+
+def search(srvurl, username, password, query, n_results, servertype="dime"):
+    if servertype == "solr":
+        return search_solr(srvurl, query, n_results)
+
+    return search_dime(srvurl, username, password, query, n_results)
+
+################################################################
+#Other functions
+################################################################
 
 #Search using gensim's cossim-function (cosine similarity)
 def search_dime_docsim(query, data, index, dictionary):
@@ -184,7 +227,7 @@ def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu, 
 
     docinds.sort()
     cpath = os.getcwd()
-    update_Xt_and_docindlist(docinds)
+    update_docindlist(docinds)
 
     return jsons, kws
 
@@ -192,7 +235,8 @@ def search_dime_linrel_keyword_search(query, X, data, index, dictionary, c, mu, 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function, 'search_dime'
 #def search_dime_linrel_keyword_search_dime_search(query, X, tfidf, dictionary, c, mu, srvurl, username, password, n_results):
-def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, srvurl, username, password, n_results,
+                                                  emphasize_kws=0, servertype="dime"):
 
     #Inputs:
     #query = string from keyboard
@@ -204,6 +248,9 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
     #Outputs:
     #jsons = list jsons corresponding each resource 
     #kws   = keywords computed by LinRel
+    #winds = indices of keywords
+    #vsum  = r_hat + c*sigma_hat
+    #r     = observed relevance vector
 
     #
     r = query2relevancevector(query,dictionary,emphasize_kws)
@@ -214,16 +261,21 @@ def search_dime_linrel_keyword_search_dime_search(query, X, dictionary, c, mu, s
     #make string of keywords 
     query = '%s' % query
 
+    dimedata = []
+    solrdata = []
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, query, n_results)
+    if servertype in ["dime", "both"]:
+        dimedata = search(srvurl, username, password, query, n_results, "dime")
+    if servertype in ["solr", "both"]:
+        solrdata = search("http://focus.hiit.fi/solr/arxiv-cs", username, password, query, n_results, "solr")
 
-    return jsons, kws, winds, vsum
-
+    return dimedata, solrdata, kws, winds, vsum, r
 
 
 #Function that computes keywords using LinRel and makes search using
 #DiMe-server's own search function 'search_dime_with_word_weights'
-def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results,
+                                      emphasize_kws=0, servertype="dime"):
 
     #INPUTS:
     #query = string from keyboard
@@ -271,15 +323,16 @@ def search_dime_using_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl
     #print(dum_word_list)
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, dum_query, n_results)
+    jsons = search(srvurl, username, password, dum_query, n_results, servertype)
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
 
     #
-    return jsons, kws, winds, vsum
+    return jsons, kws, winds, vsum, r
 
 
 #
-def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results, emphasize_kws=0):
+def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, srvurl, username, password, n_results,
+                                           emphasize_kws=0, servertype="dime"):
 
     #INPUTS:
     #query = string from keyboard
@@ -315,45 +368,83 @@ def search_dime_using_only_linrel_keywords(query, n_kws, X, dictionary, c, mu, s
     #print(dum_word_list)
 
     #Search resources from DiMe using Dime-servers own search function
-    jsons = search_dime(srvurl, username, password, dum_query, n_results)
+    jsons = search(srvurl, username, password, dum_query, n_results, servertype)
     #jsons = search_dime_with_word_weights(srvurl, username, password, query, , n_results)
     print("Number of returned jsons: ", len(jsons))
     
     #
-    return jsons, kws, winds, vsum
+    return jsons, kws, winds, vsum, r
+
+
+
+
+#Repeats search and the keyword computation using some old 
+#query and its corresponding observed relevance vector r
+def repeat_old_search(old_query, r_old, X, dictionary, c, mu, srvurl, username, password, n_results,
+                      emphasize_kws=0, servertype="dime"):
+
+    #Inputs:
+    #old_query = string from keyboard
+    #old_r = observed relevance vector corresponding the old query string
+    #X     = document term matrix as tfidf form
+    #tfidf = tfidf -model by which the query is transformed into a tfidf vector
+    #dictionary = list of words and their indices ['word    ']
+    #c     = Exploitation/Exploration coefficient
+
+    #Outputs:
+    #jsons = list jsons corresponding each resource 
+    #kws   = keywords computed by LinRel
+    #winds = indices of keywords
+    #vsum  = r_hat + c*sigma_hat
+    #r     = observed relevance vector
+
+    #Get keywords related to input query string 
+    winds, kws, vsum = return_and_print_estimated_keyword_indices_and_values(r_old, X, dictionary, c, mu)
+
+    #Search resources from DiMe using Dime-servers own search function
+    jsons = search(srvurl, username, password, old_query, n_results, servertype)
+
+    return jsons, kws, winds, vsum, r_old
+
+
+
 
 
 #
 def query2relevancevector(query,dictionary,emphasize_kws=0):
 
-    #Take the index of the latest word
-    word = query.split()[-1]
-    wind = get_wind(word,dictionary)
+    parts = query.split()
+    if len(parts) > 0:
+        #Take the index of the latest word
+        word = parts[-1]
+        wind = get_wind(word,dictionary)
 
-    #store index of emphasized word if emphasize_kws > 0
-    if(emphasize_kws>0):
-        if os.path.isfile('data/clicked_kwinds.npy'):
-            clicked_kwinds = np.load('data/clicked_kwinds.npy')
-            clicked_kwinds = np.append(clicked_kwinds, wind)
+        #store index of emphasized word if emphasize_kws > 0
+        if emphasize_kws>0 and wind == -1:
+            if os.path.isfile('data/clicked_kwinds.npy'):
+                clicked_kwinds = np.load('data/clicked_kwinds.npy')
+                clicked_kwinds = np.append(clicked_kwinds, wind)
+            else:
+                clicked_kwinds = np.array([wind])
+            np.save('data/clicked_kwinds.npy',clicked_kwinds)
         else:
-            clicked_kwinds = np.array([wind])
-        np.save('data/clicked_kwinds.npy',clicked_kwinds)
+            if os.path.isfile('data/clicked_kwinds.npy'):
+                np.save('data/clicked_kwinds.npy',np.array([]))
+            clicked_kwinds = np.array([])
     else:
-        if os.path.isfile('data/clicked_kwinds.npy'):
-            np.save('data/clicked_kwinds.npy',np.array([]))
         clicked_kwinds = np.array([])
-
 
     #Convert query into bag of words representation
     test_vec      = query2bow(query, dictionary)
 
     #Determine the relevance score of observed words
-    print("INDICES OF EMPHASIZED WORDS: ", clicked_kwinds)
+    #print("INDICES OF EMPHASIZED WORDS: ", clicked_kwinds)
     r = relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws, clicked_kwinds.tolist())
-    #r = relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws)
 
     #
     return r
+
+
 
 
 #Determines the relevance scores of observed words
@@ -383,6 +474,8 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
         #If emphasize_kws < 1 , decrease the observed relevance of other
         #words, except the last observed words
         if emphasize_kws>0:
+            print("VALUE OF emphasize_kws: ", emphasize_kws)
+
             #Load 
             r            = np.zeros([test_vec_full.shape[0],1])
             #Make set out of the list of indices of words with non-zero relevance score
@@ -410,23 +503,70 @@ def relevance_scores_of_observed_words(test_vec,dictionary,emphasize_kws=0, emph
             r[new_winds] = 1.0
 
             #Decrease the scores by dividing with the norm of new kws
-            if np.linalg.norm(r[new_winds])>0:
+            if np.linalg.norm(r[new_winds])>0 and len(new_winds):
                 r[new_winds] = r[new_winds]/np.linalg.norm(r[new_winds])
 
-            #
-            print("RELEVANCE VALUES: ",new_winds,r[new_winds])
-            print("INDICES OF CLICKED KWS: ",new_winds)
-            print("SCORES: ", r[new_winds], r[winds])
+            #print("OBSERVED RELEVANCE SCORES when emphasize_kws > 0: ", r[winds])
 
-        else:
-            #Load 
+        #Start decreasing the relevance score of the written word after the occurrence such that r(written_word) = 1/i,
+        #i = number of iterations after the occurrence of the word 'written_word'
+        elif emphasize_kws == 0:
+            print("VALUE OF emphasize_kws: ", emphasize_kws)
+
+            #Initialize
             r             = np.zeros([test_vec_full.shape[0],1])
+            r[winds]      = 1.0
+            #Load
             r_old         = np.load('data/r_old.npy')
+            #Take indices of non-zero elemnts
             oldwinds      = np.where(r_old)
+            oldwinds      = oldwinds[0]
             r[oldwinds]   = 1.0
             #Add old observed relevance vector into new one
             r             = r + r_old
+            np.save('data/r_old.npy',r)
+
+            #Take inverse of all non-zeros of elements of r = r + r_old
+            thresval = 0.1
+            for i in range(len(r)):
+                if float(r[i]) > 0.0:
+                    #
+                    r[i] = 1.0/float(r[i])
+                    #If value is less than thresval, put to zero
+                    if float(r[i]) < thresval:
+                        #print("PUTTING TO ZERO!!!!!!")
+                        r[i] = 0.0
+            #
+            print(winds, oldwinds)
+            dwinds = set.union(set(winds),set(oldwinds))
+            dwinds = list(dwinds)
+            #print("OBSERVED RELEVANCE SCORES when emphasize_kws == 0: ", r[dwinds])
+
+        #Set the relevance score to 1.0 for each new word and 1/i for old word outside the writing window
+        elif emphasize_kws < 0:
+            print("VALUE OF emphasize_kws: ", emphasize_kws)
+
+            #Initialize
+            r             = np.zeros([test_vec_full.shape[0],1])
+            #Make set out of the list of indices of words with non-zero relevance score
+            wind_set     = set(winds)            
+            #Load previous relevance vector
+            r_old         = np.load('data/r_old.npy')
+            #
+            oldwinds      = np.where(r_old)
+            oldwind_set   = set(oldwinds[0])
+            #Subtract the set of old word indices from the set of new word indices to get the newest words
+            only_old_wind_set  = set.difference(oldwind_set, wind_set)
+            only_old_wind_list = list(only_old_wind_set)
+            #
+            r[only_old_wind_list]   = 1.0
+            #Add old observed relevance vector into new one
+            r             = r_old + r
+            #Set to 1.0 the score of new words in the writing window
             r[winds]      = 1.0
+            #print("OBSERVED RELEVANCE SCORES when emphasize_kws < 0: ", r[winds])
+
+            #
             np.save('data/r_old.npy',r)
 
             #Take inverse of all non-zeros of elements of r = r + r_old
@@ -463,6 +603,19 @@ def return_and_print_estimated_keyword_indices_and_values(r, X, dictionary, c, m
     #vsinds        = list of indices of keywords
     #kws           = list of keywords
 
+#
+def return_and_print_estimated_keyword_indices_and_values(r, X, dictionary, c, mu):
+
+    #INPUTS:
+    #test_vec      = bag of word representation of the input query string (taken from keyboard)
+    #X             = tfidf matrix of resources
+    #dictionary    = gensim dictionary containing words taken from dime data
+    #c             = Exploitation/Exploration coefficient
+    #emphasize_kws = coefficient determining, how many times bigger the relevance scores of clicked keywords are in relation to relevance scores of written words    
+    #OUTPUTS:
+    #vsinds        = list of indices of keywords
+    #kws           = list of keywords
+
     #Check that regularization paramter is not 0 or below
     if mu <= 0.0:
         mu = 1.0
@@ -475,16 +628,24 @@ def return_and_print_estimated_keyword_indices_and_values(r, X, dictionary, c, m
 
     #Normalize relevance estimate vector
     if r_hat.sum() > 0.0:
+        print("SUM OF VALUES of r_hat: ", r_hat.sum())
         r_hat     = r_hat/r_hat.sum()
+        print("SUM OF VALUES of r_hat: ", r_hat.max())
     #Normalize sigma_hat (upper bound std.dev of relevance estimates)
     if sigma_hat.sum() > 0.0:
+        print("SUM OF VALUES of sigma_hat: ", sigma_hat.sum())
         sigma_hat = sigma_hat/sigma_hat.sum()
+        print("SUM OF VALUES of sigma_hat: ", sigma_hat.max())
 
     #Make unit vector from w_hat (user model)
     norm_w_hat = np.linalg.norm(w_hat)
     if norm_w_hat > 0.0:
         w_hat = w_hat/norm_w_hat
         norm_w_hat = np.linalg.norm(w_hat)
+
+    #Save current r_hat and sigma_hat, and w_hat
+    np.save('data/r_hat.npy',r_hat)
+    np.save('data/sigma_hat.npy',sigma_hat)        
 
     #Sum r_hat and sigma_hat, where c = Exploitation/Exploration coeff.
     print("VALUE OF c: ",c)
@@ -515,163 +676,17 @@ def return_and_print_estimated_keyword_indices_and_values(r, X, dictionary, c, m
         #Take the vsum values of keywords and normalize with respect to maximum value
         if vsum.max() > 0.0:
             vsum = vsum/vsum.max()
+
+        #
         return vsinds, kws, vsum[vsinds]
+
     else:
+        #
         return [], [], []
 
 
 
-#
-def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
 
-    #Inputs
-    #y = observed relevance vector
-    #sX= tfidf matrix in scipy sparse matrix format
-    #mu= regularization parameter
-
-    #Output
-    #y_hatapp     = estimation of relevance vector 
-    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
-
-    #Load document term matrix 
-    #sX = load_sparse_csc('data/sX.sparsemat.npz')
-    #Make transpose of document term matrix 
-    sX = sX.T
-    sX = sX.tocsr()
-
-    #Take indices of non-zeros of y-vector
-    inds = np.where(y)[0]
-    #print 'inds: ', inds
-
-    #Form new y that has only non-zeros of the original y
-    if len(inds) > 1:
-        y    = y[inds]
-    else:
-        if len(inds) == 0:
-            y    = np.zeros([1,1])
-            inds = np.array([[0]])
-        else:
-            y    = np.zeros([len(inds),1])
-            #inds = np.array([[0]])
-
-    #Take rows from sX corresponding the indices of observed words from (keyboard) input
-    sXt   = sX[inds,:]
-    sXtT  = sXt.transpose()
-
-    #Make identity matrices needed in further steps
-    speye  = sparse.identity(sXtT.shape[0])
-    speye2 = sparse.identity(sXtT.shape[1])
-
-    #Compute XX^T
-    sXtsXtT = sXt.dot(sXtT)
-    #Compute A matrix 
-    sdumA = (1/mu)*sXtsXtT + speye2
-
-    #
-    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
-        if sdumA[0,0] > 0.0:
-            sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
-        else:
-            sdumAinv = sparse.csr_matrix([[1.0]])
-    else:
-        #Compute inverse of sdumA
-        sdumAinv = sparse.linalg.inv(sdumA)
-        sdumAinv.tocsr()
-
-    #print sdumAinv.shape
-    muI      = (1/mu)*speye
-    sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
-    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
-    sA       = sX.dot(sAtilde)
-
-    #
-    sy = sparse.csr_matrix(y)
-    sy_hatapp= sA.dot(sy)
-    y_hatapp= sy_hatapp.toarray()
-
-    #
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    #Convert to numpy array
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    return y_hatapp, sigma_hatapp    
-
-
-#
-def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
-
-    #Inputs
-    #y = observed relevance vector
-    #sX= tfidf matrix in scipy sparse matrix format
-    #mu= regularization parameter
-
-    #Output
-    #y_hatapp     = estimation of relevance vector 
-    #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
-
-
-    #Load document term matrix 
-    #sX = load_sparse_csc('data/sX.sparsemat.npz')
-    #Make transpose of document term matrix 
-    sX = sX.T
-    sX = sX.tocsc()
-
-    #Take indices of non-zeros of y-vector
-    inds = np.where(y)[0]
-    #print 'inds: ', inds
-
-    #Form new y that has only non-zeros of the original y
-    if len(inds) > 1:
-        y    = y[inds]
-    else:
-        if len(inds) == 0:
-            y    = np.zeros([1,1])
-            inds = np.array([[0]])
-        else:
-            y    = np.zeros([len(inds),1])
-            #inds = np.array([[0]])
-
-    #Take rows from sX corresponding the indices of observed words from (keyboard) input
-    sXt   = sX[inds,:]
-    sXtT  = sXt.transpose()
-
-    #Make identity matrices needed in further steps
-    speye  = sparse.identity(sXtT.shape[0])
-    speye2 = sparse.identity(sXtT.shape[1])
-
-    #Compute XX^T
-    sXtsXtT = sXt.dot(sXtT)
-    #Compute A matrix 
-    sdumA = (1/mu)*sXtsXtT + speye2
-
-    #
-    if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
-        if sdumA[0,0] > 0.0:
-            sdumAinv = sparse.csc_matrix([[1.0/sdumA[0,0]]])
-        else:
-            sdumAinv = sparse.csc_matrix([[1.0]])
-    else:
-        #Compute inverse of sdumA
-        sdumAinv = sparse.linalg.inv(sdumA)
-        sdumAinv.tocsc()
-
-    #print sdumAinv.shape
-    muI      = (1/mu)*speye
-    sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
-    sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
-    sA       = sX.dot(sAtilde)
-
-    #
-    sy = sparse.csc_matrix(y)
-    sy_hatapp= sA.dot(sy)
-    y_hatapp= sy_hatapp.toarray()
-
-    #
-    sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
-    #Convert to numpy array
-    sigma_hatapp= np.array(sigma_hatapp)
-
-    return y_hatapp, sigma_hatapp    
 
 
 #
@@ -723,7 +738,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
 
     #Compute XX^T
     sXtsXtT = sXt.dot(sXtT)
-    #Compute A matrix 
+    #Compute A matrix
     sdumA = mu*speye2 + sXtsXtT 
     #Compute inverse of sdumA
     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
@@ -743,10 +758,12 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
 
     #Compute estimation of user intent model, w_hat
     sw_hat = sAtilde.dot(sy)
+    sw_hat = sw_hat/np.linalg.norm(sw_hat.toarray())
     w_hat  = sw_hat.toarray()
 
     #Compute estimation of y based on user model
-    sy_hat = sA.dot(sy)
+    sy_hat = sX.dot(sw_hat)
+    #sy_hat = sA.dot(sy)
     y_hat  = sy_hat.toarray()
 
     #
@@ -754,6 +771,7 @@ def return_keyword_relevance_and_variance_estimates_woodbury_csc_clear(y, sX, mu
     #Convert to numpy array
     sigma_hat = np.array(sigma_hat)
 
+    #
     return y_hat, sigma_hat, w_hat
 
 
@@ -941,6 +959,32 @@ def do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat):
 
 
 
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--dimetest", action='store_true',
+                        help="test DiMe search")
+    parser.add_argument("--solrtest", action='store_true',
+                        help="test Solr search")
+    parser.add_argument("query", metavar = "QUERYSTRING",
+                        help="query to submit")
+
+    args = parser.parse_args()
+
+    (srvurl, usrname, password, time_interval, nspaces, numwords,
+     updateinterval, data_update_interval, nokeypress_interval,
+     mu, n_results) = read_user_ini()
+
+    if args.dimetest:
+        jsons = search(srvurl, usrname, password, args.query, 5,
+                       servertype="dime")
+        print(json.dumps(jsons, indent=2))
+
+    if args.solrtest:
+        jsons = search("http://focus.hiit.fi/solr/arxiv-cs", usrname, password,
+                       args.query, 5, servertype="solr")
+        print(json.dumps(jsons, indent=2))
 
 
 
@@ -989,6 +1033,80 @@ def do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat):
 
 
 
+#
+# def return_keyword_relevance_and_variance_estimates_woodbury(y, sX, mu):
+
+#     #Inputs
+#     #y = observed relevance vector
+#     #sX= tfidf matrix in scipy sparse matrix format
+#     #mu= regularization parameter
+
+#     #Output
+#     #y_hatapp     = estimation of relevance vector 
+#     #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
+#     #Load document term matrix 
+#     #sX = load_sparse_csc('data/sX.sparsemat.npz')
+#     #Make transpose of document term matrix 
+#     sX = sX.T
+#     sX = sX.tocsr()
+
+#     #Take indices of non-zeros of y-vector
+#     inds = np.where(y)[0]
+#     #print 'inds: ', inds
+
+#     #Form new y that has only non-zeros of the original y
+#     if len(inds) > 1:
+#         y    = y[inds]
+#     else:
+#         if len(inds) == 0:
+#             y    = np.zeros([1,1])
+#             inds = np.array([[0]])
+#         else:
+#             y    = np.zeros([len(inds),1])
+#             #inds = np.array([[0]])
+
+#     #Take rows from sX corresponding the indices of observed words from (keyboard) input
+#     sXt   = sX[inds,:]
+#     sXtT  = sXt.transpose()
+
+#     #Make identity matrices needed in further steps
+#     speye  = sparse.identity(sXtT.shape[0])
+#     speye2 = sparse.identity(sXtT.shape[1])
+
+#     #Compute XX^T
+#     sXtsXtT = sXt.dot(sXtT)
+#     #Compute A matrix 
+#     sdumA = (1/mu)*sXtsXtT + speye2
+
+#     #
+#     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+#         if sdumA[0,0] > 0.0:
+#             sdumAinv = sparse.csr_matrix([[1.0/sdumA[0,0]]])
+#         else:
+#             sdumAinv = sparse.csr_matrix([[1.0]])
+#     else:
+#         #Compute inverse of sdumA
+#         sdumAinv = sparse.linalg.inv(sdumA)
+#         sdumAinv.tocsr()
+
+#     #print sdumAinv.shape
+#     muI      = (1/mu)*speye
+#     sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
+#     sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+#     sA       = sX.dot(sAtilde)
+
+#     #
+#     sy = sparse.csr_matrix(y)
+#     sy_hatapp= sA.dot(sy)
+#     y_hatapp= sy_hatapp.toarray()
+
+#     #
+#     sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+#     #Convert to numpy array
+#     sigma_hatapp= np.array(sigma_hatapp)
+
+#     return y_hatapp, sigma_hatapp    
 
 
 
@@ -997,6 +1115,82 @@ def do_analysis_of_r_hat_sigma_hat_and_w_hat(r_hat, sigma_hat, w_hat):
 
 
 
+
+#
+# def return_keyword_relevance_and_variance_estimates_woodbury_csc(y, sX, mu):
+
+#     #Inputs
+#     #y = observed relevance vector
+#     #sX= tfidf matrix in scipy sparse matrix format
+#     #mu= regularization parameter
+
+#     #Output
+#     #y_hatapp     = estimation of relevance vector 
+#     #sigma_hatapp = estimation of sigma vector (i.e. the upperbound value vector of st.dev of r_hat)
+
+
+#     #Load document term matrix 
+#     #sX = load_sparse_csc('data/sX.sparsemat.npz')
+#     #Make transpose of document term matrix 
+#     sX = sX.T
+#     sX = sX.tocsc()
+
+#     #Take indices of non-zeros of y-vector
+#     inds = np.where(y)[0]
+#     #print 'inds: ', inds
+
+#     #Form new y that has only non-zeros of the original y
+#     if len(inds) > 1:
+#         y    = y[inds]
+#     else:
+#         if len(inds) == 0:
+#             y    = np.zeros([1,1])
+#             inds = np.array([[0]])
+#         else:
+#             y    = np.zeros([len(inds),1])
+#             #inds = np.array([[0]])
+
+#     #Take rows from sX corresponding the indices of observed words from (keyboard) input
+#     sXt   = sX[inds,:]
+#     sXtT  = sXt.transpose()
+
+#     #Make identity matrices needed in further steps
+#     speye  = sparse.identity(sXtT.shape[0])
+#     speye2 = sparse.identity(sXtT.shape[1])
+
+#     #Compute XX^T
+#     sXtsXtT = sXt.dot(sXtT)
+#     #Compute A matrix 
+#     sdumA = (1/mu)*sXtsXtT + speye2
+
+#     #
+#     if sdumA.shape[0] == 1 and sdumA.shape[1] == 1:
+#         if sdumA[0,0] > 0.0:
+#             sdumAinv = sparse.csc_matrix([[1.0/sdumA[0,0]]])
+#         else:
+#             sdumAinv = sparse.csc_matrix([[1.0]])
+#     else:
+#         #Compute inverse of sdumA
+#         sdumAinv = sparse.linalg.inv(sdumA)
+#         sdumAinv.tocsc()
+
+#     #print sdumAinv.shape
+#     muI      = (1/mu)*speye
+#     sdumAinv2= speye2 - (1/mu)*sdumAinv.dot(sXtsXtT)
+#     sAtilde  = (1/mu)*sXtT.dot(sdumAinv2)
+#     sA       = sX.dot(sAtilde)
+
+#     #
+#     sy = sparse.csc_matrix(y)
+#     sy_hatapp= sA.dot(sy)
+#     y_hatapp= sy_hatapp.toarray()
+
+#     #
+#     sigma_hatapp= np.sqrt(sA.multiply(sA).sum(1)) 
+#     #Convert to numpy array
+#     sigma_hatapp= np.array(sigma_hatapp)
+
+#     return y_hatapp, sigma_hatapp    
 
 
 

@@ -23,9 +23,7 @@ for i in range(0,50):
 first = True
 meanvectorfn = "mean_" + sys.argv[1] +  '_'
 
-parts1 = sys.argv[2].split("/")
-parts2 = parts1[0].split("-")
-clicking_starts = int(parts2[-2])
+clicking_starts = int(sys.argv[2])
 print("Clicking starts at", clicking_starts)
 
 for a in sys.argv[3:]:
