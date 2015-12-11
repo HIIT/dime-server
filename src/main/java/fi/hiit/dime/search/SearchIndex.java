@@ -315,6 +315,47 @@ public class SearchIndex {
         return count;
     }
 
+    /** Updates the given DiMeData with the Lucene keywords. */
+    public DiMeData updateKeywords(DiMeData obj) {
+        
+        try {
+            // create a query to search for the internal id of the document
+            Query idQuery = new TermQuery(new Term(idField, luceneId(obj)));
+
+            TopDocs hits = searcher.search(idQuery, 1);
+
+            if (hits.scoreDocs.length>0){
+                // get the terms from the current document
+                Terms termVec;
+                termVec = reader.getTermVector(hits.scoreDocs[0].doc, idField);
+
+                // create enumerator for the terms
+                TermsEnum termsEnum = termVec.iterator();
+
+                // iterate over all terms of the current document
+                BytesRef termText; // term in utf8 encoding
+                String term; // term converted to string
+
+                obj.weightedKeywords = new ArrayList<WeightedKeyword>();
+
+                while ((termText = termsEnum.next()) != null) {
+                    term = termText.utf8ToString();
+                    WeightedKeyword wk = 
+                            new WeightedKeyword(term, termsEnum.docFreq());
+                    obj.weightedKeywords.add(wk);
+                }
+            }
+            else{
+                System.out.println("failed to find document with the id:"+luceneId(obj));
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return obj;
+    }    
+
     /**
        Index a single data object.
 
