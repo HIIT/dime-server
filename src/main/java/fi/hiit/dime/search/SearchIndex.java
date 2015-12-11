@@ -159,6 +159,25 @@ public class SearchIndex {
         return writer;
     }
 
+    /** 
+        This has to be called before using searcher or reader.
+     */
+    protected void ensureSearcherAndReader() throws IOException {
+        if (reader == null) {
+            reader = DirectoryReader.open(fsDir);
+            searcher = new IndexSearcher(reader);
+        }
+        
+        DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
+        
+        // Reinitialise reader and searcher if the index has changed.
+        if (newReader != null) {
+            reader.close();
+            reader = newReader;
+            searcher = new IndexSearcher(reader);
+        }
+    }
+
     /**
        Get the set of indexed object ids.
     */
@@ -317,8 +336,9 @@ public class SearchIndex {
 
     /** Updates the given DiMeData with the Lucene keywords. */
     public DiMeData updateKeywords(DiMeData obj) {
-        
         try {
+            ensureSearcherAndReader();
+
             // create a query to search for the internal id of the document
             Query idQuery = new TermQuery(new Term(idField, luceneId(obj)));
 
@@ -405,19 +425,7 @@ public class SearchIndex {
         SearchResults res = new SearchResults();
 
         try {
-            if (reader == null) {
-                reader = DirectoryReader.open(fsDir);
-                searcher = new IndexSearcher(reader);
-            }
-
-            DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
-
-            // Reinitialise reader and searcher if the index has changed.
-            if (newReader != null) {
-                reader.close();
-                reader = newReader;
-                searcher = new IndexSearcher(reader);
-            }
+            ensureSearcherAndReader();
 
             BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
