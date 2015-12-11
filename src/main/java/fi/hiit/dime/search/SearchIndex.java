@@ -347,7 +347,7 @@ public class SearchIndex {
             if (hits.scoreDocs.length>0){
                 // get the terms from the current document
                 Terms termVec;
-                termVec = reader.getTermVector(hits.scoreDocs[0].doc, idField);
+                termVec = reader.getTermVector(hits.scoreDocs[0].doc, textQueryField);
 
                 // create enumerator for the terms
                 TermsEnum termsEnum = termVec.iterator();
