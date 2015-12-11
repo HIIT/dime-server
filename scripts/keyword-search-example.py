@@ -14,8 +14,8 @@ server_password = 'testuser123'
 
 # Define query as a JSON object
 query = [
-    {"weight":0.5, "term":"dime"},
-    {"weight": 0.1, "term":"reknow"}
+    {"weight":0.5, "word":"dime"},
+    {"weight": 0.1, "word":"reknow"}
 ]
 
 r = requests.post(server_url + '/keywordsearch',
