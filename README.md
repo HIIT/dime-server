@@ -16,6 +16,10 @@ install it directly.
 
 [Java 7 JDK][1] or newer (i.e. Java version 1.7 or newer) is required.
 
+For Mac OS X you need to have
+[Xcode](https://developer.apple.com/xcode/) installed first. You can
+install it from the Apple Mac App Store.
+
 ### Compiling
 
 First, clone the git repository, for example via the command line:
