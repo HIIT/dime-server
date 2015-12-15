@@ -136,6 +136,9 @@ public class ApiController extends AuthorizedController {
                 elem = ((ResourcedEvent)data).targettedResource;
 
             if (elem != null && !seen.contains(elem.getId())) {
+                // copy the search-specific members
+                elem.score = data.score;  
+                elem.weightedKeywords = data.weightedKeywords;
                 elemList.add(elem);
                 seen.add(elem.getId());
             }
