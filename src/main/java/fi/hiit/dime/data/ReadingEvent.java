@@ -34,38 +34,16 @@ import javax.persistence.OneToMany;
 
 /**
    A detailed reading event.
+   See also SummaryReadingEvent
    Also see https://github.com/HIIT/PeyeDF/wiki/Data-Format/.
 */
 @Entity
 public class ReadingEvent extends DesktopEvent {
-    /** Boolean indicating if the event is a summary sent at the end of reading.
-    * Summary reading events contain more "refined" data, while non-summary reading events contain more detail.
-    * Summary reading events can contain united (non-floating) rectangles (but can contin floating rectangles).
-    * Non-summary reading events contain floating rectangles only. 
-    */
-    public Boolean isSummary;
 
     /** Id identifying this reading session.
      * All ReadingEvents generated during one session (from document open to document close) should have the same sessionId.
      */
     public String sessionId;
-
-    /** List of strings that were searched for, found and selected by user, during this summary event (for summary events).
-     */
-    @ElementCollection(targetClass = String.class)
-    public List<String> foundStrings;
-
-    /** Proportion of document which was read (for summary events)
-     */
-    public double proportionRead;
-
-    /** Proportion of document which was marked as "interesting" (for summary events)
-     */
-    public double proportionInteresting;
-
-    /** Proportion of document which was marked as "critical" (for summary events)
-     */
-    public double proportionCritical;
 
     /** A vector representing the page numbers currently being considered (number within PDF document).
      * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).

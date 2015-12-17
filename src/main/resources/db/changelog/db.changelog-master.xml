@@ -423,4 +423,24 @@
             <column name="CONTENT_HASH" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="marco (generated)" id="1450355608664-1">
+        <createTable tableName="SUMMARY_READING_EVENT_FOUND_STRINGS">
+            <column name="SUMMARY_READING_EVENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FOUND_STRINGS" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1450355608664-2">
+        <addForeignKeyConstraint baseColumnNames="SUMMARY_READING_EVENT_ID" baseTableName="SUMMARY_READING_EVENT_FOUND_STRINGS" constraintName="FK_BSWM4Y469W5V5SAT3GHIEB69P" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1450355608664-3">
+        <dropForeignKeyConstraint baseTableName="READING_EVENT_FOUND_STRINGS" constraintName="FK_493AT021L4190CV7GWKO4PVID"/>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1450355608664-4">
+        <dropTable tableName="READING_EVENT_FOUND_STRINGS"/>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1450359639905-1">
+        <dropColumn columnName="IS_SUMMARY" tableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>

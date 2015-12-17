@@ -229,7 +229,6 @@ public abstract class RestTest {
 
 	re.type = "http://www.hiit.fi/ontologies/dime/#ReadingEvent";
 	re.plainTextContent = content;
-	re.foundStrings = Arrays.asList("aliquam", "volutpat", "tellus");
 	re.pageNumbers = Arrays.asList(0, 4);
 
 	final int numEyeData = 10;
