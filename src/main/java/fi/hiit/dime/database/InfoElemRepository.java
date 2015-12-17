@@ -62,15 +62,30 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
     	    case "tag":
 		criteria = ":tag member of e.tags";
     		break;
-	    case "appid":
-		name = "appId";
-    	    case "uri":
-    	    case "plaintextcontent":
-    	    case "isstoredas":
+            case "appid":
+            name = "appId";
+            criteria = String.format("%s=:%s", name, name);
+            break;
+            case "contenthash":
+            name = "contentHash";
+            criteria = String.format("%s=:%s", name, name);
+            break;
+            case "plaintextcontent":
+            name = "plainTextContent";
+            criteria = String.format("%s=:%s", name, name);
+            break;
+            case "isstoredas":
+            name = "isStoredAs";
+            criteria = String.format("%s=:%s", name, name);
+            break;
+            case "mimetype":
+            name = "mimeType";
+            criteria = String.format("%s=:%s", name, name);
+            break;
+            case "uri":
     	    case "type":
-    	    case "mimetype":
     	    case "title":
-		criteria = String.format("%s=:%s", name, name);
+            criteria = String.format("%s=:%s", name, name);
     		break;
     	    default:
     		throw new IllegalArgumentException(name);

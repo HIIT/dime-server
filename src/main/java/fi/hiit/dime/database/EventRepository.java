@@ -72,6 +72,9 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
 	    case "appid":
 		name = "appId";
 		break;
+        case "sessionid":
+        name = "sessionId";
+        break;
     	    case "actor":
     	    case "origin":
     	    case "type":
