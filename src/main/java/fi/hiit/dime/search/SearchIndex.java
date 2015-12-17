@@ -470,6 +470,7 @@ public class SearchIndex {
             // search for the documents with the query
             TopDocs results = searcher.search(queryBuilder.build(), limit);
             ScoreDoc[] hits = results.scoreDocs;
+            System.out.println("results number:"+hits.length);
 
             for (int i=0; i<hits.length; i++) {
                 Document doc = searcher.doc(hits[i].doc);
@@ -481,12 +482,13 @@ public class SearchIndex {
                         LOG.error("Bad doc id: "+ docId);
                     } else if (obj.user.getId().equals(userId)) {
                         obj.score = score;
-
+                        
                         // get the terms from the current document
                         Terms termVec = reader.getTermVector(hits[i].doc, 
                                 textQueryField);
-
+ 
                         // create enumerator for the terms
+                        if(termVec!=null){//errors happen occassionnaly here
                         TermsEnum termsEnum = termVec.iterator();
 
                         // iterate over all terms of the current document
@@ -500,6 +502,8 @@ public class SearchIndex {
                             WeightedKeyword wk = 
                                     new WeightedKeyword(term, termsEnum.docFreq());
                             obj.weightedKeywords.add(wk);
+                           
+                        }
                         }
 
                         res.add(obj);
