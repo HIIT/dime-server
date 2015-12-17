@@ -418,4 +418,9 @@
             <column name="UNIXT" type="BIGINT(19)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1450343259308-1">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="CONTENT_HASH" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

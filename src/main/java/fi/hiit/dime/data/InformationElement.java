@@ -98,6 +98,9 @@ public class InformationElement extends DiMeData {
     @ElementCollection(targetClass = String.class)
     public Set<String> tags;
 
+    /** String value to uniquely identify an object. */
+    public String contentHash;
+
     /** Add a free-form tag to the object.
 	@param tag The tag to add
     */
