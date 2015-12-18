@@ -38,29 +38,29 @@ import org.springframework.http.HttpStatus;
  */
 public class AuthorizedController {
     protected User getUser(Authentication auth) {
-	CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
-	return currentUser.getUser();
+        CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
+        return currentUser.getUser();
     }
 
-    @ResponseStatus(value=HttpStatus.UNAUTHORIZED, reason="Not Authorized")
+    @ResponseStatus(value=HttpStatus.UNAUTHORIZED)
     public class NotAuthorizedException extends Exception {
-	public NotAuthorizedException(String msg) {
-	    super(msg);
-	}
+        public NotAuthorizedException(String msg) {
+            super(msg);
+        }
     }
 
-    @ResponseStatus(value=HttpStatus.BAD_REQUEST, reason="Bad Request")
+    @ResponseStatus(value=HttpStatus.BAD_REQUEST)
     public class BadRequestException extends Exception {
-    	public BadRequestException(String msg) {
-    	    super(msg);
-    	}
+        public BadRequestException(String msg) {
+            super(msg);
+        }
     }
 
-    @ResponseStatus(value=HttpStatus.NOT_FOUND, reason="Not Found")
+    @ResponseStatus(value=HttpStatus.NOT_FOUND)
     public class NotFoundException extends Exception {
-	public NotFoundException(String msg) {
-	    super(msg);
-	}
+        public NotFoundException(String msg) {
+            super(msg);
+        }
     }
 
 }

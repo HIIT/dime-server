@@ -58,7 +58,7 @@ import java.io.IOException;
 @RequestMapping("/api/data")
 public class DataController extends AuthorizedController {
     private static final Logger LOG = 
-	LoggerFactory.getLogger(DataController.class);
+        LoggerFactory.getLogger(DataController.class);
 
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
@@ -68,17 +68,17 @@ public class DataController extends AuthorizedController {
 
     @Autowired
     DataController(EventDAO eventDAO,
-    		   InformationElementDAO infoElemDAO) {
-    	this.eventDAO = eventDAO;
-    	this.infoElemDAO = infoElemDAO;
+                   InformationElementDAO infoElemDAO) {
+        this.eventDAO = eventDAO;
+        this.infoElemDAO = infoElemDAO;
     }
 
     private String dumpJson(Object input) {
-	try {
-	    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input);
-	} catch (IOException e) {
-	    return "Unable to parse JSON object.";
-	}
+        try {
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(input);
+        } catch (IOException e) {
+            return "Unable to parse JSON object.";
+        }
     }
 
     /**
@@ -89,11 +89,11 @@ public class DataController extends AuthorizedController {
      * @param dumpJson  Whether to also print the JSON of the event object
      */
     protected void eventLog(User user, Event input, boolean dumpJson) {
-	LOG.info("{} for user {} from {} at {}, with actor {}",
-		 input.getClass().getSimpleName(), user.username,
-		 input.origin, new Date(), input.actor);
-	if (dumpJson)
-	    LOG.debug(dumpJson(input));
+        LOG.info("{} for user {} from {} at {}, with actor {}",
+                 input.getClass().getSimpleName(), user.username,
+                 input.origin, new Date(), input.actor);
+        if (dumpJson)
+            LOG.debug(dumpJson(input));
     }
 
     /**
@@ -105,11 +105,11 @@ public class DataController extends AuthorizedController {
      * @param dumpJson  Whether to also print the JSON of the event object
      */
     protected void elementLog(String elemName, User user, InformationElement input,
-			      boolean dumpJson) {
-	LOG.info("{} for user {} at {}",
-		 elemName, user.username, new Date());
-	if (dumpJson)
-	    LOG.debug(dumpJson(input));
+                              boolean dumpJson) {
+        LOG.info("{} for user {} at {}",
+                 elemName, user.username, new Date());
+        if (dumpJson)
+            LOG.debug(dumpJson(input));
     }
 
     /**
@@ -121,13 +121,13 @@ public class DataController extends AuthorizedController {
      * @param dumpJson  Whether to also print the JSON of the event object
      */
     protected void elementLog(String elemName, User user, InformationElement[] input,
-			      boolean dumpJson) {
-	if (input.length > 0) {
-	    LOG.info("{} for user {} at {}",
-		     elemName, user.username, new Date());
-	    if (dumpJson)
-		LOG.debug(dumpJson(input));
-	}
+                              boolean dumpJson) {
+        if (input.length > 0) {
+            LOG.info("{} for user {} at {}",
+                     elemName, user.username, new Date());
+            if (dumpJson)
+                LOG.debug(dumpJson(input));
+        }
     }
 
     /**
@@ -142,58 +142,69 @@ public class DataController extends AuthorizedController {
      * @return The expanded InformationElement
      */
     protected InformationElement 
-	expandInformationElement(InformationElement elem, User user) 
-	throws NotFoundException, BadRequestException {
-	if (elem == null)
-	    return null;
-	
-	InformationElement expandedElem = null; 
-	if (elem.getId() != null) {
-	    expandedElem = infoElemDAO.findById(elem.getId(), user);
+        expandInformationElement(InformationElement elem, User user) 
+        throws NotFoundException, BadRequestException {
+        if (elem == null)
+            return null;
+        
+        InformationElement oldElem = null; 
+        if (elem.getId() != null) {
+            oldElem = infoElemDAO.findById(elem.getId(), user);
 
-	    // Error if id doesn't exist 
-	    if (expandedElem == null)
-		throw new NotFoundException("id not found");
-	    
-	    // Check that appId is consistent (if given)
-	    if (elem.appId != null && !elem.appId.equals(expandedElem.appId)) {
-		LOG.error("appId not consistent: {} != {}", elem.appId, expandedElem.appId);
-		throw new BadRequestException("appId not consistent");
-	    }
-	    
-	} else if (elem.appId != null) {
-	    expandedElem = infoElemDAO.findByAppId(elem.appId, user);
-	    if (expandedElem != null)
-		LOG.debug("appId given, expanded to id={}",
-			  expandedElem.getId());
-	}
-	
-	// If this is a stub element, expand it 
-	if (elem.isStub()) {
-	    if (expandedElem != null) {
-		LOG.info("Expanded InformationElement for " + expandedElem.uri);
-		// don't copy the text, takes too much space
-		// expandedElem.plainTextContent = null; 
-		return expandedElem;
-	    } else {
-		LOG.error("Uploaded stub, but unable to expand!");
-		LOG.error(dumpJson(elem));
-		throw new BadRequestException("unable to expand stub");
-	    }
-	} else {
-	    // If this is not a stub, but we found an existing
-	    // element, replace it with the new one
-	    if (expandedElem != null) {
-		elem.user = user;
-		elem = infoElemDAO.replace(expandedElem, elem);
-	    } else {
-		// Otherwise, this is just a new object, so store it
-		elem.user = user;
-		elem.autoFill();
-	    }
-	}
+            // Error if id doesn't exist 
+            if (oldElem == null)
+                throw new NotFoundException("id not found");
+            
+            // Check that appId is consistent (if given)
+            if (elem.appId != null && !elem.appId.equals(oldElem.appId)) {
+                LOG.error("appId not consistent: {} != {}", elem.appId, oldElem.appId);
+                throw new BadRequestException("appId not consistent");
+            }
+            
+        } else if (elem.appId != null) {
+            oldElem = infoElemDAO.findByAppId(elem.appId, user);
+            if (oldElem != null)
+                LOG.debug("appId given, expanded to id={}",
+                          oldElem.getId());
+        }
+        
+        // If this is a stub element, expand it 
+        if (elem.isStub()) {
+            if (oldElem != null) {
+                LOG.info("Expanded InformationElement for " + oldElem.uri);
+                // don't copy the text, takes too much space
+                // oldElem.plainTextContent = null; 
+                return oldElem;
+            } else {
+                LOG.error("Uploaded stub, but unable to expand!");
+                LOG.error(dumpJson(elem));
+                throw new BadRequestException("unable to expand stub");
+            }
+        } else {
+            // If this is not a stub, but we found an existing
+            // element, replace it with the new one
+            if (oldElem != null) {
+                // if the classes are not the same
+                if (!elem.getClass().equals(oldElem.getClass())) {
+                    String msg = 
+                        String.format("Type (%s) incompatible with existing " +
+                                      "object (%s) with the same %s.", 
+                                      elem.getClass().getName(),
+                                      oldElem.getClass().getName(),
+                                      elem.getId() == null ? "appId" : "id");
+                    throw new BadRequestException(msg);
+                }
 
-	return elem;
+                elem.user = user;
+                elem = infoElemDAO.replace(oldElem, elem);
+            } else {
+                // Otherwise, this is just a new object, so store it
+                elem.user = user;
+                elem.autoFill();
+            }
+        }
+
+        return elem;
     }
 
     /**
@@ -205,10 +216,10 @@ public class DataController extends AuthorizedController {
      * @return The element as stored
      */
     private InformationElement storeElement(InformationElement elem, User user) 
-	throws NotFoundException, BadRequestException {
-	elem = expandInformationElement(elem, user);
-	infoElemDAO.save(elem);
-	return elem;
+        throws NotFoundException, BadRequestException {
+        elem = expandInformationElement(elem, user);
+        infoElemDAO.save(elem);
+        return elem;
     }
 
 
@@ -221,185 +232,185 @@ public class DataController extends AuthorizedController {
      * @return The event as stored
      */
     private Event storeEvent(Event event, User user) 
-	throws NotFoundException, BadRequestException {
+        throws NotFoundException, BadRequestException {
 
-	// FIXME: should be unified with expandInformationElement code
-	Event expandedEvent = null; 
-	if (event.getId() != null) {
-	    expandedEvent = eventDAO.findById(event.getId(), user);
+        // FIXME: should be unified with expandInformationElement code
+        Event expandedEvent = null; 
+        if (event.getId() != null) {
+            expandedEvent = eventDAO.findById(event.getId(), user);
 
-	    // Error if id doesn't exist 
-	    if (expandedEvent == null)
-		throw new NotFoundException("id not found");
-	    
-	    // Check that appId is consistent (if given)
-	    if (event.appId != null && !event.appId.equals(expandedEvent.appId)) {
-		LOG.error("appId not consistent: {} != {}", event.appId, expandedEvent.appId);
-		throw new BadRequestException("appId not consistent");
-	    }
-	    
-	} else if (event.appId != null) {
-	    expandedEvent = eventDAO.findByAppId(event.appId, user);
-	    if (expandedEvent != null)
-		LOG.debug("appId given, expanded to id={}",
-			  expandedEvent.getId());
-	}
+            // Error if id doesn't exist 
+            if (expandedEvent == null)
+                throw new NotFoundException("id not found");
+            
+            // Check that appId is consistent (if given)
+            if (event.appId != null && !event.appId.equals(expandedEvent.appId)) {
+                LOG.error("appId not consistent: {} != {}", event.appId, expandedEvent.appId);
+                throw new BadRequestException("appId not consistent");
+            }
+            
+        } else if (event.appId != null) {
+            expandedEvent = eventDAO.findByAppId(event.appId, user);
+            if (expandedEvent != null)
+                LOG.debug("appId given, expanded to id={}",
+                          expandedEvent.getId());
+        }
 
-	if (event instanceof ResourcedEvent) {
-	    ResourcedEvent revent = (ResourcedEvent)event;
-	    InformationElement elem = revent.targettedResource;
-	    revent.targettedResource = storeElement(elem, user);
-	}
+        if (event instanceof ResourcedEvent) {
+            ResourcedEvent revent = (ResourcedEvent)event;
+            InformationElement elem = revent.targettedResource;
+            revent.targettedResource = storeElement(elem, user);
+        }
 
-	if (expandedEvent != null) {
-	    event.user = user;
-	    event = eventDAO.replace(expandedEvent, event);
-	} else {
-	    // Otherwise, this is just a new object, so store it
-	    event.user = user;
-	    event.autoFill();
-	}
-	eventDAO.save(event);
+        if (expandedEvent != null) {
+            event.user = user;
+            event = eventDAO.replace(expandedEvent, event);
+        } else {
+            // Otherwise, this is just a new object, so store it
+            event.user = user;
+            event.autoFill();
+        }
+        eventDAO.save(event);
 
-	return event;
+        return event;
     }
 
     /** HTTP end point for uploading a single event. */    
     @RequestMapping(value="/event", method = RequestMethod.POST)
     public ResponseEntity<Event>
-	event(Authentication auth, @RequestBody Event input)  
-	throws NotFoundException, BadRequestException
+        event(Authentication auth, @RequestBody Event input)  
+        throws NotFoundException, BadRequestException
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	input = storeEvent(input, user);
+        input = storeEvent(input, user);
 
-	eventLog(user, input, true);
+        eventLog(user, input, true);
 
-	return new ResponseEntity<Event>(input, HttpStatus.OK);
-    }	
+        return new ResponseEntity<Event>(input, HttpStatus.OK);
+    }   
 
     /** HTTP end point for accessing single event. */    
     @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
     public ResponseEntity<Event>
-	event(Authentication auth, @PathVariable Long id) 
-	throws NotFoundException
+        event(Authentication auth, @PathVariable Long id) 
+        throws NotFoundException
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	Event event = eventDAO.findById(id, user);
+        Event event = eventDAO.findById(id, user);
 
-	if (event == null || !event.user.getId().equals(user.getId()))
-	    throw new NotFoundException("Event not found");
+        if (event == null || !event.user.getId().equals(user.getId()))
+            throw new NotFoundException("Event not found");
 
-	return new ResponseEntity<Event>(event, HttpStatus.OK);
-    }	
+        return new ResponseEntity<Event>(event, HttpStatus.OK);
+    }   
 
     /** HTTP end point for uploading multiple events. */    
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
-	events(Authentication auth, @RequestBody Event[] input) 
-	throws NotFoundException, BadRequestException
+        events(Authentication auth, @RequestBody Event[] input) 
+        throws NotFoundException, BadRequestException
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	for (int i=0; i<input.length; i++) {
-	    input[i] = storeEvent(input[i], user);
-	    eventLog(user, input[i], true);
-	}
+        for (int i=0; i<input.length; i++) {
+            input[i] = storeEvent(input[i], user);
+            eventLog(user, input[i], true);
+        }
 
-	return new ResponseEntity<Event[]>(input, HttpStatus.OK);
-    }	
+        return new ResponseEntity<Event[]>(input, HttpStatus.OK);
+    }   
 
     /** HTTP end point for accessing multiple events via a filtering
      * interface. */    
     @RequestMapping(value="/events", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
-	events(Authentication auth, @RequestParam Map<String, String> params) 
-	throws BadRequestException
+        events(Authentication auth, @RequestParam Map<String, String> params) 
+        throws BadRequestException
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	try {
-	    List<Event> events = eventDAO.find(user.getId(), params);
+        try {
+            List<Event> events = eventDAO.find(user.getId(), params);
 
-	    Event[] eventsArray = new Event[events.size()];
-	    events.toArray(eventsArray);	
+            Event[] eventsArray = new Event[events.size()];
+            events.toArray(eventsArray);        
 
-	    return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
-	} catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
-	    throw new BadRequestException("Invalid arguments");
-	}
-    }	
+            return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
+        } catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
+            throw new BadRequestException("Invalid arguments");
+        }
+    }   
 
     /** HTTP end point for uploading a single information element. */    
     @RequestMapping(value="/informationelement", method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
-	informationElement(Authentication auth, @RequestBody InformationElement input)
-	throws NotFoundException, BadRequestException
+        informationElement(Authentication auth, @RequestBody InformationElement input)
+        throws NotFoundException, BadRequestException
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	input = storeElement(input, user);
+        input = storeElement(input, user);
 
-	elementLog("InformationElement", user, input, true);
+        elementLog("InformationElement", user, input, true);
 
-	return new ResponseEntity<InformationElement>(input, HttpStatus.OK);
-    }	
+        return new ResponseEntity<InformationElement>(input, HttpStatus.OK);
+    }   
 
     /** HTTP end point for uploading multiple information elements. */    
     @RequestMapping(value="/informationelements", method = RequestMethod.POST)
     public ResponseEntity<InformationElement[]>
-	informationElement(Authentication auth, @RequestBody InformationElement[] input) 
-	throws NotFoundException, BadRequestException 
+        informationElement(Authentication auth, @RequestBody InformationElement[] input) 
+        throws NotFoundException, BadRequestException 
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	for (int i=0; i<input.length; i++) {
-	    input[i] = storeElement(input[i], user);
-	}
+        for (int i=0; i<input.length; i++) {
+            input[i] = storeElement(input[i], user);
+        }
 
-	elementLog("InformationElements", user, input, true);
+        elementLog("InformationElements", user, input, true);
 
-	return new ResponseEntity<InformationElement[]>(input, HttpStatus.OK);
-    }	
+        return new ResponseEntity<InformationElement[]>(input, HttpStatus.OK);
+    }   
 
     /** HTTP end point for accessing a single informationelement. */    
     @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
     public ResponseEntity<InformationElement>
-	informationElement(Authentication auth, @PathVariable Long id) 
-	throws NotFoundException
+        informationElement(Authentication auth, @PathVariable Long id) 
+        throws NotFoundException
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	InformationElement elem = infoElemDAO.findById(id, user);
+        InformationElement elem = infoElemDAO.findById(id, user);
 
-	if (elem == null || !elem.user.getId().equals(user.getId()))
-	    throw new NotFoundException("Element not found");
+        if (elem == null || !elem.user.getId().equals(user.getId()))
+            throw new NotFoundException("Element not found");
 
-	return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
-    }	
+        return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
+    }   
 
     /** HTTP end point for accessing multiple information elements via
      * a filtering interface. */    
     @RequestMapping(value="/informationelements", method = RequestMethod.GET)
     public ResponseEntity<InformationElement[]>
-	informationElements(Authentication auth,
-			    @RequestParam Map<String, String> params) 
-	throws BadRequestException
+        informationElements(Authentication auth,
+                            @RequestParam Map<String, String> params) 
+        throws BadRequestException
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	try {
-	    List<InformationElement> infoElems = infoElemDAO.find(user.getId(), params);
+        try {
+            List<InformationElement> infoElems = infoElemDAO.find(user.getId(), params);
 
-	    InformationElement[] infoElemsArray = new InformationElement[infoElems.size()];
-	    infoElems.toArray(infoElemsArray);	
+            InformationElement[] infoElemsArray = new InformationElement[infoElems.size()];
+            infoElems.toArray(infoElemsArray);  
 
-	    return new ResponseEntity<InformationElement[]>(infoElemsArray, HttpStatus.OK);
-	} catch (IllegalArgumentException e) {
-	    throw new BadRequestException("Invalid arguments");
-	}
-    }	
+            return new ResponseEntity<InformationElement[]>(infoElemsArray, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid arguments");
+        }
+    }   
 
 }
