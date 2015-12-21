@@ -110,12 +110,12 @@ public class SearchIndex {
        @param indexPath Path to Lucene index
     */
     public SearchIndex(String indexPath) throws IOException {
-	fsDir = FSDirectory.open(Paths.get(indexPath));
+        fsDir = FSDirectory.open(Paths.get(indexPath));
 
-	// FIXME: check if index was destroyed, i.e. would need
-	// reindexing
+        // FIXME: check if index was destroyed, i.e. would need
+        // reindexing
 
-	parser = new StandardQueryParser(new StandardAnalyzer());
+        parser = new StandardQueryParser(new StandardAnalyzer());
     }
 
     /**
@@ -125,84 +125,84 @@ public class SearchIndex {
        @return An IndexWriter instance
     */
     protected IndexWriter getIndexWriter() throws IOException {
-	IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
+        IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 
-    	// Advice from Lucene example:
-    	// http://lucene.apache.org/core/5_3_0/demo/src-html/org/apache/lucene/demo/IndexFiles.html
-    	// Optional: for better indexing performance, if you
-    	// are indexing many documents, increase the RAM
-    	// buffer.  But if you do this, increase the max heap
-    	// size to the JVM (eg add -Xmx512m or -Xmx1g):
-    	//
-    	// iwc.setRAMBufferSizeMB(256.0);
+        // Advice from Lucene example:
+        // http://lucene.apache.org/core/5_3_0/demo/src-html/org/apache/lucene/demo/IndexFiles.html
+        // Optional: for better indexing performance, if you
+        // are indexing many documents, increase the RAM
+        // buffer.  But if you do this, increase the max heap
+        // size to the JVM (eg add -Xmx512m or -Xmx1g):
+        //
+        // iwc.setRAMBufferSizeMB(256.0);
 
-	IndexWriter writer = new IndexWriter(fsDir, iwc);
+        IndexWriter writer = new IndexWriter(fsDir, iwc);
 
-    	// NOTE: if you want to maximize search performance,
-    	// you can optionally call forceMerge here.  This can be
-    	// a terribly costly operation, so generally it's only
-    	// worth it when your index is relatively static (ie
-    	// you're done adding documents to it):
-    	//
-    	// writer.forceMerge(1);
+        // NOTE: if you want to maximize search performance,
+        // you can optionally call forceMerge here.  This can be
+        // a terribly costly operation, so generally it's only
+        // worth it when your index is relatively static (ie
+        // you're done adding documents to it):
+        //
+        // writer.forceMerge(1);
 
-	// Also, for low-latency turnaround it's best to use a
-	// near-real-time reader
-	// (DirectoryReader.open(IndexWriter,boolean)). Once you have
-	// a new IndexReader, it's relatively cheap to create a new
-	// IndexSearcher from it.
+        // Also, for low-latency turnaround it's best to use a
+        // near-real-time reader
+        // (DirectoryReader.open(IndexWriter,boolean)). Once you have
+        // a new IndexReader, it's relatively cheap to create a new
+        // IndexSearcher from it.
 
-	return writer;
+        return writer;
     }
 
     /**
        Get the set of indexed object ids.
     */
     protected Set<String> indexedIds(IndexReader reader) throws IOException {
-	Set<String> ids = new HashSet<String>();
+        Set<String> ids = new HashSet<String>();
 
-	Set<String> fields = new HashSet<String>();
-	fields.add(idField);
-	
-	for (int i=0; i<reader.maxDoc(); i++) {
-	    Document doc = reader.document(i, fields);
-	    String docId = doc.get(idField);
-	    
-	    ids.add(docId);
-	}
+        Set<String> fields = new HashSet<String>();
+        fields.add(idField);
+        
+        for (int i=0; i<reader.maxDoc(); i++) {
+            Document doc = reader.document(i, fields);
+            String docId = doc.get(idField);
+            
+            ids.add(docId);
+        }
 
-	return ids;
+        return ids;
     }
 
     /**
       Convert DiMeData object into a string to be used as the Lucene doc id.
     */
     private String luceneId(DiMeData obj) {
-	if (obj instanceof Event)
-	    return "event_" + obj.getId();
-	else
-	    return "elem_" + obj.getId();
+        if (obj instanceof Event)
+            return "event_" + obj.getId();
+        else
+            return "elem_" + obj.getId();
     }
 
     /**
       Convert the Lucene doc id into an DiMeData object, 
     */
     private DiMeData idToObject(String docId) {
-	String[] parts = docId.split("_", 2);
+        String[] parts = docId.split("_", 2);
 
-	if (parts.length == 2) {
-	    String type = parts[0];
-	    Long id = Long.parseLong(parts[1], 10);
+        if (parts.length == 2) {
+            String type = parts[0];
+            Long id = Long.parseLong(parts[1], 10);
 
-	    if (type.equals("elem")) {
-		return infoElemDAO.findById(id);
-	    } else if (type.equals("event")) {
-		return eventDAO.findById(id);
-	    }
-	}
+            if (type.equals("elem")) {
+                return infoElemDAO.findById(id);
+            } else if (type.equals("event")) {
+                return eventDAO.findById(id);
+            }
+        }
 
-	return null;
+        return null;
     }
 
     /**
@@ -210,27 +210,27 @@ public class SearchIndex {
       is meant to be indexed.
     */
     private String dataContent(DiMeData obj) {
-	if (obj instanceof ReadingEvent)
-	    return ((ReadingEvent)obj).plainTextContent;
-	else if (obj instanceof SearchEvent)
-	    return ((SearchEvent)obj).query;
-	else if (obj instanceof InformationElement)
-	    return ((InformationElement)obj).plainTextContent;
+        if (obj instanceof ReadingEvent)
+            return ((ReadingEvent)obj).plainTextContent;
+        else if (obj instanceof SearchEvent)
+            return ((SearchEvent)obj).query;
+        else if (obj instanceof InformationElement)
+            return ((InformationElement)obj).plainTextContent;
 
-	return null;
+        return null;
     }
 
     /**
        Return short class name for any DiMeData object.
     */
     private String getClassName(DiMeData obj) {
-	String fullClassName = obj.getClass().getName();
-	if (!fullClassName.startsWith(dataClassPrefix)) {
-	    LOG.error("Unexpected class name {}, doesn't start with '{}'.",
-		      fullClassName, dataClassPrefix);
-	    return null;
-	}
-	return fullClassName.substring(dataClassPrefix.length());
+        String fullClassName = obj.getClass().getName();
+        if (!fullClassName.startsWith(dataClassPrefix)) {
+            LOG.error("Unexpected class name {}, doesn't start with '{}'.",
+                      fullClassName, dataClassPrefix);
+            return null;
+        }
+        return fullClassName.substring(dataClassPrefix.length());
     }
 
     /**
@@ -242,86 +242,86 @@ public class SearchIndex {
        @return Number of elements that were newly indexed
     */
     public long updateIndex() {
-	if (!firstUpdate && !infoElemDAO.hasUnIndexed())
-	    return 0;
-	
-	long count = 0;
+        if (!firstUpdate && !infoElemDAO.hasUnIndexed())
+            return 0;
+        
+        long count = 0;
 
-	LOG.debug("Updating Lucene index ....");
-	try {
-	    boolean forceReindex = false;
-	    IndexWriter writer = getIndexWriter();
-	    String version = writer.getCommitData().get(versionField);
+        LOG.debug("Updating Lucene index ....");
+        try {
+            boolean forceReindex = false;
+            IndexWriter writer = getIndexWriter();
+            String version = writer.getCommitData().get(versionField);
 
-	    if (version == null || !version.equals(currentVersion)) {
-		if (version != null)
-		    LOG.info("Lucene index version has changed {} -> {}, " +
-			     "reindexing all documents.", version, currentVersion);
-		forceReindex = true;
-	    }
+            if (version == null || !version.equals(currentVersion)) {
+                if (version != null)
+                    LOG.info("Lucene index version has changed {} -> {}, " +
+                             "reindexing all documents.", version, currentVersion);
+                forceReindex = true;
+            }
 
-	    long skipped = 0;
-	    long inLuceneCount = -1;
+            long skipped = 0;
+            long inLuceneCount = -1;
 
-	    List<DiMeData> toIndex = new ArrayList<DiMeData>();
+            List<DiMeData> toIndex = new ArrayList<DiMeData>();
 
-	    if (!forceReindex && !firstUpdate) {
-		// Just use our internal book keeping of new objects
-		toIndex.addAll(infoElemDAO.getNotIndexed());
-		toIndex.addAll(eventDAO.getNotIndexed());
-	    } else {
-		// Get the set of already indexed ids from Lucene
-		Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
+            if (!forceReindex && !firstUpdate) {
+                // Just use our internal book keeping of new objects
+                toIndex.addAll(infoElemDAO.getNotIndexed());
+                toIndex.addAll(eventDAO.getNotIndexed());
+            } else {
+                // Get the set of already indexed ids from Lucene
+                Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
 
-		inLuceneCount = inLucene.size();
+                inLuceneCount = inLucene.size();
 
-		// Loop over all elements in the database
-		for (InformationElement elem : infoElemDAO.findAll()) {
-		    // Update those which have not yet been indexed
-		    if (forceReindex || !inLucene.contains(luceneId(elem)))
-			toIndex.add(elem);
-		}
+                // Loop over all elements in the database
+                for (InformationElement elem : infoElemDAO.findAll()) {
+                    // Update those which have not yet been indexed
+                    if (forceReindex || !inLucene.contains(luceneId(elem)))
+                        toIndex.add(elem);
+                }
 
-		// Loop over all events in the database
-		for (Event event : eventDAO.findAll()) {
-		    // Update those which have not yet been indexed
-		    if (forceReindex || !inLucene.contains(luceneId(event)))
-			toIndex.add(event);
-		}
-	    }
+                // Loop over all events in the database
+                for (Event event : eventDAO.findAll()) {
+                    // Update those which have not yet been indexed
+                    if (forceReindex || !inLucene.contains(luceneId(event)))
+                        toIndex.add(event);
+                }
+            }
 
-	    Map<String, Long> cHist = new HashMap<String, Long>();
+            Map<String, Long> cHist = new HashMap<String, Long>();
 
-	    long tot = toIndex.size();
-	    for (DiMeData obj : toIndex) {
-		if (indexElement(writer, obj)) {
-		    count += 1;
+            long tot = toIndex.size();
+            for (DiMeData obj : toIndex) {
+                if (indexElement(writer, obj)) {
+                    count += 1;
 
-		    String cName = getClassName(obj);
-		    long c = cHist.containsKey(cName) ? cHist.get(cName) : 0;
-		    cHist.put(cName, c + 1);
-		} else {
-		    skipped += 1;
-		}
+                    String cName = getClassName(obj);
+                    long c = cHist.containsKey(cName) ? cHist.get(cName) : 0;
+                    cHist.put(cName, c + 1);
+                } else {
+                    skipped += 1;
+                }
 
-		// LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
-		if (obj instanceof Event)
-		    eventDAO.setIndexed((Event)obj);
-		if (obj instanceof InformationElement)
-		    infoElemDAO.setIndexed((InformationElement)obj);
-	    }
+                // LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
+                if (obj instanceof Event)
+                    eventDAO.setIndexed((Event)obj);
+                if (obj instanceof InformationElement)
+                    infoElemDAO.setIndexed((InformationElement)obj);
+            }
 
-	    LOG.debug("Writing Lucene index to disk ...");
+            LOG.debug("Writing Lucene index to disk ...");
 
-	    Map<String, String> commitData = new HashMap<String, String>();
-	    commitData.put(versionField, currentVersion);
-	    writer.setCommitData(commitData);
-	    writer.close();
+            Map<String, String> commitData = new HashMap<String, String>();
+            commitData.put(versionField, currentVersion);
+            writer.setCommitData(commitData);
+            writer.close();
 
-	    LOG.info("Lucene index updated: " +
-		     (inLuceneCount >= 0 ? inLuceneCount + " previously indexed, " : "") + 
-		     "added {} new objects, skipped {} objects with empty content.",
-		     count, skipped);
+            LOG.info("Lucene index updated: " +
+                     (inLuceneCount >= 0 ? inLuceneCount + " previously indexed, " : "") + 
+                     "added {} new objects, skipped {} objects with empty content.",
+                     count, skipped);
 
             if (cHist.size() > 0) {
                 LOG.debug("Indexed of different classes:");
@@ -329,13 +329,13 @@ public class SearchIndex {
                     LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
                 }
             }
-		     
-	} catch (IOException e) {
-	    LOG.error("Exception while updating search index: " + e);
-	}
+                     
+        } catch (IOException e) {
+            LOG.error("Exception while updating search index: " + e);
+        }
 
-	firstUpdate = false;
-	return count;
+        firstUpdate = false;
+        return count;
     }
 
     /**
@@ -346,34 +346,34 @@ public class SearchIndex {
        @return true if object was added
     */
     protected boolean indexElement(IndexWriter writer, DiMeData obj)
-	throws IOException 
+        throws IOException 
     {
-	String content = dataContent(obj);
+        String content = dataContent(obj);
 
-	if (content == null || content.isEmpty())
-	    return false;
+        if (content == null || content.isEmpty())
+            return false;
 
-	String elemId = luceneId(obj);
+        String elemId = luceneId(obj);
 
-	String className = getClassName(obj);
-	if (className == null)
-	    return false;
+        String className = getClassName(obj);
+        if (className == null)
+            return false;
 
-	String objType = "";
-	if (obj.type != null)
-	    objType = obj.type;
+        String objType = "";
+        if (obj.type != null)
+            objType = obj.type;
 
-	Document doc = new Document(); // NOTE: Lucene Document!
-	doc.add(new StringField(idField, elemId, Field.Store.YES));
-	doc.add(new StringField(userIdField, obj.user.getId().toString(), Field.Store.YES));
-	doc.add(new TextField(textQueryField, content, Field.Store.NO));
-	doc.add(new StringField(classField, className, Field.Store.YES));
-	doc.add(new StringField(typeField, objType, Field.Store.YES));
+        Document doc = new Document(); // NOTE: Lucene Document!
+        doc.add(new StringField(idField, elemId, Field.Store.YES));
+        doc.add(new StringField(userIdField, obj.user.getId().toString(), Field.Store.YES));
+        doc.add(new TextField(textQueryField, content, Field.Store.NO));
+        doc.add(new StringField(classField, className, Field.Store.YES));
+        doc.add(new StringField(typeField, objType, Field.Store.YES));
 
-	// doc.add(new LongField("modified", lastModified, Field.Store.NO));
+        // doc.add(new LongField("modified", lastModified, Field.Store.NO));
 
-	writer.updateDocument(new Term(idField, elemId), doc);
-	return true;
+        writer.updateDocument(new Term(idField, elemId), doc);
+        return true;
     }
 
     /**
@@ -382,29 +382,29 @@ public class SearchIndex {
        ReadingEvent is mapped to its corresponding Document.
     */
     public static List<InformationElement>
-	mapToElementList(List<DiMeData> dataList) 
+        mapToElementList(List<DiMeData> dataList) 
     {
-	List<InformationElement> elemList = new ArrayList<InformationElement>();
-	Set<Long> seen = new HashSet<Long>();
+        List<InformationElement> elemList = new ArrayList<InformationElement>();
+        Set<Long> seen = new HashSet<Long>();
 
-	for (DiMeData data : dataList) {
+        for (DiMeData data : dataList) {
             Float score = data.score;
 
-	    InformationElement elem = null;
-	    if (data instanceof InformationElement) {
-		elem = (InformationElement)data;
-	    } else if (data instanceof ResourcedEvent) {
-		elem = ((ResourcedEvent)data).targettedResource;
+            InformationElement elem = null;
+            if (data instanceof InformationElement) {
+                elem = (InformationElement)data;
+            } else if (data instanceof ResourcedEvent) {
+                elem = ((ResourcedEvent)data).targettedResource;
             }
-	    
-	    if (elem != null && !seen.contains(elem.getId())) {
+            
+            if (elem != null && !seen.contains(elem.getId())) {
                 elem.score = score;  // copy the original search score
-		elemList.add(elem);
-		seen.add(elem.getId());
-	    }
-	}
+                elemList.add(elem);
+                seen.add(elem.getId());
+            }
+        }
 
-	return elemList;
+        return elemList;
     }
 
     /**
@@ -413,32 +413,32 @@ public class SearchIndex {
        corresponding ReadingEvents.
     */
     public List<Event> mapToEventList(List<DiMeData> dataList, User user) {
-	List<Event> events = new ArrayList<Event>();
-	Set<Long> seen = new HashSet<Long>();
+        List<Event> events = new ArrayList<Event>();
+        Set<Long> seen = new HashSet<Long>();
 
-	for (DiMeData data : dataList) {
-	    if (data instanceof InformationElement) {
-		List<ResourcedEvent> expandedEvents =
-		    eventDAO.findByElement((InformationElement)data, user);
-		for (ResourcedEvent event : expandedEvents) {
-		    event.targettedResource.plainTextContent = null;
-		    event.score = event.targettedResource.score;
-		    if (!seen.contains(event.getId())) {
-			events.add(event);
-			seen.add(event.getId());
-		    }
-		}
-	    } else if (data instanceof Event) {
-		Event event = (Event)data;
-		if (!seen.contains(event.getId())) {
-		    if (event instanceof ResourcedEvent)
-			((ResourcedEvent)event).targettedResource.plainTextContent = null;
-		    events.add(event);
-		    seen.add(event.getId());
-		}
-	    }
-	}
-	return events;
+        for (DiMeData data : dataList) {
+            if (data instanceof InformationElement) {
+                List<ResourcedEvent> expandedEvents =
+                    eventDAO.findByElement((InformationElement)data, user);
+                for (ResourcedEvent event : expandedEvents) {
+                    event.targettedResource.plainTextContent = null;
+                    event.score = event.targettedResource.score;
+                    if (!seen.contains(event.getId())) {
+                        events.add(event);
+                        seen.add(event.getId());
+                    }
+                }
+            } else if (data instanceof Event) {
+                Event event = (Event)data;
+                if (!seen.contains(event.getId())) {
+                    if (event instanceof ResourcedEvent)
+                        ((ResourcedEvent)event).targettedResource.plainTextContent = null;
+                    events.add(event);
+                    seen.add(event.getId());
+                }
+            }
+        }
+        return events;
     }
 
 
@@ -450,92 +450,92 @@ public class SearchIndex {
        @param userId DiMe user id.
     */
     public List<DiMeData> search(SearchQuery query, String className,
-				 String typeName, int limit, Long userId)
-	throws IOException
+                                 String typeName, int limit, Long userId)
+        throws IOException
     {
-	if (limit < 0)
-	    limit = 100;
+        if (limit < 0)
+            limit = 100;
 
-	List<DiMeData> objs = new ArrayList<DiMeData>();
+        List<DiMeData> objs = new ArrayList<DiMeData>();
 
-	try {
-	    if (reader == null) {
-		reader = DirectoryReader.open(fsDir);
-		searcher = new IndexSearcher(reader);
-	    }
+        try {
+            if (reader == null) {
+                reader = DirectoryReader.open(fsDir);
+                searcher = new IndexSearcher(reader);
+            }
 
-	    DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
+            DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
 
-	    // Reinitialise reader and searcher if the index has changed.
-	    if (newReader != null) {
-		reader.close();
-		reader = newReader;
-		searcher = new IndexSearcher(reader);
-	    }
+            // Reinitialise reader and searcher if the index has changed.
+            if (newReader != null) {
+                reader.close();
+                reader = newReader;
+                searcher = new IndexSearcher(reader);
+            }
 
-	    BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
+            BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
-	    Query textQuery = null;
-	
-	    if (query instanceof TextSearchQuery) {
-		textQuery = basicTextQuery(((TextSearchQuery)query).query);
-	    } else if (query instanceof KeywordSearchQuery) {
-		textQuery = keywordSearchQuery(((KeywordSearchQuery)query).
-					       weightedKeywords);
-	    } else {
-		textQuery = new MatchAllDocsQuery();
-	    }
-	    queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
+            Query textQuery = null;
+        
+            if (query instanceof TextSearchQuery) {
+                textQuery = basicTextQuery(((TextSearchQuery)query).query);
+            } else if (query instanceof KeywordSearchQuery) {
+                textQuery = keywordSearchQuery(((KeywordSearchQuery)query).
+                                               weightedKeywords);
+            } else {
+                textQuery = new MatchAllDocsQuery();
+            }
+            queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
 
-	    queryBuilder.add(new TermQuery(new Term(userIdField, 
-						    userId.toString())),
-			     BooleanClause.Occur.FILTER);
+            queryBuilder.add(new TermQuery(new Term(userIdField, 
+                                                    userId.toString())),
+                             BooleanClause.Occur.FILTER);
 
-	    if (className != null)
-		queryBuilder.add(new TermQuery(new Term(classField, className)), 
-				 BooleanClause.Occur.FILTER);
+            if (className != null)
+                queryBuilder.add(new TermQuery(new Term(classField, className)), 
+                                 BooleanClause.Occur.FILTER);
 
-	    if (typeName != null)
-		queryBuilder.add(new TermQuery(new Term(typeField, typeName)),
-				 BooleanClause.Occur.FILTER);
+            if (typeName != null)
+                queryBuilder.add(new TermQuery(new Term(typeField, typeName)),
+                                 BooleanClause.Occur.FILTER);
 
-	    TopDocs results = searcher.search(queryBuilder.build(), limit);
-	    ScoreDoc[] hits = results.scoreDocs;
+            TopDocs results = searcher.search(queryBuilder.build(), limit);
+            ScoreDoc[] hits = results.scoreDocs;
 
-	    for (int i=0; i<hits.length; i++) {
-		Document doc = searcher.doc(hits[i].doc);
-		float score = hits[i].score;
-		String docId = doc.get(idField);
-		try {
-		    DiMeData obj = idToObject(docId);
-		    if (obj == null) {
-			LOG.error("Bad doc id: "+ docId);
-		    } else if (obj.user.getId().equals(userId)) {
-			obj.score = score;
-			objs.add(obj);
-		    } else {
-			LOG.warn("Lucene returned result for wrong user: " +
-				 obj.getId());
-		    }
-		} catch (NumberFormatException ex) {
-		    LOG.error("Lucene returned invalid id: {}", docId);
-		}
-	
-	    }
-	} catch (QueryNodeException e) {
-	     LOG.error("Exception: " + e);
-	}	 
-	return objs;
+            for (int i=0; i<hits.length; i++) {
+                Document doc = searcher.doc(hits[i].doc);
+                float score = hits[i].score;
+                String docId = doc.get(idField);
+                try {
+                    DiMeData obj = idToObject(docId);
+                    if (obj == null) {
+                        LOG.error("Bad doc id: "+ docId);
+                    } else if (obj.user.getId().equals(userId)) {
+                        obj.score = score;
+                        objs.add(obj);
+                    } else {
+                        LOG.warn("Lucene returned result for wrong user: " +
+                                 obj.getId());
+                    }
+                } catch (NumberFormatException ex) {
+                    LOG.error("Lucene returned invalid id: {}", docId);
+                }
+        
+            }
+        } catch (QueryNodeException e) {
+             LOG.error("Exception: " + e);
+        }        
+        return objs;
     }
 
     protected Query basicTextQuery(String query) throws QueryNodeException {
-	return this.parser.parse(query, textQueryField);
+        return this.parser.parse(query, textQueryField);
     }
 
     protected Query keywordSearchQuery(List<WeightedKeyword> weightedKeywords) {
-	// Andrej: remove the line below, and add your code here
+        // Andrej: remove the line below, and add your code here
 
-	return new MatchAllDocsQuery();
+        return new MatchAllDocsQuery();
     }
 
 }

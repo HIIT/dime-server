@@ -81,33 +81,33 @@ public class ApiController extends AuthorizedController {
 
     @Autowired
     ApiController(EventDAO eventDAO,
-		  InformationElementDAO infoElemDAO) {
-	this.eventDAO = eventDAO;
-	this.infoElemDAO = infoElemDAO;
+                  InformationElementDAO infoElemDAO) {
+        this.eventDAO = eventDAO;
+        this.infoElemDAO = infoElemDAO;
     }
 
     /** 
-	Class for "dummy" API responses which just return a simple
-	message string.
+        Class for "dummy" API responses which just return a simple
+        message string.
     */
     public static class ApiMessage {
-	public String message;
+        public String message;
 
-	public ApiMessage() {}
+        public ApiMessage() {}
 
-	public ApiMessage(String message) {
-	    this.message = message;
-	}
+        public ApiMessage(String message) {
+            this.message = message;
+        }
     }
 
     @RequestMapping("/ping")
     public ResponseEntity<ApiMessage> ping(ServletRequest req) {
-	LOG.info("Received ping from " + req.getRemoteHost());
+        LOG.info("Received ping from " + req.getRemoteHost());
 
-	HttpHeaders headers = new HttpHeaders();
-	headers.setContentType(MediaType.APPLICATION_JSON);
-	return new ResponseEntity<ApiMessage>(new ApiMessage("pong"),
-					      headers, HttpStatus.OK);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new ResponseEntity<ApiMessage>(new ApiMessage("pong"),
+                                              headers, HttpStatus.OK);
     }
 
     /**
@@ -115,25 +115,25 @@ public class ApiController extends AuthorizedController {
        appropriate format for returning from the API.
     */
     protected InformationElement[] doSearch(SearchQuery query, String className, 
-					    String typeName, int limit, User user)
-	throws IOException 
+                                            String typeName, int limit, User user)
+        throws IOException 
     {
-	if (query.isEmpty())
-	    return new InformationElement[0];
+        if (query.isEmpty())
+            return new InformationElement[0];
 
-	searchIndex.updateIndex();
-	
-	List<DiMeData> dataList =
-	    searchIndex.search(query, className, typeName, limit, user.getId());
-	
-	List<InformationElement> elemList =
-	    searchIndex.mapToElementList(dataList);
+        searchIndex.updateIndex();
+        
+        List<DiMeData> dataList =
+            searchIndex.search(query, className, typeName, limit, user.getId());
+        
+        List<InformationElement> elemList =
+            searchIndex.mapToElementList(dataList);
 
-	InformationElement[] results = new InformationElement[elemList.size()];
-	elemList.toArray(results);	
+        InformationElement[] results = new InformationElement[elemList.size()];
+        elemList.toArray(results);      
 
-	LOG.info(String.format("Search query \"%s\" (limit=%d, className=%s, typeName=%s) returned %d results.", query, limit, className, typeName, results.length));
-	return results;
+        LOG.info(String.format("Search query \"%s\" (limit=%d, className=%s, typeName=%s) returned %d results.", query, limit, className, typeName, results.length));
+        return results;
     }
 
     /**
@@ -142,99 +142,99 @@ public class ApiController extends AuthorizedController {
        API.
     */
     protected Event[] doEventSearch(SearchQuery query, String className,
-				    String typeName, int limit, User user) 
-	throws IOException 
+                                    String typeName, int limit, User user) 
+        throws IOException 
     {
-	if (query.isEmpty())
-	    return new Event[0];
+        if (query.isEmpty())
+            return new Event[0];
 
-	searchIndex.updateIndex();
-	List<DiMeData> dataList = searchIndex.search(query, className, typeName,
-						     limit, user.getId());
+        searchIndex.updateIndex();
+        List<DiMeData> dataList = searchIndex.search(query, className, typeName,
+                                                     limit, user.getId());
 
-	List<Event> events = searchIndex.mapToEventList(dataList, user);
-	    
-	Event[] results = new Event[events.size()];
-	events.toArray(results);
+        List<Event> events = searchIndex.mapToEventList(dataList, user);
+            
+        Event[] results = new Event[events.size()];
+        events.toArray(results);
 
-	LOG.info(String.format("Search query \"%s\" (limit=%d, className=%s, typeName=%s) returned %d results.", query, limit, className, typeName, results.length));
-		
-	return results;
+        LOG.info(String.format("Search query \"%s\" (limit=%d, className=%s, typeName=%s) returned %d results.", query, limit, className, typeName, results.length));
+                
+        return results;
     }
 
     @RequestMapping(value="/search", method = RequestMethod.GET)
     public ResponseEntity<InformationElement[]> 
-	search(Authentication auth,
-	       @RequestParam String query,
-	       @RequestParam(value="@type", required=false) String className,
-	       @RequestParam(value="type", required=false) String typeName,
-	       @RequestParam(defaultValue="-1") int limit) 
+        search(Authentication auth,
+               @RequestParam String query,
+               @RequestParam(value="@type", required=false) String className,
+               @RequestParam(value="type", required=false) String typeName,
+               @RequestParam(defaultValue="-1") int limit) 
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	try {
-	    TextSearchQuery textQuery = new TextSearchQuery(query);
-	    InformationElement[] results =
-		doSearch(textQuery, className, typeName, limit, user);
+        try {
+            TextSearchQuery textQuery = new TextSearchQuery(query);
+            InformationElement[] results =
+                doSearch(textQuery, className, typeName, limit, user);
 
-	    return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
-	} catch (IOException e) {
-	    return new ResponseEntity<InformationElement[]>
-		(HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+            return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<InformationElement[]>
+                (HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @RequestMapping(value="/eventsearch", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
-	eventSearch(Authentication auth, 
-		    @RequestParam String query,
-		    @RequestParam(value="@type", required=false) String className,
-		    @RequestParam(value="type", required=false) String typeName,
-		    @RequestParam(defaultValue="-1") int limit) {
-	User user = getUser(auth);
+        eventSearch(Authentication auth, 
+                    @RequestParam String query,
+                    @RequestParam(value="@type", required=false) String className,
+                    @RequestParam(value="type", required=false) String typeName,
+                    @RequestParam(defaultValue="-1") int limit) {
+        User user = getUser(auth);
 
-	try {
-	    TextSearchQuery textQuery = new TextSearchQuery(query);
-	    Event[] results = 
-		doEventSearch(textQuery, className, typeName, limit, user);
+        try {
+            TextSearchQuery textQuery = new TextSearchQuery(query);
+            Event[] results = 
+                doEventSearch(textQuery, className, typeName, limit, user);
 
-	    return new ResponseEntity<Event[]>(results, HttpStatus.OK);
-	} catch (IOException e) {
-	    return new ResponseEntity<Event[]> (HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+            return new ResponseEntity<Event[]>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<Event[]> (HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-	
+        
     @RequestMapping(value="/keywordsearch", method = RequestMethod.POST)
     public ResponseEntity<InformationElement[]>
-	search(Authentication auth, @RequestBody WeightedKeyword[] input) 
+        search(Authentication auth, @RequestBody WeightedKeyword[] input) 
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	try {
-	    KeywordSearchQuery query = new KeywordSearchQuery(input);
-	    InformationElement[] results = doSearch(query, null, null, -1, user);
-	    
-	    return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
-	} catch (IOException e) {
-	    return new ResponseEntity<InformationElement[]>
-		(HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+        try {
+            KeywordSearchQuery query = new KeywordSearchQuery(input);
+            InformationElement[] results = doSearch(query, null, null, -1, user);
+            
+            return new ResponseEntity<InformationElement[]>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<InformationElement[]>
+                (HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @RequestMapping(value="/eventkeywordsearch", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
-	eventSearch(Authentication auth, @RequestBody WeightedKeyword[] input) 
+        eventSearch(Authentication auth, @RequestBody WeightedKeyword[] input) 
     {
-	User user = getUser(auth);
+        User user = getUser(auth);
 
-	try {
-	    KeywordSearchQuery query = new KeywordSearchQuery(input);
-	    Event[] results = doEventSearch(query, null, null, -1, user);
+        try {
+            KeywordSearchQuery query = new KeywordSearchQuery(input);
+            Event[] results = doEventSearch(query, null, null, -1, user);
 
-	    return new ResponseEntity<Event[]>(results, HttpStatus.OK);
-	} catch (IOException e) {
-	    return new ResponseEntity<Event[]> (HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+            return new ResponseEntity<Event[]>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<Event[]> (HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
