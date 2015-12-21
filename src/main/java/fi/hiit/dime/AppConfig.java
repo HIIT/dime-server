@@ -43,6 +43,7 @@ public class AppConfig {
 
     @Bean
     public SearchIndex searchIndex() throws Exception {
-	return new SearchIndex(dimeConfig.getLuceneIndexPath());
+	return new SearchIndex(dimeConfig.getLuceneIndexPath(),
+                               dimeConfig.getLuceneAnalyzer());
     }
 }

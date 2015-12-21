@@ -24,6 +24,7 @@
 
 package fi.hiit.dime.search;
 
+import fi.hiit.dime.DiMeProperties;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
@@ -98,7 +99,7 @@ public class SearchIndex {
     private static final String typeField = "type";
 
     private static final String versionField = "dime_version";
-    private static final String currentVersion = "4";
+    private static final String currentVersionNumber = "5";
 
     private static final String dataClassPrefix = "fi.hiit.dime.data.";
 
@@ -106,8 +107,9 @@ public class SearchIndex {
     private DirectoryReader reader = null;
     private IndexSearcher searcher = null;
     private StandardQueryParser parser;
-    private Analyzer analyzer = new StandardAnalyzer();
-    // FIXME MemEx wants new EnglishAnalyzer();
+    private Analyzer analyzer = null;
+
+    private String analyzerName = null;
 
     private static boolean firstUpdate = true;
 
@@ -122,11 +124,21 @@ public class SearchIndex {
 
        @param indexPath Path to Lucene index
     */
-    public SearchIndex(String indexPath) throws IOException {
+    public SearchIndex(String indexPath, String analyzerName) throws IOException {
         fsDir = FSDirectory.open(Paths.get(indexPath));
 
-        // FIXME: check if index was destroyed, i.e. would need
-        // reindexing
+        if (analyzerName.equals("English")) {
+            analyzer = new EnglishAnalyzer();
+        } else {
+            analyzer = new StandardAnalyzer();
+
+            if (!analyzerName.equals("Standard"))
+                LOG.error("Unknown Lucene analyzer given in config ({})!",
+                          analyzerName);
+            analyzerName = "Standard";
+        }
+        LOG.info("Using {} analyzer for Lucene.", analyzerName);
+        this.analyzerName = analyzerName;
 
         parser = new StandardQueryParser(analyzer);
     }
@@ -265,6 +277,10 @@ public class SearchIndex {
         return fullClassName.substring(dataClassPrefix.length());
     }
 
+    private String getVersion() {
+        return currentVersionNumber + "_" + analyzerName;
+    }
+
     /**
        Call to update index, e.g. after adding new information elements.
 
@@ -285,11 +301,11 @@ public class SearchIndex {
             IndexWriter writer = getIndexWriter();
             String version = writer.getCommitData().get(versionField);
 
-            if (version == null || !version.equals(currentVersion)) {
+            if (version == null || !version.equals(getVersion())) {
                 if (version != null)
                     LOG.info("Lucene index version has changed {} -> {}, " +
                              "reindexing all documents.", version,
-                             currentVersion);
+                             getVersion());
                 forceReindex = true;
             }
 
@@ -353,7 +369,7 @@ public class SearchIndex {
             LOG.debug("Writing Lucene index to disk ...");
 
             Map<String, String> commitData = new HashMap<String, String>();
-            commitData.put(versionField, currentVersion);
+            commitData.put(versionField, getVersion());
             writer.setCommitData(commitData);
             writer.close();
 

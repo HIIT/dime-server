@@ -27,11 +27,18 @@ package fi.hiit.dime;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(locations = "classpath:application.properties", ignoreUnknownFields = false, prefix = "dime")
+@ConfigurationProperties(ignoreUnknownFields = false, 
+                         prefix = "dime")
 @Component
 public class DiMeProperties {
     private String luceneIndexPath;
 
     public void setLuceneIndexPath(String s) { luceneIndexPath = s; }
     public String getLuceneIndexPath() { return luceneIndexPath; }
+
+    private String luceneAnalyzer = "Standard";
+    public void setLuceneAnalyzer(String s) { 
+        luceneAnalyzer = s; //.replaceAll("Analyzer$", "");
+    }
+    public String getLuceneAnalyzer() { return luceneAnalyzer; }
 }
