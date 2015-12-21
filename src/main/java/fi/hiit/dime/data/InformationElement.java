@@ -24,9 +24,7 @@
 
 package fi.hiit.dime.data;
 
-import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -43,15 +41,6 @@ import javax.persistence.JoinColumn;
    Base class for all information elements, e.g. documents, messages
    etc that are involved in events.
 */
-@JsonInclude(value=JsonInclude.Include.NON_NULL)
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
-@JsonSubTypes({
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.ScientificDocument.class, name="ScientificDocument"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Message.class, name="Message"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Person.class, name="Person")
-})
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public class InformationElement extends DiMeData {

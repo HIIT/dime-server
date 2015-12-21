@@ -28,6 +28,7 @@ import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
+import fi.hiit.dime.search.SearchIndex;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -62,6 +63,9 @@ public class DataController extends AuthorizedController {
 
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
+
+    @Autowired
+    SearchIndex searchIndex;
 
     @Autowired 
     private ObjectMapper objectMapper;
@@ -376,14 +380,20 @@ public class DataController extends AuthorizedController {
     }   
 
     /** HTTP end point for accessing a single informationelement. */    
-    @RequestMapping(value="/informationelement/{id}", method = RequestMethod.GET)
+    @RequestMapping(value="/informationelement/{id}",
+                    method = RequestMethod.GET)
     public ResponseEntity<InformationElement>
-        informationElement(Authentication auth, @PathVariable Long id) 
+        informationElement(Authentication auth, 
+                           @PathVariable Long id,
+                           @RequestParam(defaultValue="false") 
+                           boolean keywords) 
         throws NotFoundException
     {
         User user = getUser(auth);
 
         InformationElement elem = infoElemDAO.findById(id, user);
+        if (keywords)
+            searchIndex.updateKeywords(elem);
 
         if (elem == null || !elem.user.getId().equals(user.getId()))
             throw new NotFoundException("Element not found");
@@ -402,12 +412,15 @@ public class DataController extends AuthorizedController {
         User user = getUser(auth);
 
         try {
-            List<InformationElement> infoElems = infoElemDAO.find(user.getId(), params);
+            List<InformationElement> infoElems = 
+                infoElemDAO.find(user.getId(), params);
 
-            InformationElement[] infoElemsArray = new InformationElement[infoElems.size()];
+            InformationElement[] infoElemsArray = 
+                new InformationElement[infoElems.size()];
             infoElems.toArray(infoElemsArray);  
 
-            return new ResponseEntity<InformationElement[]>(infoElemsArray, HttpStatus.OK);
+            return new ResponseEntity<InformationElement[]>(infoElemsArray, 
+                                                            HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid arguments");
         }

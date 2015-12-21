@@ -24,17 +24,49 @@
 
 package fi.hiit.dime.search;
 
-//------------------------------------------------------------------------------
+import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.DiMeData;
 
-public class WeightedKeyword {
-    public String term;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-    public float weight;
+import java.util.ArrayList;
+import java.util.List;
 
-    public WeightedKeyword() {}
+/** Class for containing search results and metadata. Similar to JSON
+    "response" part of Solr.
+*/
+@JsonInclude(value=JsonInclude.Include.NON_NULL)
+public class SearchResults {
+    private long numFound;
 
-    public WeightedKeyword(String term, float weight) {
-        this.term = term;
-        this.weight = weight;
+    private List<DiMeData> docs;
+
+    public List<WeightedKeyword> queryTerms;
+
+    public SearchResults() {
+        this.docs = new ArrayList<DiMeData>();
     }
+
+    /** Add a single DiMeData object to the results. 
+     */
+    public long add(DiMeData obj) {
+        docs.add(obj);
+        numFound = docs.size();
+        return numFound;
+    }
+
+    /** Get the list of results.
+     */
+    public List<DiMeData> getDocs() { return docs; }
+
+    /** Set the list of results to given list of DiMeData objects.
+     */
+    public void setDocs(List<DiMeData> docs) {
+        this.docs = docs;
+        numFound = docs.size();
+    }
+
+    /** Get number of results.
+     */
+    public long getNumFound() { return numFound; }
 }

@@ -37,18 +37,24 @@ import fi.hiit.dime.search.SearchQuery;
 import fi.hiit.dime.search.TextSearchQuery;
 import fi.hiit.dime.search.KeywordSearchQuery;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.search.BooleanClause;
@@ -59,7 +65,9 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.Weight;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,12 +81,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
    Class that encapsulates the search index.
 */
 public class SearchIndex {
-    private static final Logger LOG = LoggerFactory.getLogger(SearchIndex.class);
+    private static final Logger LOG =
+        LoggerFactory.getLogger(SearchIndex.class);
 
     private static final String idField = "id";
     private static final String userIdField = "userId";
@@ -95,6 +106,8 @@ public class SearchIndex {
     private DirectoryReader reader = null;
     private IndexSearcher searcher = null;
     private StandardQueryParser parser;
+    private Analyzer analyzer = new StandardAnalyzer();
+    // FIXME MemEx wants new EnglishAnalyzer();
 
     private static boolean firstUpdate = true;
 
@@ -106,7 +119,7 @@ public class SearchIndex {
 
     /**
        Constructor.
-       
+
        @param indexPath Path to Lucene index
     */
     public SearchIndex(String indexPath) throws IOException {
@@ -115,7 +128,7 @@ public class SearchIndex {
         // FIXME: check if index was destroyed, i.e. would need
         // reindexing
 
-        parser = new StandardQueryParser(new StandardAnalyzer());
+        parser = new StandardQueryParser(analyzer);
     }
 
     /**
@@ -125,7 +138,7 @@ public class SearchIndex {
        @return An IndexWriter instance
     */
     protected IndexWriter getIndexWriter() throws IOException {
-        IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
+        IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 
         // Advice from Lucene example:
@@ -157,6 +170,25 @@ public class SearchIndex {
     }
 
     /**
+        This has to be called before using searcher or reader.
+     */
+    protected void ensureSearcherAndReader() throws IOException {
+        if (reader == null) {
+            reader = DirectoryReader.open(fsDir);
+            searcher = new IndexSearcher(reader);
+        }
+
+        DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
+
+        // Reinitialise reader and searcher if the index has changed.
+        if (newReader != null) {
+            reader.close();
+            reader = newReader;
+            searcher = new IndexSearcher(reader);
+        }
+    }
+
+    /**
        Get the set of indexed object ids.
     */
     protected Set<String> indexedIds(IndexReader reader) throws IOException {
@@ -164,11 +196,11 @@ public class SearchIndex {
 
         Set<String> fields = new HashSet<String>();
         fields.add(idField);
-        
+
         for (int i=0; i<reader.maxDoc(); i++) {
             Document doc = reader.document(i, fields);
             String docId = doc.get(idField);
-            
+
             ids.add(docId);
         }
 
@@ -176,7 +208,7 @@ public class SearchIndex {
     }
 
     /**
-      Convert DiMeData object into a string to be used as the Lucene doc id.
+       Convert DiMeData object into a string to be used as the Lucene doc id.
     */
     private String luceneId(DiMeData obj) {
         if (obj instanceof Event)
@@ -186,7 +218,7 @@ public class SearchIndex {
     }
 
     /**
-      Convert the Lucene doc id into an DiMeData object, 
+       Convert the Lucene doc id into an DiMeData object,
     */
     private DiMeData idToObject(String docId) {
         String[] parts = docId.split("_", 2);
@@ -206,8 +238,8 @@ public class SearchIndex {
     }
 
     /**
-      Convert DiMeData object into the plain text content string that
-      is meant to be indexed.
+       Convert DiMeData object into the plain text content string that
+       is meant to be indexed.
     */
     private String dataContent(DiMeData obj) {
         if (obj instanceof ReadingEvent)
@@ -244,7 +276,7 @@ public class SearchIndex {
     public long updateIndex() {
         if (!firstUpdate && !infoElemDAO.hasUnIndexed())
             return 0;
-        
+
         long count = 0;
 
         LOG.debug("Updating Lucene index ....");
@@ -256,7 +288,8 @@ public class SearchIndex {
             if (version == null || !version.equals(currentVersion)) {
                 if (version != null)
                     LOG.info("Lucene index version has changed {} -> {}, " +
-                             "reindexing all documents.", version, currentVersion);
+                             "reindexing all documents.", version,
+                             currentVersion);
                 forceReindex = true;
             }
 
@@ -271,7 +304,8 @@ public class SearchIndex {
                 toIndex.addAll(eventDAO.getNotIndexed());
             } else {
                 // Get the set of already indexed ids from Lucene
-                Set<String> inLucene = indexedIds(DirectoryReader.open(writer, true));
+                Set<String> inLucene = 
+                    indexedIds(DirectoryReader.open(writer, true));
 
                 inLuceneCount = inLucene.size();
 
@@ -292,11 +326,17 @@ public class SearchIndex {
 
             Map<String, Long> cHist = new HashMap<String, Long>();
 
+            // create a field that stores term vectors, i.e. tf (idf) values
+            FieldType fieldType = new FieldType();
+            fieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
+            fieldType.setStored(false);
+            fieldType.setStoreTermVectors(true);
+            fieldType.setTokenized(true);
+
             long tot = toIndex.size();
             for (DiMeData obj : toIndex) {
-                if (indexElement(writer, obj)) {
+                if (indexElement(writer, obj, fieldType)) {
                     count += 1;
-
                     String cName = getClassName(obj);
                     long c = cHist.containsKey(cName) ? cHist.get(cName) : 0;
                     cHist.put(cName, c + 1);
@@ -304,7 +344,6 @@ public class SearchIndex {
                     skipped += 1;
                 }
 
-                // LOG.debug("Count: {}, skipped: {}, total: {}", count, skipped, tot);
                 if (obj instanceof Event)
                     eventDAO.setIndexed((Event)obj);
                 if (obj instanceof InformationElement)
@@ -319,9 +358,10 @@ public class SearchIndex {
             writer.close();
 
             LOG.info("Lucene index updated: " +
-                     (inLuceneCount >= 0 ? inLuceneCount + " previously indexed, " : "") + 
-                     "added {} new objects, skipped {} objects with empty content.",
-                     count, skipped);
+                     (inLuceneCount >= 0 ? inLuceneCount + 
+                      " previously indexed, " : "") + 
+                     "added {} new objects, skipped {} objects " +
+                     "with empty content.", count, skipped);
 
             if (cHist.size() > 0) {
                 LOG.debug("Indexed of different classes:");
@@ -329,13 +369,57 @@ public class SearchIndex {
                     LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
                 }
             }
-                     
+
         } catch (IOException e) {
             LOG.error("Exception while updating search index: " + e);
         }
 
         firstUpdate = false;
         return count;
+    }
+
+    /** Updates the given DiMeData with the Lucene keywords. */
+    public DiMeData updateKeywords(DiMeData obj) {
+        try {
+            ensureSearcherAndReader();
+
+            // create a query to search for the internal id of the document
+            Query idQuery = new TermQuery(new Term(idField, luceneId(obj)));
+
+            TopDocs hits = searcher.search(idQuery, 1);
+
+            if (hits.scoreDocs.length>0){
+                // get the terms from the current document
+                Terms termVec;
+                termVec = reader.getTermVector(hits.scoreDocs[0].doc,
+                                               textQueryField);
+
+                // create enumerator for the terms
+                TermsEnum termsEnum = termVec.iterator();
+
+                // iterate over all terms of the current document
+                BytesRef termText; // term in utf8 encoding
+                String term; // term converted to string
+
+                obj.weightedKeywords = new ArrayList<WeightedKeyword>();
+
+                while ((termText = termsEnum.next()) != null) {
+                    term = termText.utf8ToString();
+                    WeightedKeyword wk = 
+                            new WeightedKeyword(term, termsEnum.docFreq());
+                    obj.weightedKeywords.add(wk);
+                }
+            }
+            else{
+                System.out.println("Failed to find document with the id:" + 
+                                   luceneId(obj));
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return obj;
     }
 
     /**
@@ -345,7 +429,8 @@ public class SearchIndex {
        @param obj data object to add
        @return true if object was added
     */
-    protected boolean indexElement(IndexWriter writer, DiMeData obj)
+    protected boolean indexElement(IndexWriter writer, DiMeData obj,
+                                   FieldType fieldType)
         throws IOException 
     {
         String content = dataContent(obj);
@@ -364,10 +449,16 @@ public class SearchIndex {
             objType = obj.type;
 
         Document doc = new Document(); // NOTE: Lucene Document!
+
         doc.add(new StringField(idField, elemId, Field.Store.YES));
-        doc.add(new StringField(userIdField, obj.user.getId().toString(), Field.Store.YES));
-        doc.add(new TextField(textQueryField, content, Field.Store.NO));
+
+        doc.add(new StringField(userIdField, obj.user.getId().toString(), 
+                                Field.Store.YES));
+
+        doc.add(new Field(textQueryField, content, fieldType));
+
         doc.add(new StringField(classField, className, Field.Store.YES));
+
         doc.add(new StringField(typeField, objType, Field.Store.YES));
 
         // doc.add(new LongField("modified", lastModified, Field.Store.NO));
@@ -381,10 +472,10 @@ public class SearchIndex {
        InformationElements, doing appropriate conversions. E.g. a
        ReadingEvent is mapped to its corresponding Document.
     */
-    public static List<InformationElement>
+    protected static List<DiMeData>
         mapToElementList(List<DiMeData> dataList) 
     {
-        List<InformationElement> elemList = new ArrayList<InformationElement>();
+        List<DiMeData> elemList = new ArrayList<DiMeData>();
         Set<Long> seen = new HashSet<Long>();
 
         for (DiMeData data : dataList) {
@@ -396,7 +487,7 @@ public class SearchIndex {
             } else if (data instanceof ResourcedEvent) {
                 elem = ((ResourcedEvent)data).targettedResource;
             }
-            
+
             if (elem != null && !seen.contains(elem.getId())) {
                 elem.score = score;  // copy the original search score
                 elemList.add(elem);
@@ -408,12 +499,23 @@ public class SearchIndex {
     }
 
     /**
+       Map the search results list to InformationElements, doing
+       appropriate conversions. E.g. a ReadingEvent is mapped to its
+       corresponding Document.
+    */
+    public void mapToElements(SearchResults res) {
+        res.setDocs(mapToElementList(res.getDocs()));
+    }
+
+    /**
        Map a list of DiMeData objects to a list of Events, doing
        appropriate conversions. E.g. a Document is mapped to its
        corresponding ReadingEvents.
     */
-    public List<Event> mapToEventList(List<DiMeData> dataList, User user) {
-        List<Event> events = new ArrayList<Event>();
+    protected List<DiMeData> 
+        mapToEventList(List<DiMeData> dataList, User user) 
+    {
+        List<DiMeData> events = new ArrayList<DiMeData>();
         Set<Long> seen = new HashSet<Long>();
 
         for (DiMeData data : dataList) {
@@ -441,6 +543,13 @@ public class SearchIndex {
         return events;
     }
 
+    /**
+       Map the results list to Events, doing appropriate conversions.
+       E.g. a Document is mapped to its corresponding ReadingEvents.
+    */
+    public void mapToEvents(SearchResults res, User user) {
+        res.setDocs(mapToEventList(res.getDocs(), user));
+    }
 
     /**
        Perform text search to Lucene index.
@@ -449,58 +558,75 @@ public class SearchIndex {
        @param limit Maximum number of results to return
        @param userId DiMe user id.
     */
-    public List<DiMeData> search(SearchQuery query, String className,
-                                 String typeName, int limit, Long userId)
+    public SearchResults search(SearchQuery query, String className,
+                                String typeName, int limit, Long userId)
         throws IOException
     {
         if (limit < 0)
             limit = 100;
 
-        List<DiMeData> objs = new ArrayList<DiMeData>();
+        SearchResults res = new SearchResults();
 
         try {
-            if (reader == null) {
-                reader = DirectoryReader.open(fsDir);
-                searcher = new IndexSearcher(reader);
-            }
-
-            DirectoryReader newReader = DirectoryReader.openIfChanged(reader);
-
-            // Reinitialise reader and searcher if the index has changed.
-            if (newReader != null) {
-                reader.close();
-                reader = newReader;
-                searcher = new IndexSearcher(reader);
-            }
+            ensureSearcherAndReader();
 
             BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
             Query textQuery = null;
-        
+
             if (query instanceof TextSearchQuery) {
                 textQuery = basicTextQuery(((TextSearchQuery)query).query);
+
+                // extract the terms of a string query
+                Weight w = searcher.createWeight(textQuery, false);
+                TreeSet<Term> textQueryTerms = new TreeSet<Term>();
+                w.extractTerms(textQueryTerms);
+
+                // add the terms to query terms
+                Iterator<Term> termsEnum = textQueryTerms.iterator();
+                List<WeightedKeyword> queryTerms =
+                    new ArrayList<WeightedKeyword>();
+                while (termsEnum.hasNext()){
+                    // FIXME: if boosting in string is used, the
+                    // weights are not 1
+                    queryTerms.add(new WeightedKeyword(termsEnum.next().text(),
+                                                       (float) 1));
+                }
+
+                // return the extracted terms
+                res.queryTerms = queryTerms;
+
             } else if (query instanceof KeywordSearchQuery) {
-                textQuery = keywordSearchQuery(((KeywordSearchQuery)query).
-                                               weightedKeywords);
+                textQuery =
+                    keywordSearchQuery(((KeywordSearchQuery)query).
+                                       weightedKeywords);
+
+                // return the weighted keywords as query terms
+                res.queryTerms = ((KeywordSearchQuery)query).weightedKeywords;
+
             } else {
                 textQuery = new MatchAllDocsQuery();
             }
+
             queryBuilder.add(textQuery, BooleanClause.Occur.MUST);
 
-            queryBuilder.add(new TermQuery(new Term(userIdField, 
-                                                    userId.toString())),
-                             BooleanClause.Occur.FILTER);
+            Query userQuery = new TermQuery(new Term(userIdField,
+                    userId.toString()));
+            queryBuilder.add(userQuery, BooleanClause.Occur.FILTER);
+
 
             if (className != null)
-                queryBuilder.add(new TermQuery(new Term(classField, className)), 
+                queryBuilder.add(new TermQuery(new Term(classField, className)),
                                  BooleanClause.Occur.FILTER);
 
             if (typeName != null)
                 queryBuilder.add(new TermQuery(new Term(typeField, typeName)),
                                  BooleanClause.Occur.FILTER);
 
+           // search for the documents with the query
             TopDocs results = searcher.search(queryBuilder.build(), limit);
             ScoreDoc[] hits = results.scoreDocs;
+            System.out.println("results number:"+hits.length);
 
             for (int i=0; i<hits.length; i++) {
                 Document doc = searcher.doc(hits[i].doc);
@@ -512,7 +638,33 @@ public class SearchIndex {
                         LOG.error("Bad doc id: "+ docId);
                     } else if (obj.user.getId().equals(userId)) {
                         obj.score = score;
-                        objs.add(obj);
+
+                        // get the terms from the current document
+                        Terms termVec = reader.getTermVector(hits[i].doc,
+                                textQueryField);
+
+                        // create enumerator for the terms
+                        if (termVec != null) {
+                            TermsEnum termsEnum = termVec.iterator();
+
+                            // iterate over all terms of the current document
+                            BytesRef termText; // term in utf8 encoding
+                            String term; // term converted to string
+
+                            obj.weightedKeywords =
+                                new ArrayList<WeightedKeyword>();
+
+                            while ((termText = termsEnum.next()) != null) {
+                                term = termText.utf8ToString();
+                                WeightedKeyword wk =
+                                    new WeightedKeyword(term,
+                                                        termsEnum.docFreq());
+                                obj.weightedKeywords.add(wk);
+
+                            }
+                        }
+
+                        res.add(obj);
                     } else {
                         LOG.warn("Lucene returned result for wrong user: " +
                                  obj.getId());
@@ -520,12 +672,12 @@ public class SearchIndex {
                 } catch (NumberFormatException ex) {
                     LOG.error("Lucene returned invalid id: {}", docId);
                 }
-        
             }
         } catch (QueryNodeException e) {
-             LOG.error("Exception: " + e);
-        }        
-        return objs;
+            LOG.error("Exception: " + e);
+        }
+
+        return res;
     }
 
     protected Query basicTextQuery(String query) throws QueryNodeException {
@@ -533,9 +685,24 @@ public class SearchIndex {
     }
 
     protected Query keywordSearchQuery(List<WeightedKeyword> weightedKeywords) {
-        // Andrej: remove the line below, and add your code here
+        BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
-        return new MatchAllDocsQuery();
+        for (int i=0; i<weightedKeywords.size(); i++){
+            // construct a term query from the current term
+            TermQuery termQuery =
+                new TermQuery(new Term(textQueryField,
+                                       weightedKeywords.get(i).term));
+
+            // boost the current term with the corresponding term frequency
+            termQuery.setBoost(weightedKeywords.get(i).weight);
+
+            // add the next clause to the boolean query
+            queryBuilder.add(new BooleanClause(termQuery,
+                                               BooleanClause.Occur.SHOULD));
+        }
+
+        // create and return the new query
+        return queryBuilder.build();
     }
 
 }

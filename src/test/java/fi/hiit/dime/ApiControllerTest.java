@@ -25,6 +25,7 @@
 package fi.hiit.dime;
 
 import fi.hiit.dime.ApiController.ApiMessage;
+import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.Message;
@@ -35,6 +36,7 @@ import fi.hiit.dime.data.ScientificDocument;
 import fi.hiit.dime.data.SearchEvent;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
+import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.util.RandomPassword;
 
 import org.junit.Test;
@@ -57,7 +59,7 @@ public class ApiControllerTest extends RestTest {
 
     @Test
     public void testPing() throws Exception {
-        ResponseEntity<ApiMessage> res = 
+        ResponseEntity<ApiMessage> res =
             getRest().getForEntity(apiUrl("/ping"), ApiMessage.class);
 
         assertSuccessful(res);
@@ -66,22 +68,18 @@ public class ApiControllerTest extends RestTest {
 
     @Test
     public void testEmptySearch() throws Exception {
-        ResponseEntity<InformationElement[]> res = 
-            getRest().getForEntity(apiUrl("/search?query="),
-                                   InformationElement[].class);
+        SearchResults res = doSearch("");
 
-        assertSuccessful(res);
-
-        InformationElement[] elems = res.getBody();
-        assertEquals(0, elems.length);
+        assertEquals(0, res.getDocs().size());
     }
 
-    private InformationElement[] doSearch(String query) {
-        return getData(apiUrl("/search?query=" + query), InformationElement[].class);
+    private SearchResults doSearch(String query) {
+        return getData(apiUrl("/search?query=" + query), SearchResults.class);
     }
 
-    private Event[] doEventSearch(String query) {
-        return getData(apiUrl("/eventsearch?query=" + query), Event[].class);
+    private SearchResults doEventSearch(String query) {
+        return getData(apiUrl("/eventsearch?query=" + query),
+                       SearchResults.class);
     }
 
     @Test
@@ -89,8 +87,8 @@ public class ApiControllerTest extends RestTest {
         final String magicWord = "foobar";
 
         // Search without events should return zero
-        InformationElement[] searchResEmpty = doSearch(magicWord);
-        assertEquals(0, searchResEmpty.length);
+        SearchResults searchResEmpty = doSearch(magicWord);
+        assertEquals(0, searchResEmpty.getDocs().size());
 
         // Create some events with messages
         int numEvents = 12;
@@ -106,7 +104,7 @@ public class ApiControllerTest extends RestTest {
 
         for (int i=0; i<numEvents-2; i++) {
             String content = rand.getPassword(10, false, false);
-            if (idxToFind.contains(i)) 
+            if (idxToFind.contains(i))
                 content += " " + magicWord;
             content += " " + rand.getPassword(10, false, false);
             Message msg = createTestEmail(content, "Hello");
@@ -116,17 +114,18 @@ public class ApiControllerTest extends RestTest {
 
             events[i] = event;
         }
-        
+
         // Make a last event which contains a duplicate message
         MessageEvent extraEvent = new MessageEvent();
-        extraEvent.targettedResource = ((MessageEvent)events[5]).targettedResource;
+        extraEvent.targettedResource =
+            ((MessageEvent)events[5]).targettedResource;
 
         events[numEvents-2] = extraEvent;
 
         SearchEvent searchEvent = new SearchEvent();
         searchEvent.query = "foobar";
         searchEvent.appId = "i43ruhutfiu5rhuhuhg";
-        
+
         events[numEvents-1] = searchEvent;
 
         dumpData("TESTSEARCH", events);
@@ -140,19 +139,23 @@ public class ApiControllerTest extends RestTest {
         Set<Long> idToFind = new HashSet<Long>();
         for (int i=0; i<numEvents-1; i++) {
             if (idxToFind.contains(i))
-                idToFind.add(((MessageEvent)uploadedEvents[i]).targettedResource.getId());
+                idToFind.add(((MessageEvent)uploadedEvents[i]).
+                             targettedResource.getId());
         }
 
         // Now try searching for the ones in idxToFind
-        InformationElement[] searchRes = doSearch(magicWord+"&@type=Message");
+        SearchResults searchRes = doSearch(magicWord+"&@type=Message");
 
         dumpData("searchRes", searchRes);
 
         // Check that we have the expected number of results
-        assertEquals(idxToFind.size(), searchRes.length);
-        
+        assertEquals(idxToFind.size(), searchRes.getDocs().size());
+        assertEquals(idxToFind.size(), searchRes.getNumFound());
+
         Set<Long> idFound = new HashSet<Long>();
-        for (InformationElement elem : searchRes) {
+        for (DiMeData data : searchRes.getDocs()) {
+            assertTrue(data instanceof InformationElement);
+            InformationElement elem = (InformationElement)data;
             // Check that each returned document contains the expected word
             assertTrue(elem.plainTextContent.contains(magicWord));
             idFound.add(elem.getId());
@@ -162,20 +165,20 @@ public class ApiControllerTest extends RestTest {
         assertEquals(idToFind, idFound);
 
         // Try searching as events
-        Event[] searchEventsRes = doEventSearch(magicWord+"&@type=Message");
-        
+        SearchResults searchEventsRes =
+            doEventSearch(magicWord+"&@type=Message");
+
         dumpData("searchEventsRes", searchEventsRes);
 
         // Check that we have the expected number of results
-        // +1 because we added an extra event with duplicate msg
-        assertEquals(idxToFind.size()+1, searchEventsRes.length);
-        
-        Set<Long> idFound2 = new HashSet<Long>();
-        for (Event event : searchEventsRes) {
-            assertTrue(event instanceof ResourcedEvent);
+        // +1 because we added a last event with duplicate msg
+        assertEquals(idxToFind.size()+1, searchEventsRes.getDocs().size());
 
-            ResourcedEvent revent = (ResourcedEvent)event;
-            //assertTrue(revent.targettedResource.plainTextContent.contains(magicWord));
+        Set<Long> idFound2 = new HashSet<Long>();
+        for (DiMeData data : searchEventsRes.getDocs()) {
+            assertTrue(data instanceof ResourcedEvent);
+
+            ResourcedEvent revent = (ResourcedEvent)data;
 
             idFound2.add(revent.targettedResource.getId());
         }
@@ -184,12 +187,14 @@ public class ApiControllerTest extends RestTest {
         assertEquals(idToFind, idFound2);
 
         // Search for SearchEvents only
-        Event[] searchByTypeRes = doEventSearch("foobar&@type=SearchEvent");
+        SearchResults searchByTypeRes =
+            doEventSearch("foobar&@type=SearchEvent");
 
-        assertEquals(1, searchByTypeRes.length);
-        assertEquals(searchEvent.appId, searchByTypeRes[0].appId);
-        assertTrue(searchByTypeRes[0] instanceof SearchEvent);
-        assertEquals(searchEvent.query, ((SearchEvent)searchByTypeRes[0]).query);
+        assertEquals(1, searchByTypeRes.getDocs().size());
+        DiMeData obj = searchByTypeRes.getDocs().get(0);
+        assertEquals(searchEvent.appId, obj.appId);
+        assertTrue(obj instanceof SearchEvent);
+        assertEquals(searchEvent.query, ((SearchEvent)obj).query);
     }
 
     @Test
@@ -201,21 +206,22 @@ public class ApiControllerTest extends RestTest {
 
         uploadEvent(re, ReadingEvent.class);
 
-        Event[] searchEventsRes = doEventSearch(magicText);
-        
+        SearchResults searchEventsRes = doEventSearch(magicText);
+
         dumpData("searchEventsRes", searchEventsRes);
 
-        assertEquals(1, searchEventsRes.length);
+        assertEquals(1, searchEventsRes.getDocs().size());
+        assertEquals(1, searchEventsRes.getNumFound());
 
-        assertTrue(searchEventsRes[0] instanceof ReadingEvent);
+        assertTrue(searchEventsRes.getDocs().get(0) instanceof ReadingEvent);
 
-        ReadingEvent res = (ReadingEvent)searchEventsRes[0];
+        ReadingEvent res = (ReadingEvent)searchEventsRes.getDocs().get(0);
 
         assertEquals(re.appId, res.appId);
         assertEquals(re.plainTextContent, res.plainTextContent);
 
         // Because we are nulling the document content
-        assertEquals(null, res.targettedResource.plainTextContent);     
+        assertEquals(null, res.targettedResource.plainTextContent);
     }
 
     @Test
@@ -228,14 +234,16 @@ public class ApiControllerTest extends RestTest {
         uploadEvent(re, ReadingEvent.class);
 
         KeywordSearchQuery query = new KeywordSearchQuery();
-        query.add("foobarbaz", 0.4);
-        query.add("tellus", 0.1);
+        query.add("foobarbaz", 0.4f);
+        query.add("tellus", 0.1f);
 
         dumpData("query", query);
-        Event[] res = uploadData(apiUrl("/eventkeywordsearch"), query.weightedKeywords,
-                                 Event[].class);
+        SearchResults res = uploadData(apiUrl("/eventkeywordsearch"),
+                                       query.weightedKeywords,
+                                       SearchResults.class);
 
         dumpData("keyword search results", res);
-        assertEquals(1, res.length);
+        assertEquals(1, res.getDocs().size());
+        assertEquals(1, res.getNumFound());
     }
 }

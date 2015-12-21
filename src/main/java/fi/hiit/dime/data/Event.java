@@ -24,9 +24,6 @@
 
 package fi.hiit.dime.data;
 
-import com.fasterxml.jackson.annotation.*;
-import org.springframework.data.jpa.domain.AbstractPersistable;
-
 import java.util.Calendar;
 import java.util.Date;
 
@@ -40,19 +37,6 @@ import javax.persistence.JoinColumn;
 /**
    Abstract class for all events.
 */
-@JsonInclude(value=JsonInclude.Include.NON_NULL)
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
-@JsonSubTypes({
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.FeedbackEvent.class, name="FeedbackEvent"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.DesktopEvent.class, name="DesktopEvent"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.ReadingEvent.class, name="ReadingEvent"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.SummaryReadingEvent.class, name="SummaryReadingEvent"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.MessageEvent.class, name="MessageEvent"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.SearchEvent.class, name="SearchEvent"),
-	    @JsonSubTypes.Type(value=fi.hiit.dime.data.FunfEvent.class, name="FunfEvent"),
-})
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public abstract class Event extends DiMeData {
@@ -85,20 +69,20 @@ public abstract class Event extends DiMeData {
      */
     @Override
     public void autoFill() {
-	Calendar cal = Calendar.getInstance();
-	int dur = (int)(duration*1000.0);
+        Calendar cal = Calendar.getInstance();
+        int dur = (int)(duration*1000.0);
 
-	if (start == null && end != null) {
-	    cal.setTime(end);
-	    cal.add(Calendar.MILLISECOND, -dur);
-	    start = cal.getTime();
-	} else if (start != null && end == null) {
-	    cal.setTime(start);
-	    cal.add(Calendar.MILLISECOND, dur);
-	    end = cal.getTime();
-	} else if (start != null && !start.equals(end)) {
-	    duration = (end.getTime() - start.getTime())/1000.0;
-	}
-	super.autoFill();
+        if (start == null && end != null) {
+            cal.setTime(end);
+            cal.add(Calendar.MILLISECOND, -dur);
+            start = cal.getTime();
+        } else if (start != null && end == null) {
+            cal.setTime(start);
+            cal.add(Calendar.MILLISECOND, dur);
+            end = cal.getTime();
+        } else if (start != null && !start.equals(end)) {
+            duration = (end.getTime() - start.getTime())/1000.0;
+        }
+        super.autoFill();
     } 
 }
