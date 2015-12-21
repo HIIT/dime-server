@@ -151,20 +151,19 @@ public class WebController extends WebMvcConfigurerAdapter {
         model.addAttribute("count", eventDAO.count(userId));
 
         if (!query.isEmpty()) {
-            List<Event> results = null;
+            SearchResults results = null;
             try {
                 searchIndex.updateIndex();
 
-                SearchResults dataRes =
-                    searchIndex.search(query, null, null, 100, userId);
+                results = searchIndex.search(query, null, null, 100, userId);
 
-                searchIndex.mapToEvents(dataRes, User.makeUser(userId));
+                searchIndex.mapToEvents(results, User.makeUser(userId));
             } catch (IOException e) {
                 LOG.warn("Lucene search failed [" + e + "].");
                 model.addAttribute("error", e);
             }
 
-            model.addAttribute("results", results);
+            model.addAttribute("results", results.getDocs());
         } else {
             model.addAttribute("results", eventDAO.eventsForUser(userId, 100));
         }
@@ -184,20 +183,19 @@ public class WebController extends WebMvcConfigurerAdapter {
         model.addAttribute("count", infoElemDAO.count(userId));
 
         if (!query.isEmpty()) {
-            List<InformationElement> results = null;
+            SearchResults results = null;
             try {
                 searchIndex.updateIndex();
 
-                SearchResults res =
-                    searchIndex.search(query, null, null, 100, userId);
+                results = searchIndex.search(query, null, null, 100, userId);
 
-               searchIndex.mapToElements(res);
+                searchIndex.mapToElements(results);
             } catch (IOException e) {
                 LOG.warn("Lucene search failed [" + e + "].");
                 model.addAttribute("error", e);
             }
 
-            model.addAttribute("results", results);
+            model.addAttribute("results", results.getDocs());
         } else {
             model.addAttribute("results",
                                infoElemDAO.elementsForUser(userId, 100));
