@@ -443,4 +443,14 @@
     <changeSet author="marco (generated)" id="1450359639905-1">
         <dropColumn columnName="IS_SUMMARY" tableName="EVENT"/>
     </changeSet>
+    <changeSet author="marco (generated)" id="1450721942456-1">
+        <addColumn tableName="EVENT">
+            <column name="DPI" type="INTEGER(10)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1450721942456-2">
+        <addColumn tableName="RECT">
+            <column name="SCREEN_DISTANCE" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

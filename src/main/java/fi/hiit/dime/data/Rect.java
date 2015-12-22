@@ -77,6 +77,11 @@ public class Rect extends AbstractPersistable<Long> {
      */
     public Double scaleFactor;
 
+    /** The user's distance from screen, in mm, when this rectangle was originally created.
+     * Can be from eye tracking, or an estimated constant.
+     */
+    public Double screenDistance;
+
     /** Vector of unix times (timestamps, note: milliseconds) representing when this rectangle was created.
      * If this rectangle is floating (see above) this array contains only one timestamp. If this rectangle is from a union
      * (floating flag is false) it contains a timestamp for each "smaller" rectangle that was united into a bigger one.

@@ -45,6 +45,10 @@ public class ReadingEvent extends DesktopEvent {
      */
     public String sessionId;
 
+    /** DPI of the screen on which the reading event was generated.
+     */
+    public Integer dpi;
+
     /** A vector representing the page numbers currently being considered (number within PDF document).
      * These are the visible pages, or pages being referenced to in any other way (for events containing "interesting" paragraphs).
      * A number representing the page number in the given document, starting from 0. */
