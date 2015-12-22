@@ -385,8 +385,7 @@ public class DataController extends AuthorizedController {
     public ResponseEntity<InformationElement>
         informationElement(Authentication auth, 
                            @PathVariable Long id,
-                           @RequestParam(defaultValue="false") 
-                           boolean keywords) 
+                           @RequestParam(defaultValue="false") boolean keywords)
         throws NotFoundException
     {
         User user = getUser(auth);

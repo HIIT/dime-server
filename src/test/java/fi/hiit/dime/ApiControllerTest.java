@@ -262,5 +262,20 @@ public class ApiControllerTest extends RestTest {
         ScientificDocument resDoc = (ScientificDocument)resElems.getDocs().get(0);
         assertTrue(resDoc.weightedKeywords != null);
         assertTrue(resDoc.weightedKeywords.size() > 0);
+
+        // Read back uploaded document
+        ScientificDocument getDoc1 = getData(infoElemApi + "/" + resDoc.getId(),
+                                            ScientificDocument.class);
+        assertEquals(getDoc1.plainTextContent, doc.plainTextContent);
+        assertTrue(getDoc1.weightedKeywords == null);
+
+        ScientificDocument getDoc2 = getData(infoElemApi + "/" + resDoc.getId() +
+                                             "?keywords=true",
+                                            ScientificDocument.class);
+        assertEquals(getDoc2.plainTextContent, doc.plainTextContent);
+        assertTrue(getDoc2.weightedKeywords != null);
+        assertEquals(55, getDoc2.weightedKeywords.size());
+
+        System.out.println(getDoc2.weightedKeywords.size());
     }
 }
