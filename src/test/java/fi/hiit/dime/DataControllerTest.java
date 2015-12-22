@@ -631,6 +631,19 @@ public class DataControllerTest extends RestTest {
 
         ScientificDocument docGet = (ScientificDocument)reGet.targettedResource;
         assertEquals(doc.authors.size(), docGet.authors.size());
+
+        SummaryReadingEvent sre = new SummaryReadingEvent();
+        fillReadingEvent(sre, doc, doc.plainTextContent.substring(25,150));
+        sre.proportionRead = 0.432;
+        sre.proportionInteresting = 0.123;
+        sre.proportionCritical = 0.052;
+        sre.foundStrings = new ArrayList<String>();
+        sre.foundStrings.add("foo");
+        sre.foundStrings.add("bar");
+
+        SummaryReadingEvent sreRet =
+            uploadEvent(sre, SummaryReadingEvent.class);
+        dumpData("SummaryReadingEvent", sreRet);
     }
 
     protected void compareDocs(ScientificDocument doc1, ScientificDocument doc2) {

@@ -55,6 +55,7 @@ import java.util.List;
             @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.DesktopEvent.class, name="DesktopEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.ReadingEvent.class, name="ReadingEvent"),
+            @JsonSubTypes.Type(value=fi.hiit.dime.data.SummaryReadingEvent.class, name="SummaryReadingEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.MessageEvent.class, name="MessageEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.SearchEvent.class, name="SearchEvent"),
 })

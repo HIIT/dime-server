@@ -42,15 +42,15 @@ public class SummaryReadingEvent extends ReadingEvent {
 
     /** Proportion of document which was read (for summary events)
      */
-    public double proportionRead;
+    public Double proportionRead;
 
     /** Proportion of document which was marked as "interesting" (for summary events)
      */
-    public double proportionInteresting;
+    public Double proportionInteresting;
 
     /** Proportion of document which was marked as "critical" (for summary events)
      */
-    public double proportionCritical;
+    public Double proportionCritical;
 
     /** List of strings that were searched for, found and selected by user, during this summary event (for summary events).
      */

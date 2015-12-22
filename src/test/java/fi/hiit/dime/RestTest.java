@@ -223,8 +223,16 @@ public abstract class RestTest {
         return doc;
     }
 
-    protected ReadingEvent createReadingEvent(InformationElement doc, String content) {
+    protected ReadingEvent createReadingEvent(InformationElement doc,
+                                              String content) 
+    {
         ReadingEvent re = new ReadingEvent();
+        fillReadingEvent(re, doc, content);
+        return re;
+    }
+
+    protected void fillReadingEvent(ReadingEvent re, InformationElement doc,
+                                    String content) {
         re.targettedResource = doc;
 
         re.type = "http://www.hiit.fi/ontologies/dime/#ReadingEvent";
@@ -246,7 +254,7 @@ public abstract class RestTest {
 
             ed.pageIndex = i;
 
-        ed.scaleFactor = 1.685;
+            ed.scaleFactor = 1.685;
             eyeData.add(ed);
         }
 
@@ -259,13 +267,11 @@ public abstract class RestTest {
         r.origin = new Point(0.0, 453.5);
         r.readingClass = Rect.CLASS_VIEWPORT;
         r.pageIndex = 0;
-    r.scaleFactor = 1.685;
+        r.scaleFactor = 1.685;
         r.classSource = 1;
         r.size = new Size(612.0, 338.5);
         rs.add(r);
         re.pageRects = rs;
-
-        return re;
     }
 
     /**
