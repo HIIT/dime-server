@@ -37,4 +37,12 @@ public class WeightedKeyword {
         this.term = term;
         this.weight = weight;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        WeightedKeyword other = (WeightedKeyword)obj;
+        if (other != null)
+            return this.term.equals(other.term) && this.weight == other.weight;
+        return false;
+    }
 }

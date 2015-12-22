@@ -233,17 +233,34 @@ public class ApiControllerTest extends RestTest {
 
         uploadEvent(re, ReadingEvent.class);
 
-        KeywordSearchQuery query = new KeywordSearchQuery();
-        query.add("foobarbaz", 0.4f);
-        query.add("tellus", 0.1f);
+        KeywordSearchQuery query1 = new KeywordSearchQuery();
+        query1.add("foobarbaz", 0.4f);
+        query1.add("tellus", 0.1f);
 
-        dumpData("query", query);
-        SearchResults res = uploadData(apiUrl("/eventkeywordsearch"),
-                                       query.weightedKeywords,
+        dumpData("query", query1);
+        SearchResults resEvents = uploadData(apiUrl("/eventkeywordsearch"),
+                                             query1.weightedKeywords,
+                                             SearchResults.class);
+
+        dumpData("keyword search results (events)", resEvents);
+        assertEquals(1, resEvents.getDocs().size());
+        assertEquals(1, resEvents.getNumFound());
+        assertEquals(query1.weightedKeywords, resEvents.queryTerms);
+
+        KeywordSearchQuery query2 = new KeywordSearchQuery();
+        query2.add("foobarbaz", 0.4f);
+        SearchResults resElems = uploadData(apiUrl("/keywordsearch"),
+                                       query2.weightedKeywords,
                                        SearchResults.class);
 
-        dumpData("keyword search results", res);
-        assertEquals(1, res.getDocs().size());
-        assertEquals(1, res.getNumFound());
+        dumpData("keyword search results (elems)", resElems);
+        assertEquals(1, resElems.getDocs().size());
+        assertEquals(1, resElems.getNumFound());
+        assertEquals(query2.weightedKeywords, resElems.queryTerms);
+
+        assertTrue(resElems.getDocs().get(0) instanceof ScientificDocument);
+        ScientificDocument resDoc = (ScientificDocument)resElems.getDocs().get(0);
+        assertTrue(resDoc.weightedKeywords != null);
+        assertTrue(resDoc.weightedKeywords.size() > 0);
     }
 }

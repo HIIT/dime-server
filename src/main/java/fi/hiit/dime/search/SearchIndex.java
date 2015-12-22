@@ -404,32 +404,12 @@ public class SearchIndex {
 
             TopDocs hits = searcher.search(idQuery, 1);
 
-            if (hits.scoreDocs.length>0){
-                // get the terms from the current document
-                Terms termVec;
-                termVec = reader.getTermVector(hits.scoreDocs[0].doc,
-                                               textQueryField);
-
-                // create enumerator for the terms
-                TermsEnum termsEnum = termVec.iterator();
-
-                // iterate over all terms of the current document
-                BytesRef termText; // term in utf8 encoding
-                String term; // term converted to string
-
-                obj.weightedKeywords = new ArrayList<WeightedKeyword>();
-
-                while ((termText = termsEnum.next()) != null) {
-                    term = termText.utf8ToString();
-                    WeightedKeyword wk = 
-                            new WeightedKeyword(term, termsEnum.docFreq());
-                    obj.weightedKeywords.add(wk);
-                }
-            }
-            else{
-                System.out.println("Failed to find document with the id:" + 
-                                   luceneId(obj));
-            }
+            if (hits.scoreDocs.length > 0)
+                obj.weightedKeywords =
+                    extractWeightedKeywords(hits.scoreDocs[0].doc);
+            else 
+                LOG.error("Failed to find document with the id {}", 
+                          luceneId(obj));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -495,8 +475,6 @@ public class SearchIndex {
         Set<Long> seen = new HashSet<Long>();
 
         for (DiMeData data : dataList) {
-            Float score = data.score;
-
             InformationElement elem = null;
             if (data instanceof InformationElement) {
                 elem = (InformationElement)data;
@@ -505,7 +483,10 @@ public class SearchIndex {
             }
 
             if (elem != null && !seen.contains(elem.getId())) {
-                elem.score = score;  // copy the original search score
+                // copy the transient members
+                elem.score = data.score;
+                elem.weightedKeywords = data.weightedKeywords;
+
                 elemList.add(elem);
                 seen.add(elem.getId());
             }
@@ -540,7 +521,10 @@ public class SearchIndex {
                     eventDAO.findByElement((InformationElement)data, user);
                 for (ResourcedEvent event : expandedEvents) {
                     event.targettedResource.plainTextContent = null;
+
+                    // copy the score
                     event.score = event.targettedResource.score;
+
                     if (!seen.contains(event.getId())) {
                         events.add(event);
                         seen.add(event.getId());
@@ -565,6 +549,33 @@ public class SearchIndex {
     */
     public void mapToEvents(SearchResults res, User user) {
         res.setDocs(mapToEventList(res.getDocs(), user));
+    }
+
+    protected List<WeightedKeyword> extractWeightedKeywords(int docId) 
+        throws IOException 
+    {
+        // get the terms from the current document
+        Terms termVec = reader.getTermVector(docId, textQueryField);
+
+        if (termVec == null)
+            return null;
+
+        // create enumerator for the terms
+        TermsEnum termsEnum = termVec.iterator();
+
+        // iterate over all terms of the current document
+        BytesRef termText; // term in utf8 encoding
+        String term; // term converted to string
+            
+        List<WeightedKeyword> ret = new ArrayList<WeightedKeyword>();
+            
+        while ((termText = termsEnum.next()) != null) {
+            term = termText.utf8ToString();
+            WeightedKeyword wk = new WeightedKeyword(term, termsEnum.docFreq());
+            ret.add(wk);
+        }
+        
+        return ret;
     }
 
     /**
@@ -613,13 +624,8 @@ public class SearchIndex {
                 res.queryTerms = queryTerms;
 
             } else if (query instanceof KeywordSearchQuery) {
-                textQuery =
-                    keywordSearchQuery(((KeywordSearchQuery)query).
-                                       weightedKeywords);
-
-                // return the weighted keywords as query terms
                 res.queryTerms = ((KeywordSearchQuery)query).weightedKeywords;
-
+                textQuery = keywordSearchQuery(res.queryTerms);
             } else {
                 textQuery = new MatchAllDocsQuery();
             }
@@ -629,7 +635,6 @@ public class SearchIndex {
             Query userQuery = new TermQuery(new Term(userIdField,
                     userId.toString()));
             queryBuilder.add(userQuery, BooleanClause.Occur.FILTER);
-
 
             if (className != null)
                 queryBuilder.add(new TermQuery(new Term(classField, className)),
@@ -655,31 +660,8 @@ public class SearchIndex {
                     } else if (obj.user.getId().equals(userId)) {
                         obj.score = score;
 
-                        // get the terms from the current document
-                        Terms termVec = reader.getTermVector(hits[i].doc,
-                                textQueryField);
-
-                        // create enumerator for the terms
-                        if (termVec != null) {
-                            TermsEnum termsEnum = termVec.iterator();
-
-                            // iterate over all terms of the current document
-                            BytesRef termText; // term in utf8 encoding
-                            String term; // term converted to string
-
-                            obj.weightedKeywords =
-                                new ArrayList<WeightedKeyword>();
-
-                            while ((termText = termsEnum.next()) != null) {
-                                term = termText.utf8ToString();
-                                WeightedKeyword wk =
-                                    new WeightedKeyword(term,
-                                                        termsEnum.docFreq());
-                                obj.weightedKeywords.add(wk);
-
-                            }
-                        }
-
+                        obj.weightedKeywords =
+                            extractWeightedKeywords(hits[i].doc);
                         res.add(obj);
                     } else {
                         LOG.warn("Lucene returned result for wrong user: " +
@@ -704,10 +686,10 @@ public class SearchIndex {
         BooleanQuery.Builder queryBuilder = new BooleanQuery.Builder();
 
         for (int i=0; i<weightedKeywords.size(); i++){
+            Term term = new Term(textQueryField, weightedKeywords.get(i).term);
+
             // construct a term query from the current term
-            TermQuery termQuery =
-                new TermQuery(new Term(textQueryField,
-                                       weightedKeywords.get(i).term));
+            TermQuery termQuery = new TermQuery(term);
 
             // boost the current term with the corresponding term frequency
             termQuery.setBoost(weightedKeywords.get(i).weight);
