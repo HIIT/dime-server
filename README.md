@@ -71,6 +71,11 @@ documentation of the API and development.
 If you have any questions, don't hesitate to contact the lead
 developer [Mats Sjöberg](mailto:mats.sjoberg@helsinki.fi).
 
+## License
+
+The DiMe server source code is licensed under
+[the MIT License](https://opensource.org/licenses/MIT).
+
 [1]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 [2]: https://github.com/HIIT/dime-server/wiki/Configuration
 [3]: https://github.com/HIIT/dime-server/wiki

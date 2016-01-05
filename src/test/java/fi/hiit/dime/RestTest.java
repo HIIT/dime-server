@@ -362,7 +362,7 @@ public abstract class RestTest {
         public Integer status;   // 400
         public String error;     // "Bad Request"
         public String exception; // "fi.hiit.dime.AuthorizedController$BadRequestException"
-        public String message;   // "Bad Request"
+        public String message;   // longer message...
         public String path;      // "/api/data/informationelement"
     }
 }
