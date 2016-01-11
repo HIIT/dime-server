@@ -586,7 +586,8 @@ public class SearchIndex {
        @param userId DiMe user id.
     */
     public SearchResults search(SearchQuery query, String className,
-                                String typeName, int limit, Long userId)
+                                String typeName, int limit, Long userId,
+                                boolean includeTerms)
         throws IOException
     {
         if (limit < 0)
@@ -604,24 +605,26 @@ public class SearchIndex {
             if (query instanceof TextSearchQuery) {
                 textQuery = basicTextQuery(((TextSearchQuery)query).query);
 
-                // extract the terms of a string query
-                Weight w = searcher.createWeight(textQuery, false);
-                TreeSet<Term> textQueryTerms = new TreeSet<Term>();
-                w.extractTerms(textQueryTerms);
+                if (includeTerms) {
+                    // extract the terms of a string query
+                    Weight w = searcher.createWeight(textQuery, false);
+                    TreeSet<Term> textQueryTerms = new TreeSet<Term>();
+                    w.extractTerms(textQueryTerms);
 
-                // add the terms to query terms
-                Iterator<Term> termsEnum = textQueryTerms.iterator();
-                List<WeightedKeyword> queryTerms =
-                    new ArrayList<WeightedKeyword>();
-                while (termsEnum.hasNext()){
-                    // FIXME: if boosting in string is used, the
-                    // weights are not 1
-                    queryTerms.add(new WeightedKeyword(termsEnum.next().text(),
+                    // add the terms to query terms
+                    Iterator<Term> termsEnum = textQueryTerms.iterator();
+                    List<WeightedKeyword> queryTerms =
+                        new ArrayList<WeightedKeyword>();
+                    while (termsEnum.hasNext()){
+                        // FIXME: if boosting in string is used, the
+                        // weights are not 1
+                        queryTerms.add(new WeightedKeyword(termsEnum.next().text(),
                                                        (float) 1));
-                }
+                    }
 
-                // return the extracted terms
-                res.queryTerms = queryTerms;
+                    // return the extracted terms
+                    res.queryTerms = queryTerms;
+                }
 
             } else if (query instanceof KeywordSearchQuery) {
                 res.queryTerms = ((KeywordSearchQuery)query).weightedKeywords;
@@ -659,9 +662,10 @@ public class SearchIndex {
                         LOG.error("Bad doc id: "+ docId);
                     } else if (obj.user.getId().equals(userId)) {
                         obj.score = score;
-
-                        obj.weightedKeywords =
-                            extractWeightedKeywords(hits[i].doc);
+                        obj.weightedKeywords = null;
+                        if (includeTerms)
+                            obj.weightedKeywords =
+                                extractWeightedKeywords(hits[i].doc);
                         res.add(obj);
                     } else {
                         LOG.warn("Lucene returned result for wrong user: " +

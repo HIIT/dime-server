@@ -118,7 +118,8 @@ public class ApiController extends AuthorizedController {
     */
 
     protected SearchResults doSearch(SearchQuery query, String className,
-                                     String typeName, int limit, User user)
+                                     String typeName, int limit, User user,
+                                     boolean includeTerms)
         throws IOException
     {
         if (query.isEmpty())
@@ -127,7 +128,7 @@ public class ApiController extends AuthorizedController {
         searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
-                                               limit, user.getId());
+                                               limit, user.getId(), includeTerms);
         searchIndex.mapToElements(res);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
@@ -142,7 +143,8 @@ public class ApiController extends AuthorizedController {
     */
 
     protected SearchResults doEventSearch(SearchQuery query, String className,
-                                          String typeName, int limit, User user)
+                                          String typeName, int limit, User user,
+                                          boolean includeTerms)
         throws IOException
     {
         if (query.isEmpty())
@@ -151,7 +153,7 @@ public class ApiController extends AuthorizedController {
         searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
-                                               limit, user.getId());
+                                               limit, user.getId(), includeTerms);
         searchIndex.mapToEvents(res, user);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
@@ -166,6 +168,8 @@ public class ApiController extends AuthorizedController {
                @RequestParam String query,
                @RequestParam(value="@type", required=false) String className,
                @RequestParam(value="type", required=false) String typeName,
+               @RequestParam(value="includeTerms", required=false, 
+                             defaultValue="false") Boolean includeTerms,
                @RequestParam(defaultValue="-1") int limit)
     {
         User user = getUser(auth);
@@ -173,7 +177,7 @@ public class ApiController extends AuthorizedController {
         try {
             TextSearchQuery textQuery = new TextSearchQuery(query);
             SearchResults results = doSearch(textQuery, className, typeName,
-                                             limit, user);
+                                             limit, user, includeTerms);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -188,13 +192,16 @@ public class ApiController extends AuthorizedController {
                     @RequestParam String query,
                     @RequestParam(value="@type", required=false) String className,
                     @RequestParam(value="type", required=false) String typeName,
+                    @RequestParam(value="includeTerms", required=false,
+                                  defaultValue="false") Boolean includeTerms,
                     @RequestParam(defaultValue="-1") int limit) {
         User user = getUser(auth);
 
         try {
             TextSearchQuery textQuery = new TextSearchQuery(query);
             SearchResults results = doEventSearch(textQuery, className,
-                                                  typeName, limit, user);
+                                                  typeName, limit, user,
+                                                  includeTerms);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -211,7 +218,7 @@ public class ApiController extends AuthorizedController {
 
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doSearch(query, null, null,  -1, user);
+            SearchResults results = doSearch(query, null, null,  -1, user, true);
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
@@ -227,7 +234,7 @@ public class ApiController extends AuthorizedController {
 
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doEventSearch(query, null, null, -1, user);
+            SearchResults results = doEventSearch(query, null, null, -1, user, true);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
