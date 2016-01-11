@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Dime-server by HIIT</title>
+    <title>DiMe core by HIIT</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-light.css">
@@ -16,8 +16,8 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1 class="header">Dime-server</h1>
-        <p class="header">Your humble Digital Work Me (DiMe) server.</p>
+        <h1 class="header">DiMe core</h1>
+        <p class="header">Your humble personal data store</p>
 
         <ul>
           <li class="download"><a class="buttons" href="https://github.com/HIIT/dime-server/zipball/master">Download ZIP</a></li>
@@ -31,93 +31,17 @@
       </header>
       <section>
         <h1>
-<a id="digital-work-me-dime-server" class="anchor" href="#digital-work-me-dime-server" aria-hidden="true"><span class="octicon octicon-link"></span></a>Digital Work Me (DiMe) server</h1>
+<a id="digital-me" class="anchor" href="#digital-me" aria-hidden="true"><span class="octicon octicon-link"></span></a>Digital Me</h1>
 
-<p>The DiMe server can run in your local machine or in a server. Its task
-is to collect your personal data from different loggers into a central
-place that you control.</p>
-
-<p>You can install DiMe directly on your machine (instructions below), or
-if you are adventurous test the experimental
-<a href="https://github.com/HIIT/dime-server/wiki/Docker">Docker virtualisation</a>
-support. For people intending to develop, it is probably easier to
-install it directly.</p>
-
-<h2>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h2>
-
-<h3>
-<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements</h3>
-
-<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java 7 JDK</a> or newer (i.e. Java version 1.7 or newer) is required.</p>
-
-<p>For Mac OS X you need to have
-<a href="https://developer.apple.com/xcode/">Xcode</a> installed first. You can
-install it from the Apple Mac App Store.</p>
-
-<h3>
-<a id="compiling" class="anchor" href="#compiling" aria-hidden="true"><span class="octicon octicon-link"></span></a>Compiling</h3>
-
-<p>First, clone the git repository, for example via the command line:</p>
-
-<pre><code>git clone https://github.com/HIIT/dime-server.git
-</code></pre>
-
-<p>To compile, just run:</p>
-
-<pre><code>make
-</code></pre>
-
-<p>(If you don't have GNU Make installed you can also use <a href="http://gradle.org/">gradle</a>
-directly: <code>./gradlew assemble</code>.)</p>
-
-<p>In the first compilation, it will download any Java dependencies
-automatically. Hence it may take a bit longer the first time.</p>
-
-<h3>
-<a id="running" class="anchor" href="#running" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running</h3>
-
-<p>To run the server in port 8080 issue the command:</p>
-
-<pre><code>make run
-</code></pre>
-
-<p><strong>Note for Mac Users</strong>: if you use Xcode, using <code>make run</code> to run DiMe might cause conflicts. In this case, use the alternate command:</p>
-
-<pre><code>./gradlew run
-</code></pre>
-
-<p>To start DiMe.</p>
-
-<p>(<code>./gradlew run</code> can always be used as an alternative to <code>make run</code> if you don't have GNU Make.)</p>
-
-<p>If you wish to change the TCP port of the server take a look at how to
-<a href="https://github.com/HIIT/dime-server/wiki/Configuration">configure the DiMe server</a> to use another port.</p>
-
-<p>The DiMe server will put all its files, such as the database and
-Lucene search index under <code>~/.dime</code> in your home directory.</p>
-
-<p>Now you can access the DiMe dashboard by going to the address
-<a href="http://localhost:8080">http://localhost:8080</a>.</p>
-
-<p>When you run DiMe the first time it will automatically create an
-<code>admin</code> user and show its randomly generated password in the command
-line.</p>
-
-<h2>
-<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h2>
-
-<p>The <a href="https://github.com/HIIT/dime-server/wiki">project wiki page</a> has more detailed instructions and
-documentation of the API and development.</p>
-
-<p>If you have any questions, don't hesitate to contact the lead
-developer <a href="mailto:mats.sjoberg@helsinki.fi">Mats Sjöberg</a>.</p>
-
-<h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
-
-<p>The DiMe server source code is licensed under
+<p>The task of the Digital Me (DiMe) server is to collect your personal data from various loggers into a central place <em>that you control</em>. You can run DiMe in your local machine or in a server. The DiMe server source code is open source software licensed under
 <a href="https://opensource.org/licenses/MIT">the MIT License</a>.</p>
+
+<p>You can start collecting your personal data in two easy steps:</p>
+
+<ol>
+<li>Install the DiMe core server on your own machine. <a href="https://github.com/HIIT/dime-server#readme">See the README on github</a> for instructions.</li>
+<li>Install one or more loggers which collect different aspects of your life and log them to your own DiMe server.</li>
+</ol>
       </section>
       <footer>
         <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
