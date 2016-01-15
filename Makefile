@@ -1,5 +1,5 @@
 GRADLE   = ./gradlew -q
-TARGET   = build/libs/dime-server-0.1.0.jar
+TARGET   = build/libs/dime-server.jar
 JAVADOC_DIR = build/docs/javadoc/
 JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
@@ -60,3 +60,6 @@ initSchema: autogenDb
 
 updateSchema: $(DB_FILE) autogenDb 
 	$(GRADLE) diffChangeLog
+
+install: 
+	./install-dime.sh
