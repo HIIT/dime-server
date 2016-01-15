@@ -27,17 +27,44 @@ DIME_INSTALL_DIR="$PWD"
 
 # Install common binary
 function install_bin {
-    DIME_SH=${DIME_INSTALL_DIR}/run-dime.sh
+    mkdir -p ${DIME_INSTALL_DIR}/bin/
+    DIME_SH=${DIME_INSTALL_DIR}/bin/run-dime.sh
 
     echo "Installing $DIME_SH ..."
     sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" \
-        ${DIME_INSTALL_DIR}/scripts/upstart/run-dime.sh > $DIME_SH
+        ${DIME_INSTALL_DIR}/scripts/init/run-dime.sh > $DIME_SH
     chmod a+x $DIME_SH
 }
 
 if hash systemctl 2>/dev/null
 then 
-    echo "Systemd found."
+    echo "Detected systemd services system."
+    echo
+    
+    SYSTEMD_DIR="${HOME}/.config/systemd"
+    SYSTEMD_CONF="${SYSTEMD_DIR}/user/dime-server.service"
+    
+    mkdir -p ${SYSTEMD_DIR}/user
+    
+    echo "Installing $SYSTEMD_CONF ..."
+    sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" \
+        ${DIME_INSTALL_DIR}/scripts/init/dime-server.service > $SYSTEMD_CONF
+
+    install_bin
+
+    systemctl --user enable dime-server.service
+
+    echo
+    echo "You can now start dime-server by running:"
+    echo "    systemctl --user start dime-server"
+    echo "and stop by:"
+    echo "    systemctl --user start dime-server"
+    echo
+    echo "Next time you restart your computer dime-server should start up automatically."
+    echo "If you want to disable this, run:"
+    echo "    systemctl --user disable dime-server"
+    echo
+
 elif hash initctl 2>/dev/null
 then
     echo "Detected upstart services system (older Ubuntus).";
@@ -48,7 +75,7 @@ then
     mkdir -p $UPSTART_DIR
     echo "Installing $UPSTART_CONF ..."
     sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" \
-        ${DIME_INSTALL_DIR}/scripts/upstart/dime-server.conf > $UPSTART_CONF
+        ${DIME_INSTALL_DIR}/scripts/init/dime-server.conf > $UPSTART_CONF
 
     install_bin
 
