@@ -56,7 +56,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .antMatchers("/users/**").hasAuthority("ADMIN")
 	    .anyRequest().fullyAuthenticated()
 	    .and()
-	    // login
+            //
+            .exceptionHandling()
+            .accessDeniedPage("/login?accessdenied") //OR 
+            .and()
             .formLogin()
 	    .loginPage("/login")
 	    .failureUrl("/login?error")
@@ -78,6 +81,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	    .and()
 	    // csrf
 	    .csrf().disable();
+            //
 
 	// FIXME: http://stackoverflow.com/questions/20602436/in-spring-security-with-java-config-why-does-httpbasic-post-want-csrf-token
     }

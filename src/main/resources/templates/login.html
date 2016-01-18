@@ -11,6 +11,9 @@
 	<div th:if="${error}" class="alert alert-danger" role="alert">
           Invalid username and/or password.
         </div>
+	<div th:if="${accessdenied}" class="alert alert-danger" role="alert">
+          Access denied.
+        </div>
         <div th:if="${param.logout}">
             You have been logged out.
         </div>
