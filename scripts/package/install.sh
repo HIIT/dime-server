@@ -27,32 +27,34 @@ if [ -z "$DIME_INSTALL_DIR" ]; then
     DIME_INSTALL_DIR="$HOME/dime"
 fi
 
-if [ ! -f "dime-server.jar" -o ! -f "run-dime.sh" ]; then
+if [ ! -f "dime/dime-server.jar" -o ! -f "dime/run-dime.sh" ]; then
     echo "ERROR: you should run this script in the same directory where you extracted the DiMe files."
-    echo "That directory should contain for example: dime-server.jar run-dime.sh"
     exit 1
 fi
 
 echo "Installing DiMe into $DIME_INSTALL_DIR ..."
-
 mkdir -p $DIME_INSTALL_DIR || exit 1
-cp dime-server.jar $DIME_INSTALL_DIR
 
+# Copy jar
+cp dime/dime-server.jar $DIME_INSTALL_DIR
+
+# Copy run script
 DIME_SH=${DIME_INSTALL_DIR}/run-dime.sh
-sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" run-dime.sh > $DIME_SH
+sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" dime/run-dime.sh > $DIME_SH
 chmod a+x $DIME_SH
 
+# Install auto-run on supported platforms
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Mac OS X detected, installing launchd script."
 
     LAUNCHD_TARGET="$HOME/Library/LaunchAgents/dime-server.plist"
-    sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" init/dime-server.plist > $LAUNCHD_TARGET
+    sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" dime/init/dime-server.plist > $LAUNCHD_TARGET
 
     launchctl unload ${LAUNCHD_TARGET}
     plutil -lint ${LAUNCHD_TARGET}
     launchctl load ${LAUNCHD_TARGET}
 
-    launchctl list | grep hiit
+    launchctl list | grep dime-server
 
 # elif [[ "$OSTYPE" == "linux-gnu" ]]; then
     

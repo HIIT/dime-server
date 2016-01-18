@@ -3,6 +3,7 @@ TARGET   = build/libs/dime-server.jar
 JAVADOC_DIR = build/docs/javadoc/
 JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
 PKG_DIR  = build/package
+PKG_FILE = dime-installer
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 
 DIME_HOME = ~/.dime
@@ -63,9 +64,10 @@ updateSchema: $(DB_FILE) autogenDb
 	$(GRADLE) diffChangeLog
 
 package: $(TARGET)
-	mkdir -p $(PKG_DIR)/dime-server
-	cp $(TARGET) $(PKG_DIR)/dime-server
-	rsync -var --exclude "*~" --delete scripts/package/* $(PKG_DIR)/dime-server
-	cd $(PKG_DIR) && rm -f dime-server.zip && zip -r dime-server.zip dime-server/
+	rm -rf $(PKG_DIR)/$(PKG_FILE)
+	mkdir -p $(PKG_DIR)/$(PKG_FILE)
+	rsync -var --exclude "*~" scripts/package/* $(PKG_DIR)/$(PKG_FILE)/
+	cp $(TARGET) $(PKG_DIR)/$(PKG_FILE)/dime/
+	cd $(PKG_DIR) && rm -f $(PKG_FILE).zip && zip -r $(PKG_FILE).zip $(PKG_FILE)/
 	@echo
-	@echo "Generated $(PKG_DIR)/dime-server.zip"
+	@echo "Generated $(PKG_DIR)/$(PKG_FILE).zip"
