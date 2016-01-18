@@ -8,7 +8,8 @@
 
     <div class="starter-template">
 
-      <h1>Welcome to your friendly local Digital Me server <span th:text="'at ' + ${hostname}"></span>!</h1>
+      <h1>Welcome to your friendly local Digital Me server!</h1>
+      <p>Digital Me server <span th:text="${dime_version}"></span> <span th:text="'running at ' + ${hostname} + '.'"></span></p>
 
       <div th:if="${#httpServletRequest.remoteUser}">
 	<p th:text="'So far you have logged ' + ${event_count} + ' events and ' + ${elem_count} + ' information elements.'"></p>

@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -102,6 +103,8 @@ public class WebController extends WebMvcConfigurerAdapter {
     @Autowired
     SearchIndex searchIndex;
 
+    @Value("${application.formatted-version}")
+    String dimeVersion;
 
     // Various "regular" pages
 
@@ -116,6 +119,7 @@ public class WebController extends WebMvcConfigurerAdapter {
         } catch (UnknownHostException e) {
         }
         model.addAttribute("hostname", hostName);
+        model.addAttribute("dime_version", dimeVersion);
 
         Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 
