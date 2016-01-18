@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>fi.hiit.dime.dime-server</string>
+    <key>Program</key>
+    <string>$DIME_INSTALL_DIR/run-dime.sh</string>
+    <key>WorkingDirectory</key>
+    <string>$DIME_INSTALL_DIR</string>
+    <key>RunAtLoad</key> 
+    <true/>
+    <key>StandardInPath</key>
+    <string>/tmp/fi.hiit.dime.dime-server.stdin</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/fi.hiit.dime.dime-server.stdout</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/fi.hiit.dime.dime-server.stderr</string>
+  </dict>
+</plist>

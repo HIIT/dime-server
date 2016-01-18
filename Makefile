@@ -2,6 +2,7 @@ GRADLE   = ./gradlew -q
 TARGET   = build/libs/dime-server.jar
 JAVADOC_DIR = build/docs/javadoc/
 JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
+PKG_DIR  = build/package
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 
 DIME_HOME = ~/.dime
@@ -61,5 +62,10 @@ initSchema: autogenDb
 updateSchema: $(DB_FILE) autogenDb 
 	$(GRADLE) diffChangeLog
 
-install: 
-	./install-dime.sh
+package: $(TARGET)
+	mkdir -p $(PKG_DIR)/dime-server
+	cp $(TARGET) $(PKG_DIR)/dime-server
+	rsync -var --exclude "*~" --delete scripts/package/* $(PKG_DIR)/dime-server
+	cd $(PKG_DIR) && rm -f dime-server.zip && zip -r dime-server.zip dime-server/
+	@echo
+	@echo "Generated $(PKG_DIR)/dime-server.zip"
