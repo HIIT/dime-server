@@ -3,7 +3,7 @@ TARGET   = build/libs/dime-server.jar
 JAVADOC_DIR = build/docs/javadoc/
 JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
 PKG_DIR  = build/package
-PKG_FILE = dime-installer
+PKG_FILE = dime
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 
 DIME_HOME = ~/.dime
@@ -67,7 +67,7 @@ package: $(TARGET)
 	rm -rf $(PKG_DIR)/$(PKG_FILE)
 	mkdir -p $(PKG_DIR)/$(PKG_FILE)
 	rsync -var --exclude "*~" scripts/package/* $(PKG_DIR)/$(PKG_FILE)/
-	cp $(TARGET) $(PKG_DIR)/$(PKG_FILE)/dime/
+	cp $(TARGET) $(PKG_DIR)/$(PKG_FILE)/
 	cd $(PKG_DIR) && rm -f $(PKG_FILE).zip && zip -r $(PKG_FILE).zip $(PKG_FILE)/
 	@echo
 	@echo "Generated $(PKG_DIR)/$(PKG_FILE).zip"

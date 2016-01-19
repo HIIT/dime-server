@@ -4,9 +4,7 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-#User=DIME_USER
-#Group=DIME_GROUP
-ExecStart=$DIME_INSTALL_DIR/bin/run-dime.sh
+ExecStart=$DIME_INSTALL_DIR/run-dime.sh
 
 [Install]
 WantedBy=default.target

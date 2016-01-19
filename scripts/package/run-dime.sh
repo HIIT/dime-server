@@ -5,4 +5,6 @@
 #
 # export SERVER_PORT=8080
 
+DIME_INSTALL_DIR=.
+
 java -jar $DIME_INSTALL_DIR/dime-server.jar
