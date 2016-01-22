@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Exec=$DIME_INSTALL_DIR/run-dime.sh
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=DiMe
+Comment=Digital Me server

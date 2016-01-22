@@ -35,7 +35,9 @@ fi
 if [[ "$OSTYPE" == "darwin"* ]]; then
     INIT_SYSTEM=launchd
 elif [[ "$OSTYPE" == "linux-gnu" ]]; then
-    if hash systemctl 2>/dev/null; then
+    if [ ! -z "$XDG_CONFIG_DIRS" ]; then
+        INIT_SYSTEM=xdg
+    elif hash systemctl 2>/dev/null; then
         INIT_SYSTEM=systemd
     fi
 fi
@@ -77,6 +79,23 @@ if [[ "$INIT_SYSTEM" = "launchd" ]]; then
     echo "If you ever wish to disable this, just run:"
     echo
     echo "launchctl unload ${LAUNCHD_TARGET}"
+
+elif [[ "$INIT_SYSTEM" == "xdg" ]]; then
+    echo "Detected XDG compliant desktop environment."
+
+    CONFIG_DIR="${HOME}/.config/autostart"
+    CONFIG_FILE="${CONFIG_DIR}/dime-server.desktop"
+    
+    mkdir -p ${CONFIG_DIR}
+
+    sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" install/dime-server.desktop > $CONFIG_FILE
+
+    echo
+    echo "DiMe should now start automatically when you start your computer."
+    echo "If you ever wish to disable this, just run:"
+    echo
+    echo "    rm ${CONFIG_FILE}"
+    echo
 
 elif [[ "$INIT_SYSTEM" == "systemd" ]]; then
     echo "Detected systemd services system."
