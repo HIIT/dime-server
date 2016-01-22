@@ -15,6 +15,10 @@ server_password = 'testuser123'
 
 #------------------------------------------------------------------------------
 
+count = 0
+
+#------------------------------------------------------------------------------
+
 def ping():
     r = requests.post(server_url + '/ping')
 
@@ -47,6 +51,8 @@ def post_item(item, endpoint):
 #------------------------------------------------------------------------------
 
 def process_file(filename):
+    global count
+
     print("Processing", filename)
     with open(filename, 'r') as fp:
         events = json.load(fp)['event']
@@ -63,6 +69,8 @@ def process_file(filename):
             print('QUERY: "{}" at {}'.format(item['query'], item['start']))
 
             post_item(item, '/data/event')
+
+            count += 1
     
 #------------------------------------------------------------------------------
 
@@ -74,3 +82,5 @@ for root, _, files in os.walk(search_path):
     for f in files:
         if f.endswith('.json'):
             process_file(os.path.join(root, f))
+
+print("Imported", count, "items.")
