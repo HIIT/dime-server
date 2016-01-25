@@ -1,10 +1,8 @@
 Digital Me (DiMe)
 =================
 
-This package contains the executable (binary) version of DiMe. If you
-wish to access the source code, check
-
-https://github.com/HIIT/dime-server
+This package contains the executable version of DiMe. If you wish to
+access the source code go to <https://github.com/HIIT/dime-server>.
 
 Run DiMe
 --------
@@ -22,15 +20,17 @@ window and change to this directory, and run:
 or for Windows systems you can double-click the run-dime.bat file.
 
 It will take a few seconds to start up, once you see the message
-"Started Application in 11.976 seconds" you can access your DiMe by
-opening a web browser and going to the address:
-
-    http://localhost:8080/
+"Started Application in X seconds" you can access your DiMe dashboard
+by opening a web browser and going to the address:
+<http://localhost:8080/>
 
 This is the DiMe server that runs completely on your own computer!
 
 The first step is to create an account for yourself by clicking on
-"Register a new account."
+"Register a new account." After this you can log in. Unfortunately
+your DiMe will be empty, so the next step is to start logging, by
+installing one of the DiMe loggers. You can find a list here:
+<http://hiit.github.io/dime-server/>
 
 
 Starting DiMe automatically
