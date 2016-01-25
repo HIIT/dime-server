@@ -35,7 +35,7 @@ fi
 if [[ "$OSTYPE" == "darwin"* ]]; then
     INIT_SYSTEM=launchd
 elif [[ "$OSTYPE" == "linux-gnu" ]]; then
-    if [ ! -z "$XDG_CONFIG_DIRS" ]; then
+    if [ ! -z "$XDG_SESSION_ID" ]; then
         INIT_SYSTEM=xdg
     elif hash systemctl 2>/dev/null; then
         INIT_SYSTEM=systemd
