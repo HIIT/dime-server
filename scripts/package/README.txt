@@ -9,10 +9,17 @@ https://github.com/HIIT/dime-server
 Run DiMe
 --------
 
+The only requirement for running DiMe is Java JRE version 1.7 or
+above. If you don't have that, you can download it from:
+
+http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
 You can run DiMe directly from this directory, just open a terminal
 window and change to this directory, and run:
 
     ./run-dime.sh
+
+or for Windows systems you can double-click the run-dime.bat file.
 
 It will take a few seconds to start up, once you see the message
 "Started Application in 11.976 seconds" you can access your DiMe by
