@@ -222,6 +222,23 @@ public class ApiControllerTest extends RestTest {
 
         // Because we are nulling the document content
         assertEquals(null, res.targettedResource.plainTextContent);
+
+
+        // Try searching on InformationElements
+        SearchResults searchRes = doSearch(magicText);
+        dumpData("reading events via InformationElements search", searchRes);
+
+        assertEquals(1, searchRes.getDocs().size());
+        assertEquals(1, searchRes.getNumFound());
+
+        assertTrue(searchRes.getDocs().get(0) instanceof ScientificDocument);
+
+        ScientificDocument docRes = (ScientificDocument)searchRes.getDocs().get(0);
+
+        assertEquals(docRes.plainTextContent, docRes.plainTextContent);
+
+        assertEquals(docRes.eventTime, res.start);
+        
     }
 
     @Test
