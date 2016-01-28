@@ -26,6 +26,7 @@ package fi.hiit.dime.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,6 +37,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
+import javax.persistence.Transient;
 
 /**
    Base class for all information elements, e.g. documents, messages
@@ -121,4 +123,11 @@ public class InformationElement extends DiMeData {
     */
     @Override
     public void autoFill() {} 
+
+    /** Start time of related event, used e.g. when returned search
+        results where an InformationElement is returned instead of the
+        Event.
+    */
+    @Transient
+    public Date eventTime;
 }

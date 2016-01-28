@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -119,7 +119,8 @@ public class ApiController extends AuthorizedController {
 
     protected SearchResults doSearch(SearchQuery query, String className,
                                      String typeName, int limit, User user,
-                                     boolean includeTerms)
+                                     boolean includeTerms,
+                                     boolean discardPlainTextContent)
         throws IOException
     {
         if (query.isEmpty())
@@ -128,7 +129,9 @@ public class ApiController extends AuthorizedController {
         searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
-                                               limit, user.getId(), includeTerms);
+                                               limit, user.getId(),
+                                               includeTerms,
+                                               discardPlainTextContent);
         searchIndex.mapToElements(res);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
@@ -144,7 +147,8 @@ public class ApiController extends AuthorizedController {
 
     protected SearchResults doEventSearch(SearchQuery query, String className,
                                           String typeName, int limit, User user,
-                                          boolean includeTerms)
+                                          boolean includeTerms,
+                                          boolean discardPlainTextContent)
         throws IOException
     {
         if (query.isEmpty())
@@ -153,7 +157,9 @@ public class ApiController extends AuthorizedController {
         searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
-                                               limit, user.getId(), includeTerms);
+                                               limit, user.getId(),
+                                               includeTerms,
+                                               discardPlainTextContent);
         searchIndex.mapToEvents(res, user);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
@@ -170,6 +176,8 @@ public class ApiController extends AuthorizedController {
                @RequestParam(value="type", required=false) String typeName,
                @RequestParam(value="includeTerms", required=false, 
                              defaultValue="false") Boolean includeTerms,
+               @RequestParam(value="discardPlainTextContent", required=false, 
+                             defaultValue="false") Boolean discardPlainTextContent,
                @RequestParam(defaultValue="-1") int limit)
     {
         User user = getUser(auth);
@@ -177,7 +185,8 @@ public class ApiController extends AuthorizedController {
         try {
             TextSearchQuery textQuery = new TextSearchQuery(query);
             SearchResults results = doSearch(textQuery, className, typeName,
-                                             limit, user, includeTerms);
+                                             limit, user, includeTerms,
+                                             discardPlainTextContent);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -194,6 +203,8 @@ public class ApiController extends AuthorizedController {
                     @RequestParam(value="type", required=false) String typeName,
                     @RequestParam(value="includeTerms", required=false,
                                   defaultValue="false") Boolean includeTerms,
+                    @RequestParam(value="discardPlainTextContent", required=false, 
+                                  defaultValue="false") Boolean discardPlainTextContent,
                     @RequestParam(defaultValue="-1") int limit) {
         User user = getUser(auth);
 
@@ -201,7 +212,8 @@ public class ApiController extends AuthorizedController {
             TextSearchQuery textQuery = new TextSearchQuery(query);
             SearchResults results = doEventSearch(textQuery, className,
                                                   typeName, limit, user,
-                                                  includeTerms);
+                                                  includeTerms,
+                                                  discardPlainTextContent);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -218,7 +230,7 @@ public class ApiController extends AuthorizedController {
 
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doSearch(query, null, null,  -1, user, true);
+            SearchResults results = doSearch(query, null, null,  -1, user, true, false);
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
@@ -234,7 +246,7 @@ public class ApiController extends AuthorizedController {
 
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doEventSearch(query, null, null, -1, user, true);
+            SearchResults results = doEventSearch(query, null, null, -1, user, true, false);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {

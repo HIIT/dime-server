@@ -160,7 +160,7 @@ public class WebController extends WebMvcConfigurerAdapter {
                 searchIndex.updateIndex();
 
                 results = searchIndex.search(query, null, null, 100, userId,
-                                             false);
+                                             false, false);
 
                 searchIndex.mapToEvents(results, User.makeUser(userId));
             } catch (IOException e) {
@@ -192,7 +192,7 @@ public class WebController extends WebMvcConfigurerAdapter {
             try {
                 searchIndex.updateIndex();
 
-                results = searchIndex.search(query, null, null, 100, userId, false);
+                results = searchIndex.search(query, null, null, 100, userId, false, false);
 
                 searchIndex.mapToElements(results);
             } catch (IOException e) {
