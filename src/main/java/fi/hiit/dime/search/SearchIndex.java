@@ -589,8 +589,7 @@ public class SearchIndex {
     */
     public SearchResults search(SearchQuery query, String className,
                                 String typeName, int limit, Long userId,
-                                boolean includeTerms, 
-                                boolean discardPlainTextContent)
+                                boolean includeTerms)
         throws IOException
     {
         if (limit < 0)

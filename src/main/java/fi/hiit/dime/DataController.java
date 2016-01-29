@@ -330,13 +330,29 @@ public class DataController extends AuthorizedController {
      * interface. */    
     @RequestMapping(value="/events", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
-        events(Authentication auth, @RequestParam Map<String, String> params) 
+        events(Authentication auth, 
+               @RequestParam(value="includePlainTextContent", required=false,
+                             defaultValue="false") Boolean includePlainTextContent,
+               @RequestParam Map<String, String> params) 
         throws BadRequestException
     {
         User user = getUser(auth);
 
+        // remove includePlainTextContent from map since we capture
+        // this separately
+        if (params.containsKey("includePlainTextContent"))
+            params.remove("includePlainTextContent");
+
         try {
             List<Event> events = eventDAO.find(user.getId(), params);
+
+            // We remove plainTextContents of linked
+            // InformationElements to reduce verbosity
+            if (!includePlainTextContent) {
+                for (Event e : events)
+                    if (e instanceof ResourcedEvent)
+                        ((ResourcedEvent)e).targettedResource.plainTextContent = null;
+            }
 
             Event[] eventsArray = new Event[events.size()];
             events.toArray(eventsArray);        

@@ -511,13 +511,19 @@ public class DataControllerTest extends RestTest {
         MessageEvent[] msgEventGot = getData(eventsApi + "?appid=" + appId2,
                                              MessageEvent[].class);
 
+        MessageEvent[] msgEventGot2 = getData(eventsApi + 
+                                              "?includePlainTextContent=true&appid=" 
+                                              + appId2, MessageEvent[].class);
+
         // Sanity check for appIds
         assertEquals(appId1, searchEventGot[0].appId);
         assertEquals(appId2, msgEventGot[0].appId);
+        assertEquals(appId2, msgEventGot2[0].appId);
 
         // check that content is the changed one
         assertEquals(query2, searchEventGot[0].query);
-        assertEquals(content2, msgEventGot[0].targettedResource.plainTextContent);
+        assertEquals(null, msgEventGot[0].targettedResource.plainTextContent);
+        assertEquals(content2, msgEventGot2[0].targettedResource.plainTextContent);
     }
 
     @Test
