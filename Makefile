@@ -71,3 +71,8 @@ package: $(TARGET)
 	cd $(PKG_DIR) && rm -f $(PKG_FILE).zip && zip -r $(PKG_FILE).zip $(PKG_FILE)/
 	@echo
 	@echo "Generated $(PKG_DIR)/$(PKG_FILE).zip"
+
+autostart: autorun
+
+autorun: package
+	cd $(PKG_DIR)/$(PKG_FILE) && DIME_INSTALL_DIR=$(PWD)/build/libs/ $(PWD)/scripts/package/install-autorun.sh
