@@ -4,6 +4,7 @@ JAVADOC_DIR = build/docs/javadoc/
 JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
 PKG_DIR  = build/package
 PKG_FILE = dime
+DIME_PORT = 8080
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html')
 
 DIME_HOME = ~/.dime
@@ -22,7 +23,7 @@ $(TARGET): $(SOURCES)
 	$(GRADLE) assemble
 
 run:    $(TARGET)
-	java -jar $(TARGET)
+	@lsof -i :$(DIME_PORT) -sTCP:LISTEN && echo '\nERROR: DiMe already running in port $(DIME_PORT)!' || java -jar $(TARGET)
 
 test:
 	rm -rf ./build/reports/tests/
