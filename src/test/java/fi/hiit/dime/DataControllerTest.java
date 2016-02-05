@@ -208,6 +208,7 @@ public class DataControllerTest extends RestTest {
         SearchEvent event2 = new SearchEvent();
         event2.query = "some search query";
         event2.actor = "TestActor1";
+        event2.addTag("foo");
         events[1] = event2;
 
         SearchEvent event3 = new SearchEvent();
@@ -238,7 +239,8 @@ public class DataControllerTest extends RestTest {
 
         SearchEvent outEvent2 = (SearchEvent)outEvents[1];
         assertEquals(event2.query, outEvent2.query);
-        
+        assertTrue(outEvent2.hasTag("foo"));
+
         SearchEvent outEvent3 = (SearchEvent)outEvents[2];
         assertEquals(event3.query, outEvent3.query);
 

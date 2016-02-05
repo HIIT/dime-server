@@ -27,11 +27,8 @@ package fi.hiit.dime.data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
@@ -83,39 +80,8 @@ public class InformationElement extends DiMeData {
 	    (plainTextContent == null || plainTextContent.isEmpty());
     }
 
-    /** List of user-specified tags, interpretation depends on the
-	application. 
-    */
-    @ElementCollection(targetClass = String.class)
-    public Set<String> tags;
-
     /** String value to uniquely identify an object. */
     public String contentHash;
-
-    /** Add a free-form tag to the object.
-	@param tag The tag to add
-    */
-    public void addTag(String tag) {
-	if (tags == null)
-	    tags = new HashSet<String>();
-	tags.add(tag);
-    }
-
-    /** Remove a tag from the object.
-	@param tag The tag to remove
-    */
-    public void removeTag(String tag) {
-	if (tags != null)
-	    tags.remove(tag);
-    }
-
-    /** Checks if the object contains a given tag.
-	@param tag Tag to check for
-	@return true if tag found, otherwise false
-    */
-    public boolean hasTag(String tag) {
-	return tags != null && tags.contains(tag);
-    }
 
     /** Method to call when ever a new object has been uploaded, e.g.
 	to clean up user provided data, or perform some house keeping

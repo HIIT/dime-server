@@ -32,7 +32,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -105,4 +108,35 @@ public class DiMeData extends AbstractPersistable<Long> {
 
     @Transient
     public List<WeightedKeyword> weightedKeywords;
+
+    /** List of user-specified tags, interpretation depends on the
+	application. 
+    */
+    @ElementCollection(targetClass = String.class)
+    public Set<String> tags;
+
+    /** Add a free-form tag to the object.
+	@param tag The tag to add
+    */
+    public void addTag(String tag) {
+	if (tags == null)
+	    tags = new HashSet<String>();
+	tags.add(tag);
+    }
+
+    /** Remove a tag from the object.
+	@param tag The tag to remove
+    */
+    public void removeTag(String tag) {
+	if (tags != null)
+	    tags.remove(tag);
+    }
+
+    /** Checks if the object contains a given tag.
+	@param tag Tag to check for
+	@return true if tag found, otherwise false
+    */
+    public boolean hasTag(String tag) {
+	return tags != null && tags.contains(tag);
+    }
 }

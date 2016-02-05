@@ -453,4 +453,15 @@
             <column name="SCREEN_DISTANCE" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454678810476-1">
+        <createTable tableName="EVENT_TAGS">
+            <column name="EVENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TAGS" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454678810476-2">
+        <addForeignKeyConstraint baseColumnNames="EVENT_ID" baseTableName="EVENT_TAGS" constraintName="FK_OEJTRH6CROVKWIQJ44G7FDTH0" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>
