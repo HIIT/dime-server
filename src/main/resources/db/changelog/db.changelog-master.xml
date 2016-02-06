@@ -464,4 +464,117 @@
     <changeSet author="mvsjober (generated)" id="1454678810476-2">
         <addForeignKeyConstraint baseColumnNames="EVENT_ID" baseTableName="EVENT_TAGS" constraintName="FK_OEJTRH6CROVKWIQJ44G7FDTH0" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-1">
+        <addColumn tableName="EVENT_TAGS">
+            <column name="AUTO" type="BOOLEAN(1)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-2">
+        <addColumn tableName="INFORMATION_ELEMENT_TAGS">
+            <column name="AUTO" type="BOOLEAN(1)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-3">
+        <addColumn tableName="EVENT_TAGS">
+            <column name="ORIGIN" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-4">
+        <addColumn tableName="INFORMATION_ELEMENT_TAGS">
+            <column name="ORIGIN" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-5">
+        <addColumn tableName="EVENT_TAGS">
+            <column name="TEXT" type="CLOB(2147483647)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-6">
+        <addColumn tableName="INFORMATION_ELEMENT_TAGS">
+            <column name="TEXT" type="CLOB(2147483647)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-7">
+        <addColumn tableName="EVENT_TAGS">
+            <column name="TIME" type="TIMESTAMP(23, 10)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-8">
+        <addColumn tableName="INFORMATION_ELEMENT_TAGS">
+            <column name="TIME" type="TIMESTAMP(23, 10)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-9">
+        <dropColumn columnName="TAGS" tableName="EVENT_TAGS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454752825914-10">
+        <dropColumn columnName="TAGS" tableName="INFORMATION_ELEMENT_TAGS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-1">
+        <createTable tableName="EVENT_TAG_MAP">
+            <column name="EVENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TAG_MAP_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-2">
+        <createTable tableName="INFORMATION_ELEMENT_TAG_MAP">
+            <column name="INFORMATION_ELEMENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TAG_MAP_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-3">
+        <createTable tableName="TAG">
+            <column autoIncrement="true" name="ID" type="BIGINT(19)">
+                <constraints primaryKey="true" primaryKeyName="CONSTRAINT_1"/>
+            </column>
+            <column name="AUTO" type="BOOLEAN(1)"/>
+            <column name="ORIGIN" type="VARCHAR(255)"/>
+            <column name="TEXT" type="CLOB"/>
+            <column name="TIME" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-4">
+        <addPrimaryKey columnNames="INFORMATION_ELEMENT_ID, TAG_MAP_ID" constraintName="CONSTRAINT_4" tableName="INFORMATION_ELEMENT_TAG_MAP"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-5">
+        <addPrimaryKey columnNames="EVENT_ID, TAG_MAP_ID" constraintName="CONSTRAINT_7" tableName="EVENT_TAG_MAP"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-6">
+        <addUniqueConstraint columnNames="TAG_MAP_ID" constraintName="UK_9Y2N7ESCPRJ4DJHYGIVDMDNO6" deferrable="false" disabled="false" initiallyDeferred="false" tableName="INFORMATION_ELEMENT_TAG_MAP"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-7">
+        <addUniqueConstraint columnNames="TAG_MAP_ID" constraintName="UK_DR3AQAYUCEISI1S9F1KQYSHRT" deferrable="false" disabled="false" initiallyDeferred="false" tableName="EVENT_TAG_MAP"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-8">
+        <addForeignKeyConstraint baseColumnNames="INFORMATION_ELEMENT_ID" baseTableName="INFORMATION_ELEMENT_TAG_MAP" constraintName="FK_25NJ8JN289GM1J274KU4QKO4J" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-9">
+        <addForeignKeyConstraint baseColumnNames="EVENT_ID" baseTableName="EVENT_TAG_MAP" constraintName="FK_2R4KUC9JUM08T0L8O0K70PMTI" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-10">
+        <addForeignKeyConstraint baseColumnNames="TAG_MAP_ID" baseTableName="INFORMATION_ELEMENT_TAG_MAP" constraintName="FK_9Y2N7ESCPRJ4DJHYGIVDMDNO6" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="TAG"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-11">
+        <addForeignKeyConstraint baseColumnNames="TAG_MAP_ID" baseTableName="EVENT_TAG_MAP" constraintName="FK_DR3AQAYUCEISI1S9F1KQYSHRT" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="TAG"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-12">
+        <dropForeignKeyConstraint baseTableName="INFORMATION_ELEMENT_TAGS" constraintName="FK_NXM4U8SSE2E66ARV4TTU8VNEQ"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-13">
+        <dropForeignKeyConstraint baseTableName="EVENT_TAGS" constraintName="FK_OEJTRH6CROVKWIQJ44G7FDTH0"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-14">
+        <dropTable tableName="EVENT_TAGS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1454789489549-15">
+        <dropTable tableName="INFORMATION_ELEMENT_TAGS"/>
+    </changeSet>
 </databaseChangeLog>
