@@ -302,16 +302,16 @@ public class DataControllerTest extends RestTest {
         assertEquals(eventsRes4[0].query, event3.query);
 
         // Test filtering for information elements
-        // InformationElement[] infoElemsRes = getData(infoElemsApi + "?tag=tag1", 
-        //                                             InformationElement[].class);
+        InformationElement[] infoElemsRes = getData(infoElemsApi + "?tag=tag1", 
+                                                    InformationElement[].class);
 
-        // assertEquals(1, infoElemsRes.length);
+        assertEquals(1, infoElemsRes.length);
 
-        // for (InformationElement elem : infoElemsRes) {
-        //     assertTrue(elem.hasTag("tag1"));
-        // }
+        for (InformationElement elem : infoElemsRes) {
+            assertTrue(elem.hasTag("tag1"));
+        }
 
-        // dumpData("info elems filtered by tag", infoElemsRes);
+        dumpData("info elems filtered by tag", infoElemsRes);
     }
 
     protected SearchEvent mkSearchEvent(Date start, Date end, double duration) {

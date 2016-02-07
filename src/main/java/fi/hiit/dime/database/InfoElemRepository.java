@@ -43,9 +43,9 @@ interface InfoElemRepositoryCustom {
 class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositoryCustom {
     public List<InformationElement> find(User user, Map<String, String> filterParams) {
         // We build the SQL query into q
-        StringBuilder q = new StringBuilder("select e from InformationElement e " +
-                                            "where user.id=:userId");
-
+        StringBuilder q = new StringBuilder("select e from InformationElement e "
+                                            + "where e.user.id=:userId");
+        
         // Map for storing named parameters for the query we are
         // constructing
         Map<String, String> namedParams = new HashMap<String, String>();
@@ -59,10 +59,9 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
             String criteria = "";
 
             switch (name) {
-            // case "tag":
-            //     criteria = ":tag member of e.tagMap";
-            //     // criteria = "exists (select t from Tags where id=event.id and text=:text)
-            //     break;
+            case "tag":
+                criteria = "(select count(*) from e.tagMap where text=:tag) > 0";
+                break;
             case "appid":
                 name = "appId";
                  break;
@@ -87,7 +86,7 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
             }
 
             if (criteria.isEmpty())
-                criteria = String.format("%s=:%s", name, name);
+                criteria = String.format("e.%s=:%s", name, name);
 
             q.append(" and " + criteria);
             namedParams.put(name, value);
