@@ -650,7 +650,6 @@ public class SearchIndex {
             // search for the documents with the query
             TopDocs results = searcher.search(queryBuilder.build(), limit);
             ScoreDoc[] hits = results.scoreDocs;
-            System.out.println("results number:"+hits.length);
 
             for (int i=0; i<hits.length; i++) {
                 Document doc = searcher.doc(hits[i].doc);

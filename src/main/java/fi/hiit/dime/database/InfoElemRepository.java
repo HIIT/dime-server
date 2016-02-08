@@ -25,22 +25,17 @@
 package fi.hiit.dime.database;
 
 import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.authentication.User;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.CrudRepository;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-interface InfoElemRepositoryCustom {
-    public List<InformationElement> find(User user, Map<String, String> filterParams);
-    public InformationElement replace(InformationElement oldElem, 
-                                      InformationElement newElem);
-}
-
-class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositoryCustom {
+class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
+    @Override
     public List<InformationElement> find(User user, Map<String, String> filterParams) {
         // We build the SQL query into q
         StringBuilder q = new StringBuilder("select e from InformationElement e "
@@ -95,29 +90,10 @@ class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositor
         return makeQuery(q.toString(), namedParams, user,
                          InformationElement.class).getResultList();
     }
-
-    public InformationElement replace(InformationElement oldElem,
-                                      InformationElement newElem) 
-    {
-        newElem.copyIdFrom(oldElem);
-        return entityManager.merge(newElem);
-    }
 }
 
-public interface InfoElemRepository extends CrudRepository<InformationElement, Long>,
-                                            InfoElemRepositoryCustom {
-    InformationElement findOne(Long id);
-
-    InformationElement findOneByIdAndUser(Long id, User user);
-
-    InformationElement findOneByAppIdAndUser(String appId, User user);
-
-    List<InformationElement> findByUser(User user);
-
+public interface InfoElemRepository extends DiMeRepository<InformationElement>,
+                                            DiMeRepositoryCustom<InformationElement> {
     List<InformationElement> 
         findByUserOrderByTimeModifiedDesc(User user, Pageable pageable);
-
-    Long countByUser(User user);
-
-    Long deleteByUser(User user);
 }

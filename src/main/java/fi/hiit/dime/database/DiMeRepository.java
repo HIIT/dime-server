@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -24,6 +24,7 @@
 
 package fi.hiit.dime.database;
 
+import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.authentication.User;
 
 import java.util.Map;
@@ -32,13 +33,24 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
-class BaseRepository {
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.NoRepositoryBean;
+
+import java.util.List;
+
+interface DiMeRepositoryCustom<T extends DiMeData> {
+    public List<T> find(User user, Map<String, String> filterParams);
+    public T replace(T oldData, T newData);
+}
+
+abstract class DiMeRepositoryImpl<T extends DiMeData> implements DiMeRepositoryCustom<T> {
     @PersistenceContext
     protected EntityManager entityManager;
 
     // Java Persistence Query Language Syntax:
     // http://docs.oracle.com/javaee/6/tutorial/doc/bnbuf.html
-    <T> TypedQuery<T> makeQuery(String q, Map<String, String> params,
+    TypedQuery<T> makeQuery(String q, Map<String, String> params,
 				User user, Class<T> resultClass) 
     {
         TypedQuery<T> query = entityManager.createQuery(q, resultClass);
@@ -54,4 +66,27 @@ class BaseRepository {
 
 	return query;
     }
+
+    @Override
+    public T replace(T oldData, T newData) {
+        newData.copyIdFrom(oldData);
+        return entityManager.merge(newData);
+    }
+}
+
+@NoRepositoryBean
+public interface DiMeRepository<T extends DiMeData>
+    extends CrudRepository<T, Long> 
+{
+    T findOne(Long id);
+
+    T findOneByIdAndUser(Long id, User user);
+
+    T findOneByAppIdAndUser(String appId, User user);
+
+    List<T> findByUser(User user);
+
+    Long countByUser(User user);
+
+    Long deleteByUser(User user);
 }

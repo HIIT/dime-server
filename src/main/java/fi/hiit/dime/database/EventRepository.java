@@ -43,13 +43,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
-interface EventRepositoryCustom {
-    public List<Event> find(User user, Map<String, String> filterParams);
-    public Event replace(Event oldEvent, Event newEvent);
-}
-
-class EventRepositoryImpl extends BaseRepository implements EventRepositoryCustom {
-
+class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
+    @Override
     public List<Event> find(User user, Map<String, String> filterParams) {
         // We build the SQL query into q
         StringBuilder q = new StringBuilder("select e from Event e " +
@@ -104,24 +99,13 @@ class EventRepositoryImpl extends BaseRepository implements EventRepositoryCusto
         return makeQuery(q.toString(), namedParams, user,
                          Event.class).getResultList();
     }
-
-    public Event replace(Event oldEvent, Event newEvent) {
-        newEvent.copyIdFrom(oldEvent);
-        return entityManager.merge(newEvent);
-    }
 }
 
-public interface EventRepository extends CrudRepository<Event, Long>,
-                                         EventRepositoryCustom {
+public interface EventRepository extends DiMeRepository<Event>,
+                                         DiMeRepositoryCustom<Event> {
 
     @Query("select new fi.hiit.dime.database.EventCount(actor, count(actor)) from Event e where user = ?1 group by actor order by count(actor) desc")
     List<EventCount> actorHistogram(User user);
-
-    Event findOne(Long id);
-
-    Event findOneByIdAndUser(Long id, User user);
-
-    Event findOneByAppIdAndUser(String appId, User user);
 
     List<ResourcedEvent> findByTargettedResourceAndUser(InformationElement elem,
                                                         User user);
@@ -129,10 +113,6 @@ public interface EventRepository extends CrudRepository<Event, Long>,
     List<Event> findByUserOrderByStartDesc(User user, Pageable pageable);
 
     List<Event> findByUserOrderByStartDesc(User user);
-
-    Long countByUser(User user);
-
-    Long deleteByUser(User user);
 
     List<Event> findByUserAndTimeModifiedIsAfterOrderByStartDesc(User user,
                                                                  Date start);
