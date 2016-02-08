@@ -317,7 +317,10 @@ public class SearchIndex {
             if (!forceReindex && !firstUpdate) {
                 // Just use our internal book keeping of new objects
                 toIndex.addAll(infoElemDAO.getNotIndexed());
+                infoElemDAO.clearNotIndexed();
+
                 toIndex.addAll(eventDAO.getNotIndexed());
+                eventDAO.clearNotIndexed();
             } else {
                 // Get the set of already indexed ids from Lucene
                 Set<String> inLucene = 
@@ -359,11 +362,6 @@ public class SearchIndex {
                 } else {
                     skipped += 1;
                 }
-
-                if (obj instanceof Event)
-                    eventDAO.setIndexed((Event)obj);
-                if (obj instanceof InformationElement)
-                    infoElemDAO.setIndexed((InformationElement)obj);
             }
 
             LOG.debug("Writing Lucene index to disk ...");
