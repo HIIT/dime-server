@@ -101,8 +101,7 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
     }
 }
 
-public interface EventRepository extends DiMeRepository<Event>,
-                                         DiMeRepositoryCustom<Event> {
+public interface EventRepository extends DiMeRepository<Event> {
 
     @Query("select new fi.hiit.dime.database.EventCount(actor, count(actor)) from Event e where user = ?1 group by actor order by count(actor) desc")
     List<EventCount> actorHistogram(User user);

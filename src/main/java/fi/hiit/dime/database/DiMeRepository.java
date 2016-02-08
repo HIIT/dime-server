@@ -76,7 +76,7 @@ abstract class DiMeRepositoryImpl<T extends DiMeData> implements DiMeRepositoryC
 
 @NoRepositoryBean
 public interface DiMeRepository<T extends DiMeData>
-    extends CrudRepository<T, Long> 
+    extends CrudRepository<T, Long>, DiMeRepositoryCustom<T> 
 {
     T findOne(Long id);
 

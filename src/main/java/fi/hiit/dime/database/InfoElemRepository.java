@@ -92,8 +92,7 @@ class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
     }
 }
 
-public interface InfoElemRepository extends DiMeRepository<InformationElement>,
-                                            DiMeRepositoryCustom<InformationElement> {
+public interface InfoElemRepository extends DiMeRepository<InformationElement> {
     List<InformationElement> 
         findByUserOrderByTimeModifiedDesc(User user, Pageable pageable);
 }
