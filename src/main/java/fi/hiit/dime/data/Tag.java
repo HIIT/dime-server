@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -22,36 +22,38 @@
   SOFTWARE.
 */
 
-package fi.hiit.dime.database;
+package fi.hiit.dime.data;
 
-import fi.hiit.dime.authentication.User;
+import java.util.Date;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 
-class BaseRepository {
-    @PersistenceContext
-    protected EntityManager entityManager;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
-    // Java Persistence Query Language Syntax:
-    // http://docs.oracle.com/javaee/6/tutorial/doc/bnbuf.html
-    <T> TypedQuery<T> makeQuery(String q, Map<String, String> params,
-				User user, Class<T> resultClass) 
-    {
-        TypedQuery<T> query = entityManager.createQuery(q, resultClass);
-	System.out.println("Find query: " + q);
-
-	query = query.setParameter("userId", user.getId());
-	System.out.println("  param: userId = " + user.getId());
-
-	for (Map.Entry<String, String> p : params.entrySet()) {
-	    System.out.println("  param: " + p.getKey() + " = " + p.getValue());
-	    query = query.setParameter(p.getKey(), p.getValue());
-	}
-
-	return query;
+/**
+   Class representing a text tag.
+*/
+@JsonInclude(value=JsonInclude.Include.NON_NULL)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
+@Entity
+// @Embeddable
+public class Tag extends AbstractPersistable<Long> {
+    public Tag() {
     }
+    
+    public Tag(String text) {
+        this.text = text;
+        this.time = new Date();
+        this.auto = false;
+    }
+
+    @Column(columnDefinition="text")
+    public String text;
+    public Date time;
+    public String origin;
+    public Boolean auto;
 }

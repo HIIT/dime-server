@@ -253,7 +253,7 @@ public class DataControllerTest extends RestTest {
 
         Document getDoc = (Document)getEvent1.targettedResource;
         assertEquals(origDoc.uri, getDoc.uri);
-        assertEquals(getDoc.tags.size(), 2);
+        assertEquals(getDoc.getTags().size(), 2);
         assertTrue(getDoc.hasTag("tag1"));
         assertTrue(getDoc.hasTag("tag2"));
 
@@ -420,7 +420,7 @@ public class DataControllerTest extends RestTest {
         Message msg2 = getData(infoElemApi + "/" + msgId, Message.class);
 
         assertEquals(content2, msg2.plainTextContent);
-        assertEquals(2, msg2.tags.size());
+        assertEquals(2, msg2.getTags().size());
         assertTrue(msg2.hasTag("mytag"));
         assertTrue(msg2.hasTag("anothertag"));
 
@@ -445,7 +445,7 @@ public class DataControllerTest extends RestTest {
         dumpData("Got back", msg3);
 
         assertEquals(content3, msg3.plainTextContent);
-        assertEquals(2, msg3.tags.size());
+        assertEquals(2, msg3.getTags().size());
         assertTrue(msg3.hasTag("mytag"));
         assertTrue(msg3.hasTag("anothertag"));
     }
@@ -743,5 +743,52 @@ public class DataControllerTest extends RestTest {
         // Second, try update with superclass and expect error
         ApiError resSup = uploadData(infoElemApi, docSup, ApiError.class);
         dumpData("testUpdateWithSuperclass: docSup", resSup);
+    }
+
+    @Test
+    public void testNewTags() throws Exception {
+        Document doc = new Document();
+        doc.plainTextContent = "foobar";
+        doc.addTag("foo");
+        doc.addTag("bar");
+        doc.addTag("baz");
+
+        Tag tagFoo = new Tag("foo");
+        tagFoo.auto = true;
+        doc.addTag(tagFoo);
+
+        doc.removeTag("baz");
+
+        assertEquals(doc.getTags().size(), 2);
+        assertTrue(doc.hasTag("foo"));
+        assertTrue(doc.hasTag("bar"));
+        assertFalse(doc.hasTag("baz"));
+        assertTrue(doc.getTag("foo").auto);
+
+        FeedbackEvent event = new FeedbackEvent();
+        event.value = 0.42;
+        event.targettedResource = doc;
+
+        dumpData("Event with tagged doc to be uploaded", event);
+
+        FeedbackEvent outEvent = uploadEvent(event, FeedbackEvent.class);
+        dumpData("Event received back from server:", outEvent);
+
+        Document getDoc = getData(infoElemApi + "/" +
+                                  outEvent.targettedResource.getId(),
+                                  Document.class);
+        dumpData("Tagged doc fetched:", getDoc);
+
+        assertEquals(2, getDoc.getTags().size());
+        assertTrue(getDoc.hasTag("foo"));
+        assertTrue(getDoc.hasTag("bar"));
+        assertFalse(getDoc.hasTag("baz"));
+
+        assertTrue(getDoc.getTag("foo").auto);
+        assertFalse(getDoc.getTag("bar").auto);
+
+        // ApiError res = uploadData(eventApi, event, ApiError.class);
+        // System.out.println("RES=" + res);
+
     }
 }

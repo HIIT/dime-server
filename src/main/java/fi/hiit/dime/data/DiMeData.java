@@ -28,11 +28,13 @@ import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.search.WeightedKeyword;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.ElementCollection;
@@ -40,7 +42,10 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.MapKey;
 import javax.persistence.Transient;
+import javax.persistence.OneToMany;
+import javax.persistence.CascadeType;
 
 import java.util.List;
 
@@ -48,7 +53,7 @@ import java.util.List;
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new", "tagMap"})
 @JsonSubTypes({
             @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.ScientificDocument.class, name="ScientificDocument"),
@@ -92,7 +97,7 @@ public class DiMeData extends AbstractPersistable<Long> {
     @JoinColumn(name = "user_id")
     public User user;
 
-    /** Detailed data type according to the Semantic Desktop ontology: 
+    /** Detailed data type according to the Semantic Desktop ontology:
         http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
      */
     public String type;
@@ -101,7 +106,7 @@ public class DiMeData extends AbstractPersistable<Long> {
         to clean up user provided data, or perform some house keeping
         before storing in the database.
     */
-    public void autoFill() {} 
+    public void autoFill() {}
 
     @Transient
     public Float score;
@@ -110,33 +115,80 @@ public class DiMeData extends AbstractPersistable<Long> {
     public List<WeightedKeyword> weightedKeywords;
 
     /** List of user-specified tags, interpretation depends on the
-	application. 
+        application.
     */
-    @ElementCollection(targetClass = String.class)
-    public Set<String> tags;
+    //@ElementCollection(targetClass = Tag.class)
+    // @Transient
+    // private Set<Tag> tags = new HashSet<Tag>();
+
+    // This is just internal book keeping for fast access to tags
+    //@Transient
+    @OneToMany(cascade = CascadeType.ALL)
+    @MapKey(name = "text")
+    private Map<String, Tag> tagMap = new HashMap<String, Tag>();
+
+    public void setTagMap(Map<String, Tag> tagMap) {
+        this.tagMap = tagMap;
+
+        // tags.clear();
+        // for (Tag t : tagMap.values())
+        //     tags.add(t);
+    }
+
+    public Map<String, Tag> getTagMap() {
+        return tagMap;
+    }
+
+    public void setTags(Collection<Tag> tags) {
+        // this.tags = tags;
+
+        tagMap.clear();
+        for (Tag t : tags)
+            tagMap.put(t.text, t);
+    }
+
+    public Collection<Tag> getTags() {
+        return tagMap.values();
+    }
 
     /** Add a free-form tag to the object.
-	@param tag The tag to add
+        @param tagText The tag text to add
     */
-    public void addTag(String tag) {
-	if (tags == null)
-	    tags = new HashSet<String>();
-	tags.add(tag);
+    public void addTag(String tagText) {
+        addTag(new Tag(tagText));
+    }
+
+    /** Add a free-form tag to the object.
+        @param tag The tag object to add
+    */
+    public void addTag(Tag tag) {
+        if (tagMap.containsKey(tag.text))
+            removeTag(tag.text);
+
+        // tags.add(tag);
+        tagMap.put(tag.text, tag);
     }
 
     /** Remove a tag from the object.
-	@param tag The tag to remove
+        @param tag The tag to remove
     */
-    public void removeTag(String tag) {
-	if (tags != null)
-	    tags.remove(tag);
+    public void removeTag(String tagText) {
+        if (tagMap.containsKey(tagText)) {
+            Tag tag = tagMap.get(tagText);
+            // tags.remove(tag);
+            tagMap.remove(tagText);
+        }
+    }
+
+    public Tag getTag(String tagText) {
+        return tagMap.get(tagText);
     }
 
     /** Checks if the object contains a given tag.
-	@param tag Tag to check for
-	@return true if tag found, otherwise false
+        @param tag Tag to check for
+        @return true if tag found, otherwise false
     */
-    public boolean hasTag(String tag) {
-	return tags != null && tags.contains(tag);
+    public boolean hasTag(String tagText) {
+        return tagMap.containsKey(tagText);
     }
 }

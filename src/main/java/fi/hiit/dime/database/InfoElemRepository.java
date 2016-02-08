@@ -37,78 +37,75 @@ import java.util.Map;
 interface InfoElemRepositoryCustom {
     public List<InformationElement> find(User user, Map<String, String> filterParams);
     public InformationElement replace(InformationElement oldElem, 
-				      InformationElement newElem);
+                                      InformationElement newElem);
 }
 
 class InfoElemRepositoryImpl extends BaseRepository implements InfoElemRepositoryCustom {
     public List<InformationElement> find(User user, Map<String, String> filterParams) {
-	// We build the SQL query into q
-	StringBuilder q = new StringBuilder("select e from InformationElement e " +
-					    "where user.id=:userId");
+        // We build the SQL query into q
+        StringBuilder q = new StringBuilder("select e from InformationElement e "
+                                            + "where e.user.id=:userId");
+        
+        // Map for storing named parameters for the query we are
+        // constructing
+        Map<String, String> namedParams = new HashMap<String, String>();
 
-	// Map for storing named parameters for the query we are
-	// constructing
-	Map<String, String> namedParams = new HashMap<String, String>();
+        // Loop over user's parameters, and transform to SQL statments
+        // and fill in namedParams
+        for (Map.Entry<String, String> param : filterParams.entrySet()) {
+            String name = param.getKey().toLowerCase();
+            String value = param.getValue();
 
-	// Loop over user's parameters, and transform to SQL statments
-	// and fill in namedParams
-	for (Map.Entry<String, String> param : filterParams.entrySet()) {
-    	    String name = param.getKey().toLowerCase();
-    	    String value = param.getValue();
+            String criteria = "";
 
-	    String criteria = "";
-
-    	    switch (name) {
-    	    case "tag":
-		criteria = ":tag member of e.tags";
-    		break;
+            switch (name) {
+            case "tag":
+                criteria = "(select count(*) from e.tagMap where text=:tag) > 0";
+                break;
             case "appid":
-            name = "appId";
-            criteria = String.format("%s=:%s", name, name);
-            break;
+                name = "appId";
+                 break;
             case "contenthash":
-            name = "contentHash";
-            criteria = String.format("%s=:%s", name, name);
-            break;
+                name = "contentHash";
+                 break;
             case "plaintextcontent":
-            name = "plainTextContent";
-            criteria = String.format("%s=:%s", name, name);
-            break;
+                name = "plainTextContent";
+                 break;
             case "isstoredas":
-            name = "isStoredAs";
-            criteria = String.format("%s=:%s", name, name);
-            break;
+                name = "isStoredAs";
+                 break;
             case "mimetype":
-            name = "mimeType";
-            criteria = String.format("%s=:%s", name, name);
-            break;
+                name = "mimeType";
+                 break;
             case "uri":
-    	    case "type":
-    	    case "title":
-            criteria = String.format("%s=:%s", name, name);
-    		break;
-    	    default:
-    		throw new IllegalArgumentException(name);
-    	    }
+            case "type":
+            case "title":
+                break;
+            default:
+                throw new IllegalArgumentException(name);
+            }
 
-	    q.append(" and " + criteria);
-	    namedParams.put(name, value);
-    	}
+            if (criteria.isEmpty())
+                criteria = String.format("e.%s=:%s", name, name);
 
-	return makeQuery(q.toString(), namedParams, user,
-			 InformationElement.class).getResultList();
+            q.append(" and " + criteria);
+            namedParams.put(name, value);
+        }
+
+        return makeQuery(q.toString(), namedParams, user,
+                         InformationElement.class).getResultList();
     }
 
     public InformationElement replace(InformationElement oldElem,
-				      InformationElement newElem) 
+                                      InformationElement newElem) 
     {
-	newElem.copyIdFrom(oldElem);
-	return entityManager.merge(newElem);
+        newElem.copyIdFrom(oldElem);
+        return entityManager.merge(newElem);
     }
 }
 
 public interface InfoElemRepository extends CrudRepository<InformationElement, Long>,
-					    InfoElemRepositoryCustom {
+                                            InfoElemRepositoryCustom {
     InformationElement findOne(Long id);
 
     InformationElement findOneByIdAndUser(Long id, User user);
@@ -118,7 +115,7 @@ public interface InfoElemRepository extends CrudRepository<InformationElement, L
     List<InformationElement> findByUser(User user);
 
     List<InformationElement> 
-    	findByUserOrderByTimeModifiedDesc(User user, Pageable pageable);
+        findByUserOrderByTimeModifiedDesc(User user, Pageable pageable);
 
     Long countByUser(User user);
 

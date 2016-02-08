@@ -40,6 +40,7 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.client.RestTemplate;
 import static org.junit.Assert.*;
 
@@ -325,17 +326,29 @@ public abstract class RestTest {
     }
 
     protected <S, T> T uploadData(String apiUrl, S data, Class<T> responseType) {
-        // Upload to DiMe
-        ResponseEntity<T> res = getRest().postForEntity(apiUrl, data, 
-                                                        responseType);
+        try {
+            // Upload to DiMe
+            ResponseEntity<T> res = getRest().postForEntity(apiUrl, data, 
+                                                            responseType);
 
-        // Check that HTTP was as expected
-        if (responseType == ApiError.class)
-            assertClientError(res);
-        else
-            assertSuccessful(res);
+            // Check that HTTP status was as expected
+            if (responseType == ApiError.class)
+                assertClientError(res);
+            else
+                assertSuccessful(res);
+            
+            return res.getBody();
 
-        return res.getBody();
+        } catch (HttpMessageNotReadableException ex) {
+            System.out.println(ex);
+
+            ResponseEntity<ApiError> res =
+                getRest().postForEntity(apiUrl, data, ApiError.class);
+            System.out.println(res.getBody());
+
+            fail();
+        }
+        return null;
     }
 
 
@@ -346,15 +359,26 @@ public abstract class RestTest {
     }
 
     protected <T> T getData(String apiUrl, Class<T> responseType) {
-        ResponseEntity<T> res = getRest().getForEntity(apiUrl, responseType);
+        try {
+            ResponseEntity<T> res = getRest().getForEntity(apiUrl, responseType);
 
-        // Check that HTTP was as expected
-        if (responseType == ApiError.class)
-            assertClientError(res);
-        else
-            assertSuccessful(res);
+            // Check that HTTP was as expected
+            if (responseType == ApiError.class)
+                assertClientError(res);
+            else
+                assertSuccessful(res);
 
-        return res.getBody();
+            return res.getBody();
+        } catch (HttpMessageNotReadableException ex) {
+            System.out.println(ex);
+
+            ResponseEntity<ApiError> res =
+                getRest().getForEntity(apiUrl, ApiError.class);
+            System.out.println(res.getBody());
+
+            fail();
+        }
+        return null;
     }
 
     protected static class ApiError {
@@ -364,5 +388,11 @@ public abstract class RestTest {
         public String exception; // "fi.hiit.dime.AuthorizedController$BadRequestException"
         public String message;   // longer message...
         public String path;      // "/api/data/informationelement"
+
+        @Override 
+        public String toString() {
+            return "Error " + status + ": " + error + " [" + path + "] " + 
+                exception + ": " + message;
+        }
     }
 }
