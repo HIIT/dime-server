@@ -32,6 +32,10 @@ import java.util.Set;
 public class BaseDAO<T extends DiMeData> {
     protected Set<T> notIndexed = new HashSet<T>();
 
+    public int countNotIndexed() {
+        return notIndexed.size();
+    }
+
     public boolean hasUnIndexed() {
 	return !notIndexed.isEmpty();
     }
@@ -40,7 +44,7 @@ public class BaseDAO<T extends DiMeData> {
 	return notIndexed;
     }
 
-    public void setIndexed(T elem) {
-	notIndexed.remove(elem);
+    public void clearNotIndexed() {
+        notIndexed.clear();
     }
 }
