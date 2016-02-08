@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -51,58 +51,68 @@ interface EventRepositoryCustom {
 class EventRepositoryImpl extends BaseRepository implements EventRepositoryCustom {
 
     public List<Event> find(User user, Map<String, String> filterParams) {
-	// We build the SQL query into q
-	StringBuilder q = new StringBuilder("select e from Event e where user.id=:userId");
+        // We build the SQL query into q
+        StringBuilder q = new StringBuilder("select e from Event e " +
+                                            "where e.user.id=:userId");
 
-	// Map for storing named parameters for the query we are
-	// constructing
-	Map<String, String> namedParams = new HashMap<String, String>();
+        // Map for storing named parameters for the query we are
+        // constructing
+        Map<String, String> namedParams = new HashMap<String, String>();
 
-	// Loop over user's parameters, and transform to SQL statments
-	// and fill in namedParams
-	for (Map.Entry<String, String> param : filterParams.entrySet()) {
-    	    String name = param.getKey().toLowerCase();
-    	    String value = param.getValue();
+        // Loop over user's parameters, and transform to SQL statments
+        // and fill in namedParams
+        for (Map.Entry<String, String> param : filterParams.entrySet()) {
+            String name = param.getKey().toLowerCase();
+            String value = param.getValue();
 
-    	    switch (name) {
-	    case "elem_id":
-	    case "elemid":
-		name = "resource_id";
-   	    break;
-	    case "appid":
-		name = "appId";
-		break;
-        case "sessionid":
-        name = "sessionId";
-        break;
-    	    case "actor":
-    	    case "origin":
-    	    case "type":
-		// case "start":
-		// case "end":
-		// case "duration":
-    	    case "query":
-		// case "":
-    		break;
-    	    default:
-    		throw new IllegalArgumentException(name);
-    	    }
-	    
-	    q.append(String.format(" and %s=:%s", name, name));
-	    namedParams.put(name, value);
-    	}
+            String criteria = "";
 
-	return makeQuery(q.toString(), namedParams, user, Event.class).getResultList();
+            switch (name) {
+            case "tag":
+                criteria = "(select count(*) from e.tagMap where text=:tag) > 0";
+                break;
+            case "elem_id":
+            case "elemid":
+                name = "resource_id";
+            break;
+            case "appid":
+                name = "appId";
+                break;
+            case "sessionid":
+                name = "sessionId";
+                break;
+            case "actor":
+            case "origin":
+            case "type":
+                // case "start":
+                // case "end":
+                // case "duration":
+            case "query":
+                // case "":
+                break;
+            default:
+                throw new IllegalArgumentException(name);
+            }
+
+            if (criteria.isEmpty())
+                criteria = String.format("%s=:%s", name, name);
+
+            q.append(" and " + criteria);
+            namedParams.put(name, value);
+        }
+
+        return makeQuery(q.toString(), namedParams, user,
+                         Event.class).getResultList();
     }
 
     public Event replace(Event oldEvent, Event newEvent) {
-	newEvent.copyIdFrom(oldEvent);
-	return entityManager.merge(newEvent);
+        newEvent.copyIdFrom(oldEvent);
+        return entityManager.merge(newEvent);
     }
 }
 
 public interface EventRepository extends CrudRepository<Event, Long>,
-					 EventRepositoryCustom {
+                                         EventRepositoryCustom {
 
     @Query("select new fi.hiit.dime.database.EventCount(actor, count(actor)) from Event e where user = ?1 group by actor order by count(actor) desc")
     List<EventCount> actorHistogram(User user);
@@ -114,8 +124,8 @@ public interface EventRepository extends CrudRepository<Event, Long>,
     Event findOneByAppIdAndUser(String appId, User user);
 
     List<ResourcedEvent> findByTargettedResourceAndUser(InformationElement elem,
-							User user);
-    
+                                                        User user);
+
     List<Event> findByUserOrderByStartDesc(User user, Pageable pageable);
 
     List<Event> findByUserOrderByStartDesc(User user);
@@ -127,4 +137,3 @@ public interface EventRepository extends CrudRepository<Event, Long>,
     List<Event> findByUserAndTimeModifiedIsAfterOrderByStartDesc(User user,
                                                                  Date start);
 }
-
