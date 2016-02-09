@@ -67,6 +67,7 @@ import java.util.List;
             @JsonSubTypes.Type(value=fi.hiit.dime.data.MessageEvent.class, name="MessageEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.SearchEvent.class, name="SearchEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.FunfEvent.class, name="FunfEvent"),
+            @JsonSubTypes.Type(value=fi.hiit.dime.data.CalendarEvent.class, name="CalendarEvent"),
 })
 @MappedSuperclass
 public class DiMeData extends AbstractPersistable<Long> {

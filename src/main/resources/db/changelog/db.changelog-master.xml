@@ -577,4 +577,40 @@
     <changeSet author="mvsjober (generated)" id="1454789489549-15">
         <dropTable tableName="INFORMATION_ELEMENT_TAGS"/>
     </changeSet>
+    <changeSet author="marco (generated)" id="1455025101585-1">
+        <createTable tableName="CALENDAREVENT_PARTICIPANTS">
+            <column name="CALENDAREVENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PERSON_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1455025101585-2">
+        <addColumn tableName="EVENT">
+            <column name="CALENDAR" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1455025101585-3">
+        <addColumn tableName="EVENT">
+            <column name="LOC_STRING" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1455025101585-4">
+        <addColumn tableName="EVENT">
+            <column name="NAME" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1455025101585-5">
+        <addForeignKeyConstraint baseColumnNames="CALENDAREVENT_ID" baseTableName="CALENDAREVENT_PARTICIPANTS" constraintName="FK_72T0IM4H81ARKM66A9JW3MH4C" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1455025101585-6">
+        <addForeignKeyConstraint baseColumnNames="PERSON_ID" baseTableName="CALENDAREVENT_PARTICIPANTS" constraintName="FK_DCM5HMYOXDTVEYUBF714B73MK" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PERSON"/>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1455031396115-1">
+        <addColumn tableName="EVENT">
+            <column name="NOTES" type="CLOB(2147483647)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
