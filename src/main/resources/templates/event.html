@@ -73,6 +73,27 @@
             </table>
         </span>
 
+        <span th:if="${event instanceof T(fi.hiit.dime.data.CalendarEvent)}">
+          <b>Start Time:</b> <span th:text="${event.start}"></span>, <b>End Time:</b> <span th:text="${event.end}"></span><br/><br/>
+          <b>Event name:</b> <span th:text="${event.name}"></span>, <b>Location:</b> <span th:text="${event.locString}"></span><br/>
+          <b>Calendar:</b> <span th:text="${event.calendar}"></span>, <b>Notes:</b> <span th:text="${event.notes}"></span><br/>
+          <b>Participants:</b>
+            <table class="table">
+                <thead><tr>
+                        <th>First name</th>
+                        <th>Last name</th>
+                        <th>e-mail</th>
+                </tr></thead>
+              <tbody>
+                  <tr th:each="participant, iterationStatus : ${event.participants}">
+                      <td th:text="${participant.firstName}"></td>
+                      <td th:text="${participant.lastName}"></td>
+                      <td th:text="${participant.emailAccount}"></td>
+                  </tr>
+              </tbody>
+            </table>
+        </span>
+
 	    <span th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
 	      <p th:replace="infoelem :: infoelemview (${event.targettedResource})"></p>
 	    </span>
