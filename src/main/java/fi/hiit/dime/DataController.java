@@ -268,6 +268,7 @@ public class DataController extends AuthorizedController {
 
         if (expandedEvent != null) {
             event.user = user;
+            event.autoFill();
             event = eventDAO.replace(expandedEvent, event);
         } else {
             // Otherwise, this is just a new object, so store it

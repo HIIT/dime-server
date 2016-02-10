@@ -348,11 +348,13 @@ public class DataControllerTest extends RestTest {
         events[3] = mkSearchEvent(start, null, dur);
         events[4] = mkSearchEvent(null, end, dur);
 
-        dumpData("List of events to be uploaded to " + eventsApi, events);
+        dumpData("testEventTimes: List of events to be uploaded to " + eventsApi, events);
 
         // Checks to ensure returned object is the same as uploaded
         SearchEvent[] outEvents = uploadEvents(events, SearchEvent[].class);
         assertEquals(events.length, outEvents.length);
+
+        dumpData("testEventTimes: List of events after upload", outEvents);
 
         // end should have been set to equal start
         assert(outEvents[0].start.equals(start));
@@ -379,6 +381,21 @@ public class DataControllerTest extends RestTest {
                    outEvents[4].start.equals(start));
         assert(outEvents[4].end.equals(end));
         assertEquals(outEvents[4].duration, dur, DELTA);
+
+        // test updating an old event with new times
+        cal.add(Calendar.HOUR, -24);
+        Date start2 = cal.getTime(); // set start time one day back
+        double dur2 = (end.getTime()-start2.getTime())/1000.0;
+
+        events[2].copyIdFrom(outEvents[2]); // use the id returned by DiMe
+        events[2].start = start2;
+
+        SearchEvent uploadedEvent = uploadEvent(events[2], SearchEvent.class);
+        dumpData("Modified times event", uploadedEvent);
+
+        assert(uploadedEvent.start.equals(start2));
+        assert(uploadedEvent.end.equals(end));
+        assertEquals(dur2, uploadedEvent.duration, DELTA);
     }
 
     @Test
