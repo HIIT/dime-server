@@ -5,7 +5,7 @@ JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
 PKG_DIR  = build/package
 PKG_FILE = dime
 DIME_PORT = 8080
-SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html' -or -name 'db*.xml')
+SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html' -or -name 'db*.xml' -or -name '*.properties')
 
 DIME_HOME = ~/.dime
 
