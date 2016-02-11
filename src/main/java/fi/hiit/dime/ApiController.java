@@ -89,7 +89,7 @@ public class ApiController extends AuthorizedController {
     }
 
     /**
->        Class for "dummy" API responses which just return a simple
+        Class for "dummy" API responses which just return a simple
         message string.
     */
     public static class ApiMessage {

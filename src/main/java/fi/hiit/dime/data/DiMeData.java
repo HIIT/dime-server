@@ -165,28 +165,29 @@ public class DiMeData extends AbstractPersistable<Long> {
     public void addTag(Tag tag) {
         if (tagMap.containsKey(tag.text))
             removeTag(tag.text);
-
-        // tags.add(tag);
         tagMap.put(tag.text, tag);
     }
 
     /** Remove a tag from the object.
-        @param tag The tag to remove
+        @param tagText The tag to remove
     */
     public void removeTag(String tagText) {
         if (tagMap.containsKey(tagText)) {
             Tag tag = tagMap.get(tagText);
-            // tags.remove(tag);
             tagMap.remove(tagText);
         }
     }
 
+    /** Return Tag object for a given text tag.
+        @param tagText The tag to retrieve
+        @return The corresponding Tag object
+    */
     public Tag getTag(String tagText) {
         return tagMap.get(tagText);
     }
 
     /** Checks if the object contains a given tag.
-        @param tag Tag to check for
+        @param tagText Tag to check for
         @return true if tag found, otherwise false
     */
     public boolean hasTag(String tagText) {
