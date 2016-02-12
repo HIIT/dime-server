@@ -71,6 +71,13 @@ import java.util.List;
 })
 @MappedSuperclass
 public class DiMeData extends AbstractPersistable<Long> {
+    /** An optional identifying unique string field that can be used
+        by the application or logger. The value can be any unique text
+        string, and is entirely up to the application developer, but
+        make sure it is unique. If you upload another object with the
+        same appId later (for the same user) it will replace the old
+        one (as long as it is of the same exact class).
+    */
     public String appId;
 
     public void copyIdFrom(DiMeData e) {
