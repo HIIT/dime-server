@@ -125,22 +125,12 @@ public class DiMeData extends AbstractPersistable<Long> {
     /** List of user-specified tags, interpretation depends on the
         application.
     */
-    //@ElementCollection(targetClass = Tag.class)
-    // @Transient
-    // private Set<Tag> tags = new HashSet<Tag>();
-
-    // This is just internal book keeping for fast access to tags
-    //@Transient
     @OneToMany(cascade = CascadeType.ALL)
     @MapKey(name = "text")
-    private Map<String, Tag> tagMap = new HashMap<String, Tag>();
+    private Map<String, Tag> tagMap;
 
     public void setTagMap(Map<String, Tag> tagMap) {
         this.tagMap = tagMap;
-
-        // tags.clear();
-        // for (Tag t : tagMap.values())
-        //     tags.add(t);
     }
 
     public Map<String, Tag> getTagMap() {
@@ -148,15 +138,20 @@ public class DiMeData extends AbstractPersistable<Long> {
     }
 
     public void setTags(Collection<Tag> tags) {
-        // this.tags = tags;
+        if (tags == null)
+            return;
 
-        tagMap.clear();
+        if (tagMap == null)
+            tagMap = new HashMap<String, Tag>();
+        else 
+            tagMap.clear();
+
         for (Tag t : tags)
             tagMap.put(t.text, t);
     }
 
     public Collection<Tag> getTags() {
-        return tagMap.values();
+        return tagMap != null ? tagMap.values() : null;
     }
 
     /** Add a free-form tag to the object.
@@ -170,8 +165,11 @@ public class DiMeData extends AbstractPersistable<Long> {
         @param tag The tag object to add
     */
     public void addTag(Tag tag) {
-        if (tagMap.containsKey(tag.text))
+        if (tagMap == null)
+            tagMap = new HashMap<String, Tag>();
+        else if (tagMap.containsKey(tag.text))
             removeTag(tag.text);
+
         tagMap.put(tag.text, tag);
     }
 
@@ -179,7 +177,7 @@ public class DiMeData extends AbstractPersistable<Long> {
         @param tagText The tag to remove
     */
     public void removeTag(String tagText) {
-        if (tagMap.containsKey(tagText)) {
+        if (tagMap != null && tagMap.containsKey(tagText)) {
             Tag tag = tagMap.get(tagText);
             tagMap.remove(tagText);
         }
@@ -190,7 +188,7 @@ public class DiMeData extends AbstractPersistable<Long> {
         @return The corresponding Tag object
     */
     public Tag getTag(String tagText) {
-        return tagMap.get(tagText);
+        return tagMap != null ? tagMap.get(tagText) : null;
     }
 
     /** Checks if the object contains a given tag.
@@ -198,6 +196,8 @@ public class DiMeData extends AbstractPersistable<Long> {
         @return true if tag found, otherwise false
     */
     public boolean hasTag(String tagText) {
-        return tagMap.containsKey(tagText);
+        return tagMap != null ? tagMap.containsKey(tagText) : false;
+    }
+
     }
 }
