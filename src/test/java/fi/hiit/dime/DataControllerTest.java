@@ -26,6 +26,7 @@ package fi.hiit.dime;
 
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.util.RandomPassword;
+import static fi.hiit.dime.data.DiMeData.makeStub;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.junit.Before;
@@ -86,7 +87,7 @@ public class DataControllerTest extends RestTest {
 
         // Create a "stub" document, i.e. that refers to the
         // previously uploaded one
-        InformationElement stubDoc = InformationElement.makeStub(outDoc1);
+        InformationElement stubDoc = makeStub(outDoc1, InformationElement.class);
 
         // Create feedback with the stub document
         FeedbackEvent event2 = new FeedbackEvent();
@@ -248,8 +249,8 @@ public class DataControllerTest extends RestTest {
         dumpData("testEventGet: events received back from server:", outEvents);
 
         // Read back events over REST API and check
-        FeedbackEvent getEvent1 = getData(eventApi + "/" + outEvent1.getId(),
-                                          FeedbackEvent.class);
+        FeedbackEvent getEvent1 = getEvent(outEvent1.getId(),
+                                           FeedbackEvent.class);
         assertEquals(event1.value, getEvent1.value, DELTA);
 
         Document getDoc = (Document)getEvent1.targettedResource;
@@ -258,17 +259,14 @@ public class DataControllerTest extends RestTest {
         assertTrue(getDoc.hasTag("tag1"));
         assertTrue(getDoc.hasTag("tag2"));
 
-        SearchEvent getEvent2 = getData(eventApi + "/" + outEvent2.getId(),
-                                        SearchEvent.class);
+        SearchEvent getEvent2 = getEvent(outEvent2.getId(), SearchEvent.class);
         assertEquals(event2.query, getEvent2.query);
 
-        SearchEvent getEvent3 = getData(eventApi + "/" + outEvent3.getId(),
-                                        SearchEvent.class);
+        SearchEvent getEvent3 = getEvent(outEvent3.getId(), SearchEvent.class);
         assertEquals(event3.query, getEvent3.query);
 
         // Read back uploaded document
-        Document getDirectDoc = getData(infoElemApi + "/" + uploadDoc.getId(),
-                                        Document.class);
+        Document getDirectDoc = getElement(uploadDoc.getId(), Document.class);
 
         assertEquals(getDirectDoc.uri, origDoc.uri);
 
@@ -435,7 +433,7 @@ public class DataControllerTest extends RestTest {
         assertEquals(msgId, outEvent2.targettedResource.getId());
 
         // Read back infoelement over REST API and check
-        Message msg2 = getData(infoElemApi + "/" + msgId, Message.class);
+        Message msg2 = getElement(msgId, Message.class);
 
         assertEquals(content2, msg2.plainTextContent);
         assertEquals(2, msg2.getTags().size());
@@ -458,7 +456,7 @@ public class DataControllerTest extends RestTest {
         assertEquals(msgId, outEvent3.targettedResource.getId());
 
         // Read back infoelement over REST API and check
-        Message msg3 = getData(infoElemApi + "/" + msgId, Message.class);
+        Message msg3 = getElement(msgId, Message.class);
 
         dumpData("Got back", msg3);
 
@@ -562,7 +560,7 @@ public class DataControllerTest extends RestTest {
         Long msgId = outMsg.getId();
 
         // Read back infoelement over REST API and check
-        Message msg2 = getData(infoElemApi + "/" + msgId, Message.class);
+        Message msg2 = getElement(msgId, Message.class);
 
         assertEquals(msg2.plainTextContent, content1);
 
@@ -578,7 +576,7 @@ public class DataControllerTest extends RestTest {
         assertEquals(msgId, outMsg2.getId());
 
         // Read back infoelement over REST API and check
-        Message msg3 = getData(infoElemApi + "/" + msgId, Message.class);
+        Message msg3 = getElement(msgId, Message.class);
 
         assertEquals(msg3.plainTextContent, content2);
 
@@ -596,7 +594,7 @@ public class DataControllerTest extends RestTest {
         assertEquals(msg.appId, outMsg3.appId);
 
         // Read back infoelement over REST API and check
-        Message msg4 = getData(infoElemApi + "/" + msgId, Message.class);
+        Message msg4 = getElement(msgId, Message.class);
 
         assertEquals(msg4.plainTextContent, content3);
 
@@ -648,8 +646,7 @@ public class DataControllerTest extends RestTest {
         assertEquals(re.pageEyeData.size(), reRet.pageEyeData.size());
         assertEquals(re.pageRects.size(), reRet.pageRects.size());
 
-        ReadingEvent reGet = getData(eventApi + "/" + reRet.getId(),
-                                     ReadingEvent.class);
+        ReadingEvent reGet = getEvent(reRet.getId(), ReadingEvent.class);
         dumpData("ReadingEvent via GET", reGet);
 
         assertEquals(re.pageEyeData.size(), reGet.pageEyeData.size());
@@ -706,8 +703,8 @@ public class DataControllerTest extends RestTest {
         compareDocs(doc, docRet);
 
 
-        ScientificDocument docGet = getData(infoElemApi + "/" + docRet.getId(), 
-                                            ScientificDocument.class);
+        ScientificDocument docGet = getElement(docRet.getId(),
+                                               ScientificDocument.class);
         dumpData("ScientificDocument GET id", docGet);
         compareDocs(doc, docGet);
 
@@ -792,9 +789,8 @@ public class DataControllerTest extends RestTest {
         FeedbackEvent outEvent = uploadEvent(event, FeedbackEvent.class);
         dumpData("Event received back from server:", outEvent);
 
-        Document getDoc = getData(infoElemApi + "/" +
-                                  outEvent.targettedResource.getId(),
-                                  Document.class);
+        Document getDoc = getElement(outEvent.targettedResource.getId(),
+                                     Document.class);
         dumpData("Tagged doc fetched:", getDoc);
 
         assertEquals(2, getDoc.getTags().size());
@@ -807,6 +803,73 @@ public class DataControllerTest extends RestTest {
 
         // ApiError res = uploadData(eventApi, event, ApiError.class);
         // System.out.println("RES=" + res);
+
+    }
+
+    protected FeedbackEvent mkFeedback(double value, InformationElement elem, 
+                                       Event relatedEvent) {
+        FeedbackEvent feedback = new FeedbackEvent();
+        feedback.value = value;
+        if (elem != null)
+            feedback.targettedResource = elem;
+        if (relatedEvent != null)
+            feedback.relatedEvent = relatedEvent;
+        return feedback;
+    }
+        
+
+    @Test
+    public void testRelatedEvent() throws Exception {
+        // Let's pretend we searched for something
+        SearchEvent searchEvent = new SearchEvent();
+        searchEvent.query = "some search query";
+
+        SearchEvent searchEventOut = uploadEvent(searchEvent, SearchEvent.class);
+
+        // Let's pretend we found two documents
+        Document doc1 = new Document();
+        doc1.uri = "http://www.example.com/hello.txt";
+        doc1.plainTextContent = "Hello, world";
+        doc1.mimeType = "text/plain";
+
+        Document doc2 = new Document();
+        doc2.uri = "http://www.example.com/hello2.txt";
+        doc2.plainTextContent = "Hello, world too";
+        doc2.mimeType = "text/plain";
+        
+        // Then the user gave some feedback
+        FeedbackEvent[] feedback = new FeedbackEvent[5];
+        feedback[0] = mkFeedback(0.287, doc1, searchEventOut);
+        feedback[1] = mkFeedback(0.984, doc1, searchEventOut);
+        feedback[2] = mkFeedback(0.398, doc2, searchEventOut);
+        feedback[3] = mkFeedback(0.402, doc2, searchEventOut);
+
+        SearchEvent stubSearchEvent = makeStub(searchEventOut, SearchEvent.class);
+        feedback[4] = mkFeedback(0.234, doc2, stubSearchEvent);
+
+        dumpData("testRelatedEvent: feedback to be uploaded ", feedback);
+
+        FeedbackEvent[] feedbackOut = uploadEvents(feedback, FeedbackEvent[].class);
+
+        dumpData("testRelatedEvent: feedback that was returned ", feedbackOut);
+
+        for (int i=0; i<feedback.length; i++) {
+            FeedbackEvent in = feedback[i];
+            FeedbackEvent out = feedbackOut[i];
+            assertEquals(in.value, out.value);
+            assertEquals(in.targettedResource.uri, out.targettedResource.uri);
+
+            assertTrue(out.relatedEvent instanceof SearchEvent);
+            SearchEvent relatedOut = (SearchEvent)out.relatedEvent;
+            assertEquals(searchEventOut.getId(), relatedOut.getId());
+            //assertEquals(searchEvent.query, relatedOut.query);
+        }
+
+        SearchEvent getSearchEvent = getEvent(searchEventOut.getId(),
+                                              SearchEvent.class);
+        dumpData("testRelatedEvent: searchEvent got back", getSearchEvent);
+
+        assertEquals(searchEvent.query, getSearchEvent.query);
 
     }
 }

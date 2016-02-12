@@ -43,16 +43,6 @@ import javax.persistence.Transient;
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 public class InformationElement extends DiMeData {
-    public static InformationElement makeStub(Long id) {
-	InformationElement elem = new InformationElement();
-	elem.setId(id);
-	return elem;
-    }
-
-    public static InformationElement makeStub(InformationElement e) {
-	return makeStub(e.getId());
-    }
-
     /** URI of the information element, e.g. path on computer or web URL.
      */
     @Column(columnDefinition="text")

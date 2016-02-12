@@ -613,4 +613,12 @@
             <column name="NOTES" type="CLOB(2147483647)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1455273661186-1">
+        <addColumn tableName="EVENT">
+            <column name="RELATED_EVENT_ID" type="BIGINT(19)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1455273661186-2">
+        <addForeignKeyConstraint baseColumnNames="RELATED_EVENT_ID" baseTableName="EVENT" constraintName="FK_3B2VQQXIT24926HRO2Q0D2I5O" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>

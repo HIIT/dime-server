@@ -381,6 +381,14 @@ public abstract class RestTest {
         return null;
     }
 
+    protected <T extends Event> T getEvent(long id, Class<T> responseType) {
+        return getData(eventApi + "/" + id, responseType);
+    }
+
+    protected <T extends InformationElement> T getElement(long id, Class<T> responseType) {
+        return getData(infoElemApi + "/" + id, responseType);
+    }
+
     protected static class ApiError {
         public Long timestamp;   // 1450449761533
         public Integer status;   // 400

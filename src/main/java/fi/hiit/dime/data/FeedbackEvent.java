@@ -25,6 +25,9 @@
 package fi.hiit.dime.data;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 /**
    An event representing an explicit feedback by the user, e.g.
@@ -37,10 +40,12 @@ public class FeedbackEvent extends ResourcedEvent {
        A related event, e.g. the SearchEvent that introduced the
        document.
     */
-    // public Event relatedEvent;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "related_event_id")
+    public Event relatedEvent;
 
     /**
        The feedback value, e.g. the relevance of the document.
     */
-    public double value;
+    public Double value;
 }

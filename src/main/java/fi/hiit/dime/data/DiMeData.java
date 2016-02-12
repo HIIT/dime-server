@@ -28,6 +28,8 @@ import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.search.WeightedKeyword;
 
 import com.fasterxml.jackson.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.Collection;
@@ -71,6 +73,9 @@ import java.util.List;
 })
 @MappedSuperclass
 public class DiMeData extends AbstractPersistable<Long> {
+    private static final Logger LOG = 
+        LoggerFactory.getLogger(DiMeData.class);
+
     /** An optional identifying unique string field that can be used
         by the application or logger. The value can be any unique text
         string, and is entirely up to the application developer, but
@@ -199,5 +204,14 @@ public class DiMeData extends AbstractPersistable<Long> {
         return tagMap != null ? tagMap.containsKey(tagText) : false;
     }
 
+    public static <T extends DiMeData> T makeStub(T data, Class<T> dataType) {
+        try {
+            T stub = dataType.newInstance();
+            stub.setId(data.getId());
+            return stub;
+        } catch (InstantiationException|IllegalAccessException ex) {
+            LOG.error("Unable to create stub of class {}!", dataType.getName());
+            return null;
+        }
     }
 }
