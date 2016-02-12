@@ -24,6 +24,7 @@
 
 package fi.hiit.dime.data;
 
+import com.fasterxml.jackson.annotation.*;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import javax.persistence.ElementCollection;
@@ -34,6 +35,8 @@ import java.util.List;
 /**
    Class representing points read on a specific page (in page space coordinates).
 */
+@JsonInclude(value=JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @Entity
 public class PageEyeData extends AbstractPersistable<Long> {
     /** Horizontal (x) coordinates

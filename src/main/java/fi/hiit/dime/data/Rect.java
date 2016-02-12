@@ -27,6 +27,7 @@ package fi.hiit.dime.data;
 import java.util.List;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.Embedded;
 import javax.persistence.Column;
@@ -36,6 +37,8 @@ import javax.persistence.ElementCollection;
 /**
    Class representing a rectangle in a two dimensions (maps to the ReadingRect struct in PeyeDF).
 */
+@JsonInclude(value=JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @Entity
 public class Rect extends AbstractPersistable<Long> {
     /** Position of the origin of this rectangle (origin: bottom left).

@@ -24,7 +24,7 @@
 
 package fi.hiit.dime.data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.List;
@@ -32,6 +32,8 @@ import java.util.List;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
+@JsonInclude(value=JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @Entity
 public class Person extends AbstractPersistable<Long> {
     public String firstName;
