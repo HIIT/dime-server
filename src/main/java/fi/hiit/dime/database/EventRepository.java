@@ -52,7 +52,7 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
 
         // Map for storing named parameters for the query we are
         // constructing
-        Map<String, String> namedParams = new HashMap<String, String>();
+        Map<String, Object> namedParams = new HashMap<String, Object>();
 
         // Loop over user's parameters, and transform to SQL statments
         // and fill in namedParams
@@ -65,6 +65,16 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
             switch (name) {
             case "tag":
                 criteria = "(select count(*) from e.tagMap where text=:tag) > 0";
+                break;
+            case "after":
+                criteria = "start >= :after";
+                namedParams.put(name, parseDateForQuery(value));
+                value = null;
+                break;
+            case "before":
+                criteria = "e.end <= :before";
+                namedParams.put(name, parseDateForQuery(value));
+                value = null;
                 break;
             case "elem_id":
             case "elemid":
@@ -79,9 +89,6 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
             case "actor":
             case "origin":
             case "type":
-                // case "start":
-                // case "end":
-                // case "duration":
             case "query":
                 // case "":
                 break;
@@ -93,7 +100,8 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
                 criteria = String.format("%s=:%s", name, name);
 
             q.append(" and " + criteria);
-            namedParams.put(name, value);
+            if (value != null)
+                namedParams.put(name, value);
         }
 
         return makeQuery(q.toString(), namedParams, user,

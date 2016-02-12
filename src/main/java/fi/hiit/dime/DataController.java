@@ -360,7 +360,7 @@ public class DataController extends AuthorizedController {
 
             return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
         } catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
-            throw new BadRequestException("Invalid arguments");
+            throw new BadRequestException("Invalid arguments: " + e);
         }
     }   
 

@@ -43,7 +43,7 @@ class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
 
         // Map for storing named parameters for the query we are
         // constructing
-        Map<String, String> namedParams = new HashMap<String, String>();
+        Map<String, Object> namedParams = new HashMap<String, Object>();
 
         // Loop over user's parameters, and transform to SQL statments
         // and fill in namedParams

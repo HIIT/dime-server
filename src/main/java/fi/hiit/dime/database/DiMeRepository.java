@@ -27,17 +27,21 @@ package fi.hiit.dime.database;
 import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.authentication.User;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.NoRepositoryBean;
+
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-
-
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.NoRepositoryBean;
-
-import java.util.List;
 
 interface DiMeRepositoryCustom<T extends DiMeData> {
     public List<T> find(User user, Map<String, String> filterParams);
@@ -48,18 +52,32 @@ abstract class DiMeRepositoryImpl<T extends DiMeData> implements DiMeRepositoryC
     @PersistenceContext
     protected EntityManager entityManager;
 
+    @Autowired 
+    protected ObjectMapper objectMapper;
+
+    protected Date parseDateForQuery(String value) {
+        DateFormat df = objectMapper.getDeserializationConfig().getDateFormat();
+        try {
+            Date date = df.parse(value);
+            // Timestamp timestamp = new Timestamp(date.getTime());
+            return date;
+        } catch (ParseException ex) {
+            return null;
+        }
+    }
+
     // Java Persistence Query Language Syntax:
     // http://docs.oracle.com/javaee/6/tutorial/doc/bnbuf.html
-    TypedQuery<T> makeQuery(String q, Map<String, String> params,
+    protected TypedQuery<T> makeQuery(String q, Map<String, Object> params,
 				User user, Class<T> resultClass) 
     {
-        TypedQuery<T> query = entityManager.createQuery(q, resultClass);
 	System.out.println("Find query: " + q);
 
+        TypedQuery<T> query = entityManager.createQuery(q, resultClass);
 	query = query.setParameter("userId", user.getId());
 	System.out.println("  param: userId = " + user.getId());
 
-	for (Map.Entry<String, String> p : params.entrySet()) {
+	for (Map.Entry<String, Object> p : params.entrySet()) {
 	    System.out.println("  param: " + p.getKey() + " = " + p.getValue());
 	    query = query.setParameter(p.getKey(), p.getValue());
 	}

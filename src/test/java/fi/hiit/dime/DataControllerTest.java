@@ -872,4 +872,55 @@ public class DataControllerTest extends RestTest {
         assertEquals(searchEvent.query, getSearchEvent.query);
 
     }
+
+    @Test
+    public void testEventTimeFiltering() throws Exception {
+        final int n = 5;
+
+        // Generate n timestamps 10 minutes apart, starting from one
+        // hour ago, and SearchEvents at those times
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR, -1);
+
+        SearchEvent[] events = new SearchEvent[n];
+        Date[] date = new Date[5];
+
+        for (int i=0; i<n; i++) {
+            date[i] = cal.getTime();
+            events[i] = mkSearchEvent(date[i], null, 10.0);
+
+            cal.add(Calendar.MINUTE, 5);
+        }
+
+        dumpData("testEventTimeFiltering: List of events to be uploaded", events);
+
+        SearchEvent[] eventsOut = uploadEvents(events, SearchEvent[].class);
+
+        assertEquals(n, eventsOut.length);
+
+        // Try filtering events after
+        String afterParam1 = "?after=" + date[2].getTime();
+        System.out.println("testEventTimeFiltering: " + afterParam1);
+
+        SearchEvent[] eventsAfter1 = getData(eventsApi + afterParam1,
+            SearchEvent[].class);
+        assertEquals(3, eventsAfter1.length);
+
+        // Try filtering events before
+        String beforeParam1 = "?before=" + date[2].getTime();
+        System.out.println("testEventTimeFiltering: " + beforeParam1);
+
+        SearchEvent[] eventsBefore1 = getData(eventsApi + beforeParam1,
+            SearchEvent[].class);
+        assertEquals(2, eventsBefore1.length);
+        
+        // Try filtering events between
+        String betweenParam1 = "?after=" + date[1].getTime() + "&before=" + date[3].getTime();
+        System.out.println("testEventTimeFiltering: " + betweenParam1);
+
+        SearchEvent[] eventsBetween1 = getData(eventsApi + betweenParam1,
+            SearchEvent[].class);
+        assertEquals(2, eventsBetween1.length);
+        
+    }
 }
