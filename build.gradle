@@ -25,7 +25,7 @@ targetCompatibility = '1.7'
 def getVersionName = { ->
     def stdout = new ByteArrayOutputStream()
     exec {
-        commandLine 'git', 'describe', '--dirty'
+        commandLine 'git', 'describe', '--dirty=-modified'
         standardOutput = stdout
     }
     return stdout.toString().trim()
@@ -34,6 +34,7 @@ def getVersionName = { ->
 version = getVersionName()
 
 processResources {
+    outputs.upToDateWhen{false}
     filesMatching('**/*.properties') { expand(project.properties) }
 }
 
