@@ -38,11 +38,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -906,6 +906,26 @@ public class DataControllerTest extends RestTest {
             SearchEvent[].class);
         assertEquals(3, eventsAfter1.length);
 
+        // Try with empty set
+        cal.add(Calendar.MINUTE, 1);
+        
+        String afterParam2 = "?after=" + cal.getTime().getTime();
+        System.out.println("testEventTimeFiltering: " + afterParam2);
+
+        SearchEvent[] eventsAfter2 = getData(eventsApi + afterParam2,
+            SearchEvent[].class);
+        assertEquals(0, eventsAfter2.length);
+
+        // Try with human readable timestamp
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+
+        String afterParam3 = "?after=" + df.format(date[3]);
+        System.out.println("testEventTimeFiltering: " + afterParam3);
+
+        SearchEvent[] eventsAfter3 = getData(eventsApi + afterParam3,
+            SearchEvent[].class);
+        assertEquals(2, eventsAfter3.length);
+
         // Try filtering events before
         String beforeParam1 = "?before=" + date[2].getTime();
         System.out.println("testEventTimeFiltering: " + beforeParam1);
@@ -915,12 +935,22 @@ public class DataControllerTest extends RestTest {
         assertEquals(2, eventsBefore1.length);
         
         // Try filtering events between
-        String betweenParam1 = "?after=" + date[1].getTime() + "&before=" + date[3].getTime();
+        String betweenParam1 = "?after=" + date[1].getTime() + "&before=" +
+            date[3].getTime();
         System.out.println("testEventTimeFiltering: " + betweenParam1);
 
         SearchEvent[] eventsBetween1 = getData(eventsApi + betweenParam1,
             SearchEvent[].class);
         assertEquals(2, eventsBetween1.length);
+
+        // Try between with after > before -> should get empty set
+        String betweenParam2 = "?after=" + date[2].getTime() + "&before=" +
+            date[1].getTime();
+        System.out.println("testEventTimeFiltering: " + betweenParam2);
+
+        SearchEvent[] eventsBetween2 = getData(eventsApi + betweenParam2,
+            SearchEvent[].class);
+        assertEquals(0, eventsBetween2.length);
         
     }
 }
