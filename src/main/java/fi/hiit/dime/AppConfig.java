@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Configuration
 public class AppConfig {
@@ -45,5 +47,12 @@ public class AppConfig {
     public SearchIndex searchIndex() throws Exception {
 	return new SearchIndex(dimeConfig.getLuceneIndexPath(),
                                dimeConfig.getLuceneAnalyzer());
+    }
+
+    @Bean
+    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
+        return builder
+            .failOnUnknownProperties(true)
+            .build();
     }
 }
