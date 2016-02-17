@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -145,6 +146,7 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The expanded InformationElement
      */
+    @Transactional
     protected InformationElement 
         expandInformationElement(InformationElement elem, User user) 
         throws NotFoundException, BadRequestException {
@@ -219,6 +221,7 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The element as stored
      */
+    @Transactional
     private InformationElement storeElement(InformationElement elem, User user) 
         throws NotFoundException, BadRequestException {
         elem = expandInformationElement(elem, user);
@@ -235,6 +238,7 @@ public class DataController extends AuthorizedController {
      * @param user current authenticated user
      * @return The event as stored
      */
+    @Transactional
     private Event storeEvent(Event event, User user) 
         throws NotFoundException, BadRequestException {
 
