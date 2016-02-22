@@ -4,7 +4,7 @@ JAVADOC_DIR = build/docs/javadoc/
 JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
 PKG_DIR  = build/package
 PKG_FILE = dime
-DIME_PORT = $(shell grep 'server.port=' config/application-local.properties | sed 's/.*port=//')
+DIME_PORT = $(shell test -f config/application-local.properties && ((grep '^server.port=' config/application-local.properties || echo server.port=8080) | sed 's/.*port=//') || echo 8080)
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html' -or -name 'db*.xml' -or -name '*.properties') build.gradle
 
 DIME_HOME = ~/.dime
