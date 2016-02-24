@@ -51,4 +51,5 @@ public class ScientificDocument extends Document {
     public String address;
     public String publisher;
     public int volume;
+    public String doi;
 }
