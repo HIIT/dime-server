@@ -36,7 +36,11 @@
 		 th:text="${event.start}" class="pull-right"></a>
 	    </div>
 	    <div class="panel-body" th:if="${event instanceof T(fi.hiit.dime.data.ResourcedEvent)}">
-	      <b th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></b>: <a th:href="${event.targettedResource.uri}" th:text="${event.targettedResource.uri}"></a>
+	      <b th:text="${#strings.substringAfter(event.targettedResource.type,'#')}"></b>: 
+          <!-- If title is available, show it in place of uri -->
+            <a th:href="${event.targettedResource.uri}" 
+              th:text="(${event.targettedResource.title == null} ?
+              ${event.targettedResource.uri} : ${event.targettedResource.title})"></a>
 	    </div>
 	  </div>
 	</div>
