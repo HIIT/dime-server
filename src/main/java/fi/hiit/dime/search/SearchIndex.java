@@ -394,6 +394,9 @@ public class SearchIndex {
 
     /** Updates the given DiMeData with the Lucene keywords. */
     public DiMeData updateKeywords(DiMeData obj) {
+        if (obj == null)
+            return null;
+
         try {
             ensureSearcherAndReader();
 
