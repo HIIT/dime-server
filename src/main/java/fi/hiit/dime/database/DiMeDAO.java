@@ -88,7 +88,12 @@ public class DiMeDAO<T extends DiMeData, R extends DiMeRepository<T>> {
     */
     @Transactional(readOnly = true)
     public T findByAppId(String appId, User user) {
-        return repo.findOneByAppIdAndUser(appId, user);
+        List<T> items = repo.findByAppIdAndUserOrderByTimeModifiedDesc(appId,
+                                                                       user);
+        if (items.size() > 0)
+            return items.get(0);
+        
+        return null;
     }
 
     /**

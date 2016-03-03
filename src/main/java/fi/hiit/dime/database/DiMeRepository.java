@@ -100,7 +100,9 @@ public interface DiMeRepository<T extends DiMeData>
 
     T findOneByIdAndUser(Long id, User user);
 
-    T findOneByAppIdAndUser(String appId, User user);
+    // T findOneByAppIdAndUser(String appId, User user);
+
+    List<T> findByAppIdAndUserOrderByTimeModifiedDesc(String appId, User user);
 
     List<T> findByUser(User user);
 
