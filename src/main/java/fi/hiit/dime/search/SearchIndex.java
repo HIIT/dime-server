@@ -69,6 +69,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.Weight;
+import org.apache.lucene.search.similarities.DefaultSimilarity;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
@@ -556,6 +557,9 @@ public class SearchIndex {
     protected List<WeightedKeyword> extractWeightedKeywords(int docId) 
         throws IOException 
     {
+        // specify which similarity is used to compute tf-idf values
+        DefaultSimilarity sim = new DefaultSimilarity();
+
         // get the terms from the current document
         Terms termVec = reader.getTermVector(docId, textQueryField);
 
@@ -572,16 +576,28 @@ public class SearchIndex {
         List<WeightedKeyword> ret = new ArrayList<WeightedKeyword>();
             
         while ((termText = termsEnum.next()) != null) {
+            // retrieve tf
             PostingsEnum postings=termsEnum.postings(null, PostingsEnum.FREQS);            
             term = termText.utf8ToString();
             WeightedKeyword wk = null;
             if (postings.nextDoc() !=  DocIdSetIterator.NO_MORE_DOCS){
-                wk = new WeightedKeyword(term, postings.freq());
-            }                
+                // postings contain the information about frequencies
+                // sim is used to compute the standard term frequency
+                wk = new WeightedKeyword(term, sim.tf(postings.freq()));
+            }
             else { 
                 wk = new WeightedKeyword(term, 0);
             }                
             ret.add(wk);
+            
+            // retrieve idf
+            // get the number of documents with the current term
+            int df=termsEnum.docFreq();
+            // get the number of indexed documents
+            int dc=reader.numDocs();
+            // compute idf
+            float idf = sim.idf(df, dc);
+            
         }
         
         return ret;
