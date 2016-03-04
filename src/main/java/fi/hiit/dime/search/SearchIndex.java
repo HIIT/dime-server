@@ -53,6 +53,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -60,6 +61,7 @@ import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -573,8 +575,15 @@ public class SearchIndex {
         List<WeightedKeyword> ret = new ArrayList<WeightedKeyword>();
             
         while ((termText = termsEnum.next()) != null) {
+            PostingsEnum postings=termsEnum.postings(null, PostingsEnum.FREQS);            
             term = termText.utf8ToString();
-            WeightedKeyword wk = new WeightedKeyword(term, termsEnum.docFreq());
+            WeightedKeyword wk = null;
+            if (postings.nextDoc() !=  DocIdSetIterator.NO_MORE_DOCS){
+                wk = new WeightedKeyword(term, postings.freq());
+            }                
+            else { 
+                wk = new WeightedKeyword(term, 0);
+            }                
             ret.add(wk);
         }
         
