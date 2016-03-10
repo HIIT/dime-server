@@ -27,7 +27,7 @@ query = "dime"
 if len(sys.argv) > 1:
     query = urllib.parse.quote(' '.join(sys.argv[1:]), safe='&=')
 
-r = requests.get(server_url + '/search?query={}&limit=10&includeTerms=1'.format(query),
+r = requests.get(server_url + '/search?query={}&limit=10&includeTerms=tfidf'.format(query),
                  headers={'content-type': 'application/json'},
                  auth=(server_username, server_password),
                  timeout=10)

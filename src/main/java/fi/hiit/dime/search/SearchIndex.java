@@ -95,6 +95,10 @@ public class SearchIndex {
     private static final Logger LOG =
         LoggerFactory.getLogger(SearchIndex.class);
 
+    public static enum WeightType {
+        None, Df, Tf, Idf, TfIdf;
+    }
+
     private static final String idField = "id";
     private static final String userIdField = "userId";
     private static final String textQueryField = "plainTextContent";
@@ -144,6 +148,20 @@ public class SearchIndex {
         this.analyzerName = analyzerName;
 
         parser = new StandardQueryParser(analyzer);
+    }
+
+    public static WeightType weightType(String weightTypeStr) {
+        String s = weightTypeStr.toLowerCase();
+        if (s.isEmpty())
+            return WeightType.None;
+        if (s.equals("df"))
+            return WeightType.Df;
+        if (s.equals("idf"))
+            return WeightType.Idf;
+        if (s.equals("tfidf"))
+            return WeightType.TfIdf;
+
+        return WeightType.Tf;  // default
     }
 
     /**
@@ -396,7 +414,7 @@ public class SearchIndex {
     }
 
     /** Updates the given DiMeData with the Lucene keywords. */
-    public DiMeData updateKeywords(DiMeData obj) {
+    public DiMeData updateKeywords(DiMeData obj, WeightType termWeighting) {
         if (obj == null)
             return null;
 
@@ -410,7 +428,8 @@ public class SearchIndex {
 
             if (hits.scoreDocs.length > 0)
                 obj.weightedKeywords =
-                    extractWeightedKeywords(hits.scoreDocs[0].doc);
+                    extractWeightedKeywords(hits.scoreDocs[0].doc, 
+                                            termWeighting);
             else 
                 LOG.error("Failed to find document with the id {}", 
                           luceneId(obj));
@@ -557,7 +576,8 @@ public class SearchIndex {
         res.setDocs(mapToEventList(res.getDocs(), user));
     }
 
-    protected List<WeightedKeyword> extractWeightedKeywords(int docId) 
+    protected List<WeightedKeyword> extractWeightedKeywords(int docId,
+                                                            WeightType wt) 
         throws IOException 
     {
         // specify which similarity is used to compute tf-idf values
@@ -579,7 +599,7 @@ public class SearchIndex {
         List<WeightedKeyword> ret = new ArrayList<WeightedKeyword>();
             
         while ((termText = termsEnum.next()) != null) {
-            PostingsEnum postings=termsEnum.postings(null, PostingsEnum.FREQS);            
+            PostingsEnum postings=termsEnum.postings(null, PostingsEnum.FREQS);
             term = termText.utf8ToString();
             WeightedKeyword wk = null;
             if (postings.nextDoc() !=  DocIdSetIterator.NO_MORE_DOCS){
@@ -599,7 +619,24 @@ public class SearchIndex {
                 // fetch tf
                 float tf = sim.tf(postings.freq());
 
-                wk = new WeightedKeyword(term, idf);
+                float w = tf;
+
+                switch(wt) {
+                case Df: 
+                    w = df;
+                    break;
+                case Tf:
+                    w = tf;
+                    break;
+                case Idf:
+                    w = idf;
+                    break;
+                case TfIdf:
+                    w = tf*idf;
+                    break;
+                }
+
+                wk = new WeightedKeyword(term, w);
             }
             else { 
                 wk = new WeightedKeyword(term, 0);
@@ -620,7 +657,7 @@ public class SearchIndex {
     */
     public SearchResults search(SearchQuery query, String className,
                                 String typeName, int limit, Long userId,
-                                boolean includeTerms)
+                                WeightType termWeighting)
         throws IOException
     {
         if (limit < 0)
@@ -638,7 +675,7 @@ public class SearchIndex {
             if (query instanceof TextSearchQuery) {
                 textQuery = basicTextQuery(((TextSearchQuery)query).query);
 
-                if (includeTerms) {
+                if (termWeighting != WeightType.None) {
                     // extract the terms of a string query
                     Weight w = searcher.createWeight(textQuery, false);
                     TreeSet<Term> textQueryTerms = new TreeSet<Term>();
@@ -695,9 +732,10 @@ public class SearchIndex {
                     } else if (obj.user.getId().equals(userId)) {
                         obj.score = score;
                         obj.weightedKeywords = null;
-                        if (includeTerms)
+                        if (termWeighting != WeightType.None)
                             obj.weightedKeywords =
-                                extractWeightedKeywords(hits[i].doc);
+                                extractWeightedKeywords(hits[i].doc,
+                                                        termWeighting);
                         res.add(obj);
                     } else {
                         LOG.warn("Lucene returned result for wrong user: " +

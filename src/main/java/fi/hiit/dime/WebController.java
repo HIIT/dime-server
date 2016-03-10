@@ -37,6 +37,7 @@ import fi.hiit.dime.database.EventCount;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.search.SearchIndex;
+import static fi.hiit.dime.search.SearchIndex.WeightType;
 import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
 
@@ -159,7 +160,8 @@ public class WebController extends WebMvcConfigurerAdapter {
             try {
                 searchIndex.updateIndex();
 
-                results = searchIndex.search(query, null, null, 100, userId, false);
+                results = searchIndex.search(query, null, null, 100, userId, 
+                                             WeightType.None);
 
                 searchIndex.mapToEvents(results, User.makeUser(userId));
             } catch (IOException e) {
@@ -191,7 +193,8 @@ public class WebController extends WebMvcConfigurerAdapter {
             try {
                 searchIndex.updateIndex();
 
-                results = searchIndex.search(query, null, null, 100, userId, false);
+                results = searchIndex.search(query, null, null, 100, userId, 
+                                             WeightType.None);
 
                 searchIndex.mapToElements(results);
             } catch (IOException e) {

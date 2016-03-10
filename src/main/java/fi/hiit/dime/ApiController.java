@@ -34,6 +34,8 @@ import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
+import static fi.hiit.dime.search.SearchIndex.WeightType;
+import static fi.hiit.dime.search.SearchIndex.weightType;
 import fi.hiit.dime.search.SearchQuery;
 import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
@@ -119,7 +121,7 @@ public class ApiController extends AuthorizedController {
 
     protected SearchResults doSearch(SearchQuery query, String className,
                                      String typeName, int limit, User user,
-                                     boolean includeTerms)
+                                     WeightType termWeighting)
         throws IOException
     {
         if (query.isEmpty())
@@ -129,7 +131,7 @@ public class ApiController extends AuthorizedController {
 
         SearchResults res = searchIndex.search(query, className, typeName,
                                                limit, user.getId(),
-                                               includeTerms);
+                                               termWeighting);
         searchIndex.mapToElements(res);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
@@ -145,7 +147,7 @@ public class ApiController extends AuthorizedController {
 
     protected SearchResults doEventSearch(SearchQuery query, String className,
                                           String typeName, int limit, User user,
-                                          boolean includeTerms)
+                                          WeightType termWeighting)
         throws IOException
     {
         if (query.isEmpty())
@@ -155,7 +157,7 @@ public class ApiController extends AuthorizedController {
 
         SearchResults res = searchIndex.search(query, className, typeName,
                                                limit, user.getId(),
-                                               includeTerms);
+                                               termWeighting);
         searchIndex.mapToEvents(res, user);
 
         LOG.info("Search query \"{}\" (limit={}) returned {} results.",
@@ -171,7 +173,7 @@ public class ApiController extends AuthorizedController {
                @RequestParam(value="@type", required=false) String className,
                @RequestParam(value="type", required=false) String typeName,
                @RequestParam(value="includeTerms", required=false, 
-                             defaultValue="false") Boolean includeTerms,
+                             defaultValue="") String includeTerms,
                @RequestParam(defaultValue="-1") int limit)
     {
         User user = getUser(auth);
@@ -179,7 +181,8 @@ public class ApiController extends AuthorizedController {
         try {
             TextSearchQuery textQuery = new TextSearchQuery(query);
             SearchResults results = doSearch(textQuery, className, typeName,
-                                             limit, user, includeTerms);
+                                             limit, user, 
+                                             weightType(includeTerms));
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -195,7 +198,7 @@ public class ApiController extends AuthorizedController {
                     @RequestParam(value="@type", required=false) String className,
                     @RequestParam(value="type", required=false) String typeName,
                     @RequestParam(value="includeTerms", required=false,
-                                  defaultValue="false") Boolean includeTerms,
+                                  defaultValue="") String includeTerms,
                     @RequestParam(defaultValue="-1") int limit) {
         User user = getUser(auth);
 
@@ -203,7 +206,7 @@ public class ApiController extends AuthorizedController {
             TextSearchQuery textQuery = new TextSearchQuery(query);
             SearchResults results = doEventSearch(textQuery, className,
                                                   typeName, limit, user,
-                                                  includeTerms);
+                                                  weightType(includeTerms));
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -220,7 +223,8 @@ public class ApiController extends AuthorizedController {
 
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doSearch(query, null, null,  -1, user, true);
+            SearchResults results = doSearch(query, null, null,  -1, user, 
+                                             WeightType.Tf);
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
@@ -236,7 +240,8 @@ public class ApiController extends AuthorizedController {
 
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doEventSearch(query, null, null, -1, user, true);
+            SearchResults results = doEventSearch(query, null, null, -1, user, 
+                                                  WeightType.Tf);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {

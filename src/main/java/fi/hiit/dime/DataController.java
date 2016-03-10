@@ -29,6 +29,7 @@ import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
 import fi.hiit.dime.search.SearchIndex;
+import static fi.hiit.dime.search.SearchIndex.weightType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -406,14 +407,14 @@ public class DataController extends AuthorizedController {
     public ResponseEntity<InformationElement>
         informationElement(Authentication auth, 
                            @PathVariable Long id,
-                           @RequestParam(defaultValue="false") boolean keywords)
+                           @RequestParam(defaultValue="") String keywords)
         throws NotFoundException
     {
         User user = getUser(auth);
 
         InformationElement elem = infoElemDAO.findById(id, user);
-        if (keywords)
-            searchIndex.updateKeywords(elem);
+        if (!keywords.isEmpty())
+            searchIndex.updateKeywords(elem, weightType(keywords));
 
         if (elem == null || !elem.user.getId().equals(user.getId()))
             throw new NotFoundException("Element not found");
