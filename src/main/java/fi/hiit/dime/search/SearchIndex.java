@@ -579,28 +579,33 @@ public class SearchIndex {
         List<WeightedKeyword> ret = new ArrayList<WeightedKeyword>();
             
         while ((termText = termsEnum.next()) != null) {
-            // retrieve tf
             PostingsEnum postings=termsEnum.postings(null, PostingsEnum.FREQS);            
             term = termText.utf8ToString();
             WeightedKeyword wk = null;
             if (postings.nextDoc() !=  DocIdSetIterator.NO_MORE_DOCS){
                 // postings contain the information about frequencies
                 // sim is used to compute the standard term frequency
-                wk = new WeightedKeyword(term, sim.tf(postings.freq()));
+
+                // retrieve idf
+                // get the number of documents with the current term
+                Term termInstance = new Term(textQueryField, termText);
+                int df = reader.docFreq(termInstance);
+
+                // get the number of indexed documents
+                int dc=reader.numDocs();
+                // compute idf
+                float idf = sim.idf(df, dc);
+
+                // fetch tf
+                float tf = sim.tf(postings.freq());
+
+                wk = new WeightedKeyword(term, idf);
             }
             else { 
                 wk = new WeightedKeyword(term, 0);
             }                
+
             ret.add(wk);
-            
-            // retrieve idf
-            // get the number of documents with the current term
-            int df=termsEnum.docFreq();
-            // get the number of indexed documents
-            int dc=reader.numDocs();
-            // compute idf
-            float idf = sim.idf(df, dc);
-            
         }
         
         return ret;
