@@ -626,4 +626,9 @@
             <column name="DOI" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="marco (generated)" id="1457704801715-1">
+        <addColumn tableName="RECT">
+            <column name="ATTN_VAL" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

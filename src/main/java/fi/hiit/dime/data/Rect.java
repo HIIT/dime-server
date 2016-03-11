@@ -85,6 +85,11 @@ public class Rect extends AbstractPersistable<Long> {
      */
     public Double screenDistance;
 
+    /** Attention value for this rect.
+     * It is an aggregate for eye tracking data. Present only if classification was run on a reading session.
+     */
+    public Double attnVal;
+
     /** Vector of unix times (timestamps, note: milliseconds) representing when this rectangle was created.
      * If this rectangle is floating (see above) this array contains only one timestamp. If this rectangle is from a union
      * (floating flag is false) it contains a timestamp for each "smaller" rectangle that was united into a bigger one.
