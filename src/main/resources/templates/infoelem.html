@@ -30,7 +30,7 @@
 	      <span th:if="${elem.tags}">
 		<b>Tags:</b> 
 		<span th:each="tag : ${elem.tags}"
-		      th:text="${tag}"
+		      th:text="${tag.text}"
 		      class="label label-default">
 		</span><br />
 	      </span>
