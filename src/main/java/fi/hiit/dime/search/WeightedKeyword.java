@@ -26,7 +26,7 @@ package fi.hiit.dime.search;
 
 //------------------------------------------------------------------------------
 
-public class WeightedKeyword {
+public class WeightedKeyword implements Comparable<WeightedKeyword> {
     public String term;
 
     public float weight;
@@ -44,5 +44,10 @@ public class WeightedKeyword {
         if (other != null)
             return this.term.equals(other.term) && this.weight == other.weight;
         return false;
+    }
+
+    @Override
+    public int compareTo(WeightedKeyword other) {
+        return (int)Math.signum(this.weight - other.weight);
     }
 }

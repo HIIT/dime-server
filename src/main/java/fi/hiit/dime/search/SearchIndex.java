@@ -31,6 +31,7 @@ import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.ReadingEvent;
 import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.data.Tag;
 import fi.hiit.dime.data.SearchEvent;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
@@ -79,6 +80,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -106,7 +108,7 @@ public class SearchIndex {
     private static final String typeField = "type";
 
     private static final String versionField = "dime_version";
-    private static final String currentVersionNumber = "5";
+    private static final String currentVersionNumber = "6";
 
     private static final String dataClassPrefix = "fi.hiit.dime.data.";
 
@@ -405,6 +407,10 @@ public class SearchIndex {
                 }
             }
 
+            for (DiMeData obj : toIndex) {
+                obj = autoGenerateTags(obj);
+            }
+
         } catch (IOException e) {
             LOG.error("Exception while updating search index: " + e);
         }
@@ -413,8 +419,42 @@ public class SearchIndex {
         return count;
     }
 
-    /** Updates the given DiMeData with the Lucene keywords. */
-    public DiMeData updateKeywords(DiMeData obj, WeightType termWeighting) {
+    /** Auto-generate dumb tags from the Lucene indexing keywords if
+        the object doesn't already have tags.
+    */
+    protected DiMeData autoGenerateTags(DiMeData obj) {
+        // skip this if we already have tags
+        if (obj == null || obj.hasTags()) 
+            return obj;
+
+        List<WeightedKeyword> kw = getKeywords(obj, WeightType.TfIdf);
+
+        // maybe this object simply has no keywords (probably no text)
+        if (kw == null || kw.size() == 0)
+            return obj;
+
+        Collections.sort(kw, Collections.reverseOrder());
+
+        int count = 0;
+        Iterator<WeightedKeyword> it = kw.iterator();
+        while (it.hasNext() && count < 10) {
+            WeightedKeyword k = it.next();
+            obj.addTag(new Tag(k.term, true));
+
+            if (obj instanceof Event)
+                eventDAO.save((Event)obj);
+            else if (obj instanceof InformationElement)
+                infoElemDAO.save((InformationElement)obj);
+
+            count++;
+        }
+
+        return obj;
+    }
+
+    /** Fetches the Lucene keywords for the given DiMeData object. */
+    public List<WeightedKeyword> getKeywords(DiMeData obj,
+                                             WeightType termWeighting) {
         if (obj == null)
             return null;
 
@@ -427,18 +467,14 @@ public class SearchIndex {
             TopDocs hits = searcher.search(idQuery, 1);
 
             if (hits.scoreDocs.length > 0)
-                obj.weightedKeywords =
-                    extractWeightedKeywords(hits.scoreDocs[0].doc, 
-                                            termWeighting);
-            else 
-                LOG.error("Failed to find document with the id {}", 
-                          luceneId(obj));
+                return extractWeightedKeywords(hits.scoreDocs[0].doc, 
+                                               termWeighting);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
-        return obj;
+        return null;
     }
 
     /**

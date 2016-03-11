@@ -413,11 +413,13 @@ public class DataController extends AuthorizedController {
         User user = getUser(auth);
 
         InformationElement elem = infoElemDAO.findById(id, user);
-        if (!keywords.isEmpty())
-            searchIndex.updateKeywords(elem, weightType(keywords));
 
         if (elem == null || !elem.user.getId().equals(user.getId()))
             throw new NotFoundException("Element not found");
+
+        if (!keywords.isEmpty())
+            elem.weightedKeywords =
+                searchIndex.getKeywords(elem, weightType(keywords));
 
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   

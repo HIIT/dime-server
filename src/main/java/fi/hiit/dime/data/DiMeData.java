@@ -155,6 +155,10 @@ public class DiMeData extends AbstractPersistable<Long> {
             tagMap.put(t.text, t);
     }
 
+    public boolean hasTags() {
+        return tagMap != null && tagMap.size() > 0;
+    }
+
     public Collection<Tag> getTags() {
         return tagMap != null ? tagMap.values() : null;
     }

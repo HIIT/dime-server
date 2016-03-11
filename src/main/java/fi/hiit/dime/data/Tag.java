@@ -38,7 +38,7 @@ import javax.persistence.Entity;
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new", "id"})
 @Entity
 // @Embeddable
 public class Tag extends AbstractPersistable<Long> {
@@ -49,6 +49,12 @@ public class Tag extends AbstractPersistable<Long> {
         this.text = text;
         this.time = new Date();
         this.auto = false;
+    }
+
+    public Tag(String text, boolean auto) {
+        this.text = text;
+        this.time = new Date();
+        this.auto = auto;
     }
 
     @Column(columnDefinition="text")

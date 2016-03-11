@@ -159,6 +159,8 @@ public class ApiControllerTest extends RestTest {
             // Check that each returned document contains the expected word
             assertTrue(elem.plainTextContent.contains(magicWord));
             idFound.add(elem.getId());
+
+            assertTrue(elem.hasTags());
         }
 
         // Check that the ids are exactly those expected
