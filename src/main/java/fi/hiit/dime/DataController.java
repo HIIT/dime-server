@@ -372,7 +372,8 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for uploading a single information element. */    
     @RequestMapping(value="/informationelement", method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
-        informationElement(Authentication auth, @RequestBody InformationElement input)
+        informationElement(Authentication auth, 
+                           @RequestBody InformationElement input)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
@@ -447,6 +448,65 @@ public class DataController extends AuthorizedController {
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid arguments");
         }
+    }   
+
+    /** HTTP end point for adding a tag to an Information Element. */    
+    @RequestMapping(value="/addtag/{id}", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement>
+        addTag(Authentication auth, @PathVariable Long id,
+               @RequestBody Tag input) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        InformationElement elem = infoElemDAO.findById(id, user);
+
+        if (elem == null || !elem.user.getId().equals(user.getId()))
+            throw new NotFoundException("Information element not found");
+
+        elem.addTag(input);
+        infoElemDAO.save(elem);
+
+        return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
+    }   
+
+    /** HTTP end point for adding several tags to an Information Element. */    
+    @RequestMapping(value="/addtags/{id}", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement>
+        addTags(Authentication auth, @PathVariable Long id,
+               @RequestBody Tag[] input) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        InformationElement elem = infoElemDAO.findById(id, user);
+
+        if (elem == null || !elem.user.getId().equals(user.getId()))
+            throw new NotFoundException("Information element not found");
+
+        for (int i=0; i<input.length; i++)
+            elem.addTag(input[i]);
+
+        infoElemDAO.save(elem);
+
+        return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
+    }   
+
+    /** HTTP end point for removing a tag from an Information Element. */    
+    @RequestMapping(value="/removetag/{id}", method = RequestMethod.POST)
+    public ResponseEntity<InformationElement>
+        removeTag(Authentication auth, @PathVariable Long id,
+                  @RequestBody Tag input) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        InformationElement elem = infoElemDAO.findById(id, user);
+
+        if (elem == null || !elem.user.getId().equals(user.getId()))
+            throw new NotFoundException("Information element not found");
+
+        elem.removeTag(input.text);
+        infoElemDAO.save(elem);
+
+        return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
 }

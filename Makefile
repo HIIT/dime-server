@@ -31,7 +31,7 @@ test:
 	@echo $(LOG_HEAD) Now open ./build/reports/tests/index.html
 
 testone:
-	$(GRADLE) test --tests fi.hiit.dime.DataControllerTest.testNewTags
+	$(GRADLE) test --tests fi.hiit.dime.DataControllerTest.testTagAPI
 
 clean:
 	$(GRADLE) clean

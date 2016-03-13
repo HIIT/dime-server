@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -805,6 +806,71 @@ public class DataControllerTest extends RestTest {
         // System.out.println("RES=" + res);
 
     }
+
+    @Test
+    public void testTagAPI() throws Exception {
+        Document doc = new Document();
+        doc.plainTextContent = "foobar";
+
+        Document uploadedDoc = uploadElement(doc, Document.class);
+        assertFalse(uploadedDoc.hasTags());
+
+        long docId = uploadedDoc.getId();
+
+        Tag tag1 = new Tag("foo", true);
+
+        // POST api/data/addtag/{id}
+        Document uploadedDoc2 =
+            uploadData(apiUrl("/data/addtag/" + docId), tag1, Document.class);
+        assertEquals(1, uploadedDoc2.getTags().size());
+        assertTrue(uploadedDoc2.hasTag("foo"));
+        assertTrue(uploadedDoc2.getTag("foo").auto);
+
+        Document getDoc1 = getElement(docId, Document.class);
+        assertEquals(1, getDoc1.getTags().size());
+        assertTrue(getDoc1.hasTag("foo"));
+        assertTrue(getDoc1.getTag("foo").auto);
+
+        Tag[] tags = new Tag[2];
+        tags[0] = new Tag("bar", true);
+        tags[1] = new Tag("baz", false);
+
+        // POST api/data/addtags/{id}
+        Document uploadedDoc3 =
+            uploadData(apiUrl("/data/addtags/" + docId), tags, Document.class);
+        assertEquals(3, uploadedDoc3.getTags().size());
+        assertTrue(uploadedDoc3.hasTag("foo"));
+        assertTrue(uploadedDoc3.hasTag("bar"));
+        assertTrue(uploadedDoc3.hasTag("baz"));
+        assertFalse(uploadedDoc3.hasTag("something_else"));
+        assertTrue(uploadedDoc3.getTag("foo").auto);
+        assertTrue(uploadedDoc3.getTag("bar").auto);
+        assertFalse(uploadedDoc3.getTag("baz").auto);
+
+        Document getDoc2 = getElement(docId, Document.class);
+        assertEquals(3, getDoc2.getTags().size());
+        assertTrue(getDoc2.hasTag("foo"));
+        assertTrue(getDoc2.hasTag("bar"));
+        assertTrue(getDoc2.hasTag("baz"));
+        assertTrue(getDoc2.getTag("foo").auto);
+        assertTrue(getDoc2.getTag("bar").auto);
+        assertFalse(getDoc2.getTag("baz").auto);
+
+        // POST api/data/removetag/{id}
+        Document uploadedDoc4 =
+            uploadData(apiUrl("/data/removetag/" + docId), new Tag("bar"),
+                       Document.class);
+        assertEquals(2, uploadedDoc4.getTags().size());
+        assertTrue(uploadedDoc4.hasTag("foo"));
+        assertFalse(uploadedDoc4.hasTag("bar"));
+        assertTrue(uploadedDoc4.hasTag("baz"));
+
+        Document getDoc3 = getElement(docId, Document.class);
+        assertEquals(2, getDoc3.getTags().size());
+        assertTrue(getDoc3.hasTag("foo"));
+        assertFalse(getDoc3.hasTag("bar"));
+        assertTrue(getDoc3.hasTag("baz"));
+    }    
 
     protected FeedbackEvent mkFeedback(double value, InformationElement elem, 
                                        Event relatedEvent) {

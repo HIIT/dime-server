@@ -344,7 +344,7 @@ public abstract class RestTest {
 
             ResponseEntity<ApiError> res =
                 getRest().postForEntity(apiUrl, data, ApiError.class);
-            System.out.println(res.getBody());
+            System.out.println("ERROR FROM SERVER: " + res.getBody());
 
             fail();
         }
