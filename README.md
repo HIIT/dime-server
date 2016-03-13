@@ -44,11 +44,11 @@ To run the server in port 8080 issue the command:
     
 **Note for Mac Users**: if you use Xcode, using `make run` to run DiMe might cause conflicts. In this case, use the alternate command:
 
-	./gradlew run
+	./gradlew bootRun
 	
 To start DiMe.
 
-(`./gradlew run` can always be used as an alternative to `make run` if you don't have GNU Make.)
+(`./gradlew bootRun` can always be used as an alternative to `make run` if you don't have GNU Make.)
 
 If you wish to change the TCP port of the server take a look at how to
 [configure the DiMe server][2] to use another port.
