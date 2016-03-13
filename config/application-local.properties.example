@@ -22,3 +22,6 @@
 # Use EnglishAnalyzer for Lucene instead of the default
 # StandardAnalyzer
 # dime.luceneAnalyzer=English
+
+# To enable CORS for a given domain
+# dime.corsAllowOrigin=http://localhost

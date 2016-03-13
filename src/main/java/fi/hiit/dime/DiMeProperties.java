@@ -41,4 +41,8 @@ public class DiMeProperties {
         luceneAnalyzer = s; //.replaceAll("Analyzer$", "");
     }
     public String getLuceneAnalyzer() { return luceneAnalyzer; }
+
+    private String corsAllowOrigin = "";
+    public void setCorsAllowOrigin(String s) { corsAllowOrigin = s; }
+    public String getCorsAllowOrigin() { return corsAllowOrigin; }
 }

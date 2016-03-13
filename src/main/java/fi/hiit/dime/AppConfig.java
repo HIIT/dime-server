@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -26,13 +26,16 @@ package fi.hiit.dime;
 
 import fi.hiit.dime.search.SearchIndex;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @Configuration
 public class AppConfig {
@@ -54,5 +57,17 @@ public class AppConfig {
         return builder
             .failOnUnknownProperties(true)
             .build();
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurerAdapter() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                if (!dimeConfig.getCorsAllowOrigin().isEmpty())
+                    registry.addMapping("/api/**")
+                        .allowedOrigins(dimeConfig.getCorsAllowOrigin());
+            }
+        };
     }
 }
