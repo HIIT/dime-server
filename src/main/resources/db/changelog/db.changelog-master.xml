@@ -631,4 +631,9 @@
             <column name="ATTN_VAL" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="jmakoske (generated)" id="1458052671276-1">
+        <addColumn tableName="EVENT">
+            <column name="ADD" type="BOOLEAN(1)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

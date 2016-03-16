@@ -43,6 +43,10 @@
 	      <b>Query:</b> <span th:text="${event.query}"></span><br/><br/>
 	    </span>
 
+            <span th:if="${event instanceof T(fi.hiit.dime.data.BookmarkEvent)}">
+	      <b>Add:</b> <span th:text="${event.add}"></span><br/><br/>
+	    </span>
+
       <span th:if="${event instanceof T(fi.hiit.dime.data.ReadingEvent)}">
         <b>Start Time:</b> <span th:text="${event.start}"></span>, <b>End Time:</b> <span th:text="${event.end}"></span><br/><br/>
         <b>Text content:</b> <pre th:text="${event.plainTextContent}"></pre><br/>
