@@ -450,7 +450,68 @@ public class DataController extends AuthorizedController {
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid arguments");
         }
-    }   
+    }
+
+    /** 
+        Helper method to save a generic DiMeData object.
+    */
+    protected void saveData(DiMeData obj) {
+        if (obj instanceof InformationElement)
+            infoElemDAO.save((InformationElement)obj);
+        else if (obj instanceof Event)
+            eventDAO.save((Event)obj);
+    }
+
+    /**
+       Helper method to add a tag to a DiMeData object, with sanity
+       checks.
+    */
+    protected <T extends DiMeData> T addTag(User user, T obj, Tag tag)
+        throws NotFoundException
+    {
+        if (obj == null || !obj.user.getId().equals(user.getId()))
+            throw new NotFoundException("Object not found");
+
+        obj.addTag(tag);
+        saveData(obj);
+
+        return obj;
+    }
+
+    /**
+       Helper method to add a list of tags to a DiMeData object, with
+       sanity checks.
+    */
+    protected <T extends DiMeData> T addTags(User user, T obj, Tag[] tags)
+        throws NotFoundException
+    {
+        if (obj == null || !obj.user.getId().equals(user.getId()))
+            throw new NotFoundException("Object not found");
+
+        for (int i=0; i<tags.length; i++)
+            obj.addTag(tags[i]);
+
+        saveData(obj);
+
+        return obj;
+    }
+
+    /**
+       Helper method to remove a tag from a DiMeData object, with
+       sanity checks.
+    */
+    protected <T extends DiMeData> T removeTag(User user, T obj, Tag tag) 
+        throws NotFoundException
+    {
+        if (obj == null || !obj.user.getId().equals(user.getId()))
+            throw new NotFoundException("Object not found");
+
+        obj.removeTag(tag.text);
+
+        saveData(obj);
+
+        return obj;
+    }
 
     /** HTTP end point for adding a tag to an Information Element. */    
     @RequestMapping(value="/informationelement/{id}/addtag", 
@@ -461,14 +522,8 @@ public class DataController extends AuthorizedController {
         throws NotFoundException
     {
         User user = getUser(auth);
-        InformationElement elem = infoElemDAO.findById(id, user);
-
-        if (elem == null || !elem.user.getId().equals(user.getId()))
-            throw new NotFoundException("Information element not found");
-
-        elem.addTag(input);
-        infoElemDAO.save(elem);
-
+        InformationElement elem =
+            addTag(user, infoElemDAO.findById(id, user), input);
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
@@ -481,16 +536,8 @@ public class DataController extends AuthorizedController {
         throws NotFoundException
     {
         User user = getUser(auth);
-        InformationElement elem = infoElemDAO.findById(id, user);
-
-        if (elem == null || !elem.user.getId().equals(user.getId()))
-            throw new NotFoundException("Information element not found");
-
-        for (int i=0; i<input.length; i++)
-            elem.addTag(input[i]);
-
-        infoElemDAO.save(elem);
-
+        InformationElement elem =
+            addTags(user, infoElemDAO.findById(id, user), input);
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
@@ -503,15 +550,46 @@ public class DataController extends AuthorizedController {
         throws NotFoundException
     {
         User user = getUser(auth);
-        InformationElement elem = infoElemDAO.findById(id, user);
-
-        if (elem == null || !elem.user.getId().equals(user.getId()))
-            throw new NotFoundException("Information element not found");
-
-        elem.removeTag(input.text);
-        infoElemDAO.save(elem);
-
+        InformationElement elem =
+            removeTag(user, infoElemDAO.findById(id, user), input);
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
+    /** HTTP end point for adding a tag to an Event. */    
+    @RequestMapping(value="/event/{id}/addtag", method = RequestMethod.POST)
+    public ResponseEntity<Event>
+        eventAddTag(Authentication auth, @PathVariable Long id,
+                    @RequestBody Tag input) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        Event event = addTag(user, eventDAO.findById(id, user), input);
+        return new ResponseEntity<Event>(event, HttpStatus.OK);
+    }   
+
+    /** HTTP end point for adding several tags to an Information Element. */    
+    @RequestMapping(value="/event/{id}/addtags", 
+                    method = RequestMethod.POST)
+    public ResponseEntity<Event>
+        eventAddTags(Authentication auth, @PathVariable Long id,
+                     @RequestBody Tag[] input) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        Event event = addTags(user, eventDAO.findById(id, user), input);
+        return new ResponseEntity<Event>(event, HttpStatus.OK);
+    }   
+
+    /** HTTP end point for removing a tag from an Information Element. */    
+    @RequestMapping(value="/event/{id}/removetag", 
+                    method = RequestMethod.POST)
+    public ResponseEntity<Event>
+        eventRemoveTag(Authentication auth, @PathVariable Long id,
+                       @RequestBody Tag input) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        Event event = removeTag(user, eventDAO.findById(id, user), input);
+        return new ResponseEntity<Event>(event, HttpStatus.OK);
+    }   
 }

@@ -871,6 +871,70 @@ public class DataControllerTest extends RestTest {
         assertTrue(getDoc3.hasTag("baz"));
     }    
 
+    @Test
+    public void testTagAPIEvents() throws Exception {
+        SearchEvent event = new SearchEvent();
+        event.query = "foobar";
+
+        SearchEvent uploadedEvent = uploadEvent(event, SearchEvent.class);
+        assertFalse(uploadedEvent.hasTags());
+
+        long eventId = uploadedEvent.getId();
+
+        Tag tag1 = new Tag("foo", true);
+
+        SearchEvent uploadedEvent2 =
+            uploadData(apiUrl("/data/event/" + eventId + "/addtag"),
+                       tag1, SearchEvent.class);
+        assertEquals(1, uploadedEvent2.getTags().size());
+        assertTrue(uploadedEvent2.hasTag("foo"));
+        assertTrue(uploadedEvent2.getTag("foo").auto);
+
+        SearchEvent getEvent1 = getEvent(eventId, SearchEvent.class);
+        assertEquals(1, getEvent1.getTags().size());
+        assertTrue(getEvent1.hasTag("foo"));
+        assertTrue(getEvent1.getTag("foo").auto);
+
+        Tag[] tags = new Tag[2];
+        tags[0] = new Tag("bar", true);
+        tags[1] = new Tag("baz", false);
+
+        SearchEvent uploadedEvent3 =
+            uploadData(apiUrl("/data/event/" + eventId + "/addtags"),
+                       tags, SearchEvent.class);
+        assertEquals(3, uploadedEvent3.getTags().size());
+        assertTrue(uploadedEvent3.hasTag("foo"));
+        assertTrue(uploadedEvent3.hasTag("bar"));
+        assertTrue(uploadedEvent3.hasTag("baz"));
+        assertFalse(uploadedEvent3.hasTag("something_else"));
+        assertTrue(uploadedEvent3.getTag("foo").auto);
+        assertTrue(uploadedEvent3.getTag("bar").auto);
+        assertFalse(uploadedEvent3.getTag("baz").auto);
+
+        SearchEvent getEvent2 = getEvent(eventId, SearchEvent.class);
+        assertEquals(3, getEvent2.getTags().size());
+        assertTrue(getEvent2.hasTag("foo"));
+        assertTrue(getEvent2.hasTag("bar"));
+        assertTrue(getEvent2.hasTag("baz"));
+        assertTrue(getEvent2.getTag("foo").auto);
+        assertTrue(getEvent2.getTag("bar").auto);
+        assertFalse(getEvent2.getTag("baz").auto);
+
+        SearchEvent uploadedEvent4 =
+            uploadData(apiUrl("/data/event/" + eventId + "/removetag"),
+                       new Tag("foo"), SearchEvent.class);
+        assertEquals(2, uploadedEvent4.getTags().size());
+        assertFalse(uploadedEvent4.hasTag("foo"));
+        assertTrue(uploadedEvent4.hasTag("bar"));
+        assertTrue(uploadedEvent4.hasTag("baz"));
+
+        SearchEvent getEvent3 = getEvent(eventId, SearchEvent.class);
+        assertEquals(2, getEvent3.getTags().size());
+        assertFalse(getEvent3.hasTag("foo"));
+        assertTrue(getEvent3.hasTag("bar"));
+        assertTrue(getEvent3.hasTag("baz"));
+    }    
+
     protected FeedbackEvent mkFeedback(double value, InformationElement elem, 
                                        Event relatedEvent) {
         FeedbackEvent feedback = new FeedbackEvent();
