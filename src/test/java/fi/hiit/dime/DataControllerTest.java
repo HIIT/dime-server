@@ -819,9 +819,9 @@ public class DataControllerTest extends RestTest {
 
         Tag tag1 = new Tag("foo", true);
 
-        // POST api/data/addtag/{id}
         Document uploadedDoc2 =
-            uploadData(apiUrl("/data/addtag/" + docId), tag1, Document.class);
+            uploadData(apiUrl("/data/informationelement/" + docId + "/addtag"),
+                       tag1, Document.class);
         assertEquals(1, uploadedDoc2.getTags().size());
         assertTrue(uploadedDoc2.hasTag("foo"));
         assertTrue(uploadedDoc2.getTag("foo").auto);
@@ -835,9 +835,9 @@ public class DataControllerTest extends RestTest {
         tags[0] = new Tag("bar", true);
         tags[1] = new Tag("baz", false);
 
-        // POST api/data/addtags/{id}
         Document uploadedDoc3 =
-            uploadData(apiUrl("/data/addtags/" + docId), tags, Document.class);
+            uploadData(apiUrl("/data/informationelement/" + docId + "/addtags"),
+                       tags, Document.class);
         assertEquals(3, uploadedDoc3.getTags().size());
         assertTrue(uploadedDoc3.hasTag("foo"));
         assertTrue(uploadedDoc3.hasTag("bar"));
@@ -856,10 +856,9 @@ public class DataControllerTest extends RestTest {
         assertTrue(getDoc2.getTag("bar").auto);
         assertFalse(getDoc2.getTag("baz").auto);
 
-        // POST api/data/removetag/{id}
         Document uploadedDoc4 =
-            uploadData(apiUrl("/data/removetag/" + docId), new Tag("bar"),
-                       Document.class);
+            uploadData(apiUrl("/data/informationelement/" + docId + "/removetag"),
+                       new Tag("bar"), Document.class);
         assertEquals(2, uploadedDoc4.getTags().size());
         assertTrue(uploadedDoc4.hasTag("foo"));
         assertFalse(uploadedDoc4.hasTag("bar"));

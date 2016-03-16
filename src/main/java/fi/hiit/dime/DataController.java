@@ -453,7 +453,8 @@ public class DataController extends AuthorizedController {
     }   
 
     /** HTTP end point for adding a tag to an Information Element. */    
-    @RequestMapping(value="/addtag/{id}", method = RequestMethod.POST)
+    @RequestMapping(value="/informationelement/{id}/addtag", 
+                    method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
         addTag(Authentication auth, @PathVariable Long id,
                @RequestBody Tag input) 
@@ -472,7 +473,8 @@ public class DataController extends AuthorizedController {
     }   
 
     /** HTTP end point for adding several tags to an Information Element. */    
-    @RequestMapping(value="/addtags/{id}", method = RequestMethod.POST)
+    @RequestMapping(value="/informationelement/{id}/addtags", 
+                    method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
         addTags(Authentication auth, @PathVariable Long id,
                @RequestBody Tag[] input) 
@@ -493,7 +495,8 @@ public class DataController extends AuthorizedController {
     }   
 
     /** HTTP end point for removing a tag from an Information Element. */    
-    @RequestMapping(value="/removetag/{id}", method = RequestMethod.POST)
+    @RequestMapping(value="/informationelement/{id}/removetag", 
+                    method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
         removeTag(Authentication auth, @PathVariable Long id,
                   @RequestBody Tag input) 
