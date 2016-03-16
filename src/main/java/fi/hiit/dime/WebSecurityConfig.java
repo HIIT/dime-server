@@ -25,69 +25,80 @@
 package fi.hiit.dime;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-@Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
-@Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
+@EnableWebSecurity
+public class WebSecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-            .antMatchers(HttpMethod.OPTIONS,"/api/**").permitAll()
-	    .antMatchers("/", "/css/*", "/js/*", "/user/create",
-			 "/favicon.*", "/api/ping").permitAll()
-            .antMatchers("/users/**").hasAuthority("ADMIN")
-	    .anyRequest().fullyAuthenticated()
-            .and()
-            //
-            .exceptionHandling()
-            .accessDeniedPage("/login?accessdenied") //OR 
-            .and()
-            .formLogin()
-	    .loginPage("/login")
-	    .failureUrl("/login?error")
-	    .usernameParameter("username")
-	    .permitAll()
-	    .and()
-	    // logout
-            .logout()
-	    .logoutUrl("/logout")
-	    .deleteCookies("remember-me")
-	    .logoutSuccessUrl("/")
-	    .permitAll()
-	    .and()
-	    // remember me
-	    .rememberMe()
-	    .and()
-	    // http basic
-	    .httpBasic()
-	    .and()
-	    // csrf
-	    .csrf().disable();
-            //
-
-	// FIXME: http://stackoverflow.com/questions/20602436/in-spring-security-with-java-config-why-does-httpbasic-post-want-csrf-token
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Autowired
+    protected void configureGlobal(AuthenticationManagerBuilder auth) 
+        throws Exception 
+    {
     	auth.userDetailsService(userDetailsService)
 	    .passwordEncoder(new BCryptPasswordEncoder());
     }
 
+
+    @Configuration
+    @Order(1)
+    public static class ApiWebSecurityConfigurationAdapter 
+        extends WebSecurityConfigurerAdapter 
+    {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.antMatcher("/api/**") 
+                .authorizeRequests()
+                .antMatchers("/api/ping").permitAll()
+                .antMatchers(HttpMethod.OPTIONS,"/api/**").permitAll()
+                .anyRequest().fullyAuthenticated()
+                .and()
+                .httpBasic()
+                .and()
+                .csrf().disable();
+        }
+    }
+
+    @Configuration
+    public static class FormLoginWebSecurityConfigurerAdapter 
+        extends WebSecurityConfigurerAdapter 
+    {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.authorizeRequests()
+                .antMatchers("/", "/css/*", "/js/*", "/user/create",
+                             "/favicon.*").permitAll()
+                .antMatchers("/users/**").hasAuthority("ADMIN")
+                .anyRequest().fullyAuthenticated()
+                .and()
+                //
+                .exceptionHandling()
+                .accessDeniedPage("/login?accessdenied") //OR 
+                .and()
+                .formLogin()
+                .loginPage("/login")
+                .failureUrl("/login?error")
+                .usernameParameter("username")
+                .permitAll()
+                .and()
+                // logout
+                .logout()
+                .logoutUrl("/logout")
+                .deleteCookies("remember-me")
+                .logoutSuccessUrl("/")
+                .permitAll()
+                .and()
+                // remember me
+                .rememberMe();
+        }
+    }
 }
