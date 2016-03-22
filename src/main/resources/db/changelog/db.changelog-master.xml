@@ -636,4 +636,21 @@
             <column name="ADD" type="BOOLEAN(1)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1458636890570-1">
+        <createTable tableName="INTENT_MODEL_EVENT_MODEL">
+            <column name="INTENT_MODEL_EVENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="MODEL" type="DOUBLE(17)"/>
+            <column name="MODEL_KEY" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1458636890570-2">
+        <addPrimaryKey columnNames="INTENT_MODEL_EVENT_ID, MODEL_KEY" constraintName="CONSTRAINT_MODEL" tableName="INTENT_MODEL_EVENT_MODEL"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1458636890570-3">
+        <addForeignKeyConstraint baseColumnNames="INTENT_MODEL_EVENT_ID" baseTableName="INTENT_MODEL_EVENT_MODEL" constraintName="FK_SOW5CWFKVVS37D8W4NS9PS1RG" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
 </databaseChangeLog>

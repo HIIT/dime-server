@@ -43,7 +43,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Mats Sjöberg (mats.sjoberg@helsinki.fi)
@@ -1082,4 +1084,29 @@ public class DataControllerTest extends RestTest {
         assertEquals(0, eventsBetween2.length);
         
     }
+
+    @Test
+    public void testIntentModelEvent() throws Exception {
+        IntentModelEvent event = new IntentModelEvent();
+        event.model = new HashMap<String, Double>();
+        event.model.put("foo", 0.29);
+        event.model.put("bar", 0.48);
+        event.model.put("baz", 0.19);
+
+        IntentModelEvent uploadEvent = uploadEvent(event, 
+                                                   IntentModelEvent.class);
+        
+        IntentModelEvent getEvent = getEvent(uploadEvent.getId(), 
+                                             IntentModelEvent.class);
+
+        assertEquals(event.model.size(), getEvent.model.size());
+
+        for (Map.Entry<String, Double> it : event.model.entrySet()) {
+            String word = it.getKey();
+            Double weight = it.getValue();
+            assertTrue(getEvent.model.containsKey(word));
+            assertEquals(weight, getEvent.model.get(word));
+        }
+    }
+
 }
