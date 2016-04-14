@@ -653,4 +653,9 @@
     <changeSet author="mvsjober (generated)" id="1458636890570-3">
         <addForeignKeyConstraint baseColumnNames="INTENT_MODEL_EVENT_ID" baseTableName="INTENT_MODEL_EVENT_MODEL" constraintName="FK_SOW5CWFKVVS37D8W4NS9PS1RG" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
+    <changeSet author="marco (generated)" id="1460625268875-1">
+        <addColumn tableName="EVENT">
+            <column name="READING_TIME" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
