@@ -29,8 +29,11 @@ payload = {
     'origin':   socket.gethostbyaddr(socket.gethostname())[0],
     'type':     'http://www.hiit.fi/ontologies/dime/#ExampleSearchEvent',
     'start':    time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime()),
-    'tags': ['tag1', 'tag2'],
     'duration': 0,
+    'tags': [
+        { '@type': 'Tag', 'text': 'tag1', 'auto': False },
+        { '@type': 'Tag', 'text': 'tag2', 'auto': False }
+    ]
 }
 
 payload['query'] = "dummy search"
