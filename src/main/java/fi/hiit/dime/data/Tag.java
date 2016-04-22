@@ -49,17 +49,36 @@ public class Tag extends AbstractPersistable<Long> {
         this.text = text;
         this.time = new Date();
         this.auto = false;
+        this.weight = 1.0;
     }
 
     public Tag(String text, boolean auto) {
         this.text = text;
         this.time = new Date();
         this.auto = auto;
+        this.weight = 1.0;
     }
 
+    /** Text of the tag. */
     @Column(columnDefinition="text")
     public String text;
+
+    /** Time when the tag was added. */
     public Date time;
+
+    /** Typically the host name of the computer where the event was generated.
+     */
     public String origin;
+
+    /** True if tag was automatically extracted (not via human
+        interaction). 
+    */
     public Boolean auto;
+
+    /** The program that produced the event, e.g. "Firefox".
+     */
+    public String actor;
+
+    /** Weight of tag between 0.0 and 1.0, higher value means more relevant. */
+    public Double weight;
 }

@@ -31,8 +31,16 @@ payload = {
     'start':    time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime()),
     'duration': 0,
     'tags': [
-        { '@type': 'Tag', 'text': 'tag1', 'auto': False },
-        { '@type': 'Tag', 'text': 'tag2', 'auto': False }
+        { '@type': 'Tag', 
+          'text': 'tag1', 
+          'auto': False, 
+          'actor': 'logger-example.py',
+      },
+        { '@type': 'Tag', 
+          'text': 'tag2', 
+          'auto': False,
+          'weight': 0.1
+      }
     ]
 }
 

@@ -658,4 +658,14 @@
             <column name="READING_TIME" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1461326517087-1">
+        <addColumn tableName="TAG">
+            <column name="ACTOR" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1461328409262-1">
+        <addColumn tableName="TAG">
+            <column name="WEIGHT" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
