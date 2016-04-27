@@ -668,4 +668,16 @@
             <column name="WEIGHT" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="marco (generated)" id="1461748572551-1">
+        <addColumn tableName="TAG">
+            <column name="DTYPE" type="VARCHAR(31)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1461748572551-2">
+        <addColumn tableName="TAG">
+            <column name="TEST" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
