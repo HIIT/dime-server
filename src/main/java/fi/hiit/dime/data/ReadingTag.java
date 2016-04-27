@@ -43,12 +43,10 @@ import javax.persistence.Entity;
 @Entity
 public class ReadingTag extends Tag {
     
-    // /** A list of rectangles representing where the relevant (tagged) text is located. 
-    //  */
-    // @OneToMany(cascade=CascadeType.ALL)
-    // @JoinColumn(name="tag_id", referencedColumnName="id")
-    // public List<Rect> rects;
-
-    public Double test; // delete me
+    /** A list of rectangles representing where the relevant (tagged) text is located. 
+     */
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name="tag_id", referencedColumnName="id")
+    public List<Rect> rects;
 
 }
