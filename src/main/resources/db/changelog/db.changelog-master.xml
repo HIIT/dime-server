@@ -668,4 +668,26 @@
             <column name="WEIGHT" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1461761141459-1">
+        <addColumn tableName="TAG">
+            <column name="DTYPE" type="VARCHAR(31)"/>
+        </addColumn>
+        <addNotNullConstraint tableName="TAG" columnName="DTYPE" columnDataType="VARCHAR(31)" defaultNullValue="Tag"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1461761141459-2">
+        <addColumn tableName="TAG">
+            <column name="TEST" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1461762495310-1">
+        <addColumn tableName="RECT">
+            <column name="TAG_ID" type="BIGINT(19)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1461762495310-2">
+        <addForeignKeyConstraint baseColumnNames="TAG_ID" baseTableName="RECT" constraintName="FK_CG9DK2MMTI9ISP4VJQMC455HS" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="TAG"/>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1461762495310-3">
+        <dropColumn columnName="TEST" tableName="TAG"/>
+    </changeSet>
 </databaseChangeLog>
