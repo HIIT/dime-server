@@ -29,10 +29,11 @@
 
 	      <span th:if="${elem.tags}">
 		<b>Tags:</b> 
-		<span th:each="tag : ${elem.tags}"
-		      th:text="${tag.text}"
-		      class="label label-default">
-		</span><br />
+		<th:block th:each="tag : ${elem.tags}" th:switch="${tag.actor}">
+              <span th:case="'KEA'" th:class="'label label-kea'" th:text="${tag.text}"></span>
+		      <span th:case="*" th:class="'label label-default'" th:text="${tag.text}"></span>
+        </th:block>
+		<br />
 	      </span>
 
 	      <span th:if="${elem instanceof T(fi.hiit.dime.data.Message)}">

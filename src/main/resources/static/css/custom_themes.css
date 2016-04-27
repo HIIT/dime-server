@@ -1,0 +1,8 @@
+.label-kea {
+    background-color: #5cb85c;
+}
+.label-kea[href]:hover,
+.label-kea[href]:focus {
+    background-color: #449d44;
+}
+
