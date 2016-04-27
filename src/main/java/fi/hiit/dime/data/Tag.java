@@ -43,6 +43,7 @@ import javax.persistence.InheritanceType;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new", "id"})
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
+@JsonSubTypes({@JsonSubTypes.Type(value = ReadingTag.class, name = "ReadingTag")})
 // @Embeddable
 public class Tag extends AbstractPersistable<Long> {
     public Tag() {
