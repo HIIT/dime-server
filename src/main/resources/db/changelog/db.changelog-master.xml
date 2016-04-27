@@ -668,14 +668,13 @@
             <column name="WEIGHT" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
-    <changeSet author="marco (generated)" id="1461748572551-1">
+    <changeSet author="mvsjober (generated)" id="1461761141459-1">
         <addColumn tableName="TAG">
-            <column name="DTYPE" type="VARCHAR(31)">
-                <constraints nullable="false"/>
-            </column>
+            <column name="DTYPE" type="VARCHAR(31)"/>
         </addColumn>
+        <addNotNullConstraint tableName="TAG" columnName="DTYPE" columnDataType="VARCHAR(31)" defaultNullValue="Tag"/>
     </changeSet>
-    <changeSet author="marco (generated)" id="1461748572551-2">
+    <changeSet author="mvsjober (generated)" id="1461761141459-2">
         <addColumn tableName="TAG">
             <column name="TEST" type="DOUBLE(17)"/>
         </addColumn>

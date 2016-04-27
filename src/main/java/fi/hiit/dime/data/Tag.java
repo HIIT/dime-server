@@ -32,6 +32,8 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
 /**
    Class representing a text tag.
@@ -40,6 +42,7 @@ import javax.persistence.Entity;
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new", "id"})
 @Entity
+@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 // @Embeddable
 public class Tag extends AbstractPersistable<Long> {
     public Tag() {

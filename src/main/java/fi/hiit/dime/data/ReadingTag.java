@@ -40,7 +40,6 @@ import javax.persistence.Entity;
 /**
    Class representing a tag for some text within a document (represented by rects).
 */
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
 @Entity
 public class ReadingTag extends Tag {
     
