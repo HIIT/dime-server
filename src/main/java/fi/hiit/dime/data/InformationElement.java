@@ -54,6 +54,10 @@ public class InformationElement extends DiMeData {
     @Column(columnDefinition="longtext")
     public String plainTextContent;
 
+    /** The title of the information element.
+     */
+    public String title;
+
     /** Form of storage according to the Semantic Desktop ontology:
        http://www.semanticdesktop.org/ontologies/2007/03/22/nfo
      */

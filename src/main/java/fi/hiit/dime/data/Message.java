@@ -84,5 +84,7 @@ public class Message extends InformationElement {
 	    !plainTextContent.startsWith(subject))
 	    plainTextContent = subject + "\n\n" + plainTextContent;
 	super.autoFill();
+        if (title == null)
+            title = subject;
     }
 }

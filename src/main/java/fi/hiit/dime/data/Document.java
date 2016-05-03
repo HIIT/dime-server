@@ -34,8 +34,4 @@ public class Document extends InformationElement {
 	https://en.wikipedia.org/wiki/MIME#Content-Type
     */
     public String mimeType;
-
-    /** The title of the document.
-     */
-    public String title;
 }
