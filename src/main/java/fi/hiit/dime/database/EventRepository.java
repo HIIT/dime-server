@@ -64,7 +64,7 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
 
             switch (name) {
             case "tag":
-                criteria = "(select count(*) from e.tagMap where text=:tag) > 0";
+                criteria = "(select count(*) from e.tags where text=:tag) > 0";
                 break;
             case "after":
                 criteria = "start >= :after";

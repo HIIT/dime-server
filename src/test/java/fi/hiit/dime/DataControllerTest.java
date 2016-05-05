@@ -201,9 +201,9 @@ public class DataControllerTest extends RestTest {
         doc1.uri = "http://www.example.com/hello.txt";
         doc1.plainTextContent = "Hello, world";
         doc1.mimeType = "text/plain";
-        doc1.addTag("tag1");
-        doc1.addTag("tag2");
-        doc1.addTag("tag1");
+        doc1.addTag(new Tag("tag1"));
+        doc1.addTag(new Tag("tag2"));
+        doc1.addTag(new Tag("tag1"));
         FeedbackEvent event1 = new FeedbackEvent();
         event1.value = 0.42;
         event1.targettedResource = doc1;
@@ -213,7 +213,7 @@ public class DataControllerTest extends RestTest {
         SearchEvent event2 = new SearchEvent();
         event2.query = "some search query";
         event2.actor = "TestActor1";
-        event2.addTag("foo");
+        event2.addTag(new Tag("foo"));
         events[1] = event2;
 
         SearchEvent event3 = new SearchEvent();
@@ -223,7 +223,7 @@ public class DataControllerTest extends RestTest {
 
         // Create a message event
         Message emailMsg = createTestEmail();
-        emailMsg.addTag("tag2");
+        emailMsg.addTag(new Tag("tag2"));
         
         MessageEvent event4 = new MessageEvent();
         event4.targettedResource = emailMsg;
@@ -244,7 +244,7 @@ public class DataControllerTest extends RestTest {
 
         SearchEvent outEvent2 = (SearchEvent)outEvents[1];
         assertEquals(event2.query, outEvent2.query);
-        assertTrue(outEvent2.hasTag("foo"));
+        assertTrue(outEvent2.hasMatchingTag("foo"));
 
         SearchEvent outEvent3 = (SearchEvent)outEvents[2];
         assertEquals(event3.query, outEvent3.query);
@@ -258,9 +258,9 @@ public class DataControllerTest extends RestTest {
 
         Document getDoc = (Document)getEvent1.targettedResource;
         assertEquals(origDoc.uri, getDoc.uri);
-        assertEquals(getDoc.getTags().size(), 2);
-        assertTrue(getDoc.hasTag("tag1"));
-        assertTrue(getDoc.hasTag("tag2"));
+        assertEquals(getDoc.tags.size(), 2);
+        assertTrue(getDoc.hasMatchingTag("tag1"));
+        assertTrue(getDoc.hasMatchingTag("tag2"));
 
         SearchEvent getEvent2 = getEvent(outEvent2.getId(), SearchEvent.class);
         assertEquals(event2.query, getEvent2.query);
@@ -310,7 +310,7 @@ public class DataControllerTest extends RestTest {
         assertEquals(1, infoElemsRes.length);
 
         for (InformationElement elem : infoElemsRes) {
-            assertTrue(elem.hasTag("tag1"));
+            assertTrue(elem.hasMatchingTag("tag1"));
         }
 
         dumpData("info elems filtered by tag", infoElemsRes);
@@ -407,8 +407,8 @@ public class DataControllerTest extends RestTest {
         
         Message msg = createTestEmail(content1, "");
         msg.appId = "iuerhfieruhf";
-        msg.addTag("mytag");
-        msg.addTag("anothertag");
+        msg.addTag(new Tag("mytag"));
+        msg.addTag(new Tag("anothertag"));
         MessageEvent event = new MessageEvent();
         event.targettedResource = msg;
 
@@ -439,9 +439,9 @@ public class DataControllerTest extends RestTest {
         Message msg2 = getElement(msgId, Message.class);
 
         assertEquals(content2, msg2.plainTextContent);
-        assertEquals(2, msg2.getTags().size());
-        assertTrue(msg2.hasTag("mytag"));
-        assertTrue(msg2.hasTag("anothertag"));
+        assertEquals(2, msg2.tags.size());
+        assertTrue(msg2.hasMatchingTag("mytag"));
+        assertTrue(msg2.hasMatchingTag("anothertag"));
 
 
         // Next, try changing using appId instead of id
@@ -464,9 +464,9 @@ public class DataControllerTest extends RestTest {
         dumpData("Got back", msg3);
 
         assertEquals(content3, msg3.plainTextContent);
-        assertEquals(2, msg3.getTags().size());
-        assertTrue(msg3.hasTag("mytag"));
-        assertTrue(msg3.hasTag("anothertag"));
+        assertEquals(2, msg3.tags.size());
+        assertTrue(msg3.hasMatchingTag("mytag"));
+        assertTrue(msg3.hasMatchingTag("anothertag"));
     }
 
     @Test
@@ -767,21 +767,21 @@ public class DataControllerTest extends RestTest {
     public void testNewTags() throws Exception {
         Document doc = new Document();
         doc.plainTextContent = "foobar";
-        doc.addTag("foo");
-        doc.addTag("bar");
-        doc.addTag("baz");
+        doc.addTag(new Tag("foo"));
+        doc.addTag(new Tag("bar"));
+        doc.addTag(new Tag("baz"));
 
         Tag tagFoo = new Tag("foo");
         tagFoo.auto = true;
         doc.addTag(tagFoo);
 
-        doc.removeTag("baz");
+        doc.removeMatchingTags(new Tag("baz"));
 
-        assertEquals(doc.getTags().size(), 2);
-        assertTrue(doc.hasTag("foo"));
-        assertTrue(doc.hasTag("bar"));
-        assertFalse(doc.hasTag("baz"));
-        assertTrue(doc.getTag("foo").auto);
+        assertEquals(doc.tags.size(), 2);
+        assertTrue(doc.hasMatchingTag("foo"));
+        assertTrue(doc.hasMatchingTag("bar"));
+        assertFalse(doc.hasMatchingTag("baz"));
+        assertTrue(doc.getTag(new Tag("foo")).auto);
 
         FeedbackEvent event = new FeedbackEvent();
         event.value = 0.42;
@@ -796,13 +796,13 @@ public class DataControllerTest extends RestTest {
                                      Document.class);
         dumpData("Tagged doc fetched:", getDoc);
 
-        assertEquals(2, getDoc.getTags().size());
-        assertTrue(getDoc.hasTag("foo"));
-        assertTrue(getDoc.hasTag("bar"));
-        assertFalse(getDoc.hasTag("baz"));
+        assertEquals(2, getDoc.tags.size());
+        assertTrue(getDoc.hasMatchingTag("foo"));
+        assertTrue(getDoc.hasMatchingTag("bar"));
+        assertFalse(getDoc.hasMatchingTag("baz"));
 
-        assertTrue(getDoc.getTag("foo").auto);
-        assertFalse(getDoc.getTag("bar").auto);
+        assertTrue(getDoc.getTag(new Tag("foo")).auto);
+        assertFalse(getDoc.getTag(new Tag("bar")).auto);
 
         // ApiError res = uploadData(eventApi, event, ApiError.class);
         // System.out.println("RES=" + res);
@@ -824,53 +824,75 @@ public class DataControllerTest extends RestTest {
         Document uploadedDoc2 =
             uploadData(apiUrl("/data/informationelement/" + docId + "/addtag"),
                        tag1, Document.class);
-        assertEquals(1, uploadedDoc2.getTags().size());
-        assertTrue(uploadedDoc2.hasTag("foo"));
-        assertTrue(uploadedDoc2.getTag("foo").auto);
+        assertEquals(1, uploadedDoc2.tags.size());
+        assertTrue(uploadedDoc2.hasMatchingTag("foo"));
+        Tag uploaded2Tag = uploadedDoc2.getTag(new Tag("foo"));
+        assertTrue(uploaded2Tag.auto);
+        assertEquals(null, uploaded2Tag.actor);
 
         Document getDoc1 = getElement(docId, Document.class);
-        assertEquals(1, getDoc1.getTags().size());
-        assertTrue(getDoc1.hasTag("foo"));
-        assertTrue(getDoc1.getTag("foo").auto);
+        assertEquals(1, getDoc1.tags.size());
+        assertTrue(getDoc1.hasMatchingTag("foo"));
+        Tag getDoc1Tag = getDoc1.getTag(new Tag("foo"));
+        assertTrue(getDoc1Tag.auto);
+        assertEquals(null, getDoc1Tag.actor);
 
-        Tag[] tags = new Tag[2];
-        tags[0] = new Tag("bar", true);
-        tags[1] = new Tag("baz", false);
+        Tag[] tags = new Tag[3];
+        tags[0] = new Tag("bar", true, "actor1");
+        tags[1] = new Tag("baz", false, "actor2");
+        tags[2] = new Tag("bar", false, "actor2");
 
         Document uploadedDoc3 =
             uploadData(apiUrl("/data/informationelement/" + docId + "/addtags"),
                        tags, Document.class);
-        assertEquals(3, uploadedDoc3.getTags().size());
-        assertTrue(uploadedDoc3.hasTag("foo"));
-        assertTrue(uploadedDoc3.hasTag("bar"));
-        assertTrue(uploadedDoc3.hasTag("baz"));
-        assertFalse(uploadedDoc3.hasTag("something_else"));
-        assertTrue(uploadedDoc3.getTag("foo").auto);
-        assertTrue(uploadedDoc3.getTag("bar").auto);
-        assertFalse(uploadedDoc3.getTag("baz").auto);
+        assertEquals(4, uploadedDoc3.tags.size());
+        assertTrue(uploadedDoc3.hasMatchingTag("foo"));
+        assertTrue(uploadedDoc3.hasMatchingTag("bar"));
+        assertTrue(uploadedDoc3.hasMatchingTag("baz"));
+        assertEquals(2, uploadedDoc3.getMatchingTags(new Tag("bar")).size());
+        assertFalse(uploadedDoc3.hasMatchingTag("something_else"));
+
+        Tag uploaded3TagFoo = uploadedDoc3.getTag(new Tag("foo"));
+        Tag uploaded3TagBar1 = uploadedDoc3.getTag(new Tag("bar", "actor1"));
+        Tag uploaded3TagBaz = uploadedDoc3.getMatchingTags(new Tag("baz")).get(0);
+        Tag uploaded3TagBar2 = uploadedDoc3.getTag(new Tag("bar", "actor2"));
+
+        assertTrue(uploaded3TagFoo.auto);
+        assertTrue(uploaded3TagBar1.auto);
+        assertFalse(uploaded3TagBaz.auto);
+        assertFalse(uploaded3TagBar2.auto);
 
         Document getDoc2 = getElement(docId, Document.class);
-        assertEquals(3, getDoc2.getTags().size());
-        assertTrue(getDoc2.hasTag("foo"));
-        assertTrue(getDoc2.hasTag("bar"));
-        assertTrue(getDoc2.hasTag("baz"));
-        assertTrue(getDoc2.getTag("foo").auto);
-        assertTrue(getDoc2.getTag("bar").auto);
-        assertFalse(getDoc2.getTag("baz").auto);
+        assertEquals(4, getDoc2.tags.size());
+        assertTrue(getDoc2.hasMatchingTag("foo"));
+        assertTrue(getDoc2.hasMatchingTag("bar"));
+        assertTrue(getDoc2.hasMatchingTag("baz"));
+        assertEquals(2, getDoc2.getMatchingTags(new Tag("bar")).size());
+        assertFalse(getDoc2.hasMatchingTag("something_else"));
+
+        Tag getDoc2TagFoo = getDoc2.getTag(new Tag("foo"));
+        Tag getDoc2TagBar1 = getDoc2.getTag(new Tag("bar", "actor1"));
+        Tag getDoc2TagBaz = getDoc2.getMatchingTags(new Tag("baz")).get(0);
+        Tag getDoc2TagBar2 = getDoc2.getTag(new Tag("bar", "actor2"));
+
+        assertTrue(getDoc2TagFoo.auto);
+        assertTrue(getDoc2TagBar1.auto);
+        assertFalse(getDoc2TagBaz.auto);
+        assertFalse(getDoc2TagBar2.auto);
 
         Document uploadedDoc4 =
             uploadData(apiUrl("/data/informationelement/" + docId + "/removetag"),
                        new Tag("bar"), Document.class);
-        assertEquals(2, uploadedDoc4.getTags().size());
-        assertTrue(uploadedDoc4.hasTag("foo"));
-        assertFalse(uploadedDoc4.hasTag("bar"));
-        assertTrue(uploadedDoc4.hasTag("baz"));
+        assertEquals(2, uploadedDoc4.tags.size());
+        assertTrue(uploadedDoc4.hasMatchingTag("foo"));
+        assertFalse(uploadedDoc4.hasMatchingTag("bar"));
+        assertTrue(uploadedDoc4.hasMatchingTag("baz"));
 
         Document getDoc3 = getElement(docId, Document.class);
-        assertEquals(2, getDoc3.getTags().size());
-        assertTrue(getDoc3.hasTag("foo"));
-        assertFalse(getDoc3.hasTag("bar"));
-        assertTrue(getDoc3.hasTag("baz"));
+        assertEquals(2, getDoc3.tags.size());
+        assertTrue(getDoc3.hasMatchingTag("foo"));
+        assertFalse(getDoc3.hasMatchingTag("bar"));
+        assertTrue(getDoc3.hasMatchingTag("baz"));
     }    
 
     @Test
@@ -884,57 +906,72 @@ public class DataControllerTest extends RestTest {
         long eventId = uploadedEvent.getId();
 
         Tag tag1 = new Tag("foo", true);
+        Tag tag2 = new Tag("foo", true, "foobar");
 
-        SearchEvent uploadedEvent2 =
+        SearchEvent tagAdded1 =
             uploadData(apiUrl("/data/event/" + eventId + "/addtag"),
                        tag1, SearchEvent.class);
-        assertEquals(1, uploadedEvent2.getTags().size());
-        assertTrue(uploadedEvent2.hasTag("foo"));
-        assertTrue(uploadedEvent2.getTag("foo").auto);
+        assertEquals(1, tagAdded1.tags.size());
+        assertTrue(tagAdded1.hasMatchingTag("foo"));
+        assertTrue(tagAdded1.getTag(new Tag("foo")).auto);
+
+        SearchEvent tagAdded2 =
+            uploadData(apiUrl("/data/event/" + eventId + "/addtag"),
+                       tag2, SearchEvent.class);
+        assertEquals(2, tagAdded2.tags.size());
+        Tag templ = new Tag("foo", "foobar");
+        assertTrue(tagAdded2.hasMatchingTag(templ));
+        Tag tag2get = tagAdded2.getTag(templ);
+        assertTrue(tag2get.auto);
+        assertEquals("foobar", tag2get.actor);
 
         SearchEvent getEvent1 = getEvent(eventId, SearchEvent.class);
-        assertEquals(1, getEvent1.getTags().size());
-        assertTrue(getEvent1.hasTag("foo"));
-        assertTrue(getEvent1.getTag("foo").auto);
+        assertEquals(2, getEvent1.tags.size());
+        assertTrue(getEvent1.hasMatchingTag("foo"));
+        assertTrue(getEvent1.hasMatchingTag(templ));
+        assertTrue(getEvent1.getTag(new Tag("foo")).auto);
+        Tag tag3get = getEvent1.getTag(templ);
+        assertTrue(tag3get.auto);
+        assertEquals("foobar", tag3get.actor);
 
         Tag[] tags = new Tag[2];
-        tags[0] = new Tag("bar", true);
-        tags[1] = new Tag("baz", false);
+        tags[0] = new Tag("bar", true, "actor1");
+        tags[1] = new Tag("baz", false, "actor2");
 
         SearchEvent uploadedEvent3 =
             uploadData(apiUrl("/data/event/" + eventId + "/addtags"),
                        tags, SearchEvent.class);
-        assertEquals(3, uploadedEvent3.getTags().size());
-        assertTrue(uploadedEvent3.hasTag("foo"));
-        assertTrue(uploadedEvent3.hasTag("bar"));
-        assertTrue(uploadedEvent3.hasTag("baz"));
-        assertFalse(uploadedEvent3.hasTag("something_else"));
-        assertTrue(uploadedEvent3.getTag("foo").auto);
-        assertTrue(uploadedEvent3.getTag("bar").auto);
-        assertFalse(uploadedEvent3.getTag("baz").auto);
+        assertEquals(4, uploadedEvent3.tags.size());
+        assertTrue(uploadedEvent3.hasMatchingTag("foo"));
+        assertTrue(uploadedEvent3.hasMatchingTag("bar"));
+        assertTrue(uploadedEvent3.hasMatchingTag("baz"));
+        assertFalse(uploadedEvent3.hasMatchingTag("something_else"));
+        assertTrue(uploadedEvent3.getTag(new Tag("foo")).auto);
+        assertTrue(uploadedEvent3.getTag(new Tag("bar", "actor1")).auto);
+        assertFalse(uploadedEvent3.getTag(new Tag("baz", "actor2")).auto);
 
         SearchEvent getEvent2 = getEvent(eventId, SearchEvent.class);
-        assertEquals(3, getEvent2.getTags().size());
-        assertTrue(getEvent2.hasTag("foo"));
-        assertTrue(getEvent2.hasTag("bar"));
-        assertTrue(getEvent2.hasTag("baz"));
-        assertTrue(getEvent2.getTag("foo").auto);
-        assertTrue(getEvent2.getTag("bar").auto);
-        assertFalse(getEvent2.getTag("baz").auto);
+        assertEquals(4, getEvent2.tags.size());
+        assertTrue(getEvent2.hasMatchingTag("foo"));
+        assertTrue(getEvent2.hasMatchingTag("bar"));
+        assertTrue(getEvent2.hasMatchingTag("baz"));
+        assertTrue(getEvent2.getTag(new Tag("foo")).auto);
+        assertTrue(getEvent2.getTag(new Tag("bar", "actor1")).auto);
+        assertFalse(getEvent2.getTag(new Tag("baz", "actor2")).auto);
 
         SearchEvent uploadedEvent4 =
             uploadData(apiUrl("/data/event/" + eventId + "/removetag"),
                        new Tag("foo"), SearchEvent.class);
-        assertEquals(2, uploadedEvent4.getTags().size());
-        assertFalse(uploadedEvent4.hasTag("foo"));
-        assertTrue(uploadedEvent4.hasTag("bar"));
-        assertTrue(uploadedEvent4.hasTag("baz"));
+        assertEquals(2, uploadedEvent4.tags.size());
+        assertFalse(uploadedEvent4.hasMatchingTag("foo"));
+        assertTrue(uploadedEvent4.hasMatchingTag("bar"));
+        assertTrue(uploadedEvent4.hasMatchingTag("baz"));
 
         SearchEvent getEvent3 = getEvent(eventId, SearchEvent.class);
-        assertEquals(2, getEvent3.getTags().size());
-        assertFalse(getEvent3.hasTag("foo"));
-        assertTrue(getEvent3.hasTag("bar"));
-        assertTrue(getEvent3.hasTag("baz"));
+        assertEquals(2, getEvent3.tags.size());
+        assertFalse(getEvent3.hasMatchingTag("foo"));
+        assertTrue(getEvent3.hasMatchingTag("bar"));
+        assertTrue(getEvent3.hasMatchingTag("baz"));
     }    
 
     protected FeedbackEvent mkFeedback(double value, InformationElement elem, 

@@ -55,7 +55,7 @@ class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
 
             switch (name) {
             case "tag":
-                criteria = "(select count(*) from e.tagMap where text=:tag) > 0";
+                criteria = "(select count(*) from e.tags where text=:tag) > 0";
                 break;
             case "appid":
                 name = "appId";

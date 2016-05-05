@@ -849,7 +849,7 @@ On success, the response will be the uploaded object with some fields like the i
         if (obj == null || !obj.user.getId().equals(user.getId()))
             throw new NotFoundException("Object not found");
 
-        obj.removeTag(tag.text);
+        obj.removeMatchingTags(tag);
 
         saveData(obj);
 

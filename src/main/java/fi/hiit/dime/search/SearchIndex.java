@@ -445,7 +445,7 @@ public class SearchIndex {
         Iterator<WeightedKeyword> it = kw.iterator();
         while (it.hasNext() && count < 10) {
             WeightedKeyword k = it.next();
-            obj.addTag(new Tag(k.term, true));
+            obj.addTag(new Tag(k.term, true, "DiMe Lucene"));
 
             if (obj instanceof Event)
                 eventDAO.save((Event)obj);
