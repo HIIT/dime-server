@@ -137,7 +137,7 @@ public class DiMeData extends AbstractPersistable<Long> {
     /** Return true if this object has tags
 
         @return True if there are tags.
-     */
+    */
     public boolean hasTags() {
         return tags != null && tags.size() > 0;
     }

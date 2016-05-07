@@ -768,6 +768,7 @@ public class DataControllerTest extends RestTest {
         Document doc = new Document();
         doc.plainTextContent = "foobar";
         doc.addTag(new Tag("foo"));
+        doc.addTag(new Tag("bar", true));
         doc.addTag(new Tag("bar"));
         doc.addTag(new Tag("baz"));
 
@@ -837,10 +838,11 @@ public class DataControllerTest extends RestTest {
         assertTrue(getDoc1Tag.auto);
         assertEquals(null, getDoc1Tag.actor);
 
-        Tag[] tags = new Tag[3];
+        Tag[] tags = new Tag[4];
         tags[0] = new Tag("bar", true, "actor1");
-        tags[1] = new Tag("baz", false, "actor2");
+        tags[1] = new Tag("baz", true, "actor2");
         tags[2] = new Tag("bar", false, "actor2");
+        tags[3] = new Tag("baz", false, "actor2");
 
         Document uploadedDoc3 =
             uploadData(apiUrl("/data/informationelement/" + docId + "/addtags"),
