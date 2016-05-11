@@ -690,4 +690,40 @@
     <changeSet author="marco (generated)" id="1461762495310-3">
         <dropColumn columnName="TEST" tableName="TAG"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1462976094507-1">
+        <createTable tableName="PROFILE">
+            <column autoIncrement="true" name="ID" type="BIGINT(19)">
+                <constraints primaryKey="true" primaryKeyName="CONSTRAINT_18"/>
+            </column>
+            <column name="NAME" type="CLOB"/>
+            <column name="TIME_CREATED" type="TIMESTAMP"/>
+            <column name="TIME_MODIFIED" type="TIMESTAMP"/>
+            <column name="USER_ID" type="BIGINT(19)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1462976094507-2">
+        <createTable tableName="PROFILE_SEARCH_KEYWORDS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SEARCH_KEYWORDS" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1462976094507-3">
+        <createTable tableName="PROFILE_TAGS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TAGS" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1462976094507-4">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_TAGS" constraintName="FK_95IUAGMPQOWQ42D22LWFSAQ9X" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1462976094507-5">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="PROFILE" constraintName="FK_C1DKIAWNLJ6UOE6FNLWD6J83J" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="USER"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1462976094507-6">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_SEARCH_KEYWORDS" constraintName="FK_NSKIUJF17VMUFLFGTJRTFMU9B" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
 </databaseChangeLog>

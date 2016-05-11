@@ -30,8 +30,10 @@ import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
+import fi.hiit.dime.database.ProfileDAO;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
 import static fi.hiit.dime.search.SearchIndex.WeightType;
@@ -49,6 +51,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -76,6 +79,7 @@ public class ApiController extends AuthorizedController {
 
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
+    private final ProfileDAO profileDAO;
 
     @Autowired
     private DiMeProperties dimeConfig;
@@ -85,9 +89,11 @@ public class ApiController extends AuthorizedController {
 
     @Autowired
     ApiController(EventDAO eventDAO,
-                  InformationElementDAO infoElemDAO) {
+                  InformationElementDAO infoElemDAO,
+                  ProfileDAO profileDAO) {
         this.eventDAO = eventDAO;
         this.infoElemDAO = infoElemDAO;
+        this.profileDAO = profileDAO;
     }
 
     /**
@@ -249,5 +255,38 @@ public class ApiController extends AuthorizedController {
                 (HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Helper method to save a profile.
+     *
+     * @param input Profile to store
+     * @param user current authenticated user
+     * @return The profile as stored
+     */
+    @Transactional
+    private Profile storeProfile(Profile profile, User user) {
+        // throws NotFoundException, BadRequestException {
+
+        profileDAO.save(profile);
+
+        return profile;
+    }
+
+
+    /** HTTP end point for creating a new profile. */    
+    @RequestMapping(value="/profile", method = RequestMethod.POST)
+    public ResponseEntity<Profile>
+        profile(Authentication auth, 
+                @RequestBody Profile input)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        input = storeProfile(input, user);
+
+        //elementLog("Profile", user, input, true);
+
+        return new ResponseEntity<Profile>(input, HttpStatus.OK);
+    }   
 
 }
