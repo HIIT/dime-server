@@ -48,16 +48,19 @@ public class UserServiceImpl implements UserService {
     private final UserDAO userDAO;
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
+    private final ProfileDAO profileDAO;
     private final static String ADMIN_USERNAME = "admin";
     private final static String ADMIN_PASSWORD = ""; // empty means random
     private RandomPassword pw;
 
     @Autowired
     UserServiceImpl(UserDAO userDAO, EventDAO eventDAO,
-		    InformationElementDAO infoElemDAO) {
+		    InformationElementDAO infoElemDAO,
+                    ProfileDAO profileDAO) {
 	this.userDAO = userDAO;
 	this.eventDAO = eventDAO;
 	this.infoElemDAO = infoElemDAO;
+        this.profileDAO = profileDAO;
 	this.pw = new RandomPassword();
     }
 
@@ -113,6 +116,7 @@ public class UserServiceImpl implements UserService {
     public boolean removeAllForUserId(Long id) {
 	eventDAO.removeForUser(id);
 	infoElemDAO.removeForUser(id);
+        profileDAO.removeForUser(id);
 	userDAO.remove(id);
 	return true;
     }

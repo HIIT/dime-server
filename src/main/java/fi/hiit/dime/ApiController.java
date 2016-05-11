@@ -24,6 +24,9 @@
 
 package fi.hiit.dime;
 
+import static fi.hiit.dime.search.SearchIndex.WeightType;
+import static fi.hiit.dime.search.SearchIndex.weightType;
+
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.DiMeData;
@@ -36,8 +39,6 @@ import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.database.ProfileDAO;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
-import static fi.hiit.dime.search.SearchIndex.WeightType;
-import static fi.hiit.dime.search.SearchIndex.weightType;
 import fi.hiit.dime.search.SearchQuery;
 import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
@@ -52,6 +53,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -63,6 +65,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.servlet.ServletRequest;
 
 /**
@@ -267,6 +270,7 @@ public class ApiController extends AuthorizedController {
     private Profile storeProfile(Profile profile, User user) {
         // throws NotFoundException, BadRequestException {
 
+        profile.user = user;
         profileDAO.save(profile);
 
         return profile;
@@ -284,9 +288,23 @@ public class ApiController extends AuthorizedController {
 
         input = storeProfile(input, user);
 
-        //elementLog("Profile", user, input, true);
-
         return new ResponseEntity<Profile>(input, HttpStatus.OK);
+    }   
+
+    /** HTTP end point for accessing a given profile. */    
+    @RequestMapping(value="/profile/{id}", method = RequestMethod.GET)
+    public ResponseEntity<Profile>
+        profile(Authentication auth, @PathVariable Long id) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        Profile profile = profileDAO.findById(id, user);
+
+        if (profile == null || !profile.user.getId().equals(user.getId()))
+            throw new NotFoundException("Profile not found");
+
+        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
     }   
 
 }

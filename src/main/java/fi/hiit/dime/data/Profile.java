@@ -50,8 +50,12 @@ public class Profile extends AbstractPersistable<Long> {
     public Profile() {
     }
 
-    public void copyIdFrom(Profile e) {
-        setId(e.getId());
+    public Profile(String name) {
+        this.name = name;
+    }
+
+    public void copyIdFrom(Profile p) {
+        setId(p.getId());
     }
 
     /** Date and time when the object was first uploaded via the

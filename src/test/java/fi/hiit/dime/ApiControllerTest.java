@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -24,12 +24,15 @@
 
 package fi.hiit.dime;
 
+import static org.junit.Assert.*;
+
 import fi.hiit.dime.ApiController.ApiMessage;
 import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.Message;
 import fi.hiit.dime.data.MessageEvent;
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.ReadingEvent;
 import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.data.ScientificDocument;
@@ -44,8 +47,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -297,4 +300,34 @@ public class ApiControllerTest extends RestTest {
 
         System.out.println(getDoc2.weightedKeywords.size());
     }
+
+    @Test
+    public void testProfiles() throws Exception {
+        // Test uploading a new profile
+        Profile profile = new Profile("Kai's formula profile");
+        profile.tags = new ArrayList<String>();
+        profile.tags.add("Formula1");
+        profile.tags.add("motorsports");
+        profile.tags.add("kimi raikkonen");
+        
+        Profile uploadedProfile = uploadData(profileApi, profile,
+                                             Profile.class);
+        dumpData("uploadedProfile", uploadedProfile);
+
+        assertEquals(profile.name, uploadedProfile.name);
+        assertEquals(profile.tags.size(), uploadedProfile.tags.size());
+        Long id = uploadedProfile.getId();
+        assertTrue(id != null && id > 0);
+
+        // Test fetching an existing one
+
+        Profile gotProfile = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile", uploadedProfile);
+
+        assertEquals(profile.name, gotProfile.name);
+        assertEquals(profile.tags.size(), gotProfile.tags.size());
+        Long gotId = gotProfile.getId();
+        assertEquals(id, gotId);
+    }
+
 }

@@ -56,4 +56,6 @@ public interface ProfileRepository extends CrudRepository<Profile, Long> {
     Profile findOneByIdAndUser(Long id, User user);
 
     List<Profile> findByUser(User user);
+
+    Long deleteByUser(User user);
 }

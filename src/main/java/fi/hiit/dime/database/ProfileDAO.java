@@ -75,4 +75,15 @@ public class ProfileDAO {
     public Profile findById(Long id, User user) {
         return repo.findOneByIdAndUser(id, user);
     }
+
+    /**
+       Removes all items for user.
+
+       @param id User id
+       @return Number of items removed.
+    */
+    @Transactional
+    public long removeForUser(Long id) {
+        return repo.deleteByUser(User.makeUser(id));
+    }
 }
