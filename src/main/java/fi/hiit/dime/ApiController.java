@@ -307,4 +307,14 @@ public class ApiController extends AuthorizedController {
         return new ResponseEntity<Profile>(profile, HttpStatus.OK);
     }   
 
+    /** HTTP end point for deleting a profile. */    
+    @RequestMapping(value="/profile/{id}", method = RequestMethod.DELETE)
+    public void profileDelete(Authentication auth, @PathVariable Long id) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        if (!profileDAO.remove(id, user))
+            throw new NotFoundException("Profile not found");
+    }   
 }

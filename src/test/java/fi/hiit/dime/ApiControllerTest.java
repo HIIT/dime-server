@@ -320,7 +320,6 @@ public class ApiControllerTest extends RestTest {
         assertTrue(id != null && id > 0);
 
         // Test fetching an existing one
-
         Profile gotProfile = getData(profileApi + "/" + id, Profile.class);
         dumpData("gotProfile", uploadedProfile);
 
@@ -328,6 +327,32 @@ public class ApiControllerTest extends RestTest {
         assertEquals(profile.tags.size(), gotProfile.tags.size());
         Long gotId = gotProfile.getId();
         assertEquals(id, gotId);
+
+        // Test updating an existing profile
+        gotProfile.tags.add("f1");
+        gotProfile.name = "Kai's Formula Profile";
+        
+        Profile updatedProfile = uploadData(profileApi, gotProfile,
+                                            Profile.class);
+        assertEquals(id, updatedProfile.getId());
+        assertEquals(updatedProfile.name, gotProfile.name);
+        
+        // Test fetching the updated one
+        Profile gotUpdatedProfile = 
+            getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotUpdatedProfile", gotUpdatedProfile);
+
+        assertEquals(gotProfile.name, gotUpdatedProfile.name);
+        assertEquals(gotProfile.tags.size(), gotUpdatedProfile.tags.size());
+        Long gotUpdatedId = gotUpdatedProfile.getId();
+        assertEquals(id, gotUpdatedId);
+
+        // Try fetching a random non-existing profile
+        getDataExpectError(profileApi + "/129382190");
+
+        // Test deleting profile
+        deleteData(profileApi + "/" + id);
+        getDataExpectError(profileApi + "/" + id);
     }
 
 }

@@ -24,6 +24,8 @@
 
 package fi.hiit.dime;
 
+import static org.junit.Assert.*;
+
 import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserCreateForm;
@@ -41,8 +43,8 @@ import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -352,6 +354,14 @@ public abstract class RestTest {
         return null;
     }
 
+    protected void deleteData(String apiUrl) {
+        try {
+            getRest().delete(apiUrl);
+        } catch (RestClientException ex) {
+            System.out.println(ex);
+            fail();
+        }
+    }
 
     // Downloading helpers
 

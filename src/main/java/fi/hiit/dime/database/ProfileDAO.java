@@ -86,4 +86,22 @@ public class ProfileDAO {
     public long removeForUser(Long id) {
         return repo.deleteByUser(User.makeUser(id));
     }
+
+    /**
+       Removes a single profile item.
+
+       @param id Profile id
+       @param user User
+       @return True if it was deleted, false otherwise.
+    */
+    @Transactional
+    public boolean remove(Long id, User user) {
+        Profile p = findById(id, user);
+        if (p == null || !p.user.getId().equals(user.getId()))
+            return false;
+
+        repo.delete(p);
+        return true;
+    }
+    
 }
