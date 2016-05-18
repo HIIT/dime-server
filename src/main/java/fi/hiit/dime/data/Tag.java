@@ -47,6 +47,7 @@ import javax.persistence.InheritanceType;
 // @Embeddable
 public class Tag extends AbstractPersistable<Long> {
     public Tag() {
+        this.time = new Date();
     }
     
     public Tag(String text) {
