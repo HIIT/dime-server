@@ -72,20 +72,20 @@ payload = {
         #abstract/excerpt of the page
         "abstract": '',
         #a string of plain HTML with class/id/styles removed  
-        "html": "<p>From Wikipedia, the free encyclopedia</p> ...",
+        "HTML": "<p>From Wikipedia, the free encyclopedia</p> ...",
         #a list of imgages in the page
         "imgURLs": [{'url':'http://.../a.jpg', 'text': 'a pic'}],
         #a list of hyperlinks in the page
         "hyperLinks": [{'url': 'http://.../', 'text': 'a link'}],
         #a list of Open Graph protocol http://ogp.me/
-        "openGraphProtocol": {
+        "OpenGraphProtocol": {
             "image": "https://www.facebook.com/images/fb_icon_325x325.png",
             "url": "https://www.facebook.com/",
             "site_name": "Facebook",
             "locale": "en_US"
         },
         #a list of HTML meta tags http://www.w3schools.com/tags/tag_meta.asp
-        "metaTags": [{'name': 'description', 'content': 'Free Web tutorials'}],
+        "MetaTags": [{'name': 'description', 'content': 'Free Web tutorials'}],
     },
 }
 

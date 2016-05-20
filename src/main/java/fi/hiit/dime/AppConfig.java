@@ -27,6 +27,7 @@ package fi.hiit.dime;
 import fi.hiit.dime.search.SearchIndex;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.MapperFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,7 @@ public class AppConfig {
     public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
         return builder
             .failOnUnknownProperties(true)
+            .featuresToEnable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
             .build();
     }
 
