@@ -726,4 +726,81 @@
     <changeSet author="mvsjober (generated)" id="1462976094507-6">
         <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_SEARCH_KEYWORDS" constraintName="FK_NSKIUJF17VMUFLFGTJRTFMU9B" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-1">
+        <createTable tableName="WEB_DOCUMENT_FREQUENT_TERMS">
+            <column name="WEB_DOCUMENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FREQUENT_TERMS" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-2">
+        <createTable tableName="WEB_DOCUMENT_HYPER_LINKS">
+            <column name="WEB_DOCUMENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TEXT" type="VARCHAR(255)"/>
+            <column name="URL" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-3">
+        <createTable tableName="WEB_DOCUMENT_IMGURLS">
+            <column name="WEB_DOCUMENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TEXT" type="VARCHAR(255)"/>
+            <column name="URL" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-4">
+        <createTable tableName="WEB_DOCUMENT_META_TAGS">
+            <column name="WEB_DOCUMENT_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONTENT" type="VARCHAR(255)"/>
+            <column name="NAME" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-5">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="ABSTRACT_TEXT" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-6">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="HTML" type="CLOB(2147483647)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-7">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="IMAGE" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-8">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="LOCALE" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-9">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="SITE_NAME" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-10">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="URL" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-11">
+        <addForeignKeyConstraint baseColumnNames="WEB_DOCUMENT_ID" baseTableName="WEB_DOCUMENT_IMGURLS" constraintName="FK_6YS28MYS6A56W4JLGI08R3MMX" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-12">
+        <addForeignKeyConstraint baseColumnNames="WEB_DOCUMENT_ID" baseTableName="WEB_DOCUMENT_META_TAGS" constraintName="FK_GSRSL34XIGSOTWL7W1FLWALAW" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-13">
+        <addForeignKeyConstraint baseColumnNames="WEB_DOCUMENT_ID" baseTableName="WEB_DOCUMENT_FREQUENT_TERMS" constraintName="FK_LQGXWANKATK3F8I3S4AMGI1VR" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1463746469879-14">
+        <addForeignKeyConstraint baseColumnNames="WEB_DOCUMENT_ID" baseTableName="WEB_DOCUMENT_HYPER_LINKS" constraintName="FK_Y3ESM0X1NUFSAMPCL8SEDF1H" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
 </databaseChangeLog>

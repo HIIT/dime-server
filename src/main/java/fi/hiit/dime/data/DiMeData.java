@@ -63,7 +63,7 @@ import java.util.List;
             @JsonSubTypes.Type(value=fi.hiit.dime.data.Person.class, name="Person"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.FeedbackEvent.class, name="FeedbackEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.BookmarkEvent.class, name="BookmarkEvent"),
-            @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
+            @JsonSubTypes.Type(value=fi.hiit.dime.data.WebDocument.class, name="WebDocument"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.DesktopEvent.class, name="DesktopEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.ReadingEvent.class, name="ReadingEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.SummaryReadingEvent.class, name="SummaryReadingEvent"),
