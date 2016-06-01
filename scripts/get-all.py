@@ -12,6 +12,8 @@ server_url = 'http://localhost:8080/api'
 server_username = 'testuser'
 server_password = 'testuser123'
 
+json_filename = 'dime-elements.json'
+
 #------------------------------------------------------------------------------
 
 # ping server (not needed, but fun to do :-)
@@ -32,9 +34,13 @@ if r.status_code != requests.codes.ok:
 
 j = r.json()
 
-print("Got {} InformationElements from DiMe.".format(len(j)))
+print("Got {} InformationElements from DiMe.".format(len(j)), file=sys.stderr)
 
-field = 'plainTextContent'
-for elem in j:
-    if field in elem:
-        print('"'+elem[field][:70]+'"')
+with open(json_filename, 'w') as fp:
+    json.dump(j, fp)
+    print("Wrote", json_filename)
+
+# field = 'plainTextContent'
+# for elem in j:
+#     if field in elem:
+#         print('"'+elem[field][:70]+'"')
