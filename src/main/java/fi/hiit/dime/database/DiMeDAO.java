@@ -132,6 +132,24 @@ public class DiMeDAO<T extends DiMeData, R extends DiMeRepository<T>> {
         return repo.deleteByUser(User.makeUser(id));
     }
 
+    /**
+       Removes a single item.
+
+       @param id Item id
+       @param user User
+       @return True if it was deleted, false otherwise.
+    */
+    @Transactional
+    public boolean remove(Long id, User user) {
+        T d = findById(id, user);
+        if (d == null || !d.user.getId().equals(user.getId()))
+            return false;
+
+        repo.delete(d);
+        return true;
+    }
+
+
     protected Set<T> notIndexed = new HashSet<T>();
 
     public int countNotIndexed() {

@@ -41,6 +41,7 @@ import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.client.RestClientException;
@@ -356,7 +357,11 @@ public abstract class RestTest {
 
     protected void deleteData(String apiUrl) {
         try {
-            getRest().delete(apiUrl);
+            // getRest().delete(apiUrl);
+            ResponseEntity<String> res = 
+                getRest().exchange(apiUrl, HttpMethod.DELETE, null,
+                                   String.class);
+            assertSuccessful(res);
         } catch (RestClientException ex) {
             System.out.println(ex);
             fail();

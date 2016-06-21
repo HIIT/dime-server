@@ -39,7 +39,7 @@ public abstract class ResourcedEvent extends Event {
     /**
        The InformationElement object that is targetted by this event.
     */
-    @ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER) //, cascade=CascadeType.ALL)
     @JoinColumn(name = "resource_id")
     public InformationElement targettedResource;
 }

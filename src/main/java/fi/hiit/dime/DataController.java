@@ -316,6 +316,22 @@ public class DataController extends AuthorizedController {
         return new ResponseEntity<Event>(event, HttpStatus.OK);
     }   
 
+    /** HTTP end point for deleting single event. */
+    @RequestMapping(value="/event/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity eventDelete(Authentication auth, @PathVariable Long id) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        try {
+            if (!eventDAO.remove(id, user))
+                throw new NotFoundException("Event not found");
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
+
     /** HTTP end point for uploading multiple events. */    
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
