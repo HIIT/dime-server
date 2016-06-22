@@ -443,6 +443,25 @@ public class DataController extends AuthorizedController {
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
+    /** HTTP end point for deleting single information element. */
+    @RequestMapping(value="/informationelement/{id}",
+                    method = RequestMethod.DELETE)
+    public ResponseEntity informationElementDelete(Authentication auth, 
+                                                   @PathVariable Long id) 
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        try {
+            if (!infoElemDAO.remove(id, user))
+                throw new NotFoundException("Element not found");
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
+
+
     /** HTTP end point for accessing multiple information elements via
      * a filtering interface. */    
     @RequestMapping(value="/informationelements", method = RequestMethod.GET)

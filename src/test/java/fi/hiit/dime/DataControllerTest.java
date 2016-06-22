@@ -1156,27 +1156,64 @@ public class DataControllerTest extends RestTest {
         FeedbackEvent getBeforeEvent1 = getEvent(event1Id, FeedbackEvent.class);
         FeedbackEvent getBeforeEvent2 = getEvent(event2Id, FeedbackEvent.class);
 
-        Document getBeforeElement = getElement(elemId, Document.class);
+        getElement(elemId, Document.class);
 
         System.out.println("testResourcedEventDelete");
         deleteData(eventApi + "/" + event1Id);
 
         // try GET, expect failure for event1 only
-        ApiError error1 = getDataExpectError(eventApi + "/" + event1Id);
-        FeedbackEvent getAfterEvent2 = getEvent(event2Id, FeedbackEvent.class);
+        getDataExpectError(eventApi + "/" + event1Id);
+        getEvent(event2Id, FeedbackEvent.class);
 
         //ApiError error2 = getDataExpectError(infoElemApi + "/" + elemId);
-        Document getAfterElement = getElement(elemId, Document.class);
+        getElement(elemId, Document.class);
 
         deleteData(eventApi + "/" + event2Id);
 
         // try GET, expect failure for both events
-        ApiError error1b = getDataExpectError(eventApi + "/" + event1Id);
-        ApiError error2 = getDataExpectError(eventApi + "/" + event2Id);
+        getDataExpectError(eventApi + "/" + event1Id);
+        getDataExpectError(eventApi + "/" + event2Id);
 
-        //ApiError error2 = getDataExpectError(infoElemApi + "/" + elemId);
         // Expect orphan element to still be there
-        Document getAfterElement2 = getElement(elemId, Document.class);
+        getElement(elemId, Document.class);
+    }
+
+    @Test
+    public void testElementDelete() throws Exception {
+        Document doc = new Document();
+        doc.plainTextContent = "foobar";
+
+        FeedbackEvent event1 = new FeedbackEvent();
+        event1.value = 0.42;
+        event1.targettedResource = doc;
+
+        FeedbackEvent uploadedEvent1 = uploadEvent(event1, FeedbackEvent.class);
+        long event1Id = uploadedEvent1.getId();
+        Long elemId = uploadedEvent1.targettedResource.getId();
+
+        // Add another event referring to the same document
+        FeedbackEvent event2 = new FeedbackEvent();
+        event2.value = 0.68;
+        event2.targettedResource = uploadedEvent1.targettedResource;
+
+        FeedbackEvent uploadedEvent2 = uploadEvent(event2, FeedbackEvent.class);
+        long event2Id = uploadedEvent2.getId();
+        assertEquals(elemId, uploadedEvent2.targettedResource.getId());
+
+        // try GET, expect success
+        getEvent(event1Id, FeedbackEvent.class);
+        getEvent(event2Id, FeedbackEvent.class);
+
+        getElement(elemId, Document.class);
+
+        System.out.println("testElementDelete");
+        deleteData(infoElemApi + "/" + elemId);
+
+        // try GET, expect failure for all, since deleting element
+        // should delete also all its events
+        getDataExpectError(eventApi + "/" + event1Id);
+        getDataExpectError(eventApi + "/" + event2Id);
+        getDataExpectError(infoElemApi + "/" + elemId);
     }
 
 }

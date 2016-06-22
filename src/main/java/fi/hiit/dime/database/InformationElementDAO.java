@@ -26,7 +26,9 @@ package fi.hiit.dime.database;
 
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.ResourcedEvent;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,9 @@ import java.util.List;
 @Service
 public class InformationElementDAO 
     extends DiMeDAO<InformationElement, InfoElemRepository> {
+
+    @Autowired
+    private EventDAO eventDAO;
 
     /**
        Return all InformationElement objects in database.
@@ -47,6 +52,28 @@ public class InformationElementDAO
     public List<InformationElement> elementsForUser(Long id, int limit) {
         return repo.findByUserOrderByTimeModifiedDesc(User.makeUser(id),
                                                new PageRequest(0, limit));
+    }
+
+
+    /**
+       Removes a single item.
+
+       @param id Item id
+       @param user User
+       @return True if it was deleted, false otherwise.
+    */
+    @Override
+    @Transactional
+    public boolean remove(Long id, User user) {
+        InformationElement elem = findById(id, user);
+    
+        List<ResourcedEvent> events = eventDAO.findByElement(elem, user);
+
+        for (ResourcedEvent e : events) {
+            eventDAO.remove(e.getId(), user);
+        }
+
+        return super.remove(id, user);
     }
 
 }
