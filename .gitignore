@@ -20,3 +20,4 @@ HOWTO
 /loggers/keylogger/*.png
 /loggers/keylogger/*.pdf
 /bin/
+/node_modules/

@@ -300,7 +300,74 @@ public class DataController extends AuthorizedController {
         return new ResponseEntity<Event>(input, HttpStatus.OK);
     }   
 
-    /** HTTP end point for accessing single event. */    
+    /** HTTP end point for accessing single event. 
+
+        @api {get} /data/event/:id Access single event
+        @apiParam {Number} id Event's unique ID
+        
+        @apiSuccessExample {json} Example successful response:
+            HTTP/1.1 200 OK
+            {
+                "@type": "DesktopEvent",
+                "actor": "DiMe browser extension",
+                "duration": 0.0,
+                "end": 1463384282690,
+                "id": 1784,
+                "origin": "0:0:0:0:0:0:0:1",
+                "start": 1463384282690,
+                "tags": [],
+                "targettedResource": {
+                    "@type": "Document",
+                    "id": 1775,
+                    "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#RemoteDataObject",
+                    "mimeType": "application/json",
+                    "plainTextContent": "Hello, world",
+                    "tags": [
+                        {
+                            "@type": "Tag",
+                            "text": "hello"
+                        },
+                        {
+                            "@type": "Tag",
+                            "text": "world"
+                        }
+                    ],
+                    "timeCreated": 1463384282789,
+                    "timeModified": 1463384282789,
+                    "title": "Hello, world",
+                    "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument",
+                    "uri": "http://example.com",
+                    "user": {
+                        "id": 3,
+                        "role": "USER",
+                        "username": "testuser"
+                    }
+                },
+                "timeCreated": 1463384282803,
+                "timeModified": 1463384282803,
+                "type": "http://www.semanticdesktop.org/ontologies/2010/01/25/nuao/#UsageEvent",
+                "user": {
+                    "id": 3,
+                    "role": "USER",
+                    "username": "testuser"
+                }
+            }
+
+        @apiErrorExample {json} Example error response:
+            HTTP/1.1 404 Not Found
+            {
+                "error": "Not Found",
+                "exception": "fi.hiit.dime.AuthorizedController$NotFoundException",
+                "message": "Event not found",
+                "path": "/api/data/event/12345",
+                "status": 404,
+                "timestamp": 1466580641725
+            }
+
+        @apiPermission user
+        @apiGroup Events
+        @apiVersion 0.1.2
+     */
     @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
     public ResponseEntity<Event>
         event(Authentication auth, @PathVariable Long id) 
@@ -316,7 +383,15 @@ public class DataController extends AuthorizedController {
         return new ResponseEntity<Event>(event, HttpStatus.OK);
     }   
 
-    /** HTTP end point for deleting single event. */
+    /** HTTP end point for deleting single event. 
+
+        @api {delete} /data/event/:id Delete single event
+        @apiParam {Number} id Event's unique ID
+        
+        @apiPermission user
+        @apiGroup Events
+        @apiVersion 0.1.2
+     */
     @RequestMapping(value="/event/{id}", method = RequestMethod.DELETE)
     public ResponseEntity eventDelete(Authentication auth, @PathVariable Long id) 
         throws NotFoundException

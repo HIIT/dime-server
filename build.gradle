@@ -74,6 +74,10 @@ task buildDocker(dependsOn: jar, type: Exec) {
     commandLine 'docker', 'build', '-t', 'dime-server', '.'
 }
 
+javadoc {
+        options.tags = [ "api:X", "apiParam:X", "apiPermission:X", "apiGroup:X", "apiVersion:X", "apiSuccessExample:X", "apiErrorExample:X" ]
+}
+
 allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {

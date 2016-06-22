@@ -2,6 +2,9 @@ GRADLE   = ./gradlew -q
 TARGET   = build/libs/dime-server.jar
 JAVADOC_DIR = build/docs/javadoc/
 JAVADOC_WEB = shell.hiit.fi:/group/reknow/public_html/javadoc/dime-server/
+APIDOC_BIN = ./node_modules/.bin/apidoc
+APIDOC_DIR = build/docs/apidoc/
+APIDOC_WEB = shell.hiit.fi:/group/reknow/public_html/apidoc/dime-server/
 PKG_DIR  = build/package
 PKG_FILE = dime
 DIME_PORT = $(shell test -f config/application-local.properties && ((grep '^server.port=' config/application-local.properties || echo server.port=8080) | sed 's/.*port=//') || echo 8080)
@@ -41,7 +44,14 @@ doc: $(SOURCES)
 	chmod -R a+r $(JAVADOC_DIR)
 	rsync -var $(JAVADOC_DIR) $(JAVADOC_WEB)
 	@echo
-	@echo $(LOG_HEAD) Now open ./build/docs/javadoc/index.html
+	@echo $(LOG_HEAD) Now open $(JAVADOC_DIR)/index.html
+
+apidoc: $(SOURCES) $(APIDOC_BIN)
+	$(APIDOC_BIN) -i src/main/java -o $(APIDOC_DIR)
+	chmod -R a+r $(APIDOC_DIR)
+	rsync -var $(APIDOC_DIR) $(APIDOC_WEB)
+	@echo
+	@echo $(LOG_HEAD) Now open $(APIDOC_DIR)/index.html
 
 docker: $(TARGET)
 	docker build -t dime-server .
