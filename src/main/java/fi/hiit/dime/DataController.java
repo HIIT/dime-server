@@ -285,7 +285,48 @@ public class DataController extends AuthorizedController {
         return event;
     }
 
-    /** HTTP end point for uploading a single event. */    
+    /**
+       @apiDefine user User access 
+       You need to be authenticated as a registered DiMe user.
+    */
+
+    /** HTTP end point for uploading a single event. 
+        @api {post} /data/event/ Upload single event
+        @apiName PostEvent
+        @apiDescription Upload a new event as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
+
+On success, the response will be the uploaded object with some fields like the id filled in.
+
+A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-example.py">full working example</a> of uploading an event can be found in the git repository.
+        
+        @apiExample {json} Example of JSON to upload
+            {
+                "@type": "SearchEvent",
+                "actor": "My example logger",
+                "query": "Some search query"
+            }
+
+        @apiSuccessExample {json} Example successful response:
+            HTTP/1.1 200 OK
+            {
+                "@type": "SearchEvent",
+                "actor": "My example logger",
+                "duration": 0.0,
+                "end": 1463384282690,
+                "id": 1234,
+                "start": 1463384282690,
+                "tags": [],
+                "query": "Some search query"
+                "user": {
+                    "id": 3,
+                    "role": "USER",
+                    "username": "testuser"
+                }
+            }
+        @apiPermission user
+        @apiGroup Events
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/event", method = RequestMethod.POST)
     public ResponseEntity<Event>
         event(Authentication auth, @RequestBody Event input)  
@@ -303,8 +344,9 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for accessing single event. 
 
         @api {get} /data/event/:id Access single event
+        @apiName GetEvent
         @apiParam {Number} id Event's unique ID
-        
+        @apiDescription On success the response will be the event with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
         @apiSuccessExample {json} Example successful response:
             HTTP/1.1 200 OK
             {
@@ -386,8 +428,10 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for deleting single event. 
 
         @api {delete} /data/event/:id Delete single event
+        @apiName DeleteEvent
         @apiParam {Number} id Event's unique ID
-        
+        @apiDescription On success, the response will be an empty HTTP 204.
+
         @apiPermission user
         @apiGroup Events
         @apiVersion 0.1.2
@@ -407,7 +451,30 @@ public class DataController extends AuthorizedController {
         return new ResponseEntity(HttpStatus.NO_CONTENT);
     }
 
-    /** HTTP end point for uploading multiple events. */    
+    /** HTTP end point for uploading multiple events. 
+
+        @api {post} /data/events/ Upload list of events
+        @apiName PostEvents
+        @apiDescription Upload several events in one request, specified as a JSON list.
+
+        @apiExample {json} Example of JSON to upload
+            [
+                {
+                    "@type": "SearchEvent",
+                    "actor": "My example logger",
+                    "query": "Some search query"
+                },
+                {
+                    "@type": "SearchEvent",
+                    "actor": "My example logger",
+                    "query": "Some other query"
+                }
+            ]
+
+        @apiPermission user
+        @apiGroup Events
+        @apiVersion 0.1.2
+     */    
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
         events(Authentication auth, @RequestBody Event[] input) 
@@ -424,7 +491,38 @@ public class DataController extends AuthorizedController {
     }   
 
     /** HTTP end point for accessing multiple events via a filtering
-     * interface. */    
+        interface.
+
+        @api {get} /data/events/ Access multiple events
+        @apiName GetEvents
+        @apiDescription Access events through filtering with parameters.
+
+        @apiParam (Filtering) {String} [appid] appId to match (exactly)
+        @apiParam (Filtering) {String} [elemid] the numeric id of the
+        related information element
+        @apiParam (Filtering) {String} [actor] match actor field 
+        @apiParam (Filtering) {String} [origin] match origin field
+        @apiParam (Filtering) {String} [type] match type field
+        @apiParam (Filtering) {String} [query] match query field
+        @apiParam (Filtering) {String} [tag] exact tag matching (just
+        one tag needs to match)
+        @apiParam (Filtering) {DateTime} [after] matches events
+        occurring after this time stamp, the time stamp format is the
+        same as for the start and end properties of the Data objects
+        @apiParam (Filtering) {DateTime} [before] matches events
+        occurring before this time stamp (can be combined with after
+        to get a time interval)
+
+        @apiParam (Options) {Boolean} [includePlainTextContent] set to
+        'true' if you wish to include the plainTextContent of the
+        InformationElements linked to the Events (these are normally
+        removed to reduce verbosity)
+
+        @apiPermission user
+        @apiGroup Events
+        @apiVersion 0.1.2
+
+     */    
     @RequestMapping(value="/events", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
         events(Authentication auth, 
