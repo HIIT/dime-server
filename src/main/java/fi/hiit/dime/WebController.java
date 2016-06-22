@@ -109,201 +109,206 @@ public class WebController extends WebMvcConfigurerAdapter {
 
     // Various "regular" pages
 
-    @RequestMapping("/")
-    public String root(Authentication authentication, Model model,
-                       @RequestHeader("host") String hostName) {
-        if (authentication == null)
-            return "login";
-
-        try {
-            hostName = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-        }
-        model.addAttribute("hostname", hostName);
-        model.addAttribute("dime_version", dimeVersion);
-
-        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MINUTE, -loggerMinutesFrame);
-        List<Event> events = eventDAO.eventsSince(userId, cal.getTime());
-        if (events.size() > 0) {
-            Map<String, Event> hist = new HashMap<String, Event>();
-            for (Event event : events) {
-                String key = event.actor + "|" + event.origin;
-                if (!hist.containsKey(key))
-                    hist.put(key, event);
-            }
-            model.addAttribute("events", hist.values());
-        }
-        model.addAttribute("minutes", loggerMinutesFrame);
-
-        model.addAttribute("event_count", eventDAO.count(userId));
-        model.addAttribute("elem_count", infoElemDAO.count(userId));
-
-        model.addAttribute("actor_hist", eventDAO.getActorHistogram(userId));
-
-        return "root";
+    @RequestMapping(value = "/")
+    public String index() {
+        return "index";
     }
 
-    /* Event log + search */
-    @RequestMapping("/log")
-    public String log(@ModelAttribute TextSearchQuery query,
-                      Authentication authentication,
-                      Model model)
-    {
-        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        model.addAttribute("count", eventDAO.count(userId));
+    // @RequestMapping("/root")
+    // public String root(Authentication authentication, Model model,
+    //                    @RequestHeader("host") String hostName) {
+    //     if (authentication == null)
+    //         return "login";
 
-        if (!query.isEmpty()) {
-            SearchResults results = null;
-            try {
-                searchIndex.updateIndex();
+    //     try {
+    //         hostName = InetAddress.getLocalHost().getHostName();
+    //     } catch (UnknownHostException e) {
+    //     }
+    //     model.addAttribute("hostname", hostName);
+    //     model.addAttribute("dime_version", dimeVersion);
 
-                results = searchIndex.search(query, null, null, 100, userId, 
-                                             WeightType.None);
+    //     Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
 
-                searchIndex.mapToEvents(results, User.makeUser(userId));
-            } catch (IOException e) {
-                LOG.warn("Lucene search failed [" + e + "].");
-                model.addAttribute("error", e);
-            }
+    //     Calendar cal = Calendar.getInstance();
+    //     cal.add(Calendar.MINUTE, -loggerMinutesFrame);
+    //     List<Event> events = eventDAO.eventsSince(userId, cal.getTime());
+    //     if (events.size() > 0) {
+    //         Map<String, Event> hist = new HashMap<String, Event>();
+    //         for (Event event : events) {
+    //             String key = event.actor + "|" + event.origin;
+    //             if (!hist.containsKey(key))
+    //                 hist.put(key, event);
+    //         }
+    //         model.addAttribute("events", hist.values());
+    //     }
+    //     model.addAttribute("minutes", loggerMinutesFrame);
 
-            model.addAttribute("results", results.getDocs());
-        } else {
-            model.addAttribute("results", eventDAO.eventsForUser(userId, 100));
-        }
+    //     model.addAttribute("event_count", eventDAO.count(userId));
+    //     model.addAttribute("elem_count", infoElemDAO.count(userId));
 
-        model.addAttribute("search", query);
+    //     model.addAttribute("actor_hist", eventDAO.getActorHistogram(userId));
 
-        return "log";
-    }
+    //     return "root";
+    // }
 
-    /* Data log + search */
-    @RequestMapping("/data")
-    public String data(@ModelAttribute TextSearchQuery query,
-                       Authentication authentication,
-                       Model model) {
+    // /* Event log + search */
+    // @RequestMapping("/log")
+    // public String log(@ModelAttribute TextSearchQuery query,
+    //                   Authentication authentication,
+    //                   Model model)
+    // {
+    //     Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+    //     model.addAttribute("count", eventDAO.count(userId));
 
-        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        model.addAttribute("count", infoElemDAO.count(userId));
+    //     if (!query.isEmpty()) {
+    //         SearchResults results = null;
+    //         try {
+    //             searchIndex.updateIndex();
 
-        if (!query.isEmpty()) {
-            SearchResults results = null;
-            try {
-                searchIndex.updateIndex();
+    //             results = searchIndex.search(query, null, null, 100, userId, 
+    //                                          WeightType.None);
 
-                results = searchIndex.search(query, null, null, 100, userId, 
-                                             WeightType.None);
+    //             searchIndex.mapToEvents(results, User.makeUser(userId));
+    //         } catch (IOException e) {
+    //             LOG.warn("Lucene search failed [" + e + "].");
+    //             model.addAttribute("error", e);
+    //         }
 
-                searchIndex.mapToElements(results);
-            } catch (IOException e) {
-                LOG.warn("Lucene search failed [" + e + "].");
-                model.addAttribute("error", e);
-            }
+    //         model.addAttribute("results", results.getDocs());
+    //     } else {
+    //         model.addAttribute("results", eventDAO.eventsForUser(userId, 100));
+    //     }
 
-            model.addAttribute("results", results.getDocs());
-        } else {
-            model.addAttribute("results",
-                               infoElemDAO.elementsForUser(userId, 100));
-        }
+    //     model.addAttribute("search", query);
 
-        model.addAttribute("search", query);
+    //     return "log";
+    // }
 
-        return "data";
-    }
+    // /* Data log + search */
+    // @RequestMapping("/data")
+    // public String data(@ModelAttribute TextSearchQuery query,
+    //                    Authentication authentication,
+    //                    Model model) {
 
-    /* Show a specific event */
-    @RequestMapping("/event")
-    public String event(Authentication authentication, Model model,
-                      @RequestParam(value="id") Long eventId) {
-        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        Event event = eventDAO.findById(eventId);
+    //     Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+    //     model.addAttribute("count", infoElemDAO.count(userId));
 
-        if (event.user.getId().equals(userId))
-            model.addAttribute("event", event);
-        return "event";
-    }
+    //     if (!query.isEmpty()) {
+    //         SearchResults results = null;
+    //         try {
+    //             searchIndex.updateIndex();
 
-    /* Show a specific information element */
-    @RequestMapping("/infoelem")
-    public String infoElem(Authentication authentication, Model model,
-                           @RequestParam(value="id") Long elemId) {
-        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        InformationElement elem = infoElemDAO.findById(elemId);
+    //             results = searchIndex.search(query, null, null, 100, userId, 
+    //                                          WeightType.None);
 
-        if (elem.user.getId().equals(userId)) {
-            model.addAttribute("elem", elem);
-            model.addAttribute("long", true);
-        }
+    //             searchIndex.mapToElements(results);
+    //         } catch (IOException e) {
+    //             LOG.warn("Lucene search failed [" + e + "].");
+    //             model.addAttribute("error", e);
+    //         }
 
-        return "infoelem";
-    }
+    //         model.addAttribute("results", results.getDocs());
+    //     } else {
+    //         model.addAttribute("results",
+    //                            infoElemDAO.elementsForUser(userId, 100));
+    //     }
 
-    /* Show a specific message object */
-    @RequestMapping("/message")
-    public String message(Authentication authentication, Model model,
-                          @RequestParam(value="id") Long elemId) {
-        Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
-        Message elem = (Message)infoElemDAO.findById(elemId);
+    //     model.addAttribute("search", query);
 
-        if (elem.user.getId().equals(userId))
-            model.addAttribute("elem", elem);
-        return "message";
-    }
+    //     return "data";
+    // }
 
-    // User management
+    // /* Show a specific event */
+    // @RequestMapping("/event")
+    // public String event(Authentication authentication, Model model,
+    //                   @RequestParam(value="id") Long eventId) {
+    //     Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+    //     Event event = eventDAO.findById(eventId);
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public ModelAndView getLoginPage(@RequestParam(required=false)
-                                     String error)
-    {
-        return new ModelAndView("login", "error", error);
-    }
+    //     if (event.user.getId().equals(userId))
+    //         model.addAttribute("event", event);
+    //     return "event";
+    // }
 
-    @InitBinder("form")
-    public void initBinder(WebDataBinder binder) {
-        binder.addValidators(userCreateFormValidator);
-    }
+    // /* Show a specific information element */
+    // @RequestMapping("/infoelem")
+    // public String infoElem(Authentication authentication, Model model,
+    //                        @RequestParam(value="id") Long elemId) {
+    //     Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+    //     InformationElement elem = infoElemDAO.findById(elemId);
 
-    /* Web page for registering a new user */
-    @RequestMapping(value = "/user/create", method = RequestMethod.GET)
-    public ModelAndView getUserCreatePage() {
-        return new ModelAndView("user_create", "form", new UserCreateForm());
-    }
+    //     if (elem.user.getId().equals(userId)) {
+    //         model.addAttribute("elem", elem);
+    //         model.addAttribute("long", true);
+    //     }
 
-    /* Handles processing of the new user registration form */
-    @RequestMapping(value = "/user/create", method = RequestMethod.POST)
-    public String handleUserCreateForm(@Valid @ModelAttribute("form")
-                                       UserCreateForm form,
-                                       BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return "user_create";
-        }
-        try {
-            // FIXME: check that only admin can create other admin user
-            userService.create(form);
-        } catch (DataIntegrityViolationException e) {
-            bindingResult.rejectValue("username", "exists",
-                                      "This user name is no longer available.");
-            return "user_create";
-        }
-        return "redirect:/";
-    }
+    //     return "infoelem";
+    // }
 
-    /* Viewing users */
-    @RequestMapping("/users")
-    public ModelAndView getUsersPage() {
-        return new ModelAndView("users", "users", userService.getAllUsers());
-    }
+    // /* Show a specific message object */
+    // @RequestMapping("/message")
+    // public String message(Authentication authentication, Model model,
+    //                       @RequestParam(value="id") Long elemId) {
+    //     Long userId = ((CurrentUser)authentication.getPrincipal()).getId();
+    //     Message elem = (Message)infoElemDAO.findById(elemId);
 
-    @PreAuthorize("@currentUserServiceImpl.canAccessUser(principal, #name)")
-    @RequestMapping("/user/{name}")
-    public ModelAndView getUserPage(@PathVariable("name") String name) {
-        User user = userService.getUserByUsername(name);
-        if (user == null)
-            throw new NoSuchElementException(String.format("User %s not found",
-                                                           name));
-        return new ModelAndView("user", "user", user);
-    }
+    //     if (elem.user.getId().equals(userId))
+    //         model.addAttribute("elem", elem);
+    //     return "message";
+    // }
+
+    // // User management
+
+    // @RequestMapping(value = "/login", method = RequestMethod.GET)
+    // public ModelAndView getLoginPage(@RequestParam(required=false)
+    //                                  String error)
+    // {
+    //     return new ModelAndView("login", "error", error);
+    // }
+
+    // @InitBinder("form")
+    // public void initBinder(WebDataBinder binder) {
+    //     binder.addValidators(userCreateFormValidator);
+    // }
+
+    // /* Web page for registering a new user */
+    // @RequestMapping(value = "/user/create", method = RequestMethod.GET)
+    // public ModelAndView getUserCreatePage() {
+    //     return new ModelAndView("user_create", "form", new UserCreateForm());
+    // }
+
+    // /* Handles processing of the new user registration form */
+    // @RequestMapping(value = "/user/create", method = RequestMethod.POST)
+    // public String handleUserCreateForm(@Valid @ModelAttribute("form")
+    //                                    UserCreateForm form,
+    //                                    BindingResult bindingResult) {
+    //     if (bindingResult.hasErrors()) {
+    //         return "user_create";
+    //     }
+    //     try {
+    //         // FIXME: check that only admin can create other admin user
+    //         userService.create(form);
+    //     } catch (DataIntegrityViolationException e) {
+    //         bindingResult.rejectValue("username", "exists",
+    //                                   "This user name is no longer available.");
+    //         return "user_create";
+    //     }
+    //     return "redirect:/";
+    // }
+
+    // /* Viewing users */
+    // @RequestMapping("/users")
+    // public ModelAndView getUsersPage() {
+    //     return new ModelAndView("users", "users", userService.getAllUsers());
+    // }
+
+    // @PreAuthorize("@currentUserServiceImpl.canAccessUser(principal, #name)")
+    // @RequestMapping("/user/{name}")
+    // public ModelAndView getUserPage(@PathVariable("name") String name) {
+    //     User user = userService.getUserByUsername(name);
+    //     if (user == null)
+    //         throw new NoSuchElementException(String.format("User %s not found",
+    //                                                        name));
+    //     return new ModelAndView("user", "user", user);
+    // }
 }
