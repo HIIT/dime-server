@@ -113,6 +113,24 @@ public class ApiController extends AuthorizedController {
         }
     }
 
+    /**
+        @api {get} /ping Ping server
+        @apiName Ping
+        @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access.
+
+        @apiExample {python} Example usage:
+            r = requests.post(server_url + '/ping',
+                              timeout=10)         # e.g. in case of network problems
+            ok = r.status_code == requests.codes.ok
+
+        @apiSuccessExample {json} Example successful response:
+            HTTP/1.1 200 OK
+            {
+                "message": "pong"
+            }
+        @apiGroup Status
+        @apiVersion 0.1.2
+    */
     @RequestMapping("/ping")
     public ResponseEntity<ApiMessage> ping(ServletRequest req) {
         LOG.info("Received ping from " + req.getRemoteHost());
@@ -175,6 +193,67 @@ public class ApiController extends AuthorizedController {
         return res;
     }
 
+    /**
+       @apiDefine user User access 
+       You need to be authenticated as a registered DiMe user.
+    */
+
+    /** HTTP end point for uploading a single event. 
+        @api {get} /search Information element search
+        @apiName SearchInformationElement
+        @apiDescription Perform a text search on existing information elements in DiMe. The search is performed using Lucene in the DiMe backend.
+
+It returns an object that contains some meta-data and in the "docs" element a list of InformationElement objects together with a score indicating the relevance of the object to the search query. The list is sorted by this score, descending.
+
+        @apiParam {Number} query Query text to search for
+
+        @apiParam (Options) {Number} [limit] limit the number of results
+        @apiParam (Options) {Boolean} [includeTerms] set to "true" in order to include indexing terms
+
+        @apiSuccessExample {json} Example successful response:
+            HTTP/1.1 200 OK
+            {
+              "docs": [
+                {
+                  "plainTextContent": "Some text content\n",
+                  "user": {
+                    "id": "5524d8ede4b06e42cc0e0aca",
+                    "role": "USER",
+                    "username": "testuser"
+                  },
+                  "uri": "file:///home/testuser/some_file.txt",
+                  "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
+                  "mimeType": "text/plain",
+                  "timeCreated": 1430142736819,
+                  "id": "d8b5b874e4bae5a6f6260e1042281e91c69d305e",
+                  "timeModified": 1430142736819,
+                  "score": 0.75627613,
+                  "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
+                },
+                {
+                  "plainTextContent": "Some other text content",
+                  "user": {
+                    "id": "5524d8ede4b06e42cc0e0aca",
+                    "role": "USER",
+                    "username": "testuser"
+                  },
+                  "uri": "file:///home/testuser/another_file.txt",
+                  "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
+                  "mimeType": "text/plain",
+                  "timeCreated": 1430142737246,
+                  "id": "99db4832be27cff6b08a1f91afbf0401cad49d15",
+                  "timeModified": 1430142737246,
+                  "score": 0.75342464,
+                  "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
+                }
+              ],
+              "numFound": 2
+            }
+
+        @apiPermission user
+        @apiGroup Search
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/search", method = RequestMethod.GET)
     public ResponseEntity<SearchResults>
         search(Authentication auth,
@@ -200,6 +279,35 @@ public class ApiController extends AuthorizedController {
         }
     }
 
+    /**
+        @api {get} /eventsearch Event search
+        @apiName SearchEvent
+        @apiDescription Perform a text search on existing events in
+        DiMe. Most events do not contain any text content by
+        themselves, and for these the search is actually performed
+        against the information element objects they are linked to. For
+        example if a document matches the search, all the events which
+        refer to the object are returned. The search is performed
+        using Lucene in the DiMe backend.
+
+The end point returns a JSON list of event objects with their linked
+        information element object included. Note: since the
+        information elements may be repeated several times in the
+        results and their text content very long, their
+        plainTextContent field has been removed. (It can be fetched
+        separately by id.)
+
+The return format is the same as for the <a href="#api-Search-SearchInformationElement">information element search</a>.
+
+        @apiParam {Number} query Query text to search for
+
+        @apiParam (Options) {Number} [limit] limit the number of results
+        @apiParam (Options) {Boolean} [includeTerms] set to "true" in order to include indexing terms
+
+        @apiPermission user
+        @apiGroup Search
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/eventsearch", method = RequestMethod.GET)
     public ResponseEntity<SearchResults>
         eventSearch(Authentication auth,
@@ -224,6 +332,16 @@ public class ApiController extends AuthorizedController {
         }
     }
 
+    /**
+        @api {post} /keywordsearch 
+        @apiName KeywordSearch
+        @apiDescription Perform an information element search based on
+        the POSTed weighted keywords.
+
+        @apiPermission user
+        @apiGroup Search
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/keywordsearch", method = RequestMethod.POST)
     public ResponseEntity<SearchResults>
         search(Authentication auth, @RequestBody WeightedKeyword[] input) 
@@ -241,6 +359,15 @@ public class ApiController extends AuthorizedController {
         }
     }
 
+    /**
+        @api {post} /eventkeywordsearch 
+        @apiName EventKeywordSearch
+        @apiDescription Perform an event search based on the POSTed weighted keywords.
+
+        @apiPermission user
+        @apiGroup Search
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/eventkeywordsearch", method = RequestMethod.POST)
     public ResponseEntity<SearchResults>
         eventSearch(Authentication auth, @RequestBody WeightedKeyword[] input) 
@@ -277,7 +404,22 @@ public class ApiController extends AuthorizedController {
     }
 
 
-    /** HTTP end point for creating a new profile. */    
+    /** HTTP end point for creating a new profile. 
+        @api {post} /profile Create a new profile
+        @apiName PostProfile
+        @apiDescription Create a new profile.
+        
+        @apiExample {json} Example of JSON to upload
+            {
+              name: "Kai's formula profile",
+              search_keywords: ["x”, "y" ],
+              tags: ["tag1", "tag2"],   
+            }
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/profile", method = RequestMethod.POST)
     public ResponseEntity<Profile>
         profile(Authentication auth, 
@@ -291,7 +433,15 @@ public class ApiController extends AuthorizedController {
         return new ResponseEntity<Profile>(input, HttpStatus.OK);
     }   
 
-    /** HTTP end point for accessing a given profile. */    
+    /** HTTP end point for accessing a given profile. 
+        @api {get} /profile/:id Access profile
+        @apiName GetProfile
+        @apiParam {Number} id Profile's unique ID
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+     */
     @RequestMapping(value="/profile/{id}", method = RequestMethod.GET)
     public ResponseEntity<Profile>
         profile(Authentication auth, @PathVariable Long id) 
@@ -307,7 +457,17 @@ public class ApiController extends AuthorizedController {
         return new ResponseEntity<Profile>(profile, HttpStatus.OK);
     }   
 
-    /** HTTP end point for deleting a profile. */    
+    /** HTTP end point for deleting a profile.         
+        
+        @api {delete} /profile/:id Delete profile
+        @apiName DeleteProfile
+        @apiParam {Number} id Profile's unique ID
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/profile/{id}", method = RequestMethod.DELETE)
     public void profileDelete(Authentication auth, @PathVariable Long id) 
         throws NotFoundException

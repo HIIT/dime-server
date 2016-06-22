@@ -75,7 +75,27 @@ task buildDocker(dependsOn: jar, type: Exec) {
 }
 
 javadoc {
-        options.tags = [ "api:X", "apiParam:X", "apiPermission:X", "apiGroup:X", "apiVersion:X", "apiSuccessExample:X", "apiErrorExample:X", "apiExample:X", "apiDescription:X", "apiName:X" ]
+        options.tags = [ 
+        "api:X", 
+        "apiDefine:X",
+        "apiDescription:X",
+        "apiError:X",
+        "apiErrorExample:X",
+        "apiExample:X",
+        "apiGroup:X",
+        "apiHeader:X",
+        "apiHeaderExample:X",
+        "apiIgnore:X",
+        "apiName:X" 
+        "apiParam:X",
+        "apiParamExample:X",
+        "apiPermission:X",
+        "apiSampleRequest:X",
+        "apiSuccess:X",
+        "apiSuccessExample:X",
+        "apiUse:X",
+        "apiVersion:X",
+        ]
 }
 
 allprojects {

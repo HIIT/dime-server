@@ -291,7 +291,7 @@ public class DataController extends AuthorizedController {
     */
 
     /** HTTP end point for uploading a single event. 
-        @api {post} /data/event/ Upload single event
+        @api {post} /data/event Upload single event
         @apiName PostEvent
         @apiDescription Upload a new event as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
 
@@ -453,7 +453,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
 
     /** HTTP end point for uploading multiple events. 
 
-        @api {post} /data/events/ Upload list of events
+        @api {post} /data/events Upload list of events
         @apiName PostEvents
         @apiDescription Upload several events in one request, specified as a JSON list.
 
@@ -493,7 +493,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
     /** HTTP end point for accessing multiple events via a filtering
         interface.
 
-        @api {get} /data/events/ Access multiple events
+        @api {get} /data/events Access multiple events
         @apiName GetEvents
         @apiDescription Access events through filtering with parameters.
 
@@ -558,7 +558,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
     }   
 
     /** HTTP end point for uploading a single information element. 
-        @api {post} /data/informationelement/ Upload single information element
+        @api {post} /data/informationelement Upload single information element
         @apiName PostInformationElement
         @apiDescription Upload a new information element as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
 
@@ -596,7 +596,7 @@ On success, the response will be the uploaded object with some fields like the i
     }   
 
     /** HTTP end point for uploading multiple information elements. 
-        @api {post} /data/informationelements/ Upload list of information elements
+        @api {post} /data/informationelements Upload list of information elements
         @apiName PostInformationElements
         @apiDescription Upload several information elements in one request, specified as a JSON list.
 
@@ -751,7 +751,7 @@ On success, the response will be the uploaded object with some fields like the i
     /** HTTP end point for accessing multiple information elements via
         a filtering interface. 
 
-        @api {get} /data/informationelements/ Access multiple information elements
+        @api {get} /data/informationelements Access multiple information elements
         @apiName GetInformationElements
         @apiDescription Access information elements through filtering with parameters.
 
