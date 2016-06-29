@@ -86,7 +86,7 @@ javadoc {
         "apiHeader:X",
         "apiHeaderExample:X",
         "apiIgnore:X",
-        "apiName:X" 
+        "apiName:X",
         "apiParam:X",
         "apiParamExample:X",
         "apiPermission:X",
