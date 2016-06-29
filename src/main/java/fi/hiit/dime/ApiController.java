@@ -39,6 +39,7 @@ import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.database.ProfileDAO;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
+import fi.hiit.dime.search.SearchIndex.SearchQueryException;
 import fi.hiit.dime.search.SearchQuery;
 import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
@@ -149,7 +150,7 @@ public class ApiController extends AuthorizedController {
     protected SearchResults doSearch(SearchQuery query, String className,
                                      String typeName, int limit, User user,
                                      WeightType termWeighting)
-        throws IOException
+        throws IOException, SearchQueryException
     {
         if (query.isEmpty())
             return new SearchResults();
@@ -175,7 +176,7 @@ public class ApiController extends AuthorizedController {
     protected SearchResults doEventSearch(SearchQuery query, String className,
                                           String typeName, int limit, User user,
                                           WeightType termWeighting)
-        throws IOException
+        throws IOException, SearchQueryException
     {
         if (query.isEmpty())
             return new SearchResults();
@@ -250,6 +251,14 @@ It returns an object that contains some meta-data and in the "docs" element a li
               "numFound": 2
             }
 
+        @apiErrorExample {json} Example error response for erroneous Lucene query:
+            HTTP/1.1 400 OK
+            {
+              "docs": [],
+              "message": "Syntax Error, cannot parse a::  ",
+              "numFound": 0
+            }
+
         @apiPermission user
         @apiGroup Search
         @apiVersion 0.1.2
@@ -275,7 +284,12 @@ It returns an object that contains some meta-data and in the "docs" element a li
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
-                (HttpStatus.INTERNAL_SERVER_ERROR);
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -328,7 +342,12 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
-                (HttpStatus.INTERNAL_SERVER_ERROR);
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -355,7 +374,12 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
-                (HttpStatus.INTERNAL_SERVER_ERROR);
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -382,7 +406,12 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
-                (HttpStatus.INTERNAL_SERVER_ERROR);
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
         }
     }
 

@@ -27,13 +27,12 @@ query = "dime"
 if len(sys.argv) > 1:
     query = urllib.parse.quote(' '.join(sys.argv[1:]), safe='&=')
 
-r = requests.get(server_url + '/search?query={}&limit=10&includeTerms=tfidf'.format(query),
+r = requests.get(server_url + '/search?query={}&limit=10'.format(query),
                  headers={'content-type': 'application/json'},
                  auth=(server_username, server_password),
                  timeout=10)
 
 if r.status_code != requests.codes.ok:
-    print('ErrorNo connection to DiMe server!')
-    sys.exit(1)
+    print('HTTP Error ' + str(r.status_code))
 
 print('DiMe returns:', json.dumps(r.json(), indent=2))

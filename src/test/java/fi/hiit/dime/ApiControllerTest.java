@@ -200,6 +200,8 @@ public class ApiControllerTest extends RestTest {
         assertEquals(searchEvent.appId, obj.appId);
         assertTrue(obj instanceof SearchEvent);
         assertEquals(searchEvent.query, ((SearchEvent)obj).query);
+
+        ApiError error = getDataExpectError(apiUrl("/search?query=a:"));
     }
 
     @Test

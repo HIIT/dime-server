@@ -101,6 +101,12 @@ public class SearchIndex {
         None, Df, Tf, Idf, TfIdf;
     }
 
+    public class SearchQueryException extends Exception {
+        public SearchQueryException(String msg) {
+            super(msg);
+        }
+    }
+
     private static final String idField = "id";
     private static final String userIdField = "userId";
     private static final String textQueryField = "plainTextContent";
@@ -694,7 +700,7 @@ public class SearchIndex {
     public SearchResults search(SearchQuery query, String className,
                                 String typeName, int limit, Long userId,
                                 WeightType termWeighting)
-        throws IOException
+        throws IOException, SearchQueryException
     {
         if (limit < 0)
             limit = 100;
@@ -782,7 +788,8 @@ public class SearchIndex {
                 }
             }
         } catch (QueryNodeException e) {
-            LOG.error("Exception: " + e);
+            //LOG.error("Exception: " + e);
+            throw new SearchQueryException(e.getMessage());
         }
 
         return res;
