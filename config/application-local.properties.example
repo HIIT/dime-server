@@ -24,4 +24,4 @@
 # dime.luceneAnalyzer=English
 
 # To enable CORS for a given domain
-# dime.corsAllowOrigin=http://localhost
+# dime.corsAllowOrigin=http://localhost,chrome-extension://beidaccpdlllohiaoglaeclolnfheeac

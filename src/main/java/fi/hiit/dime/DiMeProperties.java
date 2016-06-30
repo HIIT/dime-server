@@ -42,7 +42,7 @@ public class DiMeProperties {
     }
     public String getLuceneAnalyzer() { return luceneAnalyzer; }
 
-    private String corsAllowOrigin = "";
-    public void setCorsAllowOrigin(String s) { corsAllowOrigin = s; }
-    public String getCorsAllowOrigin() { return corsAllowOrigin; }
+    private String[] corsAllowOrigin = null;
+    public void setCorsAllowOrigin(String[] s) { corsAllowOrigin = s; }
+    public String[] getCorsAllowOrigin() { return corsAllowOrigin; }
 }

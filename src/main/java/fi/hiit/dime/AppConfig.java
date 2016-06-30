@@ -66,9 +66,10 @@ public class AppConfig {
         return new WebMvcConfigurerAdapter() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                String corsOrigin = dimeConfig.getCorsAllowOrigin();
-                if (!corsOrigin.isEmpty()) {
-                    LOG.debug("CORS enabled for " + corsOrigin);
+                String[] corsOrigin = dimeConfig.getCorsAllowOrigin();
+                if (corsOrigin != null) {
+                    for (String url : corsOrigin)
+                        LOG.debug("CORS enabled for " + url);
                     registry.addMapping("/api/**").allowedOrigins(corsOrigin);
                 }
             }
