@@ -21,3 +21,4 @@ HOWTO
 /loggers/keylogger/*.pdf
 /bin/
 /node_modules/
+/.idea/
