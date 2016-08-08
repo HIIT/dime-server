@@ -25,10 +25,13 @@
 package fi.hiit.dime;
 
 import static org.junit.Assert.*;
+import static fi.hiit.dime.data.DiMeData.makeStub;
 
 import fi.hiit.dime.ApiController.ApiMessage;
 import fi.hiit.dime.data.DiMeData;
+import fi.hiit.dime.data.Document;
 import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.FeedbackEvent;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.Message;
 import fi.hiit.dime.data.MessageEvent;
@@ -305,13 +308,30 @@ public class ApiControllerTest extends RestTest {
 
     @Test
     public void testProfiles() throws Exception {
+        // // Create a document
+        Document doc = new Document();
+        doc.uri = "http://www.example.com/hello2.txt";
+        doc.plainTextContent = "Hello, world";
+        doc.mimeType = "text/plain";
+
+        // Create feedback, with document embedded
+        FeedbackEvent event1 = new FeedbackEvent();
+        event1.value = 0.22;
+        event1.targettedResource = doc;
+
+        FeedbackEvent outEvent1 = uploadEvent(event1, FeedbackEvent.class);
+
         // Test uploading a new profile
         Profile profile = new Profile("Kai's formula profile");
         profile.tags = new ArrayList<String>();
         profile.tags.add("Formula1");
         profile.tags.add("motorsports");
         profile.tags.add("kimi raikkonen");
+        profile.addEvent(makeStub(outEvent1, FeedbackEvent.class));
+        profile.addDocument(makeStub((Document)outEvent1.targettedResource, 
+                                     Document.class));
         
+        dumpData("profile before", profile);
         Profile uploadedProfile = uploadData(profileApi, profile,
                                              Profile.class);
         dumpData("uploadedProfile", uploadedProfile);

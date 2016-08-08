@@ -803,4 +803,42 @@
     <changeSet author="mvsjober (generated)" id="1463746469879-14">
         <addForeignKeyConstraint baseColumnNames="WEB_DOCUMENT_ID" baseTableName="WEB_DOCUMENT_HYPER_LINKS" constraintName="FK_Y3ESM0X1NUFSAMPCL8SEDF1H" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-1">
+        <createTable tableName="PROFILE_DOCUMENTS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DOCUMENTS_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-2">
+        <createTable tableName="PROFILE_EVENTS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EVENTS_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-3">
+        <addUniqueConstraint columnNames="DOCUMENTS_ID" constraintName="UK_I28V0CEQ0PE5LJLIP5KDA46MU" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PROFILE_DOCUMENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-4">
+        <addUniqueConstraint columnNames="EVENTS_ID" constraintName="UK_ILHWGJAWGLP12PT41E26M8ID7" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PROFILE_EVENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-5">
+        <addForeignKeyConstraint baseColumnNames="DOCUMENTS_ID" baseTableName="PROFILE_DOCUMENTS" constraintName="FK_I28V0CEQ0PE5LJLIP5KDA46MU" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-6">
+        <addForeignKeyConstraint baseColumnNames="EVENTS_ID" baseTableName="PROFILE_EVENTS" constraintName="FK_ILHWGJAWGLP12PT41E26M8ID7" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-7">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_DOCUMENTS" constraintName="FK_QTYL8EDGJ2FCP4I0MRIPACYQH" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470650157229-8">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_EVENTS" constraintName="FK_SC0BVCH2P4WPTSCF7VBLNFMFJ" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
 </databaseChangeLog>

@@ -30,6 +30,7 @@ import fi.hiit.dime.authentication.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -149,6 +150,21 @@ public class DiMeDAO<T extends DiMeData, R extends DiMeRepository<T>> {
         return true;
     }
 
+    @Transactional(readOnly = true) 
+    public List<T> checkedList(List<T> origList, User user) {
+        if (origList == null)
+            return null;
+
+        List<T> ret = new ArrayList<T>();
+
+        for (T d : origList) {
+            T checkedData = findById(d.getId(), user);
+            if (checkedData != null)
+                ret.add(checkedData);
+        }
+
+        return ret;
+    }
 
     protected Set<T> notIndexed = new HashSet<T>();
 
@@ -161,7 +177,16 @@ public class DiMeDAO<T extends DiMeData, R extends DiMeRepository<T>> {
     }
 
     public Set<T> getNotIndexed() {
-        return notIndexed;
+        Set<T> ret = new HashSet<T>();
+
+        // Return only items that still exist
+        for (T d : notIndexed) {
+            T toAdd = findById(d.getId());
+            if (toAdd != null)
+                ret.add(toAdd);
+        }
+
+        return ret;
     }
 
     public void clearNotIndexed() {

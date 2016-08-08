@@ -426,6 +426,9 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     private Profile storeProfile(Profile profile, User user) {
         // throws NotFoundException, BadRequestException {
 
+        profile.events = eventDAO.checkedList(profile.events, user);
+        profile.documents = infoElemDAO.checkedList(profile.documents, user);
+
         profile.user = user;
         profileDAO.save(profile);
 
