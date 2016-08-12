@@ -30,16 +30,19 @@ import static fi.hiit.dime.search.SearchIndex.weightType;
 import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.DiMeData;
+import fi.hiit.dime.data.DiMeDataRelation;
 import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.EventRelation;
 import fi.hiit.dime.data.InformationElement;
-import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.data.InformationElementRelation;
 import fi.hiit.dime.data.Profile;
+import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.database.ProfileDAO;
 import fi.hiit.dime.search.KeywordSearchQuery;
-import fi.hiit.dime.search.SearchIndex;
 import fi.hiit.dime.search.SearchIndex.SearchQueryException;
+import fi.hiit.dime.search.SearchIndex;
 import fi.hiit.dime.search.SearchQuery;
 import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
@@ -48,6 +51,7 @@ import fi.hiit.dime.search.WeightedKeyword;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -424,10 +428,15 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
      */
     @Transactional
     private Profile storeProfile(Profile profile, User user) {
-        // throws NotFoundException, BadRequestException {
+        // FIXME: should be able to upload relations directly
 
-        profile.events = eventDAO.checkedList(profile.events, user);
-        profile.documents = infoElemDAO.checkedList(profile.documents, user);
+        profile.validatedEvents.clear();
+        profile.suggestedEvents.clear();
+        profile.validatedInformationElements.clear();
+        profile.suggestedInformationElements.clear();
+        
+        // profile.suggestedevents = eventDAO.checkedList(profile.events, user);
+        // profile.documents = infoElemDAO.checkedList(profile.documents, user);
 
         profile.user = user;
         profileDAO.save(profile);
@@ -435,6 +444,58 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         return profile;
     }
 
+    /**
+     * Helper method to update profile.
+     *
+     * @param profileId Id of the profile to update
+     * @param relation The relation to add to the profile
+     * @param validated True if the relation is a "validation" relation, otherwise it is "suggested"
+     * @param user current authenticated user
+     */
+    @Transactional
+    private Profile updateProfile(Long profileId, DiMeDataRelation relation, boolean validated, 
+                                  User user) 
+        throws NotFoundException, BadRequestException
+    {
+        try {
+            Profile profile = profileDAO.findById(profileId, user);
+
+            if (profile == null || !profile.user.getId().equals(user.getId()))
+                throw new NotFoundException("Profile not found");
+
+            if (relation instanceof EventRelation) {
+                EventRelation eventRelation = (EventRelation)relation;
+                Event event = eventDAO.findById(eventRelation.event.getId());
+                
+                if (event == null || !event.user.getId().equals(user.getId()))
+                    throw new NotFoundException("Event not found");
+
+                eventRelation.event = event;
+
+                if (validated) 
+                    profile.validateEvent(eventRelation);
+                else
+                    profile.addEvent(eventRelation);
+            } else if (relation instanceof InformationElementRelation) {
+                InformationElementRelation elemRelation = (InformationElementRelation)relation;
+                InformationElement elem = 
+                    infoElemDAO.findById(elemRelation.informationElement.getId());
+                
+                if (elem == null || !elem.user.getId().equals(user.getId()))
+                    throw new NotFoundException("InformationElement not found");
+
+                elemRelation.informationElement = elem;
+
+                if (validated) 
+                    profile.validateInformationElement(elemRelation);
+                else
+                    profile.addInformationElement(elemRelation);
+            }                
+            return storeProfile(profile, user);
+        } catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
+            throw new BadRequestException("Invalid argument: " + relation);
+        }
+    }
 
     /** HTTP end point for creating a new profile. 
         @api {post} /profile Create a new profile
@@ -453,9 +514,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiVersion 0.1.2
     */
     @RequestMapping(value="/profile", method = RequestMethod.POST)
-    public ResponseEntity<Profile>
-        profile(Authentication auth, 
-                @RequestBody Profile input)
+    public ResponseEntity<Profile> profile(Authentication auth, @RequestBody Profile input)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
@@ -508,5 +567,123 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         if (!profileDAO.remove(id, user))
             throw new NotFoundException("Profile not found");
+    }
+
+    /** @api {post} /profile/:id/addevent Suggest event to profile
+        @apiName ProfileAddEvent
+        @apiParam {Number} id Profile's unique ID
+        @apiExample  {json} Example of JSON to upload
+            {
+              "event": {
+                  "@type": "SearchEvent",
+                  "id": 728,
+              },
+              "weight": 0.5,
+              "actor": "FooAlgorithm"
+            }
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+     */
+    @RequestMapping(value="/profile/{id}/addevent", method = RequestMethod.POST)
+    public ResponseEntity<Profile>
+        profileAddEvent(Authentication auth, @PathVariable Long id,
+                        @RequestBody EventRelation suggestedRelation)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+        
+        Profile profile = updateProfile(id, suggestedRelation, false, user);
+
+        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
+    }   
+
+    /** @api {post} /profile/:id/validateevent Validate an event for the profile
+        @apiName ProfileValidateEvent
+        @apiParam {Number} id Profile's unique ID
+        @apiExample  {json} Example of JSON to upload
+            {
+              "event": {
+                  "@type": "SearchEvent",
+                  "id": 728,
+              },
+              "weight": 0.9,
+            }
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+     */
+    @RequestMapping(value="/profile/{id}/validateevent", method = RequestMethod.POST)
+    public ResponseEntity<Profile>
+        profileValidateEvent(Authentication auth, @PathVariable Long id,
+                             @RequestBody EventRelation validatedRelation)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        Profile profile = updateProfile(id, validatedRelation, true, user);
+
+        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
+    }   
+
+    /** @api {post} /profile/:id/addinformationelement Suggest information element to profile
+        @apiName ProfileAddInformationElement
+        @apiParam {Number} id Profile's unique ID
+        @apiExample  {json} Example of JSON to upload
+            {
+              "informationelement": {
+                  "@type": "Document",
+                  "id": 728,
+              },
+              "weight": 0.22,
+              "actor": "FooAlgorithm"
+            }
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+     */
+    @RequestMapping(value="/profile/{id}/addinformationelement", method = RequestMethod.POST)
+    public ResponseEntity<Profile>
+        profileAddInformationElement(Authentication auth, @PathVariable Long id,
+                                     @RequestBody InformationElementRelation suggestedRelation)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        Profile profile = updateProfile(id, suggestedRelation, false, user);
+
+        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
+    }   
+
+    /** @api {post} /profile/:id/validateinformationelement Validate an informationelement for the profile
+        @apiName ProfileValidateInformationElement
+        @apiParam {Number} id Profile's unique ID
+        @apiExample  {json} Example of JSON to upload
+            {
+              "informationelement": {
+                  "@type": "Document",
+                  "id": 728,
+              },
+              "weight": 0.9,
+            }
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+     */
+    @RequestMapping(value="/profile/{id}/validateinformationelement", method = RequestMethod.POST)
+    public ResponseEntity<Profile>
+        profileValidateInformationElement(Authentication auth, @PathVariable Long id,
+                                          @RequestBody InformationElementRelation validatedRelation)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        Profile profile = updateProfile(id, validatedRelation, true, user);
+
+        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
     }   
 }

@@ -21,3 +21,4 @@ HOWTO
 /loggers/keylogger/*.pdf
 /bin/
 /node_modules/
+/src/main/resources/db/changelog/db.changelog-master.xml.bak

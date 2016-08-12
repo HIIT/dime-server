@@ -903,4 +903,132 @@
     <changeSet author="mvsjober (generated)" id="1470899186929-16">
         <dropTable tableName="INFORMATION_ELEMENT_TAG_MAP"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-1">
+        <createTable tableName="EVENT_RELATION">
+            <column autoIncrement="true" name="ID" type="BIGINT(19)">
+                <constraints primaryKey="true" primaryKeyName="CONSTRAINT_A"/>
+            </column>
+            <column name="ACTOR" type="VARCHAR(255)"/>
+            <column name="VALIDATED" type="BOOLEAN(1)"/>
+            <column name="WEIGHT" type="DOUBLE(17)"/>
+            <column name="EVENT_ID" type="BIGINT(19)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-2">
+        <createTable tableName="INFORMATION_ELEMENT_RELATION">
+            <column autoIncrement="true" name="ID" type="BIGINT(19)">
+                <constraints primaryKey="true" primaryKeyName="CONSTRAINT_D"/>
+            </column>
+            <column name="ACTOR" type="VARCHAR(255)"/>
+            <column name="VALIDATED" type="BOOLEAN(1)"/>
+            <column name="WEIGHT" type="DOUBLE(17)"/>
+            <column name="ELEMENT_ID" type="BIGINT(19)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-3">
+        <createTable tableName="PROFILE_SUGGESTED_EVENTS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SUGGESTED_EVENTS_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-4">
+        <createTable tableName="PROFILE_SUGGESTED_INFORMATION_ELEMENTS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SUGGESTED_INFORMATION_ELEMENTS_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-5">
+        <createTable tableName="PROFILE_VALIDATED_EVENTS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="VALIDATED_EVENTS_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-6">
+        <createTable tableName="PROFILE_VALIDATED_INFORMATION_ELEMENTS">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="VALIDATED_INFORMATION_ELEMENTS_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-7">
+        <addUniqueConstraint columnNames="SUGGESTED_EVENTS_ID" constraintName="UK_3OAVKH5ITLQTC1YE9VH7E8QMY" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PROFILE_SUGGESTED_EVENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-8">
+        <addUniqueConstraint columnNames="VALIDATED_EVENTS_ID" constraintName="UK_M8RFEKDRP6HMOJFF7YUWV2AH4" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PROFILE_VALIDATED_EVENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-9">
+        <addUniqueConstraint columnNames="SUGGESTED_INFORMATION_ELEMENTS_ID" constraintName="UK_OAPDHBRRVPPUT0ULGKXG7T0TQ" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PROFILE_SUGGESTED_INFORMATION_ELEMENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-10">
+        <addUniqueConstraint columnNames="VALIDATED_INFORMATION_ELEMENTS_ID" constraintName="UK_PIQ43JFAFRHDB260VW36FWY0B" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PROFILE_VALIDATED_INFORMATION_ELEMENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-11">
+        <addForeignKeyConstraint baseColumnNames="SUGGESTED_EVENTS_ID" baseTableName="PROFILE_SUGGESTED_EVENTS" constraintName="FK_3OAVKH5ITLQTC1YE9VH7E8QMY" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT_RELATION"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-12">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_VALIDATED_INFORMATION_ELEMENTS" constraintName="FK_BNJW9J2UEPCEE4KFSHVEWUKC8" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-13">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_SUGGESTED_INFORMATION_ELEMENTS" constraintName="FK_D1XN0GFW6HHQ9RNWH0TCGJKVX" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-14">
+        <addForeignKeyConstraint baseColumnNames="EVENT_ID" baseTableName="EVENT_RELATION" constraintName="FK_FBEKCYRUGT76S5L85K2RS6WER" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-15">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_VALIDATED_EVENTS" constraintName="FK_JMS9DQ4USECKJOCB9J6WBB4R6" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-16">
+        <addForeignKeyConstraint baseColumnNames="ELEMENT_ID" baseTableName="INFORMATION_ELEMENT_RELATION" constraintName="FK_LNRVDW3FST3SUO0O48IM2V3AK" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-17">
+        <addForeignKeyConstraint baseColumnNames="VALIDATED_EVENTS_ID" baseTableName="PROFILE_VALIDATED_EVENTS" constraintName="FK_M8RFEKDRP6HMOJFF7YUWV2AH4" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT_RELATION"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-18">
+        <addForeignKeyConstraint baseColumnNames="SUGGESTED_INFORMATION_ELEMENTS_ID" baseTableName="PROFILE_SUGGESTED_INFORMATION_ELEMENTS" constraintName="FK_OAPDHBRRVPPUT0ULGKXG7T0TQ" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT_RELATION"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-19">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_SUGGESTED_EVENTS" constraintName="FK_P6YYCKJNDH7L42FTJP88T09N1" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-20">
+        <addForeignKeyConstraint baseColumnNames="VALIDATED_INFORMATION_ELEMENTS_ID" baseTableName="PROFILE_VALIDATED_INFORMATION_ELEMENTS" constraintName="FK_PIQ43JFAFRHDB260VW36FWY0B" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT_RELATION"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-21">
+        <dropForeignKeyConstraint baseTableName="PROFILE_DOCUMENTS" constraintName="FK_I28V0CEQ0PE5LJLIP5KDA46MU"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-22">
+        <dropForeignKeyConstraint baseTableName="PROFILE_EVENTS" constraintName="FK_ILHWGJAWGLP12PT41E26M8ID7"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-23">
+        <dropForeignKeyConstraint baseTableName="PROFILE_DOCUMENTS" constraintName="FK_QTYL8EDGJ2FCP4I0MRIPACYQH"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-24">
+        <dropForeignKeyConstraint baseTableName="PROFILE_EVENTS" constraintName="FK_SC0BVCH2P4WPTSCF7VBLNFMFJ"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-25">
+        <dropUniqueConstraint constraintName="UK_I28V0CEQ0PE5LJLIP5KDA46MU" tableName="PROFILE_DOCUMENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-26">
+        <dropUniqueConstraint constraintName="UK_ILHWGJAWGLP12PT41E26M8ID7" tableName="PROFILE_EVENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-27">
+        <dropTable tableName="PROFILE_DOCUMENTS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1470927689693-28">
+        <dropTable tableName="PROFILE_EVENTS"/>
+    </changeSet>
 </databaseChangeLog>
