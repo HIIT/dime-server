@@ -721,7 +721,7 @@ On success, the response will be the uploaded object with some fields like the i
 
     /** HTTP end point for deleting single information element. 
 
-        @api {delete} /data/event/:id Delete single information element
+        @api {delete} /data/informationelement/:id Delete single information element
         @apiName DeleteInformationElement
         @apiParam {Number} id The information elements's unique ID
         @apiDescription On success, the response will be an empty HTTP 204.
