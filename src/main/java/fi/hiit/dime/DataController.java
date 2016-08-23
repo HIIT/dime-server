@@ -291,7 +291,7 @@ public class DataController extends AuthorizedController {
     */
 
     /** HTTP end point for uploading a single event. 
-        @api {post} /data/event/ Upload single event
+        @api {post} /data/event Upload single event
         @apiName PostEvent
         @apiDescription Upload a new event as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
 
@@ -453,7 +453,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
 
     /** HTTP end point for uploading multiple events. 
 
-        @api {post} /data/events/ Upload list of events
+        @api {post} /data/events Upload list of events
         @apiName PostEvents
         @apiDescription Upload several events in one request, specified as a JSON list.
 
@@ -493,7 +493,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
     /** HTTP end point for accessing multiple events via a filtering
         interface.
 
-        @api {get} /data/events/ Access multiple events
+        @api {get} /data/events Access multiple events
         @apiName GetEvents
         @apiDescription Access events through filtering with parameters.
 
@@ -521,8 +521,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiPermission user
         @apiGroup Events
         @apiVersion 0.1.2
-
-     */    
+    */    
     @RequestMapping(value="/events", method = RequestMethod.GET)
     public ResponseEntity<Event[]>
         events(Authentication auth, 
@@ -558,7 +557,29 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         }
     }   
 
-    /** HTTP end point for uploading a single information element. */    
+    /** HTTP end point for uploading a single information element. 
+        @api {post} /data/informationelement Upload single information element
+        @apiName PostInformationElement
+        @apiDescription Upload a new information element as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
+
+On success, the response will be the uploaded object with some fields like the id filled in.
+        
+        @apiExample {json} Example of JSON to upload
+            {
+                "@type": "WebDocument",
+                "actor": "My web logger",
+                "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
+                "mimeType": "text/html", 
+                "plainTextContent": "The revolution has begun...", 
+                "title": "Revolution of Knowledge Work", 
+                "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
+                "uri": "http://www.reknow.fi/" 
+            }
+
+        @apiPermission user
+        @apiGroup Information elements
+        @apiVersion 0.1.2
+    */    
     @RequestMapping(value="/informationelement", method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
         informationElement(Authentication auth, 
@@ -574,7 +595,39 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<InformationElement>(input, HttpStatus.OK);
     }   
 
-    /** HTTP end point for uploading multiple information elements. */    
+    /** HTTP end point for uploading multiple information elements. 
+        @api {post} /data/informationelements Upload list of information elements
+        @apiName PostInformationElements
+        @apiDescription Upload several information elements in one request, specified as a JSON list.
+
+        @apiExample {json} Example of JSON to upload
+            [
+                {
+                    "@type": "WebDocument",
+                    "actor": "My web logger",
+                    "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
+                    "mimeType": "text/html", 
+                    "plainTextContent": "The revolution has begun...", 
+                    "title": "Revolution of Knowledge Work", 
+                    "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
+                    "uri": "http://www.reknow.fi/" 
+                },
+                {
+                    "@type": "WebDocument",
+                    "actor": "My web logger",
+                    "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
+                    "mimeType": "text/html", 
+                    "plainTextContent": "Hello, world...", 
+                    "title": "Hello page", 
+                    "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
+                    "uri": "http://www.example.com/" 
+                }
+            ]
+
+        @apiPermission user
+        @apiGroup Information elements
+        @apiVersion 0.1.2
+     */    
     @RequestMapping(value="/informationelements", method = RequestMethod.POST)
     public ResponseEntity<InformationElement[]>
         informationElement(Authentication auth, @RequestBody InformationElement[] input) 
@@ -591,7 +644,57 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<InformationElement[]>(input, HttpStatus.OK);
     }   
 
-    /** HTTP end point for accessing a single informationelement. */    
+    /** HTTP end point for accessing a single informationelement. 
+
+        @api {get} /data/informationelement/:id Access single information element
+        @apiName GetInformationElement
+        @apiParam {Number} id The information elements's unique ID
+        @apiDescription On success the response will be the information element with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
+        @apiSuccessExample {json} Example successful response:
+            HTTP/1.1 200 OK
+            {
+                "@type": "Document",
+                "id": 1775,
+                "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#RemoteDataObject",
+                "mimeType": "application/json",
+                "plainTextContent": "Hello, world",
+                "tags": [
+                    {
+                        "@type": "Tag",
+                        "text": "hello"
+                    },
+                    {
+                        "@type": "Tag",
+                        "text": "world"
+                    }
+                ],
+                "timeCreated": 1463384282789,
+                "timeModified": 1463384282789,
+                "title": "Hello, world",
+                "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument",
+                "uri": "http://example.com",
+                "user": {
+                    "id": 3,
+                    "role": "USER",
+                    "username": "testuser"
+                }
+            }
+
+        @apiErrorExample {json} Example error response:
+            HTTP/1.1 404 Not Found
+            {
+                "error": "Not Found",
+                "exception": "fi.hiit.dime.AuthorizedController$NotFoundException",
+                "message": "Element not found",
+                "path": "/api/data/informationelement/12345",
+                "status": 404,
+                "timestamp": 1466580641725
+            }
+
+        @apiPermission user
+        @apiGroup Information elements
+        @apiVersion 0.1.2
+     */
     @RequestMapping(value="/informationelement/{id}",
                     method = RequestMethod.GET)
     public ResponseEntity<InformationElement>
@@ -616,7 +719,17 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
-    /** HTTP end point for deleting single information element. */
+    /** HTTP end point for deleting single information element. 
+
+        @api {delete} /data/informationelement/:id Delete single information element
+        @apiName DeleteInformationElement
+        @apiParam {Number} id The information elements's unique ID
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Information elements
+        @apiVersion 0.1.2
+     */
     @RequestMapping(value="/informationelement/{id}",
                     method = RequestMethod.DELETE)
     public ResponseEntity informationElementDelete(Authentication auth, 
@@ -636,7 +749,29 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
 
 
     /** HTTP end point for accessing multiple information elements via
-     * a filtering interface. */    
+        a filtering interface. 
+
+        @api {get} /data/informationelements Access multiple information elements
+        @apiName GetInformationElements
+        @apiDescription Access information elements through filtering with parameters.
+
+        @apiParam (Filtering) {String} [uri] match uri field 
+        @apiParam (Filtering) {String} [plainTextContent] match plainTextContent field
+        @apiParam (Filtering) {String} [isstoredas] match isStoredAs field
+        @apiParam (Filtering) {String} [type] match type field
+        @apiParam (Filtering) {String} [mimetype] match mimeType field
+        @apiParam (Filtering) {String} [title] match title field
+        @apiParam (Filtering) {String} [tag] exact tag matching (just
+        one tag needs to match)
+
+        @apiExample {HTTP} Example usage:
+        # Get all elements containing tag "dime" and mimetype "text/html"
+        GET /data/informationelements?tag=dime&amp;mimetype=text/html
+
+        @apiPermission user
+        @apiGroup Information elements
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/informationelements", method = RequestMethod.GET)
     public ResponseEntity<InformationElement[]>
         informationElements(Authentication auth,
@@ -714,14 +849,55 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         if (obj == null || !obj.user.getId().equals(user.getId()))
             throw new NotFoundException("Object not found");
 
-        obj.removeTag(tag.text);
+        obj.removeMatchingTags(tag);
 
         saveData(obj);
 
         return obj;
     }
 
-    /** HTTP end point for adding a tag to an Information Element. */    
+    /** HTTP end point for adding a tag to an Information Element. 
+        @api {post} /data/informationelement/:id/addtag Add single tag to information element
+        @apiName PostAddTagInformationElement
+        @apiDescription Add a single tag to the information element. The tag to be added is in the POSTed data (as JSON).
+        @apiParam {Number} id The information element's unique ID
+        
+        @apiExample {json} Example of JSON to upload
+            {
+                "text": "mytag",
+                "auto": true,
+                "time": "2016-03-16T21:22:13.000Z"
+            }
+
+        @apiSuccessExample {json} Example successful response:
+            HTTP/1.1 200 OK
+            {
+                "@type": "SearchEvent",
+                "actor": "My example logger",
+                "duration": 0.0,
+                "end": 1463384282690,
+                "id": 1234,
+                "start": 1463384282690,
+                "tags": [
+                    {
+                        "@type": "Tag",
+                        "id": 1234,
+                        "text": "mytag",
+                        "auto": true,
+                        "time": "2016-03-16T21:22:13.000Z"
+                    }
+                ],
+                "query": "Some search query"
+                "user": {
+                    "id": 3,
+                    "role": "USER",
+                    "username": "testuser"
+                }
+            }
+        @apiPermission user
+        @apiGroup Tags
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/informationelement/{id}/addtag", 
                     method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
@@ -735,7 +911,30 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
-    /** HTTP end point for adding several tags to an Information Element. */    
+    /** HTTP end point for adding several tags to an Information Element. 
+        @api {post} /data/informationelement/:id/addtags Add multiple tags to information element
+        @apiName PostAddTagsInformationElement
+        @apiDescription Add several tags to the information element specified as a JSON list.
+        @apiParam {Number} id The information element's unique ID
+        
+        @apiExample {json} Example of JSON to upload
+            [
+                {
+                    "text": "mytag",
+                    "auto": true,
+                    "time": "2016-03-16T21:22:13.000Z"
+                },
+                {
+                    "text": "another tag",
+                    "auto": false,
+                    "time": "2016-03-16T21:22:14.000Z"
+                }
+            ]
+
+        @apiPermission user
+        @apiGroup Tags
+        @apiVersion 0.1.2
+     */
     @RequestMapping(value="/informationelement/{id}/addtags", 
                     method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
@@ -749,7 +948,23 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
-    /** HTTP end point for removing a tag from an Information Element. */    
+    /** HTTP end point for removing a tag from an Information Element. 
+        @api {post} /data/informationelement/:id/removetag Remove tag from information element
+        @apiName PostRemoveTagInformationElement
+        @apiDescription Remove a single tag from the information element. The tag to be removed is in the POSTed data (as JSON).
+        @apiParam {Number} id The information element's unique ID
+        
+        @apiExample {json} Example of JSON to upload
+            {
+                "text": "mytag",
+                "auto": true,
+                "time": "2016-03-16T21:22:13.000Z"
+            }
+
+        @apiPermission user
+        @apiGroup Tags
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/informationelement/{id}/removetag", 
                     method = RequestMethod.POST)
     public ResponseEntity<InformationElement>
@@ -763,7 +978,23 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<InformationElement>(elem, HttpStatus.OK);
     }   
 
-    /** HTTP end point for adding a tag to an Event. */    
+    /** HTTP end point for adding a tag to an Event. 
+        @api {post} /data/event/:id/addtag Add single tag to event
+        @apiName PostAddTagEvent
+        @apiDescription Add a single tag to the event. The tag to be added is in the POSTed data (as JSON).
+        @apiParam {Number} id Event's unique ID
+        
+        @apiExample {json} Example of JSON to upload
+            {
+                "text": "mytag",
+                "auto": true,
+                "time": "2016-03-16T21:22:13.000Z"
+            }
+
+        @apiPermission user
+        @apiGroup Tags
+        @apiVersion 0.1.2
+     */
     @RequestMapping(value="/event/{id}/addtag", method = RequestMethod.POST)
     public ResponseEntity<Event>
         eventAddTag(Authentication auth, @PathVariable Long id,
@@ -775,7 +1006,30 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<Event>(event, HttpStatus.OK);
     }   
 
-    /** HTTP end point for adding several tags to an Information Element. */    
+    /** HTTP end point for adding several tags to an Event. 
+        @api {post} /data/event/:id/addtags Add multiple tags to event
+        @apiName PostAddTagsEvent
+        @apiDescription Add several tags to the event specified as a JSON list.
+        @apiParam {Number} id The information element's unique ID
+        
+        @apiExample {json} Example of JSON to upload
+            [
+                {
+                    "text": "mytag",
+                    "auto": true,
+                    "time": "2016-03-16T21:22:13.000Z"
+                },
+                {
+                    "text": "another tag",
+                    "auto": false,
+                    "time": "2016-03-16T21:22:14.000Z"
+                }
+            ]
+
+        @apiPermission user
+        @apiGroup Tags
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/event/{id}/addtags", 
                     method = RequestMethod.POST)
     public ResponseEntity<Event>
@@ -788,7 +1042,24 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<Event>(event, HttpStatus.OK);
     }   
 
-    /** HTTP end point for removing a tag from an Information Element. */    
+    /** HTTP end point for removing a tag from an Event. 
+
+        @api {post} /data/event/:id/removetag Remove tag from event
+        @apiName PostRemoveTagEvent
+        @apiDescription Remove a single tag from the event. The tag to be removed is in the POSTed data (as JSON).
+        @apiParam {Number} id The information element's unique ID
+        
+        @apiExample {json} Example of JSON to upload
+            {
+                "text": "mytag",
+                "auto": true,
+                "time": "2016-03-16T21:22:13.000Z"
+            }
+
+        @apiPermission user
+        @apiGroup Tags
+        @apiVersion 0.1.2
+    */
     @RequestMapping(value="/event/{id}/removetag", 
                     method = RequestMethod.POST)
     public ResponseEntity<Event>

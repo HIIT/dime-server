@@ -114,9 +114,9 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public boolean removeAllForUserId(Long id) {
+        profileDAO.removeForUser(id);
 	eventDAO.removeForUser(id);
 	infoElemDAO.removeForUser(id);
-        profileDAO.removeForUser(id);
 	userDAO.remove(id);
 	return true;
     }

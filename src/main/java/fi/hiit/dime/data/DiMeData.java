@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -32,22 +32,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.Iterator;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.ElementCollection;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
 import javax.persistence.MapKey;
-import javax.persistence.Transient;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
-import javax.persistence.CascadeType;
+import javax.persistence.Transient;
 
 import java.util.List;
 
@@ -55,7 +54,7 @@ import java.util.List;
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new", "tagMap"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @JsonSubTypes({
             @JsonSubTypes.Type(value=fi.hiit.dime.data.Document.class, name="Document"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.ScientificDocument.class, name="ScientificDocument"),
@@ -132,82 +131,105 @@ public class DiMeData extends AbstractPersistable<Long> {
     /** List of user-specified tags, interpretation depends on the
         application.
     */
-    @OneToMany(cascade = CascadeType.ALL)
-    @MapKey(name = "text")
-    private Map<String, Tag> tagMap;
+    @OneToMany(cascade=CascadeType.ALL)
+    public List<Tag> tags;
 
-    public void setTagMap(Map<String, Tag> tagMap) {
-        this.tagMap = tagMap;
-    }
+    /** Return true if this object has tags
 
-    public Map<String, Tag> getTagMap() {
-        return tagMap;
-    }
-
-    public void setTags(Collection<Tag> tags) {
-        if (tags == null)
-            return;
-
-        if (tagMap == null)
-            tagMap = new HashMap<String, Tag>();
-        else 
-            tagMap.clear();
-
-        for (Tag t : tags)
-            tagMap.put(t.text, t);
-    }
-
-    public boolean hasTags() {
-        return tagMap != null && tagMap.size() > 0;
-    }
-
-    public Collection<Tag> getTags() {
-        return tagMap != null ? tagMap.values() : null;
-    }
-
-    /** Add a free-form tag to the object.
-        @param tagText The tag text to add
+        @return True if there are tags.
     */
-    public void addTag(String tagText) {
-        addTag(new Tag(tagText));
+    public boolean hasTags() {
+        return tags != null && tags.size() > 0;
     }
 
-    /** Add a free-form tag to the object.
+    /** Add a tag to the object.
         @param tag The tag object to add
     */
     public void addTag(Tag tag) {
-        if (tagMap == null)
-            tagMap = new HashMap<String, Tag>();
-        else if (tagMap.containsKey(tag.text))
-            removeTag(tag.text);
+        if (tags == null)
+            tags = new ArrayList<Tag>();
 
-        tagMap.put(tag.text, tag);
+        Tag oldTag = getTag(tag);
+        if (oldTag != null) 
+            tags.remove(oldTag);
+
+        tags.add(tag);
     }
 
-    /** Remove a tag from the object.
-        @param tagText The tag to remove
+    /** Remove tags matching a template.  Matching is defined as in
+        {@link fi.hiit.dime.data.Tag#matches(Tag)}.
+
+        @param template Tag template to match
+        @return Number of tags removed
     */
-    public void removeTag(String tagText) {
-        if (tagMap != null && tagMap.containsKey(tagText)) {
-            Tag tag = tagMap.get(tagText);
-            tagMap.remove(tagText);
+    public int removeMatchingTags(Tag template) {
+        int count = 0;
+
+        if (template == null)
+            return count;
+
+        Iterator<Tag> it = tags.iterator();
+        while (it.hasNext()) {
+            Tag tag = it.next();
+            if (tag.matches(template)) {
+                it.remove();
+                count++;
+            }
         }
+        return count;
     }
 
-    /** Return Tag object for a given text tag.
-        @param tagText The tag to retrieve
-        @return The corresponding Tag object
+    /** Return a single Tag which is equal to the given tag. Equality
+        is defined as in {@link fi.hiit.dime.data.Tag#tagEquals(Tag)}.
+
+        @param tag Tag to equal
+        @return The corresponding Tag object, or null if not found
     */
-    public Tag getTag(String tagText) {
-        return tagMap != null ? tagMap.get(tagText) : null;
+    public Tag getTag(Tag tag) {
+        for (Tag t : tags)
+            if (t.tagEquals(tag))
+                return t;
+
+        return null;
     }
 
-    /** Checks if the object contains a given tag.
-        @param tagText Tag to check for
-        @return true if tag found, otherwise false
+    /** Return a list of tags matching the given tag template. 
+        Matching is defined as in {@link fi.hiit.dime.data.Tag#matches(Tag)}.
+
+        @param template The tag template to match
+        @return A list of matching tags, an empty list if none are found
     */
-    public boolean hasTag(String tagText) {
-        return tagMap != null ? tagMap.containsKey(tagText) : false;
+    public List<Tag> getMatchingTags(Tag template) {
+        List<Tag> ret = new ArrayList<Tag>();
+
+        if (tags == null || template == null)
+            return ret;  // return empty list 
+
+        for (Tag t : tags)
+            if (t.matches(template))
+                ret.add(t);
+
+        return ret;
+    }    
+
+    public boolean hasMatchingTag(String tagText) {
+        return hasMatchingTag(new Tag(tagText));
+    }
+
+    /** Checks if there are tags matching the given template 
+        
+        @param template The template to match
+        @return True if there are one or more matches
+    */
+    public boolean hasMatchingTag(Tag template) {
+        if (tags == null || template == null)
+            return false;
+        
+        for (Tag t : tags) {
+            if (t.matches(template))
+                return true;
+        }
+        return false;
     }
 
     public static <T extends DiMeData> T makeStub(T data, Class<T> dataType) {

@@ -40,7 +40,7 @@ import javax.persistence.InheritanceType;
 */
 @JsonInclude(value=JsonInclude.Include.NON_NULL)
 @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property="@type")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new", "id"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @JsonSubTypes({@JsonSubTypes.Type(value = ReadingTag.class, name = "ReadingTag")})
@@ -62,6 +62,22 @@ public class Tag extends AbstractPersistable<Long> {
         this.time = new Date();
         this.auto = auto;
         this.weight = 1.0;
+    }
+
+    public Tag(String text, boolean auto, String actor) {
+        this.text = text;
+        this.time = new Date();
+        this.auto = auto;
+        this.weight = 1.0;
+        this.actor = actor;
+    }
+
+    public Tag(String text, String actor) {
+        this.text = text;
+        this.time = new Date();
+        this.auto = false;
+        this.weight = 1.0;
+        this.actor = actor;
     }
 
     /** Text of the tag. */
@@ -86,4 +102,48 @@ public class Tag extends AbstractPersistable<Long> {
 
     /** Weight of tag between 0.0 and 1.0, higher value means more relevant. */
     public Double weight;
+
+    /** Tests tag equality, i.e. if the text and actor fields are identical.
+
+        @param that the tag to test with
+        @return True if the tags are equal.
+    */
+    public boolean tagEquals(Tag that) {
+        // First check if texts equal
+        if (!this.text.equals(that.text))
+            return false;
+
+        // If this actor is null, both have to be null
+        if (this.actor == null)
+            return that.actor == null;
+
+        // Otherwise, check that actors equal
+        return this.actor.equals(that.actor);
+    }
+
+    /** Tests if a given tag matches the given template tag one. A
+        matching tag is one that has identical tag text and the same
+        actor.
+
+        If the actor is null in the template, this is interpreted as a
+        wild card field, i.e. any value of actor is matched (including
+        null).
+
+        @param template Tag template to match with
+        @return True if the given tag matches this one
+    */
+    public boolean matches(Tag template) {
+        // If texts don't match, we can give up already
+        if (!this.text.equals(template.text))
+            return false;
+
+        // If template actor is non-null, test if they match
+        if (template.actor != null)
+            return template.actor.equals(this.actor);
+        
+        // Otherwise, any value is acceptable (as we've already
+        // established that the texts match)
+        return true;
+    }
+
 }

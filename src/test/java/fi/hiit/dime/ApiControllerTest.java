@@ -25,11 +25,16 @@
 package fi.hiit.dime;
 
 import static org.junit.Assert.*;
+import static fi.hiit.dime.data.DiMeData.makeStub;
 
 import fi.hiit.dime.ApiController.ApiMessage;
 import fi.hiit.dime.data.DiMeData;
+import fi.hiit.dime.data.Document;
 import fi.hiit.dime.data.Event;
+import fi.hiit.dime.data.EventRelation;
+import fi.hiit.dime.data.FeedbackEvent;
 import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.InformationElementRelation;
 import fi.hiit.dime.data.Message;
 import fi.hiit.dime.data.MessageEvent;
 import fi.hiit.dime.data.Profile;
@@ -200,6 +205,8 @@ public class ApiControllerTest extends RestTest {
         assertEquals(searchEvent.appId, obj.appId);
         assertTrue(obj instanceof SearchEvent);
         assertEquals(searchEvent.query, ((SearchEvent)obj).query);
+
+        ApiError error = getDataExpectError(apiUrl("/search?query=a:"));
     }
 
     @Test
@@ -303,13 +310,30 @@ public class ApiControllerTest extends RestTest {
 
     @Test
     public void testProfiles() throws Exception {
+        // Create a document
+        Document doc = new Document();
+        doc.uri = "http://www.example.com/hello2.txt";
+        doc.plainTextContent = "Hello, world";
+        doc.mimeType = "text/plain";
+
+        // Create feedback, with document embedded
+        FeedbackEvent event1 = new FeedbackEvent();
+        event1.value = 0.22;
+        event1.targettedResource = doc;
+
+        FeedbackEvent outEvent1 = uploadEvent(event1, FeedbackEvent.class);
+
         // Test uploading a new profile
         Profile profile = new Profile("Kai's formula profile");
         profile.tags = new ArrayList<String>();
         profile.tags.add("Formula1");
         profile.tags.add("motorsports");
         profile.tags.add("kimi raikkonen");
+        // profile.addEvent(makeStub(outEvent1, FeedbackEvent.class), 0.9, "UnitTest");
+        // profile.addInformationElement(makeStub((Document)outEvent1.targettedResource, 
+        //                                        Document.class), 0.8, "UnitTest");
         
+        dumpData("profile before", profile);
         Profile uploadedProfile = uploadData(profileApi, profile,
                                              Profile.class);
         dumpData("uploadedProfile", uploadedProfile);
@@ -321,7 +345,7 @@ public class ApiControllerTest extends RestTest {
 
         // Test fetching an existing one
         Profile gotProfile = getData(profileApi + "/" + id, Profile.class);
-        dumpData("gotProfile", uploadedProfile);
+        dumpData("gotProfile", gotProfile);
 
         assertEquals(profile.name, gotProfile.name);
         assertEquals(profile.tags.size(), gotProfile.tags.size());
@@ -338,14 +362,128 @@ public class ApiControllerTest extends RestTest {
         assertEquals(updatedProfile.name, gotProfile.name);
         
         // Test fetching the updated one
-        Profile gotUpdatedProfile = 
-            getData(profileApi + "/" + id, Profile.class);
+        Profile gotUpdatedProfile = getData(profileApi + "/" + id, Profile.class);
         dumpData("gotUpdatedProfile", gotUpdatedProfile);
 
         assertEquals(gotProfile.name, gotUpdatedProfile.name);
         assertEquals(gotProfile.tags.size(), gotUpdatedProfile.tags.size());
         Long gotUpdatedId = gotUpdatedProfile.getId();
         assertEquals(id, gotUpdatedId);
+
+        // Test adding a suggested event
+        EventRelation eventSuggestion = new EventRelation(outEvent1, 0.42, "UnitTest");
+        uploadData(profileApi + "/" + id + "/addevent", eventSuggestion, EventRelation.class);
+
+        Profile gotProfile2 = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile2", gotProfile2);
+        assertEquals(1, gotProfile2.suggestedEvents.size());
+        assertEquals(0, gotProfile2.validatedEvents.size());
+        assertEquals(0, gotProfile2.suggestedInformationElements.size());
+        assertEquals(0, gotProfile2.validatedInformationElements.size());
+
+        // Test adding a suggested non-existent event
+        EventRelation eventSuggestionBad = new EventRelation(event1, 0.42, "UnitTest");
+        uploadData(profileApi + "/" + id + "/addevent", eventSuggestionBad, ApiError.class);
+
+        Profile gotProfile3 = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile3", gotProfile3);
+        assertEquals(1, gotProfile3.suggestedEvents.size());
+        assertEquals(0, gotProfile3.validatedEvents.size());
+        assertEquals(0, gotProfile3.suggestedInformationElements.size());
+        assertEquals(0, gotProfile3.validatedInformationElements.size());
+
+        // Test validating an event
+        EventRelation eventValidation = new EventRelation(outEvent1, 0.90, "UnitTest");
+        uploadData(profileApi + "/" + id + "/validateevent", eventValidation, EventRelation.class);
+
+        Profile gotProfile4 = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile4", gotProfile4);
+        assertEquals(1, gotProfile4.suggestedEvents.size());
+        assertEquals(1, gotProfile4.validatedEvents.size());
+        assertEquals(0, gotProfile4.suggestedInformationElements.size());
+        assertEquals(0, gotProfile4.validatedInformationElements.size());
+
+        // Check that the corresponding event in suggested events also was updated.
+        assertTrue(gotProfile4.validatedEvents.get(0).validated);
+        assertTrue(gotProfile4.suggestedEvents.get(0).validated);
+
+        // Test adding a suggested information element
+        Document doc2 = new Document();
+        doc2.uri = "http://www.example.com/formula.txt";
+        doc2.plainTextContent = "Formula something something";
+        doc2.mimeType = "text/plain";
+
+        Document outDoc2 = uploadElement(doc2, Document.class);
+
+        InformationElementRelation elemSuggestion = 
+            new InformationElementRelation(outDoc2, 0.99, "UnitTest");
+        uploadData(profileApi + "/" + id + "/addinformationelement", elemSuggestion, 
+                   InformationElementRelation.class);
+
+        Profile gotProfile5 = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile5", gotProfile5);
+        assertEquals(1, gotProfile5.suggestedEvents.size());
+        assertEquals(1, gotProfile5.validatedEvents.size());
+        assertEquals(1, gotProfile5.suggestedInformationElements.size());
+        assertEquals(0, gotProfile5.validatedInformationElements.size());
+
+        // Test validating new element
+        Document doc3 = new Document();
+        doc3.uri = "http://www.example.com/formula1.txt";
+        doc3.plainTextContent = "Formula 1 something something";
+        doc3.mimeType = "text/plain";
+
+        Document outDoc3 = uploadElement(doc3, Document.class);
+
+        InformationElementRelation elemValidation = 
+            new InformationElementRelation(outDoc3, 0.43, "UnitTest");
+        uploadData(profileApi + "/" + id + "/validateinformationelement", elemValidation, 
+                   InformationElementRelation.class);
+
+        Profile gotProfile6 = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile6", gotProfile6);
+        assertEquals(1, gotProfile6.suggestedEvents.size());
+        assertEquals(1, gotProfile6.validatedEvents.size());
+        assertEquals(1, gotProfile6.suggestedInformationElements.size());
+        assertEquals(1, gotProfile6.validatedInformationElements.size());
+
+        assertTrue(gotProfile6.validatedInformationElements.get(0).validated);
+        assertFalse(gotProfile6.suggestedInformationElements.get(0).validated);
+
+        // Test validating previously suggested element
+        InformationElementRelation elemValidation2 = 
+            new InformationElementRelation(outDoc2, 0.88, "UnitTest");
+        uploadData(profileApi + "/" + id + "/validateinformationelement", elemValidation2, 
+                   InformationElementRelation.class);
+
+        Profile gotProfile7 = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile7", gotProfile7);
+        assertEquals(1, gotProfile7.suggestedEvents.size());
+        assertEquals(1, gotProfile7.validatedEvents.size());
+        assertEquals(1, gotProfile7.suggestedInformationElements.size());
+        assertEquals(2, gotProfile7.validatedInformationElements.size());
+
+        assertTrue(gotProfile7.validatedInformationElements.get(0).validated);
+        assertTrue(gotProfile7.validatedInformationElements.get(1).validated);
+        assertTrue(gotProfile7.suggestedInformationElements.get(0).validated);
+
+        // Test re-validating previously validated element
+        InformationElementRelation elemValidation3 = 
+            new InformationElementRelation(outDoc2, 0.99, "UnitTest");
+        uploadData(profileApi + "/" + id + "/validateinformationelement", elemValidation3, 
+                   InformationElementRelation.class);
+
+        Profile gotProfile8 = getData(profileApi + "/" + id, Profile.class);
+        dumpData("gotProfile8", gotProfile8);
+        assertEquals(1, gotProfile8.suggestedEvents.size());
+        assertEquals(1, gotProfile8.validatedEvents.size());
+        assertEquals(1, gotProfile8.suggestedInformationElements.size());
+        assertEquals(2, gotProfile8.validatedInformationElements.size());
+        assertEquals(0.99, gotProfile8.validatedInformationElements.get(1).weight, 0.0001);
+
+        assertTrue(gotProfile8.validatedInformationElements.get(0).validated);
+        assertTrue(gotProfile8.validatedInformationElements.get(1).validated);
+        assertTrue(gotProfile8.suggestedInformationElements.get(0).validated);
 
         // Try fetching a random non-existing profile
         getDataExpectError(profileApi + "/129382190");

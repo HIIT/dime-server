@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -43,8 +43,15 @@ public class SearchResults {
 
     public List<WeightedKeyword> queryTerms;
 
+    public String message;
+
     public SearchResults() {
         this.docs = new ArrayList<DiMeData>();
+    }
+
+    public SearchResults(String message) {
+        this.docs = new ArrayList<DiMeData>();
+        this.message = message;
     }
 
     /** Add a single DiMeData object to the results. 
