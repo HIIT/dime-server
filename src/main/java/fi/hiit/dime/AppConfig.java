@@ -70,7 +70,7 @@ public class AppConfig {
                 if (corsOrigin != null) {
                     for (String url : corsOrigin)
                         LOG.debug("CORS enabled for " + url);
-                    registry.addMapping("/api/**").allowedOrigins(corsOrigin);
+                    registry.addMapping("/api/**").allowedOrigins(corsOrigin).allowedMethods("GET", "HEAD", "POST", "DELETE");
                 }
             }
         };
