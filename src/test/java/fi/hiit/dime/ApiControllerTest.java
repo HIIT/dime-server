@@ -372,6 +372,7 @@ public class ApiControllerTest extends RestTest {
 
         // Test adding a suggested event
         EventRelation eventSuggestion = new EventRelation(outEvent1, 0.42, "UnitTest");
+        dumpData("eventSuggestion", eventSuggestion);
         uploadData(profileApi + "/" + id + "/addevent", eventSuggestion, EventRelation.class);
 
         Profile gotProfile2 = getData(profileApi + "/" + id, Profile.class);
