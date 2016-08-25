@@ -13,6 +13,7 @@ import ConfigParser
 import hashlib
 from pprint import pprint
 from datetime import datetime, timedelta
+from pytz import timezone
 
 #------------------------------------------------------------------------------
 
@@ -23,8 +24,8 @@ activity_type = 'steps'
 detail_level = '15min'
 
 server_url = 'http://localhost:8080/api'
-server_username = 'testuser'
-server_password = 'testuser123'
+server_username = 'mvsjober'
+server_password = 'tBaiTwIIAjB+YGg24F59zH9p'
 
 #------------------------------------------------------------------------------
 
@@ -51,8 +52,8 @@ if __name__ == '__main__':
     # See http://python-fitbit.readthedocs.io/en/latest/
 
     # a = client.activities()
-    # pprint(client.user_profile_get())
-    # pprint(client.get_devices())
+    user_profile = client.user_profile_get()
+    #pprint(client.get_devices())
 
     # pprint(a['summary']['steps'])
 
@@ -70,6 +71,8 @@ if __name__ == '__main__':
     events = []
 
     origin = socket.gethostbyaddr(socket.gethostname())[0]
+
+    tz = timezone(user_profile['user']['timezone'])
     
     for i in range(len(metadata)):
         day = metadata[i]['dateTime']
@@ -86,7 +89,7 @@ if __name__ == '__main__':
             if value == 0:
                 continue
 
-            start = datetime.strptime(day + ' ' + data['time'], '%Y-%m-%d %H:%M:%S')
+            start = tz.localize(datetime.strptime(day + ' ' + data['time'], '%Y-%m-%d %H:%M:%S'))
             end = start + td
 
             payload = {
@@ -96,8 +99,8 @@ if __name__ == '__main__':
                 'activityType': activity_type,
                 'origin':   origin,
                 'type':     'http://www.hiit.fi/ontologies/dime/#HealthTrackerEvent',
-                'start':    start.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                'end':      end.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                'start':    start.strftime("%Y-%m-%dT%H:%M:%S.000%z"),
+                'end':      end.strftime("%Y-%m-%dT%H:%M:%S.000%z"),
                 'value':    value
             }
 
