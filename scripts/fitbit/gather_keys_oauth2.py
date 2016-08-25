@@ -34,7 +34,7 @@ fitbit_config = 'fitbit.cfg'
 
 class OAuth2Server:
     def __init__(self, client_id, client_secret,
-                 redirect_uri='http://127.0.0.1:8080/'):
+                 redirect_uri='http://127.0.0.1:8042/'):
         """ Initialize the FitbitOauth2Client """
         self.redirect_uri = redirect_uri
         self.success_html = """
@@ -52,6 +52,7 @@ class OAuth2Server:
         url, _ = self.oauth.authorize_token_url(redirect_uri=self.redirect_uri)
         # Open the web browser in a new thread for command-line browser support
         threading.Timer(1, webbrowser.open, args=(url,)).start()
+        cherrypy.config.update({ 'server.socket_port': 8042})
         cherrypy.quickstart(self)
 
     @cherrypy.expose
