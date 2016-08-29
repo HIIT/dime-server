@@ -24,8 +24,8 @@ activity_type = 'steps'
 detail_level = '15min'
 
 server_url = 'http://localhost:8080/api'
-server_username = 'mvsjober'
-server_password = 'tBaiTwIIAjB+YGg24F59zH9p'
+server_username = 'testuser'
+server_password = 'testuser123'
 
 #------------------------------------------------------------------------------
 
