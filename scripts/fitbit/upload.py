@@ -11,6 +11,8 @@ import json
 import requests
 import ConfigParser
 import hashlib
+import argparse
+    
 from pprint import pprint
 from datetime import datetime, timedelta
 from pytz import timezone
@@ -30,6 +32,12 @@ server_password = 'testuser123'
 #------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--base_date', type=str, default='today',
+                        help='E.g. 2014-09-01')
+    args = parser.parse_args()
+
     r = requests.post(server_url + '/ping')
 
     if r.status_code != requests.codes.ok:
@@ -61,6 +69,7 @@ if __name__ == '__main__':
     print('Device = %s' % device)
 
     ts = client.intraday_time_series('activities/' + activity_type, 
+                                     base_date=args.base_date,
                                      detail_level=detail_level)
 
     metadata = ts['activities-'+activity_type]
