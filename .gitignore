@@ -24,3 +24,5 @@ HOWTO
 /src/main/resources/db/changelog/db.changelog-master.xml.bak
 /scripts/fitbit/fitbit.cfg
 /scripts/fitbit/env
+
+npm-debug.log
