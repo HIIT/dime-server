@@ -428,16 +428,6 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
      */
     @Transactional
     private Profile storeProfile(Profile profile, User user) {
-        // FIXME: should be able to upload relations directly
-
-        profile.validatedEvents.clear();
-        profile.suggestedEvents.clear();
-        profile.validatedInformationElements.clear();
-        profile.suggestedInformationElements.clear();
-        
-        // profile.suggestedevents = eventDAO.checkedList(profile.events, user);
-        // profile.documents = infoElemDAO.checkedList(profile.documents, user);
-
         profile.user = user;
         profileDAO.save(profile);
 
@@ -462,14 +452,14 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
             if (profile == null || !profile.user.getId().equals(user.getId()))
                 throw new NotFoundException("Profile not found");
-
+ 
             if (relation instanceof EventRelation) {
                 EventRelation eventRelation = (EventRelation)relation;
                 Event event = eventDAO.findById(eventRelation.event.getId());
                 
                 if (event == null || !event.user.getId().equals(user.getId()))
                     throw new NotFoundException("Event not found");
-
+ 
                 eventRelation.event = event;
 
                 if (validated) 
@@ -519,6 +509,12 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     {
         User user = getUser(auth);
 
+        // FIXME: should be able to upload relations directly
+        input.validatedEvents.clear();
+        input.suggestedEvents.clear();
+        input.validatedInformationElements.clear();
+        input.suggestedInformationElements.clear();
+        
         input = storeProfile(input, user);
 
         return new ResponseEntity<Profile>(input, HttpStatus.OK);

@@ -1255,4 +1255,23 @@ public class DataControllerTest extends RestTest {
         getDataExpectError(infoElemApi + "/" + elemId);
     }
 
+    @Test
+    public void testHealthTrackerEvent() throws Exception {
+        HealthTrackerEvent event = new HealthTrackerEvent();
+        event.device = "Charge HR";
+        event.actor = "Fitbit";
+        event.activityType = "steps";
+        event.value = 42.0;
+
+        Calendar cal = Calendar.getInstance();
+        event.end = cal.getTime();
+        cal.add(Calendar.MINUTE, -15);
+        event.start = cal.getTime();
+
+        HealthTrackerEvent uploadedEvent = uploadEvent(event, HealthTrackerEvent.class);
+        dumpData("HealthTrackerEvent", uploadedEvent);
+
+        assertEquals(event.value, uploadedEvent.value, 0.001);
+        assertEquals(event.activityType, uploadedEvent.activityType);
+    }
 }

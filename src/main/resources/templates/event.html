@@ -47,6 +47,12 @@
 	      <b>Add:</b> <span th:text="${event.add}"></span><br/><br/>
 	    </span>
 
+            <span th:if="${event instanceof T(fi.hiit.dime.data.HealthTrackerEvent)}">
+	      <b>Device:</b> <span th:text="${event.device}"></span><br/>
+	      <b>Activity type:</b> <span th:text="${event.activityType}"></span><br/>
+	      <b>Value:</b> <span th:text="${event.value}"></span><br/>
+	    </span>
+
       <span th:if="${event instanceof T(fi.hiit.dime.data.ReadingEvent)}">
         <b>Start Time:</b> <span th:text="${event.start}"></span>, <b>End Time:</b> <span th:text="${event.end}"></span><br/><br/>
         <b>Text content:</b> <pre th:text="${event.plainTextContent}"></pre><br/>

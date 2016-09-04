@@ -42,7 +42,10 @@
               th:text="(${event.targettedResource.title == null} ?
               ${event.targettedResource.uri} : ${event.targettedResource.title})"></a>
 	    </div>
-	  </div>
+	    <div class="panel-body" th:if="${event instanceof T(fi.hiit.dime.data.HealthTrackerEvent)}">
+              <span th:text="${event.value}"></span> <b><span th:text="${event.activityType}"></span></b>
+	    </div>
+          </div>
 	</div>
       </div>
     </div>

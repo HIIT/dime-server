@@ -1031,4 +1031,14 @@
     <changeSet author="mvsjober (generated)" id="1470927689693-28">
         <dropTable tableName="PROFILE_EVENTS"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1472035389554-1">
+        <addColumn tableName="EVENT">
+            <column name="ACTIVITY_TYPE" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1472035389554-2">
+        <addColumn tableName="EVENT">
+            <column name="DEVICE" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
