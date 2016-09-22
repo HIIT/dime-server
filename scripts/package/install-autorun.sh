@@ -83,7 +83,7 @@ if [[ "$INIT_SYSTEM" = "launchd" ]]; then
     echo "DiMe should now start automatically when you start your computer."
     echo "If you ever wish to disable this, just run:"
     echo
-    echo "launchctl unload ${LAUNCHD_TARGET}"
+    echo "rm ${LAUNCHD_TARGET}"
 
 elif [[ "$INIT_SYSTEM" == "xdg" ]]; then
     echo "Detected XDG compliant desktop environment."
