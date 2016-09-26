@@ -494,7 +494,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         
         @apiExample {json} Example of JSON to upload
             {
-              @type: "Profile",
+              "@type": "Profile",
               name: "Kai's formula profile",
               searchKeywords: ["x”, "y" ],
               tags: ["tag1", "tag2"],   
