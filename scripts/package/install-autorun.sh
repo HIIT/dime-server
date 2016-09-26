@@ -65,6 +65,11 @@ chmod a+x $DIME_SH
 # Install auto-run depending on platform
 if [[ "$INIT_SYSTEM" = "launchd" ]]; then
     echo "Mac OS X detected, installing launchd script."
+    
+    if [[ ! -e "$HOME/Library/LaunchAgents" ]]; then
+    	echo "~/Library/LaunchAgents folder not found, it will be created"
+    	mkdir "$HOME/Library/LaunchAgents"
+    fi
 
     LAUNCHD_TARGET="$HOME/Library/LaunchAgents/dime-server.plist"
     sed "s;\$DIME_INSTALL_DIR;$DIME_INSTALL_DIR;" install/dime-server.plist > $LAUNCHD_TARGET
@@ -78,7 +83,7 @@ if [[ "$INIT_SYSTEM" = "launchd" ]]; then
     echo "DiMe should now start automatically when you start your computer."
     echo "If you ever wish to disable this, just run:"
     echo
-    echo "launchctl unload ${LAUNCHD_TARGET}"
+    echo "rm ${LAUNCHD_TARGET}"
 
 elif [[ "$INIT_SYSTEM" == "xdg" ]]; then
     echo "Detected XDG compliant desktop environment."

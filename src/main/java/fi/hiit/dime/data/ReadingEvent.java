@@ -45,6 +45,12 @@ public class ReadingEvent extends DesktopEvent {
      */
     public String sessionId;
 
+    /** Id referring to a previous reading session which is related to this event.
+     * If we started reading from scratch, this should be empty. If we started reading by "resuming" an older session, this id should
+     * refer that.
+     */
+    public String previousSessionId;
+
     /** DPI of the screen on which the reading event was generated.
      */
     public Integer dpi;

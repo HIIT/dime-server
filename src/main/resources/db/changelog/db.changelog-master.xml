@@ -1041,4 +1041,14 @@
             <column name="DEVICE" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="marco (generated)" id="1474384900524-1">
+        <addColumn tableName="EVENT">
+            <column name="PREVIOUS_SESSION_ID" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="marco (generated)" id="1474557220996-1">
+        <addColumn tableName="EVENT">
+            <column name="PROPORTION_SEEN" type="DOUBLE(17)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

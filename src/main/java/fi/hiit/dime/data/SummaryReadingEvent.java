@@ -40,6 +40,11 @@ import javax.persistence.Entity;
 @Entity
 public class SummaryReadingEvent extends ReadingEvent {
 
+    /** Proportion of document which was displayed in viewports.
+     * Probably seen by the user, but not guaranteed to have been read.
+     */
+    public Double proportionSeen;
+
     /** Proportion of document which was read
      */
     public Double proportionRead;
