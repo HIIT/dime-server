@@ -864,6 +864,7 @@ On success, the response will be the uploaded object with some fields like the i
         
         @apiExample {json} Example of JSON to upload
             {
+                "@type": "Tag",
                 "text": "mytag",
                 "auto": true,
                 "time": "2016-03-16T21:22:13.000Z"
@@ -920,11 +921,13 @@ On success, the response will be the uploaded object with some fields like the i
         @apiExample {json} Example of JSON to upload
             [
                 {
+                    "@type": "Tag",
                     "text": "mytag",
                     "auto": true,
                     "time": "2016-03-16T21:22:13.000Z"
                 },
                 {
+                    "@type": "Tag",
                     "text": "another tag",
                     "auto": false,
                     "time": "2016-03-16T21:22:14.000Z"
@@ -956,6 +959,7 @@ On success, the response will be the uploaded object with some fields like the i
         
         @apiExample {json} Example of JSON to upload
             {
+                "@type": "Tag",
                 "text": "mytag",
                 "auto": true,
                 "time": "2016-03-16T21:22:13.000Z"
@@ -986,6 +990,7 @@ On success, the response will be the uploaded object with some fields like the i
         
         @apiExample {json} Example of JSON to upload
             {
+                "@type": "Tag",
                 "text": "mytag",
                 "auto": true,
                 "time": "2016-03-16T21:22:13.000Z"
@@ -1015,11 +1020,13 @@ On success, the response will be the uploaded object with some fields like the i
         @apiExample {json} Example of JSON to upload
             [
                 {
+                    "@type": "Tag",
                     "text": "mytag",
                     "auto": true,
                     "time": "2016-03-16T21:22:13.000Z"
                 },
                 {
+                    "@type": "Tag",
                     "text": "another tag",
                     "auto": false,
                     "time": "2016-03-16T21:22:14.000Z"
@@ -1051,6 +1058,7 @@ On success, the response will be the uploaded object with some fields like the i
         
         @apiExample {json} Example of JSON to upload
             {
+                "@type": "Tag",
                 "text": "mytag",
                 "auto": true,
                 "time": "2016-03-16T21:22:13.000Z"
