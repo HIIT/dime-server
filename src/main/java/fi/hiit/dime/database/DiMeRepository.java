@@ -44,7 +44,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
 interface DiMeRepositoryCustom<T extends DiMeData> {
-    public List<T> find(User user, Map<String, String> filterParams);
+    public List<T> find(User user, Map<String, String> filterParams, int page, int limit);
     public T replace(T oldData, T newData);
 }
 
@@ -52,7 +52,7 @@ abstract class DiMeRepositoryImpl<T extends DiMeData> implements DiMeRepositoryC
     @PersistenceContext
     protected EntityManager entityManager;
 
-    @Autowired 
+    @Autowired
     protected ObjectMapper objectMapper;
 
     protected Date parseDateForQuery(String value) {
@@ -69,20 +69,26 @@ abstract class DiMeRepositoryImpl<T extends DiMeData> implements DiMeRepositoryC
     // Java Persistence Query Language Syntax:
     // http://docs.oracle.com/javaee/6/tutorial/doc/bnbuf.html
     protected TypedQuery<T> makeQuery(String q, Map<String, Object> params,
-				User user, Class<T> resultClass) 
+                                      int page, int limit,
+                                      User user, Class<T> resultClass)
     {
-	System.out.println("Find query: " + q);
+        System.out.println("Find query: " + q + " Page: " + page + " Limit: " + limit);
 
         TypedQuery<T> query = entityManager.createQuery(q, resultClass);
-	query = query.setParameter("userId", user.getId());
-	System.out.println("  param: userId = " + user.getId());
+        query = query.setParameter("userId", user.getId());
+        System.out.println("  param: userId = " + user.getId());
 
-	for (Map.Entry<String, Object> p : params.entrySet()) {
-	    System.out.println("  param: " + p.getKey() + " = " + p.getValue());
-	    query = query.setParameter(p.getKey(), p.getValue());
-	}
+        for (Map.Entry<String, Object> p : params.entrySet()) {
+            System.out.println("  param: " + p.getKey() + " = " + p.getValue());
+            query = query.setParameter(p.getKey(), p.getValue());
+        }
 
-	return query;
+        if (limit != -1) {
+            query.setFirstResult(page*limit);
+            query.setMaxResults(limit);
+        }
+
+        return query;
     }
 
     @Override
@@ -94,7 +100,7 @@ abstract class DiMeRepositoryImpl<T extends DiMeData> implements DiMeRepositoryC
 
 @NoRepositoryBean
 public interface DiMeRepository<T extends DiMeData>
-    extends CrudRepository<T, Long>, DiMeRepositoryCustom<T> 
+    extends CrudRepository<T, Long>, DiMeRepositoryCustom<T>
 {
     T findOne(Long id);
 

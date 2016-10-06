@@ -490,6 +490,17 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         return new ResponseEntity<Event[]>(input, HttpStatus.OK);
     }   
 
+    protected int removeFromParams(Map<String, String> params, String... toRemove) {
+        int count = 0;
+        for (String key : toRemove) {
+            if (params.containsKey(key)) {
+                params.remove(key);
+                count += 1;
+            }
+        }
+        return count;
+    }
+
     /** HTTP end point for accessing multiple events via a filtering
         interface.
 
@@ -513,6 +524,8 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         occurring before this time stamp (can be combined with after
         to get a time interval)
 
+        @apiParam (Options) {Integer} [limit] limit number of results
+        @apiParam (Options) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
         @apiParam (Options) {Boolean} [includePlainTextContent] set to
         'true' if you wish to include the plainTextContent of the
         InformationElements linked to the Events (these are normally
@@ -527,18 +540,18 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         events(Authentication auth, 
                @RequestParam(value="includePlainTextContent", required=false,
                              defaultValue="false") Boolean includePlainTextContent,
+               @RequestParam(required=false, defaultValue="0") int page,
+               @RequestParam(required=false, defaultValue="-1") int limit,
                @RequestParam Map<String, String> params) 
         throws BadRequestException
     {
         User user = getUser(auth);
 
-        // remove includePlainTextContent from map since we capture
-        // this separately
-        if (params.containsKey("includePlainTextContent"))
-            params.remove("includePlainTextContent");
+        // remove other parameters from map
+        removeFromParams(params, "includePlainTextContent", "page", "limit");
 
         try {
-            List<Event> events = eventDAO.find(user.getId(), params);
+            List<Event> events = eventDAO.find(user.getId(), params, page, limit);
 
             // We remove plainTextContents of linked
             // InformationElements to reduce verbosity
@@ -764,6 +777,9 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam (Filtering) {String} [tag] exact tag matching (just
         one tag needs to match)
 
+        @apiParam (Options) {Integer} [limit] limit number of results
+        @apiParam (Options) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
+
         @apiExample {HTTP} Example usage:
         # Get all elements containing tag "dime" and mimetype "text/html"
         GET /data/informationelements?tag=dime&amp;mimetype=text/html
@@ -775,14 +791,19 @@ On success, the response will be the uploaded object with some fields like the i
     @RequestMapping(value="/informationelements", method = RequestMethod.GET)
     public ResponseEntity<InformationElement[]>
         informationElements(Authentication auth,
+                            @RequestParam(required=false, defaultValue="0") int page,
+                            @RequestParam(required=false, defaultValue="-1") int limit,
                             @RequestParam Map<String, String> params) 
         throws BadRequestException
     {
         User user = getUser(auth);
 
+        // remove other parameters from map
+        removeFromParams(params, "page", "limit");
+
         try {
             List<InformationElement> infoElems = 
-                infoElemDAO.find(user.getId(), params);
+                infoElemDAO.find(user.getId(), params, page, limit);
 
             InformationElement[] infoElemsArray = 
                 new InformationElement[infoElems.size()];
