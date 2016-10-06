@@ -489,6 +489,11 @@ public class ApiControllerTest extends RestTest {
         // Try fetching a random non-existing profile
         getDataExpectError(profileApi + "/129382190");
 
+        Profile[] profiles = getData(apiUrl("/profiles"), Profile[].class);
+        assertEquals(1, profiles.length);
+        assertEquals(profiles[0].getId(), updatedProfile.getId());
+        assertEquals(profiles[0].name, updatedProfile.name);
+
         // Test deleting profile
         deleteData(profileApi + "/" + id);
         getDataExpectError(profileApi + "/" + id);
