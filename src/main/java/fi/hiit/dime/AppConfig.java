@@ -26,13 +26,17 @@ package fi.hiit.dime;
 
 import fi.hiit.dime.search.SearchIndex;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.context.embedded.ErrorPage;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -59,6 +63,20 @@ public class AppConfig {
             .failOnUnknownProperties(true)
             .featuresToEnable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
             .build();
+    }
+
+    @Bean
+    public EmbeddedServletContainerCustomizer notFoundCustomizer(){
+        return new NotFoundIndexTemplate();
+    }
+
+    private static class NotFoundIndexTemplate 
+        implements EmbeddedServletContainerCustomizer 
+    {
+        @Override
+        public void customize(ConfigurableEmbeddedServletContainer container) {
+            container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/"));
+        }
     }
 
     @Bean
