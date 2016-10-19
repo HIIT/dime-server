@@ -28,5 +28,6 @@ HOWTO
 npm-debug.log
 /src/main/resources/static/.htaccess
 /src/main/resources/static/*.js
+/src/main/resources/static/*.ico
 /src/main/resources/static/index.html
 /src/main/resources/templates/index.html
