@@ -1,0 +1,3 @@
+[submodule "submodules/dime-ui"]
+	path = submodules/dime-ui
+	url = https://github.com/HIIT/dime-ui
