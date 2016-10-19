@@ -10,6 +10,10 @@ PKG_FILE = dime
 DIME_PORT = $(shell test -f config/application-local.properties && ((grep '^server.port=' config/application-local.properties || echo server.port=8080) | sed 's/.*port=//') || echo 8080)
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html' -or -name 'db*.xml' -or -name '*.properties') build.gradle
 
+DIMEUI_SUBMODULE = submodules/dime-ui/package.json
+DIMEUI_TARGET = src/main/resources/static/index.html
+DIMEUI_SOURCE = $(addprefix submodules/dime-ui/,$(shell git -C submodules/dime-ui ls-files))
+
 DIME_HOME = ~/.dime
 
 DOCKER_DIR = $(DIME_HOME)/docker
@@ -22,14 +26,16 @@ all:	assemble
 
 assemble:  $(TARGET)
 
-$(TARGET): $(SOURCES) dime-ui
+$(TARGET): $(SOURCES) $(DIMEUI_TARGET)
 	$(GRADLE) assemble
 
-dime-ui:
-	git submodule init
-	git submodule update
+$(DIMEUI_TARGET): $(DIMEUI_SUBMODULE) $(DIMEUI_SOURCE)
 	cd submodules/dime-ui; npm install; npm run build
 	rsync -var submodules/dime-ui/build/ src/main/resources/static/
+
+$(DIMEUI_SUBMODULE):
+	git submodule init
+	git submodule update
 
 run:    $(TARGET)
 	@lsof -i :$(DIME_PORT) -sTCP:LISTEN && echo '\nERROR: DiMe already running in port $(DIME_PORT)!' || java -jar $(TARGET)
