@@ -22,15 +22,14 @@ all:	assemble
 
 assemble:  $(TARGET)
 
-$(TARGET): $(SOURCES) #nodejs
+$(TARGET): $(SOURCES) dime-ui
 	$(GRADLE) assemble
 
-# nodejs:
-# 	git submodule init
-# 	git submodule update
-# 	cd dime-ui
-# 	npm install
-# 	npm run build
+dime-ui:
+	git submodule init
+	git submodule update
+	cd submodules/dime-ui; npm install; npm run build
+	rsync -var submodules/dime-ui/build/ src/main/resources/static/
 
 run:    $(TARGET)
 	@lsof -i :$(DIME_PORT) -sTCP:LISTEN && echo '\nERROR: DiMe already running in port $(DIME_PORT)!' || java -jar $(TARGET)
