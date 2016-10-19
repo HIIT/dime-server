@@ -11,7 +11,7 @@ DIME_PORT = $(shell test -f config/application-local.properties && ((grep '^serv
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html' -or -name 'db*.xml' -or -name '*.properties') build.gradle
 
 DIMEUI_SUBMODULE = submodules/dime-ui/package.json
-DIMEUI_TARGET = src/main/resources/static/index.html
+DIMEUI_TARGET = src/main/resources/templates/index.html
 DIMEUI_SOURCE = $(addprefix submodules/dime-ui/,$(shell git -C submodules/dime-ui ls-files))
 
 DIME_HOME = ~/.dime
@@ -31,7 +31,8 @@ $(TARGET): $(SOURCES) $(DIMEUI_TARGET)
 
 $(DIMEUI_TARGET): $(DIMEUI_SUBMODULE) $(DIMEUI_SOURCE)
 	cd submodules/dime-ui; npm install; npm run build
-	rsync -var submodules/dime-ui/build/ src/main/resources/static/
+	rsync -var --exclude index.html submodules/dime-ui/build/ src/main/resources/static/
+	rsync -va submodules/dime-ui/build/index.html src/main/resources/templates/
 
 $(DIMEUI_SUBMODULE):
 	git submodule init
