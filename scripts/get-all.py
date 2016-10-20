@@ -23,12 +23,16 @@ if r.status_code != requests.codes.ok:
     print('No connection to DiMe server!')
     sys.exit(1)
 
-r = requests.get(server_url + '/data/informationelements',
+params = ""
+if len(sys.argv) > 1:
+    params = "?" + "&".join(sys.argv[1:])
+
+r = requests.get(server_url + '/data/informationelements' + params,
                  headers={'content-type': 'application/json'},
                  auth=(server_username, server_password),
                  timeout=10)
 
-if r.status_code != requests.codes.ok:
+if r.status_code > 299:
     print('HTTP Error:', r.status_code)
     sys.exit(1)
 
@@ -40,7 +44,5 @@ with open(json_filename, 'w') as fp:
     json.dump(j, fp)
     print("Wrote", json_filename)
 
-# field = 'plainTextContent'
-# for elem in j:
-#     if field in elem:
-#         print('"'+elem[field][:70]+'"')
+for elem in j:
+    print(elem['id'])

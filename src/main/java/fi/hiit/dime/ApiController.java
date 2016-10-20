@@ -494,8 +494,9 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         
         @apiExample {json} Example of JSON to upload
             {
+              "@type": "Profile",
               name: "Kai's formula profile",
-              search_keywords: ["x”, "y" ],
+              searchKeywords: ["x”, "y" ],
               tags: ["tag1", "tag2"],   
             }
 
@@ -543,6 +544,36 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         return new ResponseEntity<Profile>(profile, HttpStatus.OK);
     }   
+
+    /** HTTP end point for accessing all profiles.
+
+        @api {get} /data/profiles Access all profiles
+        @apiName GetProfiles
+        @apiDescription Access all profiles.
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.2
+    */    
+    @RequestMapping(value="/profiles", method = RequestMethod.GET)
+    public ResponseEntity<Profile[]>
+        profiles(Authentication auth) 
+        throws BadRequestException
+    {
+        User user = getUser(auth);
+        
+        try {
+            List<Profile> profiles = profileDAO.profilesForUser(user.getId());
+
+            Profile[] profilesArray = new Profile[profiles.size()];
+            profiles.toArray(profilesArray);        
+
+            return new ResponseEntity<Profile[]>(profilesArray, HttpStatus.OK);
+        } catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
+            throw new BadRequestException("Invalid arguments: " + e);
+        }
+    }
+
 
     /** HTTP end point for deleting a profile.         
         

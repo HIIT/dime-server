@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class ProfileDAO {
@@ -74,6 +75,16 @@ public class ProfileDAO {
     @Transactional(readOnly = true)
     public Profile findById(Long id, User user) {
         return repo.findOneByIdAndUser(id, user);
+    }
+
+    /**
+       Profiles for user.
+
+       @param userId User id
+    */
+    @Transactional(readOnly = true)
+    public List<Profile> profilesForUser(Long userId) {
+        return repo.findByUser(User.makeUser(userId));
     }
 
     /**
