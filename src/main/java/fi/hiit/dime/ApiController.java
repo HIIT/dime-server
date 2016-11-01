@@ -51,6 +51,7 @@ import fi.hiit.dime.search.WeightedKeyword;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -89,6 +90,9 @@ public class ApiController extends AuthorizedController {
     private final InformationElementDAO infoElemDAO;
     private final ProfileDAO profileDAO;
 
+    @Value("${application.formatted-version}")
+    private String dimeVersion;
+
     @Autowired
     private DiMeProperties dimeConfig;
 
@@ -110,18 +114,20 @@ public class ApiController extends AuthorizedController {
     */
     public static class ApiMessage {
         public String message;
+        public String version;
 
         public ApiMessage() {}
 
-        public ApiMessage(String message) {
+        public ApiMessage(String message, String version) {
             this.message = message;
+            this.version = version;
         }
     }
 
     /**
         @api {get} /ping Ping server
         @apiName Ping
-        @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access.
+        @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access. Also returns the DiMe server version.
 
         @apiExample {python} Example usage:
             r = requests.post(server_url + '/ping',
@@ -131,7 +137,8 @@ public class ApiController extends AuthorizedController {
         @apiSuccessExample {json} Example successful response:
             HTTP/1.1 200 OK
             {
-                "message": "pong"
+                "message": "pong",
+                "version": "v0.1.2"
             }
         @apiGroup Status
         @apiVersion 0.1.2
@@ -142,7 +149,7 @@ public class ApiController extends AuthorizedController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<ApiMessage>(new ApiMessage("pong"),
+        return new ResponseEntity<ApiMessage>(new ApiMessage("pong", dimeVersion),
                                               headers, HttpStatus.OK);
     }
 
@@ -553,7 +560,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.2
+        @apiVersion 0.1.3
     */    
     @RequestMapping(value="/profiles", method = RequestMethod.GET)
     public ResponseEntity<Profile[]>
@@ -584,7 +591,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.2
+        @apiVersion 0.1.3
     */
     @RequestMapping(value="/profile/{id}", method = RequestMethod.DELETE)
     public void profileDelete(Authentication auth, @PathVariable Long id) 
@@ -611,7 +618,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.2
+        @apiVersion 0.1.3
      */
     @RequestMapping(value="/profile/{id}/addevent", method = RequestMethod.POST)
     public ResponseEntity<Profile>
@@ -640,7 +647,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.2
+        @apiVersion 0.1.3
      */
     @RequestMapping(value="/profile/{id}/validateevent", method = RequestMethod.POST)
     public ResponseEntity<Profile>
@@ -670,7 +677,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.2
+        @apiVersion 0.1.3
      */
     @RequestMapping(value="/profile/{id}/addinformationelement", method = RequestMethod.POST)
     public ResponseEntity<Profile>
@@ -699,7 +706,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.2
+        @apiVersion 0.1.3
      */
     @RequestMapping(value="/profile/{id}/validateinformationelement", method = RequestMethod.POST)
     public ResponseEntity<Profile>
