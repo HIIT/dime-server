@@ -14,13 +14,14 @@ server_password = 'testuser123'
 
 #------------------------------------------------------------------------------
 
-r = requests.get(server_url + '/data/informationelement/1?keywords=true',
+r = requests.get(server_url + '/data/informationelement/111',
                  headers={'content-type': 'application/json'},
                  auth=(server_username, server_password),
                  timeout=10)
 
 if r.status_code != requests.codes.ok:
     print('HTTP Error:', r.status_code)
+    print(json.dumps(r.json(), indent=2))
     sys.exit(1)
 
 print('DiMe returns:', json.dumps(r.json(), indent=2))
