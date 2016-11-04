@@ -385,13 +385,18 @@ public abstract class RestTest {
                 assertSuccessful(res);
 
             return res.getBody();
-        } catch (HttpMessageNotReadableException ex) {
-            System.out.println(ex);
+        } catch (HttpMessageNotReadableException | RestClientException ex) {
+            System.err.println(ex);
 
-            ResponseEntity<ApiError> res =
-                getRest().getForEntity(apiUrl, ApiError.class);
-            System.out.println(res.getBody());
-
+            if (responseType == ApiError.class) {
+                ResponseEntity<String> res =
+                    getRest().getForEntity(apiUrl, String.class);
+                System.err.println(res.getBody());
+            } else {
+                ResponseEntity<ApiError> res =
+                    getRest().getForEntity(apiUrl, ApiError.class);
+                System.err.println(res.getBody());
+            }
             fail();
         }
         return null;

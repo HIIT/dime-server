@@ -66,20 +66,6 @@ public class AppConfig {
     }
 
     @Bean
-    public EmbeddedServletContainerCustomizer notFoundCustomizer(){
-        return new NotFoundIndexTemplate();
-    }
-
-    private static class NotFoundIndexTemplate 
-        implements EmbeddedServletContainerCustomizer 
-    {
-        @Override
-        public void customize(ConfigurableEmbeddedServletContainer container) {
-            container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/"));
-        }
-    }
-
-    @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurerAdapter() {
             @Override
