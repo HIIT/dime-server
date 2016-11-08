@@ -589,8 +589,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     //--------------------------------------------------------------------------
 
     /** HTTP end point for creating a new profile. 
-        @api {post} /profile Create a new profile
-        @apiName PostProfile
+        @api {post} /profiles Create a new profile
+        @apiName Post
         @apiDescription Create a new profile.
         
         @apiExample {json} Example of JSON to upload
@@ -605,7 +605,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.2
     */
-    @RequestMapping(value="/profile", method = RequestMethod.POST)
+    @RequestMapping(value="/profiles", method = RequestMethod.POST)
     public ResponseEntity<Profile> profile(Authentication auth, @RequestBody Profile input)
         throws NotFoundException, BadRequestException
     {
@@ -623,15 +623,15 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     }   
 
     /** HTTP end point for accessing a given profile. 
-        @api {get} /profile/:id Access profile
-        @apiName GetProfile
+        @api {get} /profiles/:id Access profile
+        @apiName Get
         @apiParam {Number} id Profile's unique ID
 
         @apiPermission user
         @apiGroup Profiles
         @apiVersion 0.1.2
      */
-    @RequestMapping(value="/profile/{id}", method = RequestMethod.GET)
+    @RequestMapping(value="/profiles/{id}", method = RequestMethod.GET)
     public ResponseEntity<Profile>
         profile(Authentication auth, @PathVariable Long id) 
         throws NotFoundException
@@ -648,8 +648,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
     /** HTTP end point for accessing all profiles.
 
-        @api {get} /data/profiles Access all profiles
-        @apiName GetProfiles
+        @api {get} /profiles Access all profiles
+        @apiName GetAll
         @apiDescription Access all profiles.
 
         @apiPermission user
@@ -678,8 +678,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
     /** HTTP end point for deleting a profile.         
         
-        @api {delete} /profile/:id Delete profile
-        @apiName DeleteProfile
+        @api {delete} /profiles/:id Delete profile
+        @apiName Delete
         @apiParam {Number} id Profile's unique ID
         @apiDescription On success, the response will be an empty HTTP 204.
 
@@ -687,7 +687,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
     */
-    @RequestMapping(value="/profile/{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value="/profiles/{id}", method = RequestMethod.DELETE)
     public void profileDelete(Authentication auth, @PathVariable Long id) 
         throws NotFoundException
     {
@@ -700,7 +700,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     //--------------------------------------------------------------------------
 
     /** @api {post} /profile/:id/suggestedevents Add suggested event to profile
-        @apiName ProfileAddSuggestedEvent
+        @apiName PostSuggestedEvents
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
             {
@@ -730,8 +730,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         return new ResponseEntity<EventRelation>(rel, HttpStatus.OK);
     }
 
-    /** @api {delete} /profile/:id/suggestedevent/:rid Delete suggested event from profile
-        @apiName ProfileDeleteSuggestedEvent
+    /** @api {delete} /profile/:id/suggestedevents/:rid Delete suggested event from profile
+        @apiName DeleteSuggestedEvents
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
         @apiDescription On success, the response will be an empty HTTP 204.
@@ -754,7 +754,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     //--------------------------------------------------------------------------
 
     /** @api {post} /profile/:id/validatedevents Add validated event to profile
-        @apiName ProfileAddValidatedEvent
+        @apiName PostValidatedEvents
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
             {
@@ -784,7 +784,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     }
 
     /** @api {delete} /profile/:id/validatedevents/:rid Delete validated event from profile
-        @apiName ProfileDeleteValidatedEvent
+        @apiName DeleteValidatedEvents
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
         @apiDescription On success, the response will be an empty HTTP 204.
@@ -807,7 +807,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     //--------------------------------------------------------------------------
     
     /** @api {post} /profile/:id/suggestedinformationelements Add suggested information element to profile
-        @apiName ProfileAddSuggestedInformationElement
+        @apiName PostSuggestedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
             {
@@ -838,7 +838,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     }
 
     /** @api {delete} /profile/:id/suggestedinformationelements/:rid Delete suggested informationelement from profile
-        @apiName ProfileDeleteSuggestedInformationElement
+        @apiName DeleteSuggestedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
         @apiDescription On success, the response will be an empty HTTP 204.
@@ -861,7 +861,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     //--------------------------------------------------------------------------
 
     /** @api {post} /profile/:id/validatedinformationelements Add validated informationelement to profile
-        @apiName ProfileValidateInformationElement
+        @apiName PostValidatedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
             {
@@ -890,7 +890,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     }   
 
     /** @api {delete} /profile/:id/validatedinformationelements/:rid Delete validated informationelement from profile
-        @apiName ProfileDeleteValidatedInformationElement
+        @apiName DeleteValidatedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
         @apiDescription On success, the response will be an empty HTTP 204.

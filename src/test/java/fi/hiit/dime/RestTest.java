@@ -105,7 +105,7 @@ public abstract class RestTest {
         eventsApi = apiUrl("/data/events");
         infoElemApi = apiUrl("/data/informationelement");
         infoElemsApi = apiUrl("/data/informationelements");
-        profileApi = apiUrl("/profile");
+        profileApi = apiUrl("/profiles");
     }
 
     @After
