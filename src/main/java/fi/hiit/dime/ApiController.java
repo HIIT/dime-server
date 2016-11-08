@@ -699,7 +699,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
     //--------------------------------------------------------------------------
 
-    /** @api {post} /profile/:id/suggestedevents Add suggested event to profile
+    /** @api {post} /profiles/:id/suggestedevents Add suggested event to profile
         @apiName PostSuggestedEvents
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
@@ -716,7 +716,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/suggestedevents", 
+    @RequestMapping(value="/profiles/{id}/suggestedevents", 
                     method = RequestMethod.POST)
     public ResponseEntity<EventRelation>
         profileAddEvent(Authentication auth, @PathVariable Long id,
@@ -730,7 +730,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         return new ResponseEntity<EventRelation>(rel, HttpStatus.OK);
     }
 
-    /** @api {delete} /profile/:id/suggestedevents/:rid Delete suggested event from profile
+    /** @api {delete} /profiles/:id/suggestedevents/:rid Delete suggested event from profile
         @apiName DeleteSuggestedEvents
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
@@ -740,7 +740,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/suggestedevents/{rid}", 
+    @RequestMapping(value="/profiles/{id}/suggestedevents/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteSuggestedEvent(Authentication auth, @PathVariable Long id, 
                                             @PathVariable Long rid)
@@ -753,7 +753,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
     //--------------------------------------------------------------------------
 
-    /** @api {post} /profile/:id/validatedevents Add validated event to profile
+    /** @api {post} /profiles/:id/validatedevents Add validated event to profile
         @apiName PostValidatedEvents
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
@@ -769,7 +769,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/validatedevents", 
+    @RequestMapping(value="/profiles/{id}/validatedevents", 
                     method = RequestMethod.POST)
     public ResponseEntity<EventRelation>
         profileValidateEvent(Authentication auth, @PathVariable Long id,
@@ -783,7 +783,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         return new ResponseEntity<EventRelation>(rel, HttpStatus.OK);
     }
 
-    /** @api {delete} /profile/:id/validatedevents/:rid Delete validated event from profile
+    /** @api {delete} /profiles/:id/validatedevents/:rid Delete validated event from profile
         @apiName DeleteValidatedEvents
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
@@ -793,7 +793,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/validatedevents/{rid}", 
+    @RequestMapping(value="/profiles/{id}/validatedevents/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteValidateEvent(Authentication auth, @PathVariable Long id, 
                                                         @PathVariable Long rid)
@@ -806,7 +806,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
     //--------------------------------------------------------------------------
     
-    /** @api {post} /profile/:id/suggestedinformationelements Add suggested information element to profile
+    /** @api {post} /profiles/:id/suggestedinformationelements Add suggested information element to profile
         @apiName PostSuggestedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
@@ -823,7 +823,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/suggestedinformationelements", 
+    @RequestMapping(value="/profiles/{id}/suggestedinformationelements", 
                     method = RequestMethod.POST)
     public ResponseEntity<InformationElementRelation>
         profileAddInformationElement(Authentication auth, @PathVariable Long id,
@@ -837,7 +837,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         return new ResponseEntity<InformationElementRelation>(rel, HttpStatus.OK);
     }
 
-    /** @api {delete} /profile/:id/suggestedinformationelements/:rid Delete suggested informationelement from profile
+    /** @api {delete} /profiles/:id/suggestedinformationelements/:rid Delete suggested informationelement from profile
         @apiName DeleteSuggestedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
@@ -847,7 +847,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/suggestedinformationelements/{rid}", 
+    @RequestMapping(value="/profiles/{id}/suggestedinformationelements/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteSuggestedInformationElement(Authentication auth, @PathVariable Long id, 
                                                          @PathVariable Long rid)
@@ -860,7 +860,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
    
     //--------------------------------------------------------------------------
 
-    /** @api {post} /profile/:id/validatedinformationelements Add validated informationelement to profile
+    /** @api {post} /profiles/:id/validatedinformationelements Add validated informationelement to profile
         @apiName PostValidatedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
@@ -876,7 +876,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/validatedinformationelements", method = RequestMethod.POST)
+    @RequestMapping(value="/profiles/{id}/validatedinformationelements", method = RequestMethod.POST)
     public ResponseEntity<InformationElementRelation>
         profileValidateInformationElement(Authentication auth, @PathVariable Long id,
                                           @RequestBody InformationElementRelation validatedRelation)
@@ -889,7 +889,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         return new ResponseEntity<InformationElementRelation>(rel, HttpStatus.OK);
     }   
 
-    /** @api {delete} /profile/:id/validatedinformationelements/:rid Delete validated informationelement from profile
+    /** @api {delete} /profiles/:id/validatedinformationelements/:rid Delete validated informationelement from profile
         @apiName DeleteValidatedInformationElements
         @apiParam {Number} id Profile's unique ID
         @apiParam {Number} rid The ID of the validation relation
@@ -899,7 +899,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/validatedinformationelements/{rid}", 
+    @RequestMapping(value="/profiles/{id}/validatedinformationelements/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteValidateInformationElement(Authentication auth, @PathVariable Long id, 
                                                         @PathVariable Long rid)
