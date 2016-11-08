@@ -442,16 +442,16 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     }
 
     /**
-     * Helper method to update profile.
+     * Helper method to update profile with EventRelation.
      *
      * @param profileId Id of the profile to update
-     * @param relation The relation to add to the profile
+     * @param relation The EventRelation to add to the profile
      * @param validated True if the relation is a "validation" relation, otherwise it is "suggested"
      * @param user current authenticated user
      */
     @Transactional
-    private Profile updateProfile(Long profileId, DiMeDataRelation relation, boolean validated, 
-                                  User user) 
+    private EventRelation updateProfile(Long profileId, EventRelation relation, boolean validated,
+                                        User user) 
         throws NotFoundException, BadRequestException
     {
         try {
@@ -460,39 +460,133 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
             if (profile == null || !profile.user.getId().equals(user.getId()))
                 throw new NotFoundException("Profile not found");
  
-            if (relation instanceof EventRelation) {
-                EventRelation eventRelation = (EventRelation)relation;
-                Event event = eventDAO.findById(eventRelation.event.getId());
+            Event event = eventDAO.findById(relation.event.getId());
                 
-                if (event == null || !event.user.getId().equals(user.getId()))
-                    throw new NotFoundException("Event not found");
+            if (event == null || !event.user.getId().equals(user.getId()))
+                throw new NotFoundException("Event not found");
  
-                eventRelation.event = event;
+            relation.event = event;
+            
+            if (validated) 
+                profile.validateEvent(relation);
+            else
+                profile.addEvent(relation);
 
-                if (validated) 
-                    profile.validateEvent(eventRelation);
-                else
-                    profile.addEvent(eventRelation);
-            } else if (relation instanceof InformationElementRelation) {
-                InformationElementRelation elemRelation = (InformationElementRelation)relation;
-                InformationElement elem = 
-                    infoElemDAO.findById(elemRelation.informationElement.getId());
-                
-                if (elem == null || !elem.user.getId().equals(user.getId()))
-                    throw new NotFoundException("InformationElement not found");
+            profile = storeProfile(profile, user);
 
-                elemRelation.informationElement = elem;
+            if (validated)
+                return profile.findValidatedEvent(relation);
+            else
+                return profile.findSuggestedEvent(relation);
 
-                if (validated) 
-                    profile.validateInformationElement(elemRelation);
-                else
-                    profile.addInformationElement(elemRelation);
-            }                
-            return storeProfile(profile, user);
         } catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
             throw new BadRequestException("Invalid argument: " + relation);
         }
     }
+
+    /**
+     * Helper method to update profile with InformationElementRelation.
+     *
+     * @param profileId Id of the profile to update
+     * @param relation The InformationElementRelation to add to the profile
+     * @param validated True if the relation is a "validation" relation, otherwise it is "suggested"
+     * @param user current authenticated user
+     */
+    @Transactional
+    private InformationElementRelation updateProfile(Long profileId,
+                                                     InformationElementRelation relation, 
+                                                     boolean validated, User user) 
+        throws NotFoundException, BadRequestException
+    {
+        try {
+            Profile profile = profileDAO.findById(profileId, user);
+
+            if (profile == null || !profile.user.getId().equals(user.getId()))
+                throw new NotFoundException("Profile not found");
+ 
+            InformationElement elem = infoElemDAO.findById(relation.informationElement.getId());
+            
+            if (elem == null || !elem.user.getId().equals(user.getId()))
+                throw new NotFoundException("InformationElement not found");
+            
+            relation.informationElement = elem;
+            
+            if (validated)
+                profile.validateInformationElement(relation);
+            else
+                profile.addInformationElement(relation);
+
+            profile = storeProfile(profile, user);
+
+            if (validated)
+                return profile.findValidatedInformationElement(relation);
+            else
+                return profile.findSuggestedInformationElement(relation);
+
+        } catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
+            throw new BadRequestException("Invalid argument: " + relation);
+        }
+    }
+
+    private Profile getProfile(Long profileId, User user) 
+        throws NotFoundException 
+    {
+        Profile profile = profileDAO.findById(profileId, user);
+        
+        if (profile == null || !profile.user.getId().equals(user.getId()))
+            throw new NotFoundException("Profile not found");
+        return profile;
+    }
+
+    @Transactional
+    private void deleteProfileInformationElementRelation(Long profileId, Long relationId, 
+                                                         boolean validated, User user) 
+        throws NotFoundException
+    {
+        Profile profile = getProfile(profileId, user);
+
+        InformationElementRelation relation = null;
+        if (validated)
+            relation = profile.findValidatedInformationElement(relationId);
+        else
+            relation = profile.findSuggestedInformationElement(relationId);
+
+        if (relation == null)
+            throw new NotFoundException("Relation not found");
+
+        if (validated)
+            profile.removeValidatedInformationElement(relation);
+        else
+            profile.removeInformationElement(relation);
+
+        storeProfile(profile, user);
+    }
+
+    @Transactional
+    private void deleteProfileEventRelation(Long profileId, Long relationId, 
+                                            boolean validated, User user) 
+        throws NotFoundException
+    {
+        Profile profile = getProfile(profileId, user); 
+
+        EventRelation relation = null;
+        if (validated)
+            relation = profile.findValidatedEvent(relationId);
+        else
+            relation = profile.findSuggestedEvent(relationId);
+
+        if (relation == null)
+            throw new NotFoundException("Relation not found");
+
+        if (validated)
+            profile.removeValidatedEvent(relation);
+        else
+            profile.removeEvent(relation);
+
+        storeProfile(profile, user);
+    }
+
+    //--------------------------------------------------------------------------
 
     /** HTTP end point for creating a new profile. 
         @api {post} /profile Create a new profile
@@ -603,8 +697,10 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
             throw new NotFoundException("Profile not found");
     }
 
-    /** @api {post} /profile/:id/addevent Suggest event to profile
-        @apiName ProfileAddEvent
+    //--------------------------------------------------------------------------
+
+    /** @api {post} /profile/:id/suggestedevents Add suggested event to profile
+        @apiName ProfileAddSuggestedEvent
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
             {
@@ -620,21 +716,45 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/addevent", method = RequestMethod.POST)
-    public ResponseEntity<Profile>
+    @RequestMapping(value="/profile/{id}/suggestedevents", 
+                    method = RequestMethod.POST)
+    public ResponseEntity<EventRelation>
         profileAddEvent(Authentication auth, @PathVariable Long id,
                         @RequestBody EventRelation suggestedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
-        
-        Profile profile = updateProfile(id, suggestedRelation, false, user);
 
-        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
+        EventRelation rel = updateProfile(id, suggestedRelation, false, user);
+
+        return new ResponseEntity<EventRelation>(rel, HttpStatus.OK);
+    }
+
+    /** @api {delete} /profile/:id/suggestedevent/:rid Delete suggested event from profile
+        @apiName ProfileDeleteSuggestedEvent
+        @apiParam {Number} id Profile's unique ID
+        @apiParam {Number} rid The ID of the validation relation
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profile/{id}/suggestedevents/{rid}", 
+                    method = RequestMethod.DELETE)
+    public void profileDeleteSuggestedEvent(Authentication auth, @PathVariable Long id, 
+                                            @PathVariable Long rid)
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        deleteProfileEventRelation(id, rid, false, user);
     }   
 
-    /** @api {post} /profile/:id/validateevent Validate an event for the profile
-        @apiName ProfileValidateEvent
+    //--------------------------------------------------------------------------
+
+    /** @api {post} /profile/:id/validatedevents Add validated event to profile
+        @apiName ProfileAddValidatedEvent
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
             {
@@ -649,21 +769,45 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/validateevent", method = RequestMethod.POST)
-    public ResponseEntity<Profile>
+    @RequestMapping(value="/profile/{id}/validatedevents", 
+                    method = RequestMethod.POST)
+    public ResponseEntity<EventRelation>
         profileValidateEvent(Authentication auth, @PathVariable Long id,
                              @RequestBody EventRelation validatedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
 
-        Profile profile = updateProfile(id, validatedRelation, true, user);
+        EventRelation rel = updateProfile(id, validatedRelation, true, user);
 
-        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
+        return new ResponseEntity<EventRelation>(rel, HttpStatus.OK);
+    }
+
+    /** @api {delete} /profile/:id/validatedevents/:rid Delete validated event from profile
+        @apiName ProfileDeleteValidatedEvent
+        @apiParam {Number} id Profile's unique ID
+        @apiParam {Number} rid The ID of the validation relation
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profile/{id}/validatedevents/{rid}", 
+                    method = RequestMethod.DELETE)
+    public void profileDeleteValidateEvent(Authentication auth, @PathVariable Long id, 
+                                                        @PathVariable Long rid)
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        deleteProfileEventRelation(id, rid, true, user);
     }   
 
-    /** @api {post} /profile/:id/addinformationelement Suggest information element to profile
-        @apiName ProfileAddInformationElement
+    //--------------------------------------------------------------------------
+    
+    /** @api {post} /profile/:id/suggestedinformationelements Add suggested information element to profile
+        @apiName ProfileAddSuggestedInformationElement
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
             {
@@ -679,20 +823,44 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/addinformationelement", method = RequestMethod.POST)
-    public ResponseEntity<Profile>
+    @RequestMapping(value="/profile/{id}/suggestedinformationelements", 
+                    method = RequestMethod.POST)
+    public ResponseEntity<InformationElementRelation>
         profileAddInformationElement(Authentication auth, @PathVariable Long id,
                                      @RequestBody InformationElementRelation suggestedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
 
-        Profile profile = updateProfile(id, suggestedRelation, false, user);
+        InformationElementRelation rel = updateProfile(id, suggestedRelation, false, user);
 
-        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
+        return new ResponseEntity<InformationElementRelation>(rel, HttpStatus.OK);
+    }
+
+    /** @api {delete} /profile/:id/suggestedinformationelements/:rid Delete suggested informationelement from profile
+        @apiName ProfileDeleteSuggestedInformationElement
+        @apiParam {Number} id Profile's unique ID
+        @apiParam {Number} rid The ID of the validation relation
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profile/{id}/suggestedinformationelements/{rid}", 
+                    method = RequestMethod.DELETE)
+    public void profileDeleteSuggestedInformationElement(Authentication auth, @PathVariable Long id, 
+                                                         @PathVariable Long rid)
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        deleteProfileInformationElementRelation(id, rid, false, user);
     }   
+   
+    //--------------------------------------------------------------------------
 
-    /** @api {post} /profile/:id/validateinformationelement Validate an informationelement for the profile
+    /** @api {post} /profile/:id/validatedinformationelements Add validated informationelement to profile
         @apiName ProfileValidateInformationElement
         @apiParam {Number} id Profile's unique ID
         @apiExample  {json} Example of JSON to upload
@@ -708,16 +876,38 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
-    @RequestMapping(value="/profile/{id}/validateinformationelement", method = RequestMethod.POST)
-    public ResponseEntity<Profile>
+    @RequestMapping(value="/profile/{id}/validatedinformationelements", method = RequestMethod.POST)
+    public ResponseEntity<InformationElementRelation>
         profileValidateInformationElement(Authentication auth, @PathVariable Long id,
                                           @RequestBody InformationElementRelation validatedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
 
-        Profile profile = updateProfile(id, validatedRelation, true, user);
+        InformationElementRelation rel = updateProfile(id, validatedRelation, true, user);
 
-        return new ResponseEntity<Profile>(profile, HttpStatus.OK);
+        return new ResponseEntity<InformationElementRelation>(rel, HttpStatus.OK);
     }   
+
+    /** @api {delete} /profile/:id/validatedinformationelements/:rid Delete validated informationelement from profile
+        @apiName ProfileDeleteValidatedInformationElement
+        @apiParam {Number} id Profile's unique ID
+        @apiParam {Number} rid The ID of the validation relation
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profile/{id}/validatedinformationelements/{rid}", 
+                    method = RequestMethod.DELETE)
+    public void profileDeleteValidateInformationElement(Authentication auth, @PathVariable Long id, 
+                                                        @PathVariable Long rid)
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        deleteProfileInformationElementRelation(id, rid, true, user);
+    }   
+
 }

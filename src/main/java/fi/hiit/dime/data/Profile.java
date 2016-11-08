@@ -89,12 +89,12 @@ public class Profile extends AbstractPersistable<Long> {
     public List<String> tags;
 
     /** List of validated events, i.e. user has confirmed they belong to the profile. */
-    @OneToMany(cascade=CascadeType.ALL)
+    @OneToMany(cascade=CascadeType.ALL, orphanRemoval=true)
     public List<EventRelation> validatedEvents;
 
     /** List of suggested events, i.e. suggested as belonging to the
      * profile by an algorithm. (Also later confirmed events will be here.) */
-    @OneToMany(cascade=CascadeType.ALL)
+    @OneToMany(cascade=CascadeType.ALL, orphanRemoval=true)
     public List<EventRelation> suggestedEvents;
 
     /** List of validated information elements, i.e. user has confirmed
@@ -117,9 +117,7 @@ public class Profile extends AbstractPersistable<Long> {
         @param relationList The list to search
         @return List of matching relations in the given list
      */
-    protected <R extends DiMeDataRelation> List<R> findRelation(R relation,
-                                                                List<R> relationList) 
-    {
+    protected <R extends DiMeDataRelation> List<R> findRelation(R relation, List<R> relationList) {
         List<R> ret = new ArrayList<R>();
         for (R r : relationList) {
             boolean sameData = r.getData() == relation.getData() || 
@@ -132,17 +130,74 @@ public class Profile extends AbstractPersistable<Long> {
         return ret;
     }
 
+    protected <R extends DiMeDataRelation> R findOneRelation(R relation, List<R> relationList) {
+        List<R> found = findRelation(relation, relationList);
+        assert(found.size() <= 1);
+        if (found.size() == 0)
+            return null;
+        return found.get(0);
+    }
+
+    public EventRelation findSuggestedEvent(EventRelation rel) {
+        return findOneRelation(rel, suggestedEvents);
+    }
+
+    public EventRelation findValidatedEvent(EventRelation rel) {
+        return findOneRelation(rel, validatedEvents);
+    }
+
+    public InformationElementRelation findSuggestedInformationElement(InformationElementRelation rel) {
+        return findOneRelation(rel, suggestedInformationElements);
+    }
+
+    public InformationElementRelation findValidatedInformationElement(InformationElementRelation rel) {
+        return findOneRelation(rel, validatedInformationElements);
+    }
+
+    protected <R extends DiMeDataRelation> R findRelation(Long id, List<R> relationList) {
+        for (R r : relationList)
+            if (r.getId().equals(id))
+                return r;
+        return null;
+    }
+
+    public EventRelation findValidatedEvent(Long id) {
+        return findRelation(id, validatedEvents);
+    }
+
+    public EventRelation findSuggestedEvent(Long id) {
+        return findRelation(id, suggestedEvents);
+    }
+
+    public InformationElementRelation findValidatedInformationElement(Long id) {
+        return findRelation(id, validatedInformationElements);
+    }
+
+    public InformationElementRelation findSuggestedInformationElement(Long id) {
+        return findRelation(id, suggestedInformationElements);
+    }
+    
     /** Helper method for adding a relation, e.g. suggested event. 
         @param relation Relation to add
         @param relationList List to add to
     */
     protected <R extends DiMeDataRelation> void addRelation(R relation, List<R> relationList) {
-        List<R> found = findRelation(relation, relationList);
-        assert(found.size() <= 1);
-        for (R r : found)
-            relationList.remove(r);
+        removeRelation(relation, relationList);
 
         relationList.add(relation);
+    }
+
+    /** Helper method for removing a relation.
+        @param relation Relation to remove
+        @param relationList List to remove from
+    */
+    protected <R extends DiMeDataRelation> boolean removeRelation(R relation, List<R> relationList) {
+        R found = findOneRelation(relation, relationList);
+        if (found != null) {
+            relationList.remove(found);
+            return true;
+        }
+        return false;
     }
 
     /** Add suggested event relation.
@@ -161,6 +216,14 @@ public class Profile extends AbstractPersistable<Long> {
     */
     public void addEvent(Event event, double weight, String actor) {
         addEvent(new EventRelation(event, weight, actor));
+    }
+
+    /** Remove suggested event relation.
+
+        @param suggestedRelation relation to remove
+    */
+    public void removeEvent(EventRelation rel) {
+        removeRelation(rel, suggestedEvents);
     }
 
     /** Add validated event relation.
@@ -186,6 +249,18 @@ public class Profile extends AbstractPersistable<Long> {
         validateEvent(new EventRelation(event, weight, actor, true));
     }
 
+    /** Remove validated event relation.
+
+        @param validatedRelation relation to remove
+    */
+    public void removeValidatedEvent(EventRelation rel) {
+        removeRelation(rel, validatedEvents);
+
+        List<EventRelation> found = findRelation(rel, suggestedEvents);
+        for (EventRelation r : found)
+            r.validated = false;
+    }
+
     /** Add suggested information element relation.
 
         @param suggestedRelation relation to add
@@ -202,6 +277,14 @@ public class Profile extends AbstractPersistable<Long> {
     */
     public void addInformationElement(InformationElement elem, double weight, String actor) {
         addInformationElement(new InformationElementRelation(elem, weight, actor));
+    }
+
+    /** Remove suggested information element relation.
+
+        @param suggestedRelation relation to remove
+    */
+    public void removeInformationElement(InformationElementRelation rel) {
+        removeRelation(rel, suggestedInformationElements);
     }
 
     /** Add validated information element relation.
@@ -226,6 +309,18 @@ public class Profile extends AbstractPersistable<Long> {
     */
     public void validateInformationElement(InformationElement elem, double weight, String actor) {
         validateInformationElement(new InformationElementRelation(elem, weight, actor, true));
+    }
+
+    /** Remove validated information element relation.
+
+        @param validatedRelation relation to remove
+    */
+    public void removeValidatedInformationElement(InformationElementRelation rel) {
+        removeRelation(rel, validatedInformationElements);
+
+        List<InformationElementRelation> found = findRelation(rel, suggestedInformationElements);
+        for (InformationElementRelation r : found)
+            r.validated = false;
     }
 
     /** User that owns the profile - automatically generated by DiMe.
