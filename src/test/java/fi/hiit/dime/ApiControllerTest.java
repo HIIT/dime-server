@@ -312,13 +312,13 @@ public class ApiControllerTest extends RestTest {
     public void testProfiles() throws Exception {
         // Create a document
         Document doc = new Document();
-        doc.uri = "http://www.example.com/hello2.txt";
+        doc.uri = "http://www.example.com/hello68.txt";
         doc.plainTextContent = "Hello, world";
         doc.mimeType = "text/plain";
 
         // Create feedback, with document embedded
         FeedbackEvent event1 = new FeedbackEvent();
-        event1.value = 0.22;
+        event1.value = 0.68;
         event1.targettedResource = doc;
 
         FeedbackEvent outEvent1 = uploadEvent(event1, FeedbackEvent.class);
@@ -329,9 +329,9 @@ public class ApiControllerTest extends RestTest {
         profile.tags.add("Formula1");
         profile.tags.add("motorsports");
         profile.tags.add("kimi raikkonen");
-        // profile.addEvent(makeStub(outEvent1, FeedbackEvent.class), 0.9, "UnitTest");
-        // profile.addInformationElement(makeStub((Document)outEvent1.targettedResource, 
-        //                                        Document.class), 0.8, "UnitTest");
+        profile.addEvent(makeStub(outEvent1, FeedbackEvent.class), 0.9, "UnitTest");
+        profile.addInformationElement(makeStub((Document)outEvent1.targettedResource, 
+                                               Document.class), 0.8, "UnitTest");
         
         dumpData("profile before", profile);
         Profile uploadedProfile = uploadData(profileApi, profile,
@@ -342,6 +342,11 @@ public class ApiControllerTest extends RestTest {
         assertEquals(profile.tags.size(), uploadedProfile.tags.size());
         Long id = uploadedProfile.getId();
         assertTrue(id != null && id > 0);
+
+        assertEquals(1, uploadedProfile.suggestedEvents.size());
+        assertEquals(0, uploadedProfile.validatedEvents.size());
+        assertEquals(1, uploadedProfile.suggestedInformationElements.size());
+        assertEquals(0, uploadedProfile.validatedInformationElements.size());
 
         // Test fetching an existing one
         Profile gotProfile = getData(profileApiUrl(id), Profile.class);
@@ -370,45 +375,58 @@ public class ApiControllerTest extends RestTest {
         Long gotUpdatedId = gotUpdatedProfile.getId();
         assertEquals(id, gotUpdatedId);
 
+        // Create a document
+        Document doc1 = new Document();
+        doc1.uri = "http://www.example.com/hello2.txt";
+        doc1.plainTextContent = "Hello, world";
+        doc1.mimeType = "text/plain";
+
+        // Create feedback, with document embedded
+        FeedbackEvent event2 = new FeedbackEvent();
+        event2.value = 0.22;
+        event2.targettedResource = doc1;
+
+        FeedbackEvent outEvent2 = uploadEvent(event2, FeedbackEvent.class);
+
         // Test adding a suggested event
-        EventRelation eventSuggestion = new EventRelation(outEvent1, 0.42, "UnitTest");
+        EventRelation eventSuggestion = new EventRelation(outEvent2, 0.42, "UnitTest");
         dumpData("eventSuggestion", eventSuggestion);
         EventRelation suggestedEvent = uploadData(profileApiUrl(id, "suggestedevents"),
                                                   eventSuggestion, EventRelation.class);
 
         Profile gotProfile2 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile2", gotProfile2);
-        assertEquals(1, gotProfile2.suggestedEvents.size());
+        assertEquals(2, gotProfile2.suggestedEvents.size());
         assertEquals(0, gotProfile2.validatedEvents.size());
-        assertEquals(0, gotProfile2.suggestedInformationElements.size());
+        assertEquals(1, gotProfile2.suggestedInformationElements.size());
         assertEquals(0, gotProfile2.validatedInformationElements.size());
 
         // Test adding a suggested non-existent event
-        EventRelation eventSuggestionBad = new EventRelation(event1, 0.42, "UnitTest");
+        EventRelation eventSuggestionBad = new EventRelation(event2, 0.42, "UnitTest");
         uploadData(profileApiUrl(id, "suggestedevents"), eventSuggestionBad, ApiError.class);
 
         Profile gotProfile3 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile3", gotProfile3);
-        assertEquals(1, gotProfile3.suggestedEvents.size());
+        assertEquals(2, gotProfile3.suggestedEvents.size());
         assertEquals(0, gotProfile3.validatedEvents.size());
-        assertEquals(0, gotProfile3.suggestedInformationElements.size());
+        assertEquals(1, gotProfile3.suggestedInformationElements.size());
         assertEquals(0, gotProfile3.validatedInformationElements.size());
 
         // Test validating an event
-        EventRelation eventValidation = new EventRelation(outEvent1, 0.90, "UnitTest");
+        EventRelation eventValidation = new EventRelation(outEvent2, 0.90, "UnitTest");
         EventRelation validatedEvent = uploadData(profileApiUrl(id, "validatedevents"),
                                                   eventValidation, EventRelation.class);
 
         Profile gotProfile4 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile4", gotProfile4);
-        assertEquals(1, gotProfile4.suggestedEvents.size());
+        assertEquals(2, gotProfile4.suggestedEvents.size());
         assertEquals(1, gotProfile4.validatedEvents.size());
-        assertEquals(0, gotProfile4.suggestedInformationElements.size());
+        assertEquals(1, gotProfile4.suggestedInformationElements.size());
         assertEquals(0, gotProfile4.validatedInformationElements.size());
 
         // Check that the corresponding event in suggested events also was updated.
         assertTrue(gotProfile4.validatedEvents.get(0).validated);
-        assertTrue(gotProfile4.suggestedEvents.get(0).validated);
+        assertTrue(gotProfile4.suggestedEvents.get(1).validated);
 
         // Test adding a suggested information element
         Document doc2 = new Document();
@@ -426,9 +444,9 @@ public class ApiControllerTest extends RestTest {
 
         Profile gotProfile5 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile5", gotProfile5);
-        assertEquals(1, gotProfile5.suggestedEvents.size());
+        assertEquals(2, gotProfile5.suggestedEvents.size());
         assertEquals(1, gotProfile5.validatedEvents.size());
-        assertEquals(1, gotProfile5.suggestedInformationElements.size());
+        assertEquals(2, gotProfile5.suggestedInformationElements.size());
         assertEquals(0, gotProfile5.validatedInformationElements.size());
 
         // Test validating new element
@@ -446,13 +464,13 @@ public class ApiControllerTest extends RestTest {
 
         Profile gotProfile6 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile6", gotProfile6);
-        assertEquals(1, gotProfile6.suggestedEvents.size());
+        assertEquals(2, gotProfile6.suggestedEvents.size());
         assertEquals(1, gotProfile6.validatedEvents.size());
-        assertEquals(1, gotProfile6.suggestedInformationElements.size());
+        assertEquals(2, gotProfile6.suggestedInformationElements.size());
         assertEquals(1, gotProfile6.validatedInformationElements.size());
 
         assertTrue(gotProfile6.validatedInformationElements.get(0).validated);
-        assertFalse(gotProfile6.suggestedInformationElements.get(0).validated);
+        assertFalse(gotProfile6.suggestedInformationElements.get(1).validated);
 
         // Test validating previously suggested element
         InformationElementRelation elemValidation2 = 
@@ -462,14 +480,14 @@ public class ApiControllerTest extends RestTest {
 
         Profile gotProfile7 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile7", gotProfile7);
-        assertEquals(1, gotProfile7.suggestedEvents.size());
+        assertEquals(2, gotProfile7.suggestedEvents.size());
         assertEquals(1, gotProfile7.validatedEvents.size());
-        assertEquals(1, gotProfile7.suggestedInformationElements.size());
+        assertEquals(2, gotProfile7.suggestedInformationElements.size());
         assertEquals(2, gotProfile7.validatedInformationElements.size());
 
         assertTrue(gotProfile7.validatedInformationElements.get(0).validated);
         assertTrue(gotProfile7.validatedInformationElements.get(1).validated);
-        assertTrue(gotProfile7.suggestedInformationElements.get(0).validated);
+        assertTrue(gotProfile7.suggestedInformationElements.get(1).validated);
 
         // Test re-validating previously validated element
         InformationElementRelation elemValidation3 = 
@@ -480,20 +498,20 @@ public class ApiControllerTest extends RestTest {
 
         Profile gotProfile8 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile8", gotProfile8);
-        assertEquals(1, gotProfile8.suggestedEvents.size());
+        assertEquals(2, gotProfile8.suggestedEvents.size());
         assertEquals(1, gotProfile8.validatedEvents.size());
-        assertEquals(1, gotProfile8.suggestedInformationElements.size());
+        assertEquals(2, gotProfile8.suggestedInformationElements.size());
         assertEquals(2, gotProfile8.validatedInformationElements.size());
         assertEquals(0.99, gotProfile8.validatedInformationElements.get(1).weight, 0.0001);
 
         assertTrue(gotProfile8.validatedInformationElements.get(0).validated);
         assertTrue(gotProfile8.validatedInformationElements.get(1).validated);
-        assertTrue(gotProfile8.suggestedInformationElements.get(0).validated);
+        assertTrue(gotProfile8.suggestedInformationElements.get(1).validated);
 
         // Test direct GET requests on the profile's lists 
         EventRelation[] resSuggestedEvents = getData(profileApiUrl(id, "suggestedevents"),
                                                      EventRelation[].class);
-        assertEquals(1, resSuggestedEvents.length);
+        assertEquals(2, resSuggestedEvents.length);
 
         EventRelation[] resValidatedEvents = getData(profileApiUrl(id, "validatedevents"),
                                                      EventRelation[].class);
@@ -502,7 +520,7 @@ public class ApiControllerTest extends RestTest {
         InformationElementRelation[] resSuggestedElems = 
             getData(profileApiUrl(id, "suggestedinformationelements"),
                     InformationElementRelation[].class);
-        assertEquals(1, resSuggestedElems.length);
+        assertEquals(2, resSuggestedElems.length);
 
         InformationElementRelation[] resValidatedElems = 
             getData(profileApiUrl(id, "validatedinformationelements"),
@@ -514,16 +532,16 @@ public class ApiControllerTest extends RestTest {
 
         Profile gotProfile9 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile9", gotProfile9);
-        assertEquals(1, gotProfile9.suggestedInformationElements.size());
+        assertEquals(2, gotProfile9.suggestedInformationElements.size());
         assertEquals(1, gotProfile9.validatedInformationElements.size());
-        assertFalse(gotProfile9.suggestedInformationElements.get(0).validated);
+        assertFalse(gotProfile9.suggestedInformationElements.get(1).validated);
 
         // Test deleting suggested infoelem
         deleteData(profileApiUrl(id, "suggestedinformationelements", suggestedElem.getId()));
 
         Profile gotProfile10 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile10", gotProfile10);
-        assertEquals(0, gotProfile10.suggestedInformationElements.size());
+        assertEquals(1, gotProfile10.suggestedInformationElements.size());
         assertEquals(1, gotProfile10.validatedInformationElements.size());
 
         // Test deleting validated event
@@ -532,7 +550,7 @@ public class ApiControllerTest extends RestTest {
 
         Profile gotProfile11 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile11", gotProfile11);
-        assertEquals(1, gotProfile11.suggestedEvents.size());
+        assertEquals(2, gotProfile11.suggestedEvents.size());
         assertEquals(0, gotProfile11.validatedEvents.size());
         assertFalse(gotProfile11.suggestedEvents.get(0).validated);
 
@@ -541,7 +559,7 @@ public class ApiControllerTest extends RestTest {
 
         Profile gotProfile12 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile12", gotProfile10);
-        assertEquals(0, gotProfile12.suggestedEvents.size());
+        assertEquals(1, gotProfile12.suggestedEvents.size());
         assertEquals(0, gotProfile12.validatedEvents.size());
 
         // Try fetching a random non-existing profile

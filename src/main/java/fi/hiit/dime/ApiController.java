@@ -441,6 +441,40 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         return profile;
     }
 
+    private void addEventRelation(Profile profile, EventRelation relation, boolean validated,
+                                  User user) 
+        throws NotFoundException
+    {
+        Event event = eventDAO.findById(relation.event.getId());
+                
+        if (event == null || !event.user.getId().equals(user.getId()))
+            throw new NotFoundException("Event not found");
+ 
+        relation.event = event;
+            
+        if (validated) 
+            profile.validateEvent(relation);
+        else
+            profile.addEvent(relation);
+    }
+
+    private void addInformationElementRelation(Profile profile, InformationElementRelation relation,
+                                               boolean validated, User user) 
+        throws NotFoundException
+    {
+        InformationElement elem = infoElemDAO.findById(relation.informationElement.getId());
+            
+        if (elem == null || !elem.user.getId().equals(user.getId()))
+            throw new NotFoundException("InformationElement not found");
+            
+        relation.informationElement = elem;
+        
+        if (validated)
+            profile.validateInformationElement(relation);
+        else
+            profile.addInformationElement(relation);
+    }
+
     /**
      * Helper method to update profile with EventRelation.
      *
@@ -460,17 +494,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
             if (profile == null || !profile.user.getId().equals(user.getId()))
                 throw new NotFoundException("Profile not found");
  
-            Event event = eventDAO.findById(relation.event.getId());
-                
-            if (event == null || !event.user.getId().equals(user.getId()))
-                throw new NotFoundException("Event not found");
- 
-            relation.event = event;
-            
-            if (validated) 
-                profile.validateEvent(relation);
-            else
-                profile.addEvent(relation);
+            addEventRelation(profile, relation, validated, user);
 
             profile = storeProfile(profile, user);
 
@@ -503,18 +527,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
             if (profile == null || !profile.user.getId().equals(user.getId()))
                 throw new NotFoundException("Profile not found");
- 
-            InformationElement elem = infoElemDAO.findById(relation.informationElement.getId());
             
-            if (elem == null || !elem.user.getId().equals(user.getId()))
-                throw new NotFoundException("InformationElement not found");
-            
-            relation.informationElement = elem;
-            
-            if (validated)
-                profile.validateInformationElement(relation);
-            else
-                profile.addInformationElement(relation);
+            addInformationElementRelation(profile, relation, validated, user);
 
             profile = storeProfile(profile, user);
 
@@ -588,6 +602,26 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
     //--------------------------------------------------------------------------
 
+    private void resetEventRelations(Profile profile, List<EventRelation> rels, boolean validated,
+                                     User user) 
+        throws NotFoundException 
+    {
+        List<EventRelation> tempList = new ArrayList<EventRelation>(rels);
+        rels.clear();
+        for (EventRelation r : tempList) addEventRelation(profile, r, validated, user);
+    }
+
+    private void resetInformationElementRelations(Profile profile, 
+                                                  List<InformationElementRelation> rels, 
+                                                  boolean validated, User user) 
+        throws NotFoundException 
+    {
+        List<InformationElementRelation> tempList = new ArrayList<InformationElementRelation>(rels);
+        rels.clear();
+        for (InformationElementRelation r : tempList) 
+            addInformationElementRelation(profile, r, validated, user);
+    }
+
     /** HTTP end point for creating a new profile. 
         @api {post} /profiles Create a new profile
         @apiName Post
@@ -611,12 +645,11 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     {
         User user = getUser(auth);
 
-        // FIXME: should be able to upload relations directly
-        input.validatedEvents.clear();
-        input.suggestedEvents.clear();
-        input.validatedInformationElements.clear();
-        input.suggestedInformationElements.clear();
-        
+        resetEventRelations(input, input.suggestedEvents, false, user);
+        resetEventRelations(input, input.validatedEvents, true, user);
+        resetInformationElementRelations(input, input.suggestedInformationElements, false, user);
+        resetInformationElementRelations(input, input.validatedInformationElements, true, user);
+
         input = storeProfile(input, user);
 
         return new ResponseEntity<Profile>(input, HttpStatus.OK);
