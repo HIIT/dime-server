@@ -42,6 +42,7 @@ import fi.hiit.dime.data.ReadingEvent;
 import fi.hiit.dime.data.ResourcedEvent;
 import fi.hiit.dime.data.ScientificDocument;
 import fi.hiit.dime.data.SearchEvent;
+import fi.hiit.dime.data.Tag;
 import fi.hiit.dime.search.KeywordSearchQuery;
 import fi.hiit.dime.search.SearchIndex;
 import fi.hiit.dime.search.SearchResults;
@@ -325,10 +326,9 @@ public class ApiControllerTest extends RestTest {
 
         // Test uploading a new profile
         Profile profile = new Profile("Kai's formula profile");
-        profile.tags = new ArrayList<String>();
-        profile.tags.add("Formula1");
-        profile.tags.add("motorsports");
-        profile.tags.add("kimi raikkonen");
+        profile.tags.add(new Tag("Formula1"));
+        profile.tags.add(new Tag("motorsports"));
+        profile.tags.add(new Tag("kimi raikkonen"));
         profile.addEvent(makeStub(outEvent1, FeedbackEvent.class), 0.9, "UnitTest");
         profile.addInformationElement(makeStub((Document)outEvent1.targettedResource, 
                                                Document.class), 0.8, "UnitTest");
@@ -358,7 +358,7 @@ public class ApiControllerTest extends RestTest {
         assertEquals(id, gotId);
 
         // Test updating an existing profile
-        gotProfile.tags.add("f1");
+        gotProfile.tags.add(new Tag("f1"));
         gotProfile.name = "Kai's Formula Profile";
         
         Profile updatedProfile = uploadData(profileApi, gotProfile,

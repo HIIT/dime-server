@@ -27,6 +27,7 @@ package fi.hiit.dime;
 import fi.hiit.dime.data.DesktopEvent;
 import fi.hiit.dime.data.Document;
 import fi.hiit.dime.data.Profile;
+import fi.hiit.dime.data.Tag;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,10 +47,9 @@ public class ProfileTest {
     @Test
     public void testEvents() throws Exception {
         Profile p = new Profile("My Re:Know profile");
-        p.tags = new ArrayList<String>();
-        p.tags.add("reknow");
-        p.tags.add("dime");
-        p.tags.add("knowledge work");
+        p.tags.add(new Tag("reknow"));
+        p.tags.add(new Tag("dime"));
+        p.tags.add(new Tag("knowledge work"));
 
         assertEquals(3, p.tags.size());
 

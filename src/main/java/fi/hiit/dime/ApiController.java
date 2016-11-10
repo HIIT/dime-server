@@ -37,6 +37,7 @@ import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.InformationElementRelation;
 import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.data.Tag;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.database.ProfileDAO;
@@ -489,11 +490,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         throws NotFoundException, BadRequestException
     {
         try {
-            Profile profile = profileDAO.findById(profileId, user);
+            Profile profile = getProfile(profileId, user);
 
-            if (profile == null || !profile.user.getId().equals(user.getId()))
-                throw new NotFoundException("Profile not found");
- 
             addEventRelation(profile, relation, validated, user);
 
             profile = storeProfile(profile, user);
@@ -523,11 +521,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         throws NotFoundException, BadRequestException
     {
         try {
-            Profile profile = profileDAO.findById(profileId, user);
+            Profile profile = getProfile(profileId, user);
 
-            if (profile == null || !profile.user.getId().equals(user.getId()))
-                throw new NotFoundException("Profile not found");
-            
             addInformationElementRelation(profile, relation, validated, user);
 
             profile = storeProfile(profile, user);
@@ -671,10 +666,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     {
         User user = getUser(auth);
 
-        Profile profile = profileDAO.findById(id, user);
-
-        if (profile == null || !profile.user.getId().equals(user.getId()))
-            throw new NotFoundException("Profile not found");
+        Profile profile = getProfile(id, user);
 
         return new ResponseEntity<Profile>(profile, HttpStatus.OK);
     }   

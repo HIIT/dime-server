@@ -56,6 +56,7 @@ public class Profile extends AbstractPersistable<Long> {
         this.validatedEvents = new ArrayList<EventRelation>();
         this.suggestedInformationElements = new ArrayList<InformationElementRelation>();
         this.validatedInformationElements = new ArrayList<InformationElementRelation>();
+        this.tags = new ArrayList<Tag>();
     }
 
     public Profile() {
@@ -84,9 +85,9 @@ public class Profile extends AbstractPersistable<Long> {
     @ElementCollection(targetClass = String.class)
     public List<String> searchKeywords;
 
-    /** Tags, lists of associated tag strings. */
-    @ElementCollection(targetClass = String.class)
-    public List<String> tags;
+    /** Tags */
+    @OneToMany(cascade=CascadeType.ALL)
+    public List<Tag> tags;
 
     /** List of validated events, i.e. user has confirmed they belong to the profile. */
     @OneToMany(cascade=CascadeType.ALL, orphanRemoval=true)

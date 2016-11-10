@@ -1051,4 +1051,20 @@
             <column name="PROPORTION_SEEN" type="DOUBLE(17)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1478777426048-1">
+        <addColumn tableName="PROFILE_TAGS">
+            <column name="TAGS_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1478777426048-2">
+        <addUniqueConstraint columnNames="TAGS_ID" constraintName="UK_PDB6FNSOTONBK9MSD7Q5QQ0LV" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PROFILE_TAGS"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1478777426048-3">
+        <addForeignKeyConstraint baseColumnNames="TAGS_ID" baseTableName="PROFILE_TAGS" constraintName="FK_PDB6FNSOTONBK9MSD7Q5QQ0LV" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="TAG"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1478777426048-4">
+        <dropColumn columnName="TAGS" tableName="PROFILE_TAGS"/>
+    </changeSet>
 </databaseChangeLog>
