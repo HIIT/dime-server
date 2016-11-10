@@ -1067,4 +1067,9 @@
     <changeSet author="mvsjober (generated)" id="1478777426048-4">
         <dropColumn columnName="TAGS" tableName="PROFILE_TAGS"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1478788994494-1">
+        <addColumn tableName="USER">
+            <column name="USER_ID" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

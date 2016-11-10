@@ -26,16 +26,20 @@ package fi.hiit.dime.authentication;
 
 import fi.hiit.dime.data.*;
 
-import org.springframework.data.annotation.Id;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import org.hibernate.annotations.GenericGenerator;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 
 /**
    Class for storing users and associated information for this DiMe.
@@ -67,4 +71,16 @@ public class User extends AbstractPersistable<Long> {
     
     /** User role, e.g. user or admin. */
     public Role role;
+
+    /** Unique user ID, used for identification in external services. */
+    private String userId;
+
+    public String getUserId() {
+        if (userId == null) {
+            userId = UUID.randomUUID().toString();
+        }
+        return userId;
+    }
+
+    public void setUserId(String s) { userId = s; }
 }

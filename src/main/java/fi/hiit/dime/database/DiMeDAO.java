@@ -123,6 +123,11 @@ public class DiMeDAO<T extends DiMeData, R extends DiMeRepository<T>> {
         return repo.countByUser(User.makeUser(id));
     }
 
+    @Transactional(readOnly = true)
+    public long count(User user) {
+        return repo.countByUser(user);
+    }
+
     /**
        Removes all items for user.
 

@@ -39,13 +39,14 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -436,6 +437,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiGroup Events
         @apiVersion 0.1.2
      */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/event/{id}", method = RequestMethod.DELETE)
     public ResponseEntity eventDelete(Authentication auth, @PathVariable Long id) 
         throws NotFoundException
@@ -743,6 +745,7 @@ On success, the response will be the uploaded object with some fields like the i
         @apiGroup Information elements
         @apiVersion 0.1.2
      */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/informationelement/{id}",
                     method = RequestMethod.DELETE)
     public ResponseEntity informationElementDelete(Authentication auth, 

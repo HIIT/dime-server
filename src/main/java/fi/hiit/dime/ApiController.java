@@ -49,6 +49,8 @@ import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
 import fi.hiit.dime.search.WeightedKeyword;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +67,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -99,6 +103,9 @@ public class ApiController extends AuthorizedController {
 
     @Autowired
     SearchIndex searchIndex;
+
+    @Autowired 
+    private ObjectMapper objectMapper;
 
     @Autowired
     ApiController(EventDAO eventDAO,
@@ -153,6 +160,49 @@ public class ApiController extends AuthorizedController {
         return new ResponseEntity<ApiMessage>(new ApiMessage("pong", dimeVersion),
                                               headers, HttpStatus.OK);
     }
+
+    @JsonInclude(value=JsonInclude.Include.NON_NULL)
+    public static class LeaderboardPayload {
+        public String userId;
+        public String username;
+        public Long eventCount;
+        public Double time;
+    }
+
+    /** @api {post} /updateleaderboard
+        @apiName UpdateLeaderboard
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Status
+        @apiVersion 0.1.3
+     */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    @RequestMapping(value="/updateleaderboard", method = RequestMethod.POST)
+    public void updateLeaderboard(Authentication auth) {
+        User user = getUser(auth);
+
+        LeaderboardPayload payload = new LeaderboardPayload();
+        payload.userId = user.getUserId();
+        payload.username = user.username;
+        payload.eventCount = eventDAO.count(user);
+
+        RestTemplate rest = new RestTemplate();
+        String endpoint = dimeConfig.getLeaderboardEndpoint();
+        // ResponseEntity<LeaderboardPayload> res = 
+        //     rest.postForEntity(endpoint, payload, LeaderboardPayload.class);
+        ResponseEntity<String> res = 
+            rest.postForEntity(endpoint, payload, String.class);
+        assert(res.getStatusCode().is2xxSuccessful());
+
+        LOG.info("Response from leaderboard ({}):", endpoint);
+        LOG.info(res.getBody());
+        // try {
+        //     LOG.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(res.getBody()));
+        // } catch (IOException e) {
+        // }
+    }   
+
 
     /**
        Helper method to transform the search results into an
@@ -712,6 +762,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
     */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/profiles/{id}", method = RequestMethod.DELETE)
     public void profileDelete(Authentication auth, @PathVariable Long id) 
         throws NotFoundException
@@ -788,6 +839,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/profiles/{id}/suggestedevents/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteSuggestedEvents(Authentication auth, @PathVariable Long id, 
@@ -864,6 +916,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/profiles/{id}/validatedevents/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteValidatedEvents(Authentication auth, @PathVariable Long id, 
@@ -941,6 +994,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/profiles/{id}/suggestedinformationelements/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteSuggestedInformationElements(Authentication auth, 
@@ -1017,6 +1071,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/profiles/{id}/validatedinformationelements/{rid}", 
                     method = RequestMethod.DELETE)
     public void profileDeleteValidatedInformationElements(Authentication auth, 
@@ -1090,6 +1145,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiGroup Profiles
         @apiVersion 0.1.3
      */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/profiles/{id}/tags/{tid}", method = RequestMethod.DELETE)
     public void profileDeleteTags(Authentication auth, @PathVariable Long id,
                                   @PathVariable Long tid)

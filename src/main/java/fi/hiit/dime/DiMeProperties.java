@@ -32,7 +32,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DiMeProperties {
     private String luceneIndexPath;
-
     public void setLuceneIndexPath(String s) { luceneIndexPath = s; }
     public String getLuceneIndexPath() { return luceneIndexPath; }
 
@@ -45,4 +44,8 @@ public class DiMeProperties {
     private String[] corsAllowOrigin = null;
     public void setCorsAllowOrigin(String[] s) { corsAllowOrigin = s; }
     public String[] getCorsAllowOrigin() { return corsAllowOrigin; }
+
+    private String leaderboardEndpoint = "https://dimeproxy.hiit.fi/dime-leaderboards/api/event";
+    public void setLeaderboardEndpoint(String s) { leaderboardEndpoint = s; }
+    public String getLeaderboardEndpoint() { return leaderboardEndpoint; }
 }
