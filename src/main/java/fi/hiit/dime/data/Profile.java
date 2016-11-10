@@ -32,6 +32,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ListIterator;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -329,4 +330,17 @@ public class Profile extends AbstractPersistable<Long> {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     public User user;
+
+    /** Remove tag by tag id
+        
+        @param tid Id of the tag to remove
+    */
+    public void removeTagById(Long tid) {
+        ListIterator<Tag> it = tags.listIterator();
+        while (it.hasNext()) {
+            Tag t = it.next();
+            if (t.getId().equals(tid))
+                it.remove();
+        }
+    }
 }

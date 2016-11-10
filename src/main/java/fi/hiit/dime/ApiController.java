@@ -1029,4 +1029,76 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         deleteProfileInformationElementRelation(id, rid, true, user);
     }   
 
+    //--------------------------------------------------------------------------
+
+    /** @api {post} /profiles/:id/tags Add a tag to the profile
+        @apiName PostTags
+        @apiParam {Number} id Profile's unique ID
+        @apiExample  {json} Example of JSON to upload
+            {
+              "text": "mytag",
+              "@type": "Tag"
+            }
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profiles/{id}/tags", method = RequestMethod.POST)
+    public ResponseEntity<Tag>
+        profilePostTag(Authentication auth, @PathVariable Long id, @RequestBody Tag tag)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+        
+        Profile profile = getProfile(id, user);
+        profile.tags.add(tag);
+        profile = storeProfile(profile, user);
+
+        int n = profile.tags.size();
+        return new ResponseEntity<Tag>(profile.tags.get(n-1), HttpStatus.OK);
+    }   
+
+    /** @api {get} /profiles/:id/tags Get list of tags for the profile
+        @apiName GetTags
+        @apiParam {Number} id Profile's unique ID
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profiles/{id}/tags", method = RequestMethod.GET)
+    public ResponseEntity<Tag[]> profileGetTags(Authentication auth, @PathVariable Long id)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        List<Tag> list = getProfile(id, user).tags;
+        Tag[] res = new Tag[list.size()];
+        list.toArray(res);
+
+        return new ResponseEntity<Tag[]>(res, HttpStatus.OK);
+    }
+
+    /** @api {delete} /profiles/:id/tags/:tid Delete tags from profile
+        @apiName DeleteTags
+        @apiParam {Number} id Profile's unique ID
+        @apiParam {Number} tid The ID of the tag
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profiles/{id}/tags/{tid}", method = RequestMethod.DELETE)
+    public void profileDeleteTags(Authentication auth, @PathVariable Long id,
+                                  @PathVariable Long tid)
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+
+        Profile profile = getProfile(id, user);
+        profile.removeTagById(tid);
+        storeProfile(profile, user);
+    }   
 }

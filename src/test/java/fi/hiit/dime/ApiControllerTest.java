@@ -328,7 +328,6 @@ public class ApiControllerTest extends RestTest {
         Profile profile = new Profile("Kai's formula profile");
         profile.tags.add(new Tag("Formula1"));
         profile.tags.add(new Tag("motorsports"));
-        profile.tags.add(new Tag("kimi raikkonen"));
         profile.addEvent(makeStub(outEvent1, FeedbackEvent.class), 0.9, "UnitTest");
         profile.addInformationElement(makeStub((Document)outEvent1.targettedResource, 
                                                Document.class), 0.8, "UnitTest");
@@ -348,12 +347,15 @@ public class ApiControllerTest extends RestTest {
         assertEquals(1, uploadedProfile.suggestedInformationElements.size());
         assertEquals(0, uploadedProfile.validatedInformationElements.size());
 
+        Tag newTag = new Tag("kimi raikkonen");
+        Tag uploadedTag = uploadData(profileApiUrl(id, "tags"), newTag, Tag.class);
+
         // Test fetching an existing one
         Profile gotProfile = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile", gotProfile);
 
         assertEquals(profile.name, gotProfile.name);
-        assertEquals(profile.tags.size(), gotProfile.tags.size());
+        assertEquals(3, gotProfile.tags.size());
         Long gotId = gotProfile.getId();
         assertEquals(id, gotId);
 
@@ -374,6 +376,11 @@ public class ApiControllerTest extends RestTest {
         assertEquals(gotProfile.tags.size(), gotUpdatedProfile.tags.size());
         Long gotUpdatedId = gotUpdatedProfile.getId();
         assertEquals(id, gotUpdatedId);
+
+        deleteData(profileApiUrl(id, "tags", uploadedTag.getId()));
+
+        Tag[] tagList = getData(profileApiUrl(id, "tags"), Tag[].class);
+        assertEquals(gotProfile.tags.size()-1, tagList.length);
 
         // Create a document
         Document doc1 = new Document();
