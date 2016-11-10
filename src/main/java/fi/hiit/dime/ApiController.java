@@ -719,8 +719,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     @RequestMapping(value="/profiles/{id}/suggestedevents", 
                     method = RequestMethod.POST)
     public ResponseEntity<EventRelation>
-        profileAddEvent(Authentication auth, @PathVariable Long id,
-                        @RequestBody EventRelation suggestedRelation)
+        profilePostSuggestedEvents(Authentication auth, @PathVariable Long id,
+                            @RequestBody EventRelation suggestedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
@@ -728,6 +728,29 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         EventRelation rel = updateProfile(id, suggestedRelation, false, user);
 
         return new ResponseEntity<EventRelation>(rel, HttpStatus.OK);
+    }
+
+    /** @api {get} /profiles/:id/suggestedevents Get list of suggested events for profile
+        @apiName GetSuggestedEvents
+        @apiParam {Number} id Profile's unique ID
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profiles/{id}/suggestedevents", 
+                    method = RequestMethod.GET)
+    public ResponseEntity<EventRelation[]>
+        profileGetSuggestedEvents(Authentication auth, @PathVariable Long id)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        List<EventRelation> list = getProfile(id, user).suggestedEvents;
+        EventRelation[] res = new EventRelation[list.size()];
+        list.toArray(res);
+
+        return new ResponseEntity<EventRelation[]>(res, HttpStatus.OK);
     }
 
     /** @api {delete} /profiles/:id/suggestedevents/:rid Delete suggested event from profile
@@ -742,8 +765,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
      */
     @RequestMapping(value="/profiles/{id}/suggestedevents/{rid}", 
                     method = RequestMethod.DELETE)
-    public void profileDeleteSuggestedEvent(Authentication auth, @PathVariable Long id, 
-                                            @PathVariable Long rid)
+    public void profileDeleteSuggestedEvents(Authentication auth, @PathVariable Long id, 
+                                             @PathVariable Long rid)
         throws NotFoundException
     {
         User user = getUser(auth);
@@ -772,8 +795,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     @RequestMapping(value="/profiles/{id}/validatedevents", 
                     method = RequestMethod.POST)
     public ResponseEntity<EventRelation>
-        profileValidateEvent(Authentication auth, @PathVariable Long id,
-                             @RequestBody EventRelation validatedRelation)
+        profilePostValidatedEvents(Authentication auth, @PathVariable Long id,
+                                   @RequestBody EventRelation validatedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
@@ -781,6 +804,29 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         EventRelation rel = updateProfile(id, validatedRelation, true, user);
 
         return new ResponseEntity<EventRelation>(rel, HttpStatus.OK);
+    }
+
+    /** @api {get} /profiles/:id/validatedevents Get list of validated events for profile
+        @apiName GetValidatedEvents
+        @apiParam {Number} id Profile's unique ID
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profiles/{id}/validatedevents", 
+                    method = RequestMethod.GET)
+    public ResponseEntity<EventRelation[]>
+        profileGetValidatedEvents(Authentication auth, @PathVariable Long id)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        List<EventRelation> list = getProfile(id, user).validatedEvents;
+        EventRelation[] res = new EventRelation[list.size()];
+        list.toArray(res);
+
+        return new ResponseEntity<EventRelation[]>(res, HttpStatus.OK);
     }
 
     /** @api {delete} /profiles/:id/validatedevents/:rid Delete validated event from profile
@@ -795,8 +841,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
      */
     @RequestMapping(value="/profiles/{id}/validatedevents/{rid}", 
                     method = RequestMethod.DELETE)
-    public void profileDeleteValidateEvent(Authentication auth, @PathVariable Long id, 
-                                                        @PathVariable Long rid)
+    public void profileDeleteValidatedEvents(Authentication auth, @PathVariable Long id, 
+                                             @PathVariable Long rid)
         throws NotFoundException
     {
         User user = getUser(auth);
@@ -826,8 +872,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
     @RequestMapping(value="/profiles/{id}/suggestedinformationelements", 
                     method = RequestMethod.POST)
     public ResponseEntity<InformationElementRelation>
-        profileAddInformationElement(Authentication auth, @PathVariable Long id,
-                                     @RequestBody InformationElementRelation suggestedRelation)
+        profilePostSuggestedInformationElements(Authentication auth, @PathVariable Long id,
+                                                @RequestBody InformationElementRelation suggestedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
@@ -835,6 +881,29 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         InformationElementRelation rel = updateProfile(id, suggestedRelation, false, user);
 
         return new ResponseEntity<InformationElementRelation>(rel, HttpStatus.OK);
+    }
+
+    /** @api {get} /profiles/:id/suggestedinformationelements Get list of suggested informationelements for profile
+        @apiName GetSuggestedInformationElements
+        @apiParam {Number} id Profile's unique ID
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profiles/{id}/suggestedinformationelements", 
+                    method = RequestMethod.GET)
+    public ResponseEntity<InformationElementRelation[]>
+        profileGetSuggestedInformationElements(Authentication auth, @PathVariable Long id)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        List<InformationElementRelation> list = getProfile(id, user).suggestedInformationElements;
+        InformationElementRelation[] res = new InformationElementRelation[list.size()];
+        list.toArray(res);
+
+        return new ResponseEntity<InformationElementRelation[]>(res, HttpStatus.OK);
     }
 
     /** @api {delete} /profiles/:id/suggestedinformationelements/:rid Delete suggested informationelement from profile
@@ -849,8 +918,9 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
      */
     @RequestMapping(value="/profiles/{id}/suggestedinformationelements/{rid}", 
                     method = RequestMethod.DELETE)
-    public void profileDeleteSuggestedInformationElement(Authentication auth, @PathVariable Long id, 
-                                                         @PathVariable Long rid)
+    public void profileDeleteSuggestedInformationElements(Authentication auth, 
+                                                          @PathVariable Long id, 
+                                                          @PathVariable Long rid)
         throws NotFoundException
     {
         User user = getUser(auth);
@@ -878,8 +948,8 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
      */
     @RequestMapping(value="/profiles/{id}/validatedinformationelements", method = RequestMethod.POST)
     public ResponseEntity<InformationElementRelation>
-        profileValidateInformationElement(Authentication auth, @PathVariable Long id,
-                                          @RequestBody InformationElementRelation validatedRelation)
+        profilePostValidatedInformationElements(Authentication auth, @PathVariable Long id,
+                                                @RequestBody InformationElementRelation validatedRelation)
         throws NotFoundException, BadRequestException
     {
         User user = getUser(auth);
@@ -888,6 +958,29 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         return new ResponseEntity<InformationElementRelation>(rel, HttpStatus.OK);
     }   
+
+    /** @api {get} /profiles/:id/validatedinformationelements Get list of validated informationelements for profile
+        @apiName GetValidatedInformationElements
+        @apiParam {Number} id Profile's unique ID
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.1.3
+     */
+    @RequestMapping(value="/profiles/{id}/validatedinformationelements", 
+                    method = RequestMethod.GET)
+    public ResponseEntity<InformationElementRelation[]>
+        profileGetValidatedInformationElements(Authentication auth, @PathVariable Long id)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+
+        List<InformationElementRelation> list = getProfile(id, user).validatedInformationElements;
+        InformationElementRelation[] res = new InformationElementRelation[list.size()];
+        list.toArray(res);
+
+        return new ResponseEntity<InformationElementRelation[]>(res, HttpStatus.OK);
+    }
 
     /** @api {delete} /profiles/:id/validatedinformationelements/:rid Delete validated informationelement from profile
         @apiName DeleteValidatedInformationElements
@@ -901,8 +994,9 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
      */
     @RequestMapping(value="/profiles/{id}/validatedinformationelements/{rid}", 
                     method = RequestMethod.DELETE)
-    public void profileDeleteValidateInformationElement(Authentication auth, @PathVariable Long id, 
-                                                        @PathVariable Long rid)
+    public void profileDeleteValidatedInformationElements(Authentication auth, 
+                                                          @PathVariable Long id, 
+                                                          @PathVariable Long rid)
         throws NotFoundException
     {
         User user = getUser(auth);

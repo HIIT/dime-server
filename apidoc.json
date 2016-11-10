@@ -10,12 +10,16 @@
         "GetAll",
         "Delete",
         "PostSuggestedEvents",
+        "GetSuggestedEvents",
         "DeleteSuggestedEvents",
         "PostValidatedEvents",
+        "GetValidatedEvents",
         "DeleteValidatedEvents",
         "PostSuggestedInformationElements",
+        "GetSuggestedInformationElements",
         "DeleteSuggestedInformationElements",
         "PostValidatedInformationElements",
+        "GetValidatedInformationElements",
         "DeleteValidatedInformationElements"
     ]
 }

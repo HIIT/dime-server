@@ -131,6 +131,18 @@ public abstract class RestTest {
         return apiBase + sep + endPoint; 
     }
 
+    public String profileApiUrl(Long id) {
+        return profileApi + "/" + id;
+    }
+
+    public String profileApiUrl(Long id, String path) {
+        return profileApiUrl(id) + "/" + path;
+    }
+
+    public String profileApiUrl(Long id, String path, Long elemId) {
+        return profileApiUrl(id, path) + "/" + elemId;
+    }
+
     /**
      * Helper method to check if the REST call was successful.
      */
