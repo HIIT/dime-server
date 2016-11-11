@@ -120,22 +120,17 @@ public class ApiController extends AuthorizedController {
         Class for "dummy" API responses which just return a simple
         message string.
     */
+    @JsonInclude(value=JsonInclude.Include.NON_NULL)
     public static class ApiMessage {
         public String message;
         public String version;
-
-        public ApiMessage() {}
-
-        public ApiMessage(String message, String version) {
-            this.message = message;
-            this.version = version;
-        }
+        public String userId;
     }
 
     /**
         @api {get} /ping Ping server
         @apiName Ping
-        @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access. Also returns the DiMe server version.
+        @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access. Also returns the DiMe server version.  Authentication is optional, but if you're authenticated it also returns the userId of the authenticated user.
 
         @apiExample {python} Example usage:
             r = requests.post(server_url + '/ping',
@@ -146,19 +141,27 @@ public class ApiController extends AuthorizedController {
             HTTP/1.1 200 OK
             {
                 "message": "pong",
-                "version": "v0.1.2"
+                "version": "v0.1.2",
+                "userId": "15524094-5a7c-4b22-8bcd-ddb987a0dd85"
             }
         @apiGroup Status
         @apiVersion 0.1.2
     */
     @RequestMapping("/ping")
-    public ResponseEntity<ApiMessage> ping(ServletRequest req) {
+    public ResponseEntity<ApiMessage> ping(Authentication auth, ServletRequest req) {
         LOG.info("Received ping from " + req.getRemoteHost());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new ResponseEntity<ApiMessage>(new ApiMessage("pong", dimeVersion),
-                                              headers, HttpStatus.OK);
+
+        ApiMessage msg = new ApiMessage();
+        msg.message = "pong";
+        msg.version = dimeVersion;
+        msg.userId = null;
+        if (auth != null)
+            msg.userId = getUser(auth).userId;
+
+        return new ResponseEntity<ApiMessage>(msg, headers, HttpStatus.OK);
     }
 
     @JsonInclude(value=JsonInclude.Include.NON_NULL)
@@ -171,36 +174,43 @@ public class ApiController extends AuthorizedController {
 
     /** @api {post} /updateleaderboard Update event count to the DiMe leaderboard
         @apiName UpdateLeaderboard
-        @apiDescription On success, the response will be an empty HTTP 204.
+        @apiDescription On success, the response will be the JSON object returned by the leaderboard server.
 
+        @apiSuccessExample {json} Example successful response:
+            HTTP/1.1 200 OK
+            {
+                "username": "testuser",
+                "eventCount": 12,
+                "time": 1478859922942.0,
+                "userId": "15524094-5a7c-4b22-8bcd-ddb987a0dd85"
+            }
         @apiPermission user
         @apiGroup Status
         @apiVersion 0.1.3
      */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/updateleaderboard", method = RequestMethod.POST)
-    public void updateLeaderboard(Authentication auth) {
+    public ResponseEntity<LeaderboardPayload> updateLeaderboard(Authentication auth) {
         User user = getUser(auth);
 
         LeaderboardPayload payload = new LeaderboardPayload();
-        payload.userId = user.getUserId();
+        payload.userId = user.userId;
         payload.username = user.username;
         payload.eventCount = eventDAO.count(user);
 
         RestTemplate rest = new RestTemplate();
         String endpoint = dimeConfig.getLeaderboardEndpoint();
-        // ResponseEntity<LeaderboardPayload> res = 
-        //     rest.postForEntity(endpoint, payload, LeaderboardPayload.class);
-        ResponseEntity<String> res = 
-            rest.postForEntity(endpoint, payload, String.class);
+        ResponseEntity<LeaderboardPayload> res = 
+            rest.postForEntity(endpoint, payload, LeaderboardPayload.class);
         assert(res.getStatusCode().is2xxSuccessful());
 
         LOG.info("Response from leaderboard ({}):", endpoint);
-        LOG.info(res.getBody());
-        // try {
-        //     LOG.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(res.getBody()));
-        // } catch (IOException e) {
-        // }
+        try {
+            LOG.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(res.getBody()));
+        } catch (IOException e) {
+        }
+
+        return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
     }   
 
 

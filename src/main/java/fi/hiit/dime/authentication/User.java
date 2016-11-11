@@ -35,7 +35,6 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.Date;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -73,14 +72,5 @@ public class User extends AbstractPersistable<Long> {
     public Role role;
 
     /** Unique user ID, used for identification in external services. */
-    private String userId;
-
-    public String getUserId() {
-        if (userId == null) {
-            userId = UUID.randomUUID().toString();
-        }
-        return userId;
-    }
-
-    public void setUserId(String s) { userId = s; }
+    public String userId;
 }

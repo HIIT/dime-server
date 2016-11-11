@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Data access object for managing User objects.
@@ -47,16 +48,30 @@ public class UserDAO {
 	repo.save(obj);
     }
 
+    private void ensureUserId(User user) {
+        if (user.userId == null) {
+            user.userId = UUID.randomUUID().toString();
+            save(user);
+        }
+    }
+
     public User findById(Long id) {
-    	return repo.findOne(id);
+        User user = repo.findOne(id);
+        ensureUserId(user);
+        return user;
     }
 
     public User findByUsername(String username) {
-    	return repo.findOneByUsername(username);
+    	User user = repo.findOneByUsername(username);
+        ensureUserId(user);
+        return user;
     }
 
     public List<User> findAll() {
-    	return repo.findAll();
+    	List<User> users = repo.findAll();
+        for (User user : users)
+            ensureUserId(user);
+        return users;
     }
 
     public void remove(Long id) {
