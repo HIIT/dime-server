@@ -169,7 +169,7 @@ public class ApiController extends AuthorizedController {
         public Double time;
     }
 
-    /** @api {post} /updateleaderboard
+    /** @api {post} /updateleaderboard Update event count to the DiMe leaderboard
         @apiName UpdateLeaderboard
         @apiDescription On success, the response will be an empty HTTP 204.
 
