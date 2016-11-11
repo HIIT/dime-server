@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -28,7 +28,6 @@ import static org.junit.Assert.*;
 
 import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.authentication.User;
-import fi.hiit.dime.authentication.UserCreateForm;
 import fi.hiit.dime.authentication.UserService;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.util.RandomPassword;
@@ -87,15 +86,14 @@ public abstract class RestTest {
     public void restSetup() {
         apiBase = String.format("http://localhost:%d/api",
                                 server.getEmbeddedServletContainer().getPort());
-        UserCreateForm form = new UserCreateForm();
-        form.setUsername("_testuser_" + pw.getPassword(10, false, false));
-        form.setPassword(pw.getPassword(20));
-        form.setRole(Role.USER);
+        
+        testUser = new User();
+        testUser.username = "_testuser_" + pw.getPassword(10, false, false);
+        testUser.role = Role.USER;
+        String password = pw.getPassword(20);
+        userService.create(testUser, password);
 
-        testUser = userService.create(form);
-
-        rest = new TestRestTemplate(form.getUsername(),
-                                    form.getPassword());
+        rest = new TestRestTemplate(testUser.username, password);
 
         setup();
     }

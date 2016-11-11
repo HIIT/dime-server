@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -75,12 +75,11 @@ public class UserServiceImpl implements UserService {
 	    if (passwd.isEmpty())
 		passwd = pw.getPassword(20, true, false);
 
-	    UserCreateForm form = new UserCreateForm();
-	    form.setUsername(ADMIN_USERNAME);
-	    form.setPassword(passwd);
-	    form.setRole(Role.ADMIN);
+            User user = new User();
+            user.username = ADMIN_USERNAME;
+	    user.role = Role.ADMIN;
 
-	    create(form);
+	    create(user, passwd);
 
 	    System.out.printf("\nCreated default admin user with password " +
 			      "\"%s\"\n\n.", passwd);
@@ -103,13 +102,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User create(UserCreateForm form) {
-	User user = new User();
-	user.username = form.getUsername();
-	user.passwordHash = new BCryptPasswordEncoder().encode(form.getPassword());
-	user.role = form.getRole();
+    public void create(User user, String password) {
+	user.passwordHash = new BCryptPasswordEncoder().encode(password);
 	userDAO.save(user);
-	return user;
     }
     
     @Override
