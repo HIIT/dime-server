@@ -75,6 +75,8 @@ public abstract class RestTest {
 
     private RestTemplate rest;
 
+    private RestTemplate tempRest;
+
     private User testUser;
 
     private RandomPassword pw = new RandomPassword();
@@ -94,12 +96,25 @@ public abstract class RestTest {
         String password = pw.getPassword(20);
         try {
             userService.create(testUser, password);
-        } (catch CannotCreateUserException e) {
+        } catch (CannotCreateUserException e) {
         }
 
         rest = new TestRestTemplate(testUser.username, password);
+        tempRest = null;
 
         setup();
+    }
+
+    public void setTemporaryUnauthenticatedRest() {
+        tempRest = new TestRestTemplate();
+    }
+
+    public void setTemporaryRest(String username, String password) {
+        tempRest = new TestRestTemplate(username, password);
+    }
+
+    public void removeTemporaryRest() {
+        tempRest = null;
     }
 
     protected void setup() {
@@ -119,7 +134,7 @@ public abstract class RestTest {
      * Returns RestTemplate object for performing REST API calls.
      */
     public RestTemplate getRest() {
-        return rest;
+        return tempRest == null ? rest : tempRest;
     }
 
     /**
@@ -133,8 +148,12 @@ public abstract class RestTest {
         return apiBase + sep + endPoint; 
     }
 
+    public String apiUrl(String endPoint, Long id) {
+        return apiUrl(endPoint) + '/' + id;
+    }
+
     public String profileApiUrl(Long id) {
-        return profileApi + "/" + id;
+        return apiUrl("profiles", id);
     }
 
     public String profileApiUrl(Long id, String path) {

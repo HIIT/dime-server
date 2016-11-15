@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2016 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -31,6 +31,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.http.HttpStatus;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Base class for controllers that need user authentication.
  *
@@ -38,6 +40,9 @@ import org.springframework.http.HttpStatus;
  */
 public class AuthorizedController {
     protected User getUser(Authentication auth) {
+        if (auth == null)
+            return null;
+
         CurrentUser currentUser = (CurrentUser)auth.getPrincipal();
         return currentUser.getUser();
     }
@@ -63,4 +68,8 @@ public class AuthorizedController {
         }
     }
 
+    public boolean isLocalhost(HttpServletRequest req) {
+        String addr = req.getRemoteAddr();
+        return addr.equals("0:0:0:0:0:0:0:1") || addr.equals("127.0.0.1");
+    }
 }

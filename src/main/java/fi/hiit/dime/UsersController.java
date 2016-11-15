@@ -49,6 +49,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * General API controller, for things that go directly under the /api
  * REST endpoint.
@@ -74,7 +76,7 @@ public class UsersController extends AuthorizedController {
     /** HTTP end point for creating a new user, i.e., registering. 
         @api {post} /users Create a new user
         @apiName Post
-        @apiDescription Create a new user.
+        @apiDescription Create a new user.  Must be authenticated as an existing user, or accessing from localhost.
         
         @apiExample {json} Example of JSON to upload
             {
@@ -84,16 +86,19 @@ public class UsersController extends AuthorizedController {
               email: "testuser@example.com"
             }
 
-        @apiPermission user
         @apiGroup Users
         @apiVersion 0.1.3
     */
     @RequestMapping(value="", method = RequestMethod.POST)
-    public ResponseEntity<User> postUsers(//Authentication auth, 
-                                          @RequestBody User input)
-        throws BadRequestException
+    public ResponseEntity<User> postUsers(Authentication auth, 
+                                          @RequestBody User input,
+                                          HttpServletRequest req)
+        throws BadRequestException, NotAuthorizedException
     {
-        //User authUser = getUser(auth);
+        User authUser = getUser(auth);
+
+        if (authUser == null && !isLocalhost(req))
+            throw new NotAuthorizedException("Access denied.");
         
         // More secure to explicitly copy just fields we want
         User newUser = new User();

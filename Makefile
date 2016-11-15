@@ -46,7 +46,7 @@ test:
 	@echo $(LOG_HEAD) Now open ./build/reports/tests/index.html
 
 testone:
-	$(GRADLE) test --tests fi.hiit.dime.ApiControllerTest.testProfiles
+	$(GRADLE) test --tests fi.hiit.dime.UsersControllerTest.testUsers
 
 clean:
 	$(GRADLE) clean
