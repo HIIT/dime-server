@@ -68,37 +68,59 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class UsersControllerTest extends RestTest {
     @Test
     public void testUsers() throws Exception {
+        // Try accessing user authenticated as testuser_XXX
         getDataExpectError(apiUrl("users", 1L));
 
+        // "Log out"
         setTemporaryUnauthenticatedRest();
 
+        // Register a new user
         User newUser = new User();
         newUser.username = "testuser42";
         newUser.password = "testuser123";
-        newUser.email = "testuser@example.com";
         newUser.role = Role.ADMIN;
 
         User createdUser = uploadData(apiUrl("users"), newUser, User.class);
         assertEquals(newUser.username, createdUser.username);
         assertTrue(createdUser.password == null);
-        assertEquals(newUser.email, createdUser.email);
+        assertTrue(createdUser.passwordHash == null);
+        assertTrue(createdUser.email == null);
         assertEquals(Role.USER, createdUser.role); // it should have ignored role=ADMIN
 
         Long id = createdUser.getId();
 
+        // Try accessing new user still logged out
         getDataExpectError(apiUrl("users", id));
 
+        // "Log in" as new user
         setTemporaryRest(newUser.username, newUser.password);
 
+        // Get new users data
         User gotUser = getData(apiUrl("users", id), User.class);
         assertEquals(newUser.username, gotUser.username);
         assertEquals(id, gotUser.getId());
 
+        // Add an email address and update
+        gotUser.email = "testuser@example.com";
+
+        // Test updating with wrong credentials
+        removeTemporaryRest();
+        uploadData(apiUrl("users"), gotUser, ApiError.class);
+
+        // Test with real credentials
+        setTemporaryRest(newUser.username, newUser.password);
+        User updatedUser = uploadData(apiUrl("users"), gotUser, User.class);
+
+        // Get user from the all users list
         User[] gotAllUsers = getData(apiUrl("users"), User[].class);
         assertEquals(1, gotAllUsers.length);
-        assertEquals(newUser.username, gotAllUsers[0].username);
-        assertEquals(id, gotAllUsers[0].getId());
+
+        User testUser = gotAllUsers[0];
+        assertEquals(newUser.username, testUser.username);
+        assertEquals(id, testUser.getId());
+        assertEquals(gotUser.email, testUser.email);
         
+        // Delete user
         deleteData(apiUrl("users", id));
         getDataExpectError(apiUrl("users", id));
 

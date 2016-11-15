@@ -105,20 +105,32 @@ public class UserServiceImpl implements UserService {
 	return userDAO.findAll();
     }
 
+    private void setPassword(User user, String password) throws CannotCreateUserException
+    {
+        if (password.length() < MIN_PASSWORD_LENGTH) 
+            throw new CannotCreateUserException(String.format("Password is too short! "+
+                                                              "Please use at least %d characters.",
+                                                              MIN_PASSWORD_LENGTH));
+	user.passwordHash = new BCryptPasswordEncoder().encode(password);
+    }
+
     @Override
     public User create(User user, String password) 
         throws CannotCreateUserException
     {
-        if (password.length() < MIN_PASSWORD_LENGTH)
-            throw new CannotCreateUserException(String.format("Password is too short! "+
-                                                              "Please use at least %d characters.",
-                                                              MIN_PASSWORD_LENGTH));
-
         if (getUserByUsername(user.username) != null)
             throw new CannotCreateUserException("This user name is not available.");
 
-	user.passwordHash = new BCryptPasswordEncoder().encode(password);
-	return userDAO.save(user);
+        return update(user, password);
+    }
+
+    @Override
+    public User update(User user, String password) 
+        throws CannotCreateUserException
+    {
+        if (password != null)
+            setPassword(user, password);
+        return userDAO.save(user);
     }
     
     @Override

@@ -69,6 +69,14 @@ public interface UserService {
     User create(User user, String password) throws CannotCreateUserException;
 
     /**
+     * Update existing user.
+     *
+     * @param user The user to update
+     * @return The updated user
+     */
+    User update(User user, String password) throws CannotCreateUserException;
+
+    /**
      * Remove user and all related events and informationelements
      * 
      * @param id User id of the user to be removed

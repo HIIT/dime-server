@@ -277,9 +277,9 @@ public class ProfilesController extends AuthorizedController {
     }
 
     /** HTTP end point for creating a new profile. 
-        @api {post} /profiles Create a new profile
+        @api {post} /profiles Create or modify a profile
         @apiName Post
-        @apiDescription Create a new profile.
+        @apiDescription Create a new profile.  If the "id" field is supplied, it will instead update an existing profile.
         
         @apiExample {json} Example of JSON to upload
             {

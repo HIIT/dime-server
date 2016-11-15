@@ -72,9 +72,14 @@ public class UsersController extends AuthorizedController {
         this.userService = userService;
     }
 
+    private boolean canAccess(User authUser, User user) {
+        return (authUser != null) && (user != null) && 
+            (authUser.role == Role.ADMIN ||
+             (authUser.role == Role.USER && authUser.getId().equals(user.getId())));
+    }
 
     /** HTTP end point for creating a new user, i.e., registering. 
-        @api {post} /users Create a new user
+        @api {post} /users Create or modify a user
         @apiName Post
         @apiDescription Create a new user.  Must be authenticated as an existing user, or accessing from localhost.
         
@@ -93,23 +98,35 @@ public class UsersController extends AuthorizedController {
     public ResponseEntity<User> postUsers(Authentication auth, 
                                           @RequestBody User input,
                                           HttpServletRequest req)
-        throws BadRequestException, NotAuthorizedException
+        throws BadRequestException, NotAuthorizedException, NotFoundException
     {
         User authUser = getUser(auth);
 
         if (authUser == null && !isLocalhost(req))
             throw new NotAuthorizedException("Access denied.");
-        
-        // More secure to explicitly copy just fields we want
-        User newUser = new User();
-        newUser.username = input.username;
-        newUser.email = input.email;
-
-        newUser.role = Role.USER;
 
         try {
-            User createdUser = userService.create(newUser, input.password);
-            return new ResponseEntity<User>(createdUser, HttpStatus.OK);
+            if (input.getId() == null) { // Creating a new one
+                // More secure to explicitly copy just fields we want
+                User newUser = new User();
+                newUser.username = input.username;
+                newUser.email = input.email;
+                newUser.role = Role.USER;
+                
+                User createdUser = userService.create(newUser, input.password);
+                return new ResponseEntity<User>(createdUser, HttpStatus.OK);
+            } else { // Updating an existing one
+                User user = userService.getUserById(input.getId());
+                if (!canAccess(authUser, user))
+                    throw new NotFoundException("User not found");
+
+                // So far email is the only field that can be updated
+                user.email = input.email;
+
+                User updatedUser = userService.update(user, input.password);
+                return new ResponseEntity<User>(updatedUser, HttpStatus.OK);
+            }
+
         } catch (CannotCreateUserException ex) {
             throw new BadRequestException(ex.getMessage());
         }
@@ -132,12 +149,8 @@ public class UsersController extends AuthorizedController {
         User authUser = getUser(auth);
         User user = userService.getUserById(id);
 
-        boolean canAccess = (user != null) && 
-            (authUser.role == Role.ADMIN ||
-             (authUser.role == Role.USER && authUser.getId().equals(user.getId())));
-
         // We claim "not found" in all cases as not to leak information.
-        if (!canAccess)
+        if (!canAccess(authUser, user))
             throw new NotFoundException("User not found");
 
         return new ResponseEntity<User>(user, HttpStatus.OK);
@@ -192,12 +205,8 @@ public class UsersController extends AuthorizedController {
         User authUser = getUser(auth);
         User user = userService.getUserById(id);
 
-        boolean canAccess = (user != null) && 
-            (authUser.role == Role.ADMIN ||
-             (authUser.role == Role.USER && authUser.getId().equals(user.getId())));
-
         // We claim "not found" in all cases as not to leak information.
-        if (!canAccess)
+        if (!canAccess(authUser, user))
             throw new NotFoundException("User not found");
 
         if (!userService.removeAllForUserId(id))
