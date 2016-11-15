@@ -53,6 +53,8 @@ public class UserServiceImpl implements UserService {
     private final static String ADMIN_PASSWORD = ""; // empty means random
     private RandomPassword pw;
 
+    private static final int MIN_PASSWORD_LENGTH = 3;
+
     @Autowired
     UserServiceImpl(UserDAO userDAO, EventDAO eventDAO,
 		    InformationElementDAO infoElemDAO,
@@ -79,10 +81,12 @@ public class UserServiceImpl implements UserService {
             user.username = ADMIN_USERNAME;
 	    user.role = Role.ADMIN;
 
-	    create(user, passwd);
-
-	    System.out.printf("\nCreated default admin user with password " +
-			      "\"%s\"\n\n.", passwd);
+            try {
+                create(user, passwd);
+                System.out.printf("\nCreated default admin user with password " +
+                                  "\"%s\"\n\n.", passwd);
+            } catch (CannotCreateUserException e) {
+            }
 	}
     }
 
@@ -102,9 +106,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void create(User user, String password) {
+    public User create(User user, String password) 
+        throws CannotCreateUserException
+    {
+        if (password.length() < MIN_PASSWORD_LENGTH)
+            throw new CannotCreateUserException(String.format("Password is too short! "+
+                                                              "Please use at least %d characters.",
+                                                              MIN_PASSWORD_LENGTH));
+
+        if (getUserByUsername(user.username) != null)
+            throw new CannotCreateUserException("This user name is not available.");
+
 	user.passwordHash = new BCryptPasswordEncoder().encode(password);
-	userDAO.save(user);
+	return userDAO.save(user);
     }
     
     @Override

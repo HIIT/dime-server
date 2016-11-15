@@ -32,6 +32,12 @@ import java.util.Collection;
  * Higher-level interface to accessing users.
  */
 public interface UserService {
+    class CannotCreateUserException extends Exception {
+        public CannotCreateUserException(String msg) {
+            super(msg);
+        }
+    }
+    
     /**
      * Return user by user id.
      *
@@ -55,12 +61,12 @@ public interface UserService {
     Collection<User> getAllUsers();
 
     /**
-     * Create a new user based on a filled in form.
+     * Create a new user.
      *
-     * @param form The filled in form
+     * @param user The user to create
      * @return The created user
      */
-    void create(User user, String password);
+    User create(User user, String password) throws CannotCreateUserException;
 
     /**
      * Remove user and all related events and informationelements

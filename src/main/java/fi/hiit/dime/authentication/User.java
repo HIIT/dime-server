@@ -39,6 +39,7 @@ import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.Transient;
 
 /**
    Class for storing users and associated information for this DiMe.
@@ -55,12 +56,16 @@ public class User extends AbstractPersistable<Long> {
 
     /** Unique username */
     public String username;
+
+    /** Password, just used for initial setting of password. Not
+        stored in the database! */
+    @Transient public String password;
     
     /** Hash of password (never store the actual password!) */
     @JsonIgnore public String passwordHash;
     
     /** Email */
-    public String email;       
+    public String email;
     
     /** Date and time when the user was registered */
     public Date time_registered;

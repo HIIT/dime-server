@@ -44,12 +44,12 @@ public class UserDAO {
     @Autowired
     private UserRepository repo;
 
-    public void save(User obj) {
-	repo.save(obj);
+    public User save(User obj) {
+	return repo.save(obj);
     }
 
     private void ensureUserId(User user) {
-        if (user.userId == null) {
+        if (user != null && user.userId == null) {
             user.userId = UUID.randomUUID().toString();
             save(user);
         }

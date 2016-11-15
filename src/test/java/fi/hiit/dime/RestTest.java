@@ -29,6 +29,7 @@ import static org.junit.Assert.*;
 import fi.hiit.dime.authentication.Role;
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.authentication.UserService;
+import fi.hiit.dime.authentication.UserService.CannotCreateUserException;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.util.RandomPassword;
 
@@ -91,7 +92,10 @@ public abstract class RestTest {
         testUser.username = "_testuser_" + pw.getPassword(10, false, false);
         testUser.role = Role.USER;
         String password = pw.getPassword(20);
-        userService.create(testUser, password);
+        try {
+            userService.create(testUser, password);
+        } (catch CannotCreateUserException e) {
+        }
 
         rest = new TestRestTemplate(testUser.username, password);
 
