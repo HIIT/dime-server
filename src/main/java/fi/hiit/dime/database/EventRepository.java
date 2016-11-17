@@ -46,7 +46,7 @@ import javax.persistence.TypedQuery;
 class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
     @Override
         public List<Event> find(User user, Map<String, String> filterParams,
-                                int page, int limit) {
+                                int page, int limit, String order, boolean desc) {
         // We build the SQL query into q
         StringBuilder q = new StringBuilder("select e from Event e " +
                                             "where e.user.id=:userId");
@@ -105,7 +105,20 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
                 namedParams.put(name, value);
         }
 
-        q.append(" order by start desc");
+        if (order != null) {
+            switch (order) {
+            case "start":
+            case "end":
+                q.append(" order by " + order);
+                if (desc)
+                    q.append(" desc");
+                else
+                    q.append(" asc");
+                break;
+            default:
+                throw new IllegalArgumentException(order);
+            }
+        }            
 
         return makeQuery(q.toString(), namedParams, page, limit, user,
                          Event.class).getResultList();

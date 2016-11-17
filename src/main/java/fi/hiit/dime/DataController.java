@@ -526,6 +526,9 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         occurring before this time stamp (can be combined with after
         to get a time interval)
 
+        @apiParam (Sorting) {String} [orderBy] field to sort by (currently only timeModified, timeCreated supported)
+        @apiParam (Sorting) {Boolean} [desc] True if results should be ordered descending, false for ascending
+
         @apiParam (Options) {Integer} [limit] limit number of results
         @apiParam (Options) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
         @apiParam (Options) {Boolean} [includePlainTextContent] set to
@@ -544,16 +547,18 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
                              defaultValue="false") Boolean includePlainTextContent,
                @RequestParam(required=false, defaultValue="0") int page,
                @RequestParam(required=false, defaultValue="-1") int limit,
+               @RequestParam(required=false, defaultValue="start") String orderBy,
+               @RequestParam(required=false, defaultValue="true") boolean desc,
                @RequestParam Map<String, String> params) 
         throws BadRequestException
     {
         User user = getUser(auth);
 
         // remove other parameters from map
-        removeFromParams(params, "includePlainTextContent", "page", "limit");
+        removeFromParams(params, "includePlainTextContent", "page", "limit", "orderBy", "desc");
 
         try {
-            List<Event> events = eventDAO.find(user.getId(), params, page, limit);
+            List<Event> events = eventDAO.find(user.getId(), params, page, limit, orderBy, desc);
 
             // We remove plainTextContents of linked
             // InformationElements to reduce verbosity
@@ -780,6 +785,9 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam (Filtering) {String} [tag] exact tag matching (just
         one tag needs to match)
 
+        @apiParam (Sorting) {String} [orderBy] field to sort by (currently only timeModified, timeCreated supported)
+        @apiParam (Sorting) {Boolean} [desc] True if results should be ordered descending, false for ascending
+
         @apiParam (Options) {Integer} [limit] limit number of results
         @apiParam (Options) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
 
@@ -796,17 +804,19 @@ On success, the response will be the uploaded object with some fields like the i
         informationElements(Authentication auth,
                             @RequestParam(required=false, defaultValue="0") int page,
                             @RequestParam(required=false, defaultValue="-1") int limit,
+                            @RequestParam(required=false, defaultValue="timeModified") String orderBy,
+                            @RequestParam(required=false, defaultValue="true") boolean desc,
                             @RequestParam Map<String, String> params) 
         throws BadRequestException
     {
         User user = getUser(auth);
 
         // remove other parameters from map
-        removeFromParams(params, "page", "limit");
+        removeFromParams(params, "page", "limit", "orderBy", "desc");
 
         try {
             List<InformationElement> infoElems = 
-                infoElemDAO.find(user.getId(), params, page, limit);
+                infoElemDAO.find(user.getId(), params, page, limit, orderBy, desc);
 
             InformationElement[] infoElemsArray = 
                 new InformationElement[infoElems.size()];

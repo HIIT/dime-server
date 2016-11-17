@@ -44,7 +44,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
 interface DiMeRepositoryCustom<T extends DiMeData> {
-    public List<T> find(User user, Map<String, String> filterParams, int page, int limit);
+    public List<T> find(User user, Map<String, String> filterParams, int page, int limit,
+                        String order, boolean desc);
     public T replace(T oldData, T newData);
 }
 
