@@ -785,7 +785,7 @@ On success, the response will be the uploaded object with some fields like the i
 
         @apiExample {HTTP} Example usage:
         # Get all elements containing tag "dime" and mimetype "text/html"
-        GET /data/informationelements?tag=dime&amp;mimetype=text/html
+        GET /data/informationelements?tag=dime&mimetype=text/html
 
         @apiPermission user
         @apiGroup Information elements
