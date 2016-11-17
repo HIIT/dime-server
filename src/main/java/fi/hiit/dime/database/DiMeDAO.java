@@ -113,8 +113,8 @@ public class DiMeDAO<T extends DiMeData, R extends DiMeRepository<T>> {
        @return List of matching DiMeData objects
     */
     @Transactional(readOnly = true)
-        public List<T> find(Long userId, Map<String, String> filterParams, 
-                            int page, int limit) {
+    public List<T> find(Long userId, Map<String, String> filterParams, 
+                        int page, int limit) {
         return repo.find(User.makeUser(userId), filterParams, page, limit);
     }
 

@@ -105,6 +105,8 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
                 namedParams.put(name, value);
         }
 
+        q.append(" order by start desc");
+
         return makeQuery(q.toString(), namedParams, page, limit, user,
                          Event.class).getResultList();
     }

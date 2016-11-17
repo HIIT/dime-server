@@ -88,6 +88,8 @@ class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
             namedParams.put(name, value);
         }
 
+        q.append(" order by timeModified desc");
+
         return makeQuery(q.toString(), namedParams, page, limit, user,
                          InformationElement.class).getResultList();
     }
