@@ -42,11 +42,14 @@ run:    $(TARGET)
 
 test:
 	rm -rf ./build/reports/tests/
-	$(GRADLE) test
+	rm -rf $(AUTOGEN_TMP_DIR)
+	SPRING_PROFILES_ACTIVE=cleandb $(GRADLE) test
 	@echo $(LOG_HEAD) Now open ./build/reports/tests/index.html
 
 testone:
-	$(GRADLE) test --tests fi.hiit.dime.UsersControllerTest.testUsers
+	rm -rf ./build/reports/tests/
+	rm -rf $(AUTOGEN_TMP_DIR)
+	SPRING_PROFILES_ACTIVE=cleandb $(GRADLE) test --tests fi.hiit.dime.DataControllerTest.testEventSorting
 
 clean:
 	$(GRADLE) clean
