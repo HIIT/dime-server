@@ -1314,4 +1314,41 @@ public class DataControllerTest extends RestTest {
         }
     }
 
+    @Test
+    public void testElementSorting() throws Exception {
+        final int n = 5;
+        Document[] elems = new Document[n];
+
+        for (int i=0; i<n; i++) {
+            Document doc = new Document();
+            doc.uri = "http://www.example.com/hello.txt";
+            doc.plainTextContent = "Hello, world";
+            doc.mimeType = "text/plain";
+            doc.appId = "foo" + i;
+            elems[i] = doc;
+        }
+
+        Document[] outElems = uploadElements(elems, Document[].class);
+        assertEquals(elems.length, outElems.length);
+
+        Document[] elemsDesc = getData(infoElemsApi + "?orderBy=timeModified&desc=true",
+                                       Document[].class);
+
+        dumpData("testElementSorting: elems descending ", elemsDesc);
+
+        for (int i=0; i<n; i++) {
+            assertEquals(elems[i].appId, elemsDesc[n-i-1].appId);
+        }
+
+        Document[] elemsAsc = getData(infoElemsApi + "?orderBy=timeModified&desc=false",
+                                      Document[].class);
+
+        dumpData("testElementSorting: elems ascending ", elemsAsc);
+
+        for (int i=0; i<n; i++) {
+            assertEquals(elems[i].appId, elemsAsc[i].appId);
+        }
+    }
+
+
 }

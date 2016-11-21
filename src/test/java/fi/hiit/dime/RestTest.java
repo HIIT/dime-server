@@ -347,8 +347,7 @@ public abstract class RestTest {
     }
 
     protected <T extends InformationElement> T[] 
-                         uploadInformationElements(T[] elems,
-                                                   Class<T[]> responseType) 
+                         uploadElements(T[] elems, Class<T[]> responseType) 
     {
         return uploadData(infoElemsApi, elems, responseType);
     }
