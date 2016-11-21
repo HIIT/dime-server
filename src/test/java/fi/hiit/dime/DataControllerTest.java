@@ -1351,4 +1351,42 @@ public class DataControllerTest extends RestTest {
     }
 
 
+    @Test
+    public void testElementPaging() throws Exception {
+        final int n = 13;
+        final int l = 5;
+        Document[] elems = new Document[n];
+
+        for (int i=0; i<n; i++) {
+            Document doc = new Document();
+            doc.uri = "http://www.example.com/hello.txt";
+            doc.plainTextContent = "Hello, world";
+            doc.mimeType = "text/plain";
+            doc.appId = "foo" + i;
+            elems[i] = doc;
+        }
+
+        Document[] outElems = uploadElements(elems, Document[].class);
+        assertEquals(elems.length, outElems.length);
+
+        int p = (n-1)/l+1; // number of pages
+        for (int i=0; i<p; i++) {
+
+            Document[] elemsPage = getData(infoElemsApi + 
+                                           "?orderBy=timeModified&desc=true&limit=" + l +
+                                           "&page=" + i, Document[].class);
+
+            dumpData("testElementPaging: elems page " + i, elemsPage);
+
+            int m = Math.min(l, n-i*l);
+
+            assertEquals(m, elemsPage.length);
+
+            for (int j=0; j<m; j++) {
+                assertEquals(elems[n-1-(j+l*i)].appId, elemsPage[j].appId);
+            }
+        }
+    }
+
+
 }
