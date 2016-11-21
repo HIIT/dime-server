@@ -1274,4 +1274,44 @@ public class DataControllerTest extends RestTest {
         assertEquals(event.value, uploadedEvent.value, 0.001);
         assertEquals(event.activityType, uploadedEvent.activityType);
     }
+
+    @Test
+    public void testEventSorting() throws Exception {
+        Calendar cal = Calendar.getInstance();
+        Date end = cal.getTime();
+        int dur = 10;
+
+        final int n = 5;
+        SearchEvent[] events = new SearchEvent[n];
+
+        for (int i=0; i<n; i++) {
+            events[i] = mkSearchEvent(cal.getTime(), null, -1.0);
+            events[i].query += cal.getTime();
+            cal.add(Calendar.SECOND, -dur);
+        }
+
+        dumpData("testEventSorting: List of events to be uploaded to " + eventsApi, events);
+
+        SearchEvent[] outEvents = uploadEvents(events, SearchEvent[].class);
+        assertEquals(events.length, outEvents.length);
+
+        SearchEvent[] eventsDesc = getData(eventsApi + "?orderBy=start&desc=true",
+                                           SearchEvent[].class);
+
+        dumpData("testEventSorting: events descending ", eventsDesc);
+
+        for (int i=0; i<n; i++) {
+            assertEquals(events[i].start, eventsDesc[i].start);
+        }
+
+        SearchEvent[] eventsAsc = getData(eventsApi + "?orderBy=start&desc=false",
+                                           SearchEvent[].class);
+
+        dumpData("testEventSorting: events ascending ", eventsAsc);
+
+        for (int i=0; i<n; i++) {
+            assertEquals(events[i].start, eventsAsc[n-i-1].start);
+        }
+    }
+
 }
