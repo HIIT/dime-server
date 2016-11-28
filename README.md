@@ -14,7 +14,7 @@ install it directly.
 
 ### Requirements
 
-[Java 7 JDK][1] or newer (i.e. Java version 1.7 or newer) is required.
+[Java 8 JDK][1] or newer (i.e. Java version 1.8 or newer) is required.
 
 For Mac OS X you need to have
 [Xcode](https://developer.apple.com/xcode/) installed first. You can
