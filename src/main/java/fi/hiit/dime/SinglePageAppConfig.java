@@ -88,7 +88,7 @@ public class SinglePageAppConfig extends WebMvcConfigurerAdapter {
           .map(loc -> createRelative(loc, requestPath))
           .filter(resource -> resource != null && resource.exists())
           .findFirst()
-          .orElseGet(null);
+          .orElse(null);
       }
       return index;
     }

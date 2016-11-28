@@ -11,7 +11,8 @@ DIME_PORT = $(shell test -f config/application-local.properties && ((grep '^serv
 SOURCES := $(shell find src/ -name '[A-Z]*.java' -or -name '*.html' -or -name 'db*.xml' -or -name '*.properties') build.gradle
 
 DIMEUI_SUBMODULE = submodules/dime-ui/package.json
-DIMEUI_TARGET = src/main/resources/static/index.html
+DIMEUI_OUTDIR = src/main/resources/static
+DIMEUI_TARGET = $(DIMEUI_OUTDIR)/index.html
 DIMEUI_SOURCE = $(addprefix submodules/dime-ui/,$(shell git -C submodules/dime-ui ls-files))
 
 DIME_HOME = ~/.dime
@@ -37,6 +38,14 @@ $(DIMEUI_SUBMODULE):
 	git submodule init
 	git submodule update
 
+dimeui-clean:
+	rm -f $(DIMEUI_OUTDIR)/index.html
+	rm -f $(DIMEUI_OUTDIR)/*.chunk.js
+	rm -f $(DIMEUI_OUTDIR)/main.*.js
+	rm -f $(DIMEUI_OUTDIR)/main.*.css
+	rm -f $(DIMEUI_OUTDIR)/manifest.json
+	rm -f $(DIMEUI_OUTDIR)/vendor.*.js
+
 run:    $(TARGET)
 	@lsof -i :$(DIME_PORT) -sTCP:LISTEN && echo '\nERROR: DiMe already running in port $(DIME_PORT)!' || java -jar $(TARGET)
 
@@ -51,7 +60,7 @@ testone:
 	rm -rf $(AUTOGEN_TMP_DIR)
 	SPRING_PROFILES_ACTIVE=cleandb $(GRADLE) test --tests fi.hiit.dime.DataControllerTest.testEventSorting
 
-clean:
+clean: dimeui-clean
 	$(GRADLE) clean
 
 doc: $(SOURCES)
