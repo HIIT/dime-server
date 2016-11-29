@@ -424,6 +424,8 @@ public class ApiControllerTest extends RestTest {
         EventRelation validatedEvent = uploadData(profileApiUrl(id, "validatedevents"),
                                                   eventValidation, EventRelation.class);
 
+        dumpData("validatedEvent", validatedEvent);
+
         Profile gotProfile4 = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile4", gotProfile4);
         assertEquals(2, gotProfile4.suggestedEvents.size());
@@ -482,6 +484,7 @@ public class ApiControllerTest extends RestTest {
         // Test validating previously suggested element
         InformationElementRelation elemValidation2 = 
             new InformationElementRelation(outDoc2, 0.88, "UnitTest");
+        dumpData("about to validate", elemValidation2);
         uploadData(profileApiUrl(id, "validatedinformationelements"), elemValidation2, 
                    InformationElementRelation.class);
 

@@ -236,6 +236,8 @@ public class Profile extends AbstractPersistable<Long> {
         validationRelation.validated = true;
         addRelation(validationRelation, validatedEvents);
 
+        validationRelation.event.addProfile(this);
+
         List<EventRelation> found = findRelation(validationRelation, suggestedEvents);
         for (EventRelation r : found)
             r.validated = true;
@@ -257,6 +259,8 @@ public class Profile extends AbstractPersistable<Long> {
     */
     public void removeValidatedEvent(EventRelation rel) {
         removeRelation(rel, validatedEvents);
+
+        rel.event.removeProfile(this);
 
         List<EventRelation> found = findRelation(rel, suggestedEvents);
         for (EventRelation r : found)
@@ -297,6 +301,8 @@ public class Profile extends AbstractPersistable<Long> {
         validationRelation.validated = true;
         addRelation(validationRelation, validatedInformationElements);
 
+        validationRelation.informationElement.addProfile(this);
+
         List<InformationElementRelation> found = 
             findRelation(validationRelation, suggestedInformationElements);
         for (InformationElementRelation r : found)
@@ -319,6 +325,8 @@ public class Profile extends AbstractPersistable<Long> {
     */
     public void removeValidatedInformationElement(InformationElementRelation rel) {
         removeRelation(rel, validatedInformationElements);
+
+        rel.informationElement.removeProfile(this);
 
         List<InformationElementRelation> found = findRelation(rel, suggestedInformationElements);
         for (InformationElementRelation r : found)

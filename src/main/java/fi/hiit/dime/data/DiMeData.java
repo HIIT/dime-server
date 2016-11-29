@@ -234,6 +234,22 @@ public class DiMeData extends AbstractPersistable<Long> {
         return false;
     }
 
+    @ElementCollection(targetClass = Long.class)
+    public List<Long> profileIds;
+
+    public boolean addProfile(Profile p) {
+        if (profileIds == null)
+            profileIds = new ArrayList<Long>();
+
+        if (!profileIds.contains(p.getId()))
+            return profileIds.add(p.getId());
+        return false;
+    }
+
+    public boolean removeProfile(Profile p) {
+        return profileIds != null && profileIds.remove(p.getId());
+    }
+
     public static <T extends DiMeData> T makeStub(T data, Class<T> dataType) {
         try {
             T stub = dataType.newInstance();
