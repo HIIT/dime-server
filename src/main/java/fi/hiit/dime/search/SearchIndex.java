@@ -87,8 +87,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
    Class that encapsulates the search index.
@@ -118,6 +118,9 @@ public class SearchIndex {
 
     private static final String dataClassPrefix = "fi.hiit.dime.data.";
 
+    private static AtomicBoolean updatingIndex = new AtomicBoolean(false);
+    private static boolean firstUpdate = true;
+
     private FSDirectory fsDir;
     private DirectoryReader reader = null;
     private IndexSearcher searcher = null;
@@ -125,8 +128,6 @@ public class SearchIndex {
     private Analyzer analyzer = null;
 
     private String analyzerName = null;
-
-    private static boolean firstUpdate = true;
 
     @Autowired
     private InformationElementDAO infoElemDAO;
@@ -319,15 +320,23 @@ public class SearchIndex {
        @return Number of elements that were newly indexed
     */
     public long updateIndex() {
+        if (updatingIndex.get()) {
+            LOG.debug("Index is already being updated, stopping...");
+            return 0;
+        }
+
         if (!firstUpdate && !infoElemDAO.hasUnIndexed())
             return 0;
 
         long count = 0;
+        IndexWriter writer = null;
 
         LOG.debug("Updating Lucene index ....");
         try {
+            updatingIndex.set(true);
+
             boolean forceReindex = false;
-            IndexWriter writer = getIndexWriter();
+            writer = getIndexWriter();
             String version = writer.getCommitData().get(versionField);
 
             if (version == null || !version.equals(getVersion())) {
@@ -419,9 +428,18 @@ public class SearchIndex {
 
         } catch (IOException e) {
             LOG.error("Exception while updating search index: " + e);
+        } finally {
+            try {
+                if (writer != null)
+                    writer.close();
+            } catch (IOException e) {
+                LOG.error("Exception while closing search index: " + e);
+            } finally {
+                updatingIndex.set(false);
+                firstUpdate = false;
+            }
         }
 
-        firstUpdate = false;
         return count;
     }
 

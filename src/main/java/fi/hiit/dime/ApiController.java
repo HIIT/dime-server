@@ -49,6 +49,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -198,6 +199,12 @@ public class ApiController extends AuthorizedController {
         return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
     }   
 
+    @Transactional
+    @Scheduled(initialDelay=30000, fixedRate=30000)
+    public void updateSearchIndex() {
+        LOG.debug("Scheduled checking of Lucene index.");
+        searchIndex.updateIndex();        
+    }
 
     /**
        Helper method to transform the search results into an
@@ -212,7 +219,7 @@ public class ApiController extends AuthorizedController {
         if (query.isEmpty())
             return new SearchResults();
 
-        searchIndex.updateIndex();
+        //searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
                                                limit, user.getId(),
@@ -238,7 +245,7 @@ public class ApiController extends AuthorizedController {
         if (query.isEmpty())
             return new SearchResults();
 
-        searchIndex.updateIndex();
+        //searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
                                                limit, user.getId(),
