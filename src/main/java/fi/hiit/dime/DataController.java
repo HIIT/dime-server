@@ -303,7 +303,7 @@ public class DataController extends AuthorizedController {
 
     /** HTTP end point for uploading a single event. 
         @api {post} /data/event Upload single event
-        @apiName PostEvent
+        @apiName Post
         @apiDescription Upload a new event as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
 
 On success, the response will be the uploaded object with some fields like the id filled in.
@@ -355,7 +355,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
     /** HTTP end point for accessing single event. 
 
         @api {get} /data/event/:id Access single event
-        @apiName GetEvent
+        @apiName Get
         @apiParam {Number} id Event's unique ID
         @apiDescription On success the response will be the event with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
         @apiSuccessExample {json} Example successful response:
@@ -439,7 +439,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
     /** HTTP end point for deleting single event. 
 
         @api {delete} /data/event/:id Delete single event
-        @apiName DeleteEvent
+        @apiName Delete
         @apiParam {Number} id Event's unique ID
         @apiDescription On success, the response will be an empty HTTP 204.
 
@@ -466,7 +466,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
     /** HTTP end point for uploading multiple events. 
 
         @api {post} /data/events Upload list of events
-        @apiName PostEvents
+        @apiName PostAll
         @apiDescription Upload several events in one request, specified as a JSON list.
 
         @apiExample {json} Example of JSON to upload
@@ -517,7 +517,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         interface.
 
         @api {get} /data/events Access multiple events
-        @apiName GetEvents
+        @apiName GetAll
         @apiDescription Access events through filtering with parameters.
 
         @apiParam (Filtering) {String} [appid] appId to match (exactly)
@@ -589,7 +589,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
 
     /** HTTP end point for uploading a single information element. 
         @api {post} /data/informationelement Upload single information element
-        @apiName PostInformationElement
+        @apiName Post
         @apiDescription Upload a new information element as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
 
 On success, the response will be the uploaded object with some fields like the id filled in.
@@ -627,7 +627,7 @@ On success, the response will be the uploaded object with some fields like the i
 
     /** HTTP end point for uploading multiple information elements. 
         @api {post} /data/informationelements Upload list of information elements
-        @apiName PostInformationElements
+        @apiName PostAll
         @apiDescription Upload several information elements in one request, specified as a JSON list.
 
         @apiExample {json} Example of JSON to upload
@@ -677,7 +677,7 @@ On success, the response will be the uploaded object with some fields like the i
     /** HTTP end point for accessing a single informationelement. 
 
         @api {get} /data/informationelement/:id Access single information element
-        @apiName GetInformationElement
+        @apiName Get
         @apiParam {Number} id The information elements's unique ID
         @apiDescription On success the response will be the information element with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
         @apiSuccessExample {json} Example successful response:
@@ -752,7 +752,7 @@ On success, the response will be the uploaded object with some fields like the i
     /** HTTP end point for deleting single information element. 
 
         @api {delete} /data/informationelement/:id Delete single information element
-        @apiName DeleteInformationElement
+        @apiName Delete
         @apiParam {Number} id The information elements's unique ID
         @apiDescription On success, the response will be an empty HTTP 204.
 
@@ -783,7 +783,7 @@ On success, the response will be the uploaded object with some fields like the i
         a filtering interface. 
 
         @api {get} /data/informationelements Access multiple information elements
-        @apiName GetInformationElements
+        @apiName GetAll
         @apiDescription Access information elements through filtering with parameters.
 
         @apiParam (Filtering) {String} [uri] match uri field 
@@ -902,7 +902,7 @@ On success, the response will be the uploaded object with some fields like the i
 
     /** HTTP end point for adding a tag to an Information Element. 
         @api {post} /data/informationelement/:id/addtag Add single tag to information element
-        @apiName PostAddTagInformationElement
+        @apiName Post
         @apiDescription Add a single tag to the information element. The tag to be added is in the POSTed data (as JSON).
         @apiParam {Number} id The information element's unique ID
         
@@ -958,7 +958,7 @@ On success, the response will be the uploaded object with some fields like the i
 
     /** HTTP end point for adding several tags to an Information Element. 
         @api {post} /data/informationelement/:id/addtags Add multiple tags to information element
-        @apiName PostAddTagsInformationElement
+        @apiName PostAll
         @apiDescription Add several tags to the information element specified as a JSON list.
         @apiParam {Number} id The information element's unique ID
         
@@ -997,7 +997,7 @@ On success, the response will be the uploaded object with some fields like the i
 
     /** HTTP end point for removing a tag from an Information Element. 
         @api {post} /data/informationelement/:id/removetag Remove tag from information element
-        @apiName PostRemoveTagInformationElement
+        @apiName Delete
         @apiDescription Remove a single tag from the information element. The tag to be removed is in the POSTed data (as JSON).
         @apiParam {Number} id The information element's unique ID
         
@@ -1028,7 +1028,7 @@ On success, the response will be the uploaded object with some fields like the i
 
     /** HTTP end point for adding a tag to an Event. 
         @api {post} /data/event/:id/addtag Add single tag to event
-        @apiName PostAddTagEvent
+        @apiName Post2
         @apiDescription Add a single tag to the event. The tag to be added is in the POSTed data (as JSON).
         @apiParam {Number} id Event's unique ID
         
@@ -1057,7 +1057,7 @@ On success, the response will be the uploaded object with some fields like the i
 
     /** HTTP end point for adding several tags to an Event. 
         @api {post} /data/event/:id/addtags Add multiple tags to event
-        @apiName PostAddTagsEvent
+        @apiName PostAll2
         @apiDescription Add several tags to the event specified as a JSON list.
         @apiParam {Number} id The information element's unique ID
         
@@ -1096,7 +1096,7 @@ On success, the response will be the uploaded object with some fields like the i
     /** HTTP end point for removing a tag from an Event. 
 
         @api {post} /data/event/:id/removetag Remove tag from event
-        @apiName PostRemoveTagEvent
+        @apiName Delete2
         @apiDescription Remove a single tag from the event. The tag to be removed is in the POSTed data (as JSON).
         @apiParam {Number} id The information element's unique ID
         

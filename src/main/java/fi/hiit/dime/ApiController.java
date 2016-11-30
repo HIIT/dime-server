@@ -276,6 +276,7 @@ It returns an object that contains some meta-data and in the "docs" element a li
 
         @apiParam (Options) {Number} [limit] limit the number of results
         @apiParam (Options) {Boolean} [includeTerms] set to "true" in order to include indexing terms
+        @apiParam (Options) {Boolean} [updateIndex] set to "true" to force an index update before the search
 
         @apiSuccessExample {json} Example successful response:
             HTTP/1.1 200 OK
@@ -383,6 +384,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
 
         @apiParam (Options) {Number} [limit] limit the number of results
         @apiParam (Options) {Boolean} [includeTerms] set to "true" in order to include indexing terms
+        @apiParam (Options) {Boolean} [updateIndex] set to "true" to force an index update before the search
 
         @apiPermission user
         @apiGroup Search
