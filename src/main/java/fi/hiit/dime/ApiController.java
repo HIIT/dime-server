@@ -213,13 +213,14 @@ public class ApiController extends AuthorizedController {
 
     protected SearchResults doSearch(SearchQuery query, String className,
                                      String typeName, int limit, User user,
-                                     WeightType termWeighting)
+                                     WeightType termWeighting, boolean updateIndex)
         throws IOException, SearchQueryException
     {
         if (query.isEmpty())
             return new SearchResults();
 
-        //searchIndex.updateIndex();
+        if (updateIndex)
+            searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
                                                limit, user.getId(),
@@ -239,13 +240,14 @@ public class ApiController extends AuthorizedController {
 
     protected SearchResults doEventSearch(SearchQuery query, String className,
                                           String typeName, int limit, User user,
-                                          WeightType termWeighting)
+                                          WeightType termWeighting, boolean updateIndex)
         throws IOException, SearchQueryException
     {
         if (query.isEmpty())
             return new SearchResults();
 
-        //searchIndex.updateIndex();
+        if (updateIndex)
+            searchIndex.updateIndex();
 
         SearchResults res = searchIndex.search(query, className, typeName,
                                                limit, user.getId(),
@@ -335,15 +337,15 @@ It returns an object that contains some meta-data and in the "docs" element a li
                @RequestParam(value="type", required=false) String typeName,
                @RequestParam(value="includeTerms", required=false, 
                              defaultValue="") String includeTerms,
-               @RequestParam(defaultValue="-1") int limit)
+               @RequestParam(defaultValue="-1") int limit,
+               @RequestParam(defaultValue="false") boolean updateIndex)
     {
         User user = getUser(auth);
 
         try {
             TextSearchQuery textQuery = new TextSearchQuery(query);
-            SearchResults results = doSearch(textQuery, className, typeName,
-                                             limit, user, 
-                                             weightType(includeTerms));
+            SearchResults results = doSearch(textQuery, className, typeName, limit, user, 
+                                             weightType(includeTerms), updateIndex);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -394,14 +396,14 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
                     @RequestParam(value="type", required=false) String typeName,
                     @RequestParam(value="includeTerms", required=false,
                                   defaultValue="") String includeTerms,
-                    @RequestParam(defaultValue="-1") int limit) {
+                    @RequestParam(defaultValue="-1") int limit,
+                    @RequestParam(defaultValue="false") boolean updateIndex) {
         User user = getUser(auth);
 
         try {
             TextSearchQuery textQuery = new TextSearchQuery(query);
-            SearchResults results = doEventSearch(textQuery, className,
-                                                  typeName, limit, user,
-                                                  weightType(includeTerms));
+            SearchResults results = doEventSearch(textQuery, className, typeName, limit, user,
+                                                  weightType(includeTerms), updateIndex);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
@@ -434,7 +436,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
             SearchResults results = doSearch(query, null, null,  -1, user, 
-                                             WeightType.Tf);
+                                             WeightType.Tf, true);
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {
             return new ResponseEntity<SearchResults>
@@ -465,7 +467,7 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         try {
             KeywordSearchQuery query = new KeywordSearchQuery(input);
             SearchResults results = doEventSearch(query, null, null, -1, user, 
-                                                  WeightType.Tf);
+                                                  WeightType.Tf, true);
 
             return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
         } catch (IOException e) {

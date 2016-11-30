@@ -83,11 +83,11 @@ public class ApiControllerTest extends RestTest {
     }
 
     private SearchResults doSearch(String query) {
-        return getData(apiUrl("/search?query=" + query), SearchResults.class);
+        return getData(apiUrl("/search?updateIndex=true&query=" + query), SearchResults.class);
     }
 
     private SearchResults doEventSearch(String query) {
-        return getData(apiUrl("/eventsearch?query=" + query),
+        return getData(apiUrl("/eventsearch?updateIndex=true&query=" + query),
                        SearchResults.class);
     }
 
@@ -268,7 +268,7 @@ public class ApiControllerTest extends RestTest {
         query1.add("tellus", 0.1f);
 
         dumpData("query", query1);
-        SearchResults resEvents = uploadData(apiUrl("/eventkeywordsearch"),
+        SearchResults resEvents = uploadData(apiUrl("/eventkeywordsearch?updateIndex=true"),
                                              query1.weightedKeywords,
                                              SearchResults.class);
 
