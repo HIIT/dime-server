@@ -92,7 +92,7 @@ public class UsersController extends AuthorizedController {
             }
 
         @apiGroup Users
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
     */
     @RequestMapping(value="", method = RequestMethod.POST)
     public ResponseEntity<User> postUsers(Authentication auth, 
@@ -140,7 +140,7 @@ public class UsersController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Users
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}", method = RequestMethod.GET)
     public ResponseEntity<User> getusers(Authentication auth, @PathVariable Long id) 
@@ -164,7 +164,7 @@ public class UsersController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Users
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
     */    
     @RequestMapping(value="", method = RequestMethod.GET)
     public ResponseEntity<User[]> getAllUsers(Authentication auth) 
@@ -195,7 +195,7 @@ public class UsersController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Users
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
     */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/{id}", method = RequestMethod.DELETE)

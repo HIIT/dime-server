@@ -172,7 +172,7 @@ public class ApiController extends AuthorizedController {
             }
         @apiPermission user
         @apiGroup Status
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/updateleaderboard", method = RequestMethod.POST)

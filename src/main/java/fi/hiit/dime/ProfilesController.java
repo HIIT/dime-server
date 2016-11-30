@@ -338,7 +338,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
     */    
     @RequestMapping(value="", method = RequestMethod.GET)
     public ResponseEntity<Profile[]>
@@ -369,7 +369,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
     */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/{id}", method = RequestMethod.DELETE)
@@ -399,7 +399,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/suggestedevents", 
                     method = RequestMethod.POST)
@@ -421,7 +421,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/suggestedevents", 
                     method = RequestMethod.GET)
@@ -446,7 +446,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/{id}/suggestedevents/{rid}", 
@@ -476,7 +476,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/validatedevents", 
                     method = RequestMethod.POST)
@@ -498,7 +498,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/validatedevents", 
                     method = RequestMethod.GET)
@@ -523,7 +523,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/{id}/validatedevents/{rid}", 
@@ -554,7 +554,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/suggestedinformationelements", 
                     method = RequestMethod.POST)
@@ -576,7 +576,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/suggestedinformationelements", 
                     method = RequestMethod.GET)
@@ -601,7 +601,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/{id}/suggestedinformationelements/{rid}", 
@@ -632,7 +632,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/validatedinformationelements", method = RequestMethod.POST)
     public ResponseEntity<InformationElementRelation>
@@ -653,7 +653,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/validatedinformationelements", 
                     method = RequestMethod.GET)
@@ -678,7 +678,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/{id}/validatedinformationelements/{rid}", 
@@ -706,7 +706,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/tags", method = RequestMethod.POST)
     public ResponseEntity<Tag>
@@ -729,7 +729,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @RequestMapping(value="/{id}/tags", method = RequestMethod.GET)
     public ResponseEntity<Tag[]> profileGetTags(Authentication auth, @PathVariable Long id)
@@ -752,7 +752,7 @@ public class ProfilesController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.3
+        @apiVersion 0.2.0
      */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/{id}/tags/{tid}", method = RequestMethod.DELETE)
