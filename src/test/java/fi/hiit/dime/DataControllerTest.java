@@ -1364,10 +1364,12 @@ public class DataControllerTest extends RestTest {
             doc.mimeType = "text/plain";
             doc.appId = "foo" + i;
             elems[i] = doc;
+
+            uploadElement(elems[i], Document.class);
         }
 
-        Document[] outElems = uploadElements(elems, Document[].class);
-        assertEquals(elems.length, outElems.length);
+        // Document[] outElems = uploadElements(elems, Document[].class);
+        // assertEquals(elems.length, outElems.length);
 
         int p = (n-1)/l+1; // number of pages
         for (int i=0; i<p; i++) {

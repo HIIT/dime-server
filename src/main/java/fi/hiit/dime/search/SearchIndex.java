@@ -330,6 +330,7 @@ public class SearchIndex {
 
         long count = 0;
         IndexWriter writer = null;
+        long targetingEventCount = 0;
 
         LOG.debug("Updating Lucene index ....");
         try {
@@ -378,6 +379,16 @@ public class SearchIndex {
                     // Update those which have not yet been indexed
                     if (forceReindex || !inLucene.contains(luceneId(event)))
                         toIndex.add(event);
+
+                    if (firstUpdate) {
+                        if (event instanceof ResourcedEvent) {
+                            ResourcedEvent re = (ResourcedEvent)event;
+                            if (re.targettedResource.addTargetingEvent(re)) {
+                                targetingEventCount += 1;
+                                eventDAO.save(re);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -421,6 +432,9 @@ public class SearchIndex {
                     LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
                 }
             }
+
+            if (targetingEventCount > 0)
+                LOG.debug("Set targetingEvent for {} information elements.", targetingEventCount);
 
             for (DiMeData obj : toIndex) {
                 obj = autoGenerateTags(obj);
@@ -594,25 +608,25 @@ public class SearchIndex {
        appropriate conversions. E.g. a Document is mapped to its
        corresponding ReadingEvents.
     */
-    protected List<DiMeData> 
-        mapToEventList(List<DiMeData> dataList, User user) 
-    {
+    protected List<DiMeData> mapToEventList(List<DiMeData> dataList, User user) {
         List<DiMeData> events = new ArrayList<DiMeData>();
         Set<Long> seen = new HashSet<Long>();
 
         for (DiMeData data : dataList) {
             if (data instanceof InformationElement) {
-                List<ResourcedEvent> expandedEvents =
-                    eventDAO.findByElement((InformationElement)data, user);
-                for (ResourcedEvent event : expandedEvents) {
-                    event.targettedResource.plainTextContent = null;
-
-                    // copy the score
-                    event.score = event.targettedResource.score;
-
-                    if (!seen.contains(event.getId())) {
-                        events.add(event);
-                        seen.add(event.getId());
+                InformationElement elem = (InformationElement)data;
+                if (elem.targetingEvents != null) {
+                    for (Event event : elem.targetingEvents) {
+                        if (event instanceof ResourcedEvent)
+                            ((ResourcedEvent)event).targettedResource.plainTextContent = null;
+                        
+                        // copy the score
+                        event.score = data.score;
+                        
+                        if (!seen.contains(event.getId())) {
+                            events.add(event);
+                            seen.add(event.getId());
+                        }
                     }
                 }
             } else if (data instanceof Event) {

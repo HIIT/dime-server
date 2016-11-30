@@ -1094,4 +1094,12 @@
     <changeSet author="mvsjober (generated)" id="1480429012512-4">
         <addForeignKeyConstraint baseColumnNames="INFORMATION_ELEMENT_ID" baseTableName="INFORMATION_ELEMENT_PROFILE_IDS" constraintName="FK_80QCHMF8S67RQLC48564BF6F6" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1480506086494-1">
+        <addColumn tableName="EVENT">
+            <column name="TARGETING_EVENTS_ID" type="BIGINT(19)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1480506086494-2">
+        <addForeignKeyConstraint baseColumnNames="TARGETING_EVENTS_ID" baseTableName="EVENT" constraintName="FK_G13QP60YHEGARHV4K1A9O25BP" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="INFORMATION_ELEMENT"/>
+    </changeSet>
 </databaseChangeLog>

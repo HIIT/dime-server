@@ -26,7 +26,9 @@ package fi.hiit.dime.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,6 +37,8 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.Transient;
+import javax.persistence.OneToMany;
+import javax.persistence.CascadeType;
 
 /**
    Base class for all information elements, e.g. documents, messages
@@ -90,4 +94,18 @@ public class InformationElement extends DiMeData {
     */
     @Transient
     public Date eventTime;
+
+    @JsonIgnore
+    @OneToMany(cascade=CascadeType.ALL)
+    @JoinColumn(name="targeting_events_id", referencedColumnName="id")
+    public List<Event> targetingEvents;
+
+    public boolean addTargetingEvent(Event e) {
+        if (targetingEvents == null)
+            targetingEvents = new ArrayList<Event>();
+
+        if (!targetingEvents.contains(e))
+            return targetingEvents.add(e);
+        return false;
+    }
 }

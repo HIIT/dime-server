@@ -203,7 +203,12 @@ public class DataController extends AuthorizedController {
                     throw new BadRequestException(msg);
                 }
 
+                List<Event> ote = oldElem.targetingEvents;
+
                 elem.user = user;
+                if (ote != null && ote.size() > 0)
+                    for (Event e : ote) 
+                        elem.addTargetingEvent(e);
                 elem = infoElemDAO.replace(oldElem, elem);
             } else {
                 // Otherwise, this is just a new object, so store it
@@ -266,10 +271,10 @@ public class DataController extends AuthorizedController {
                           expandedEvent.getId());
         }
 
+        ResourcedEvent revent = null;
         if (event instanceof ResourcedEvent) {
-            ResourcedEvent revent = (ResourcedEvent)event;
-            InformationElement elem = revent.targettedResource;
-            revent.targettedResource = storeElement(elem, user);
+            revent = (ResourcedEvent)event;
+            revent.targettedResource = storeElement(revent.targettedResource, user);
         }
 
         if (expandedEvent != null) {
@@ -282,6 +287,11 @@ public class DataController extends AuthorizedController {
             event.autoFill();
         }
         eventDAO.save(event);
+
+        if (revent != null) {
+            revent.targettedResource.addTargetingEvent(event);
+            infoElemDAO.save(revent.targettedResource);
+        }
 
         return event;
     }
