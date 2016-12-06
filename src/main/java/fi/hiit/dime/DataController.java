@@ -66,6 +66,7 @@ public class DataController extends AuthorizedController {
 
     private final EventDAO eventDAO;
     private final InformationElementDAO infoElemDAO;
+    private final ProfileDAO profileDAO;
 
     @Autowired
     SearchIndex searchIndex;
@@ -75,9 +76,11 @@ public class DataController extends AuthorizedController {
 
     @Autowired
     DataController(EventDAO eventDAO,
-                   InformationElementDAO infoElemDAO) {
+                   InformationElementDAO infoElemDAO,
+                   ProfileDAO profileDAO) {
         this.eventDAO = eventDAO;
         this.infoElemDAO = infoElemDAO;
+        this.profileDAO = profileDAO;
     }
 
     private String dumpJson(Object input) {
@@ -277,6 +280,15 @@ public class DataController extends AuthorizedController {
             revent.targettedResource = storeElement(revent.targettedResource, user);
         }
 
+        if (event instanceof IntentModelFeedbackEvent) {
+            IntentModelFeedbackEvent imfEvent = (IntentModelFeedbackEvent)event;
+            Profile profile = profileDAO.findById(imfEvent.relatedProfile.getId());
+                
+            if (profile == null || !profile.user.getId().equals(user.getId()))
+                throw new NotFoundException("Profile not found");
+            imfEvent.relatedProfile = profile;
+        }
+
         if (expandedEvent != null) {
             event.user = user;
             event.autoFill();
@@ -304,7 +316,7 @@ public class DataController extends AuthorizedController {
     /** HTTP end point for uploading a single event. 
         @api {post} /data/event Upload single event
         @apiName Post
-        @apiDescription Upload a new event as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
+        @apiDescription Upload a new event as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>.  The complete description of data types can be found in the <a href="http://www.hiit.fi/g/reknow/javadoc/dime-server/fi/hiit/dime/data/package-tree.html">JavaDoc of the DiMe data classes</a>.
 
 On success, the response will be the uploaded object with some fields like the id filled in.
 
@@ -357,7 +369,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @api {get} /data/event/:id Access single event
         @apiName Get
         @apiParam {Number} id Event's unique ID
-        @apiDescription On success the response will be the event with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
+        @apiDescription On success the response will be the event with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>. The complete description of data types can be found in the <a href="http://www.hiit.fi/g/reknow/javadoc/dime-server/fi/hiit/dime/data/package-tree.html">JavaDoc of the DiMe data classes</a>
         @apiSuccessExample {json} Example successful response:
             HTTP/1.1 200 OK
             {
@@ -803,7 +815,7 @@ On success, the response will be the uploaded object with some fields like the i
 
         @apiExample {HTTP} Example usage:
         # Get all elements containing tag "dime" and mimetype "text/html"
-        GET /data/informationelements?tag=dime&mimetype=text/html
+        GET /data/informationelements?tag=dime&#38;mimetype=text/html
 
         @apiPermission user
         @apiGroup Information elements

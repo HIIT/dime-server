@@ -279,19 +279,34 @@ public class ProfilesController extends AuthorizedController {
     /** HTTP end point for creating a new profile. 
         @api {post} /profiles Create or modify a profile
         @apiName Post
-        @apiDescription Create a new profile.  If the "id" field is supplied, it will instead update an existing profile.
+        @apiDescription Create a new profile.  If the "id" field is supplied, it will instead update an existing profile. The complete description of the profile data type see the <a href="http://www.hiit.fi/g/reknow/javadoc/dime-server/fi/hiit/dime/data/Profile.html">JavaDoc of the Profile class</a>.
         
         @apiExample {json} Example of JSON to upload
             {
               "@type": "Profile",
               name: "Kai's formula profile",
-              searchKeywords: ["x”, "y" ],
-              tags: ["tag1", "tag2"],   
+              searchKeywords: ["x", "y" ],
+              "tags" : [ {
+                  "@type" : "Tag",
+                  "text" : "Formula1"
+                }, {
+                  "@type" : "Tag",
+                  "text" : "motorsports"
+                } ],
+                "suggestedEvents" : [ {
+                  "weight" : 0.9,
+                  "actor" : "UnitTest",
+                  "validated" : false,
+                  "event" : {
+                    "@type" : "FeedbackEvent",
+                    "id" : 2
+                  }
+                } ]
             }
 
         @apiPermission user
         @apiGroup Profiles
-        @apiVersion 0.1.2
+        @apiVersion 0.2.0
     */
     @RequestMapping(value="", method = RequestMethod.POST)
     public ResponseEntity<Profile> profile(Authentication auth, @RequestBody Profile input)

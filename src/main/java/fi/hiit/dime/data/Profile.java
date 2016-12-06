@@ -27,12 +27,15 @@ package fi.hiit.dime.data;
 import fi.hiit.dime.authentication.User;
 
 import com.fasterxml.jackson.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -51,6 +54,8 @@ import javax.persistence.OneToMany;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "new"})
 @Entity
 public class Profile extends AbstractPersistable<Long> {
+    private static final Logger LOG = LoggerFactory.getLogger(Profile.class);
+
     public Profile(String name) {
         this.name = name;
         this.suggestedEvents = new ArrayList<EventRelation>();
@@ -89,6 +94,10 @@ public class Profile extends AbstractPersistable<Long> {
     /** Tags */
     @OneToMany(cascade=CascadeType.ALL)
     public List<Tag> tags;
+
+    /** Intent model as a map of words to their weights */
+    @ElementCollection
+    public Map<String, Double> intent;
 
     /** List of validated events, i.e. user has confirmed they belong to the profile. */
     @OneToMany(cascade=CascadeType.ALL, orphanRemoval=true)
@@ -222,7 +231,7 @@ public class Profile extends AbstractPersistable<Long> {
 
     /** Remove suggested event relation.
 
-        @param suggestedRelation relation to remove
+        @param rel relation to remove
     */
     public void removeEvent(EventRelation rel) {
         removeRelation(rel, suggestedEvents);
@@ -255,7 +264,7 @@ public class Profile extends AbstractPersistable<Long> {
 
     /** Remove validated event relation.
 
-        @param validatedRelation relation to remove
+        @param rel relation to remove
     */
     public void removeValidatedEvent(EventRelation rel) {
         removeRelation(rel, validatedEvents);
@@ -287,7 +296,7 @@ public class Profile extends AbstractPersistable<Long> {
 
     /** Remove suggested information element relation.
 
-        @param suggestedRelation relation to remove
+        @param rel relation to remove
     */
     public void removeInformationElement(InformationElementRelation rel) {
         removeRelation(rel, suggestedInformationElements);
@@ -321,7 +330,7 @@ public class Profile extends AbstractPersistable<Long> {
 
     /** Remove validated information element relation.
 
-        @param validatedRelation relation to remove
+        @param rel relation to remove
     */
     public void removeValidatedInformationElement(InformationElementRelation rel) {
         removeRelation(rel, validatedInformationElements);
@@ -350,5 +359,11 @@ public class Profile extends AbstractPersistable<Long> {
             if (t.getId().equals(tid))
                 it.remove();
         }
+    }
+
+    public static Profile makeStub(Profile data) {
+        Profile stub = new Profile();
+        stub.setId(data.getId());
+        return stub;
     }
 }

@@ -71,6 +71,7 @@ import java.util.List;
             @JsonSubTypes.Type(value=fi.hiit.dime.data.FunfEvent.class, name="FunfEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.CalendarEvent.class, name="CalendarEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.IntentModelEvent.class, name="IntentModelEvent"),
+            @JsonSubTypes.Type(value=fi.hiit.dime.data.IntentModelFeedbackEvent.class, name="IntentModelFeedbackEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.PhysicalEvent.class, name="PhysicalEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.HealthTrackerEvent.class, name="HealthTrackerEvent"),
 })

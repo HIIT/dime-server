@@ -35,6 +35,7 @@ import fi.hiit.dime.data.EventRelation;
 import fi.hiit.dime.data.FeedbackEvent;
 import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.InformationElementRelation;
+import fi.hiit.dime.data.IntentModelFeedbackEvent;
 import fi.hiit.dime.data.Message;
 import fi.hiit.dime.data.MessageEvent;
 import fi.hiit.dime.data.Profile;
@@ -55,7 +56,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -362,7 +365,13 @@ public class ApiControllerTest extends RestTest {
         // Test updating an existing profile
         gotProfile.tags.add(new Tag("f1"));
         gotProfile.name = "Kai's Formula Profile";
-        
+
+        Map<String, Double> intent = new HashMap<String, Double>();
+        intent.put("foo", 0.4);
+        intent.put("bar", 0.1);
+        intent.put("baz", 0.99);
+        gotProfile.intent = intent;
+
         Profile updatedProfile = uploadData(profileApi, gotProfile,
                                             Profile.class);
         assertEquals(id, updatedProfile.getId());
@@ -376,6 +385,8 @@ public class ApiControllerTest extends RestTest {
         assertEquals(gotProfile.tags.size(), gotUpdatedProfile.tags.size());
         Long gotUpdatedId = gotUpdatedProfile.getId();
         assertEquals(id, gotUpdatedId);
+        assertEquals(3, gotUpdatedProfile.intent.size());
+        assertTrue(gotUpdatedProfile.intent.equals(intent));
 
         deleteData(profileApiUrl(id, "tags", uploadedTag.getId()));
 
@@ -585,4 +596,29 @@ public class ApiControllerTest extends RestTest {
         getDataExpectError(profileApiUrl(id));
     }
 
+    @Test
+    public void testIntentModelFeedback() throws Exception {
+        Profile profile = new Profile("Some profile");
+        Map<String, Double> intent = new HashMap<String, Double>();
+        intent.put("foo", 0.4);
+        intent.put("bar", 0.1);
+        intent.put("baz", 0.99);
+        profile.intent = intent;
+
+        Profile uploadedProfile = uploadData(profileApi, profile, Profile.class);
+        uploadedProfile.name = "Some profile2";
+
+        Profile stubProfile = Profile.makeStub(uploadedProfile);
+
+        IntentModelFeedbackEvent event = new IntentModelFeedbackEvent();
+        event.relatedProfile = stubProfile;
+        event.intent = intent;
+        event.weight = 0.42;
+
+        dumpData("IntentModelFeedbackEvent before upload", event);
+
+        IntentModelFeedbackEvent uploadedEvent = uploadData(eventApi, event,
+                                                            IntentModelFeedbackEvent.class);
+        dumpData("IntentModelFeedbackEvent after upload", uploadedEvent);
+    }
 }
