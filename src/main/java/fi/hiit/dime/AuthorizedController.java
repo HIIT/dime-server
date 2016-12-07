@@ -70,6 +70,8 @@ public class AuthorizedController {
 
     public boolean isLocalhost(HttpServletRequest req) {
         String addr = req.getRemoteAddr();
-        return addr.equals("0:0:0:0:0:0:0:1") || addr.equals("127.0.0.1");
+        return addr.equals("0:0:0:0:0:0:0:1") || 
+            addr.equals("127.0.0.1") || 
+            addr.startsWith("172.17."); // Docker
     }
 }

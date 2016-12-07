@@ -50,7 +50,6 @@ public class WebSecurityConfig {
 
 
     @Configuration
-    // @Order(1)
     public static class ApiWebSecurityConfigurationAdapter 
         extends WebSecurityConfigurerAdapter 
     {
@@ -68,39 +67,4 @@ public class WebSecurityConfig {
                 .csrf().disable();
         }
     }
-
-    // @Configuration
-    // public static class FormLoginWebSecurityConfigurerAdapter 
-    //     extends WebSecurityConfigurerAdapter 
-    // {
-    //     @Override
-    //     protected void configure(HttpSecurity http) throws Exception {
-    //         http.antMatcher("/**").anyRequest().permitAll();
-    //         // http.authorizeRequests()
-    //         //     .antMatchers("/", "/css/*", "/js/*", "/user/create",
-    //         //                  "/favicon.*").permitAll()
-    //         //     .antMatchers("/users/**").hasAuthority("ADMIN")
-    //         //     .anyRequest().fullyAuthenticated()
-    //         //     .and()
-    //         //     //
-    //         //     .exceptionHandling()
-    //         //     .accessDeniedPage("/login?accessdenied") //OR 
-    //         //     .and()
-    //         //     .formLogin()
-    //         //     .loginPage("/login")
-    //         //     .failureUrl("/login?error")
-    //         //     .usernameParameter("username")
-    //         //     .permitAll()
-    //         //     .and()
-    //         //     // logout
-    //         //     .logout()
-    //         //     .logoutUrl("/logout")
-    //         //     .deleteCookies("remember-me")
-    //         //     .logoutSuccessUrl("/")
-    //         //     .permitAll()
-    //         //     .and()
-    //         //     // remember me
-    //         //     .rememberMe();
-    //     }
-    // }
 }
