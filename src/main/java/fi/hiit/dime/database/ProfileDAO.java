@@ -25,6 +25,7 @@
 package fi.hiit.dime.database;
 
 import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.IntentModelFeedbackEvent;
 import fi.hiit.dime.data.Profile;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ import java.util.List;
 public class ProfileDAO {
     @Autowired
     protected ProfileRepository repo;
+
+    @Autowired
+    private EventDAO eventDAO;
 
     @Transactional
     public void save(Profile obj) {
@@ -110,6 +114,10 @@ public class ProfileDAO {
         Profile p = findById(id, user);
         if (p == null || !p.user.getId().equals(user.getId()))
             return false;
+
+        for (IntentModelFeedbackEvent e : eventDAO.findByRelatedProfile(p, user)) {
+            eventDAO.remove(e.getId(), user);
+        }
 
         repo.delete(p);
         return true;

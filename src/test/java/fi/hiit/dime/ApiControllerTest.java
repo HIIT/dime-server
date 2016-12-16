@@ -607,18 +607,36 @@ public class ApiControllerTest extends RestTest {
 
         Profile uploadedProfile = uploadData(profileApi, profile, Profile.class);
         uploadedProfile.name = "Some profile2";
+        Long id = uploadedProfile.getId();
 
         Profile stubProfile = Profile.makeStub(uploadedProfile);
 
-        IntentModelFeedbackEvent event = new IntentModelFeedbackEvent();
-        event.relatedProfile = stubProfile;
-        event.intent = intent;
-        event.weight = 0.42;
+        IntentModelFeedbackEvent event1 = new IntentModelFeedbackEvent();
+        event1.relatedProfile = stubProfile;
+        event1.intent = intent;
+        event1.weight = 0.42;
 
-        dumpData("IntentModelFeedbackEvent before upload", event);
+        dumpData("IntentModelFeedbackEvent before upload", event1);
 
-        IntentModelFeedbackEvent uploadedEvent = uploadData(eventApi, event,
-                                                            IntentModelFeedbackEvent.class);
-        dumpData("IntentModelFeedbackEvent after upload", uploadedEvent);
+        IntentModelFeedbackEvent uploadedEvent1 = uploadData(eventApi, event1,
+                                                             IntentModelFeedbackEvent.class);
+        dumpData("IntentModelFeedbackEvent after upload", uploadedEvent1);
+
+        IntentModelFeedbackEvent event2 = new IntentModelFeedbackEvent();
+        event2.relatedProfile = stubProfile;
+        event2.intent = intent;
+        event2.weight = 0.98;
+
+        IntentModelFeedbackEvent uploadedEvent2 = uploadData(eventApi, event2,
+                                                             IntentModelFeedbackEvent.class);
+
+        // Test deleting IntentModelFeedbackEvent
+        String eventApiUrl = eventApi + "/" + uploadedEvent1.getId();
+        deleteData(eventApiUrl);
+        getDataExpectError(eventApiUrl);
+
+        // Test deleting profile
+        deleteData(profileApiUrl(id));
+        getDataExpectError(profileApiUrl(id));
     }
 }
