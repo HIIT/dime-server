@@ -24,10 +24,12 @@
 
 package fi.hiit.dime.database;
 
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.IntentModelFeedbackEvent;
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.ResourcedEvent;
-import fi.hiit.dime.authentication.User;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
@@ -132,6 +134,9 @@ public interface EventRepository extends DiMeRepository<Event> {
 
     List<ResourcedEvent> findByTargettedResourceAndUser(InformationElement elem,
                                                         User user);
+
+    List<IntentModelFeedbackEvent> findByRelatedProfileAndUser(Profile profile,
+                                                               User user);
 
     List<Event> findByUserOrderByStartDesc(User user, Pageable pageable);
 

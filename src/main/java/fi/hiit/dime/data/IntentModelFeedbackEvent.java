@@ -39,7 +39,7 @@ import javax.persistence.ManyToOne;
 */
 @Entity
 public class IntentModelFeedbackEvent extends Event {
-    @ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade=CascadeType.MERGE)
     @JoinColumn(name = "related_profile_id")
     public Profile relatedProfile;
 

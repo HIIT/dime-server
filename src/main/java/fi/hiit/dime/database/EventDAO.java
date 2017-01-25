@@ -24,10 +24,12 @@
 
 package fi.hiit.dime.database;
 
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.Event;
 import fi.hiit.dime.data.InformationElement;
+import fi.hiit.dime.data.IntentModelFeedbackEvent;
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.ResourcedEvent;
-import fi.hiit.dime.authentication.User;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +48,12 @@ public class EventDAO extends DiMeDAO<Event, EventRepository> {
     @Transactional(readOnly = true)
     public List<ResourcedEvent> findByElement(InformationElement elem, User user) {
         return repo.findByTargettedResourceAndUser(elem, user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<IntentModelFeedbackEvent> findByRelatedProfile(Profile profile, 
+                                                               User user) {
+        return repo.findByRelatedProfileAndUser(profile, user);
     }
 
     @Transactional(readOnly = true)

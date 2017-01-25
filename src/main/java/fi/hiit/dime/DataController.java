@@ -548,7 +548,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         occurring before this time stamp (can be combined with after
         to get a time interval)
 
-        @apiParam (Sorting) {String} [orderBy] field to sort by (currently only timeModified, timeCreated supported)
+        @apiParam (Sorting) {String} [orderBy] field to sort by (currently only start, end supported)
         @apiParam (Sorting) {Boolean} [desc] True if results should be ordered descending, false for ascending
 
         @apiParam (Options) {Integer} [limit] limit number of results
