@@ -557,6 +557,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         'true' if you wish to include the plainTextContent of the
         InformationElements linked to the Events (these are normally
         removed to reduce verbosity)
+        @apiParam (Options) {String} [keywords] specify if you wish to include Lucene's weighted keywords, possible values include df, idf, tfidf
 
         @apiPermission user
         @apiGroup Events
@@ -571,13 +572,15 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
                @RequestParam(required=false, defaultValue="-1") int limit,
                @RequestParam(required=false, defaultValue="start") String orderBy,
                @RequestParam(required=false, defaultValue="true") boolean desc,
-               @RequestParam Map<String, String> params) 
+               @RequestParam(defaultValue="") String keywords,
+               @RequestParam Map<String, String> params)
         throws BadRequestException
     {
         User user = getUser(auth);
 
         // remove other parameters from map
-        removeFromParams(params, "includePlainTextContent", "page", "limit", "orderBy", "desc");
+        removeFromParams(params, "includePlainTextContent", "page", "limit", "orderBy", "desc",
+                         "keywords");
 
         try {
             List<Event> events = eventDAO.find(user.getId(), params, page, limit, orderBy, desc);
@@ -588,6 +591,17 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
                 for (Event e : events)
                     if (e instanceof ResourcedEvent)
                         ((ResourcedEvent)e).targettedResource.plainTextContent = null;
+            }
+
+            if (!keywords.isEmpty()) {
+                searchIndex.updateIndex();
+                for (Event e : events) {
+                    if (e instanceof ResourcedEvent) {
+                        InformationElement elem = ((ResourcedEvent)e).targettedResource;
+                        elem.weightedKeywords =
+                            searchIndex.getKeywords(elem, weightType(keywords));
+                    }
+                }
             }
 
             Event[] eventsArray = new Event[events.size()];
@@ -691,6 +705,9 @@ On success, the response will be the uploaded object with some fields like the i
         @api {get} /data/informationelement/:id Access single information element
         @apiName Get
         @apiParam {Number} id The information elements's unique ID
+
+        @apiParam (Options) {String} [keywords] specify if you wish to include Lucene's weighted keywords, possible values include df, idf, tfidf
+
         @apiDescription On success the response will be the information element with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
         @apiSuccessExample {json} Example successful response:
             HTTP/1.1 200 OK
