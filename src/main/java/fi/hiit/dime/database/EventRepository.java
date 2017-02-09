@@ -30,6 +30,7 @@ import fi.hiit.dime.data.InformationElement;
 import fi.hiit.dime.data.IntentModelFeedbackEvent;
 import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.ResourcedEvent;
+import fi.hiit.dime.data.SearchEvent;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
@@ -88,6 +89,11 @@ class EventRepositoryImpl extends DiMeRepositoryImpl<Event> {
                 break;
             case "sessionid":
                 name = "sessionId";
+                break;
+            case "@type":
+                criteria = "e.class=:myclass";
+                namedParams.put("myclass", value);
+                value = null;
                 break;
             case "actor":
             case "origin":

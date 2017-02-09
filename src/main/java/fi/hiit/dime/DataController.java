@@ -29,6 +29,7 @@ import fi.hiit.dime.authentication.CurrentUser;
 import fi.hiit.dime.data.*;
 import fi.hiit.dime.database.*;
 import fi.hiit.dime.search.SearchIndex;
+import fi.hiit.dime.search.SearchIndex.SearchQueryException;
 import static fi.hiit.dime.search.SearchIndex.weightType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -541,6 +542,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiParam (Filtering) {String} [query] match query field
         @apiParam (Filtering) {String} [tag] exact tag matching (just
         one tag needs to match)
+        @apiParam (Filtering) {String} [@type] match internal class, e.g. SearchEvent
         @apiParam (Filtering) {DateTime} [after] matches events
         occurring after this time stamp, the time stamp format is the
         same as for the start and end properties of the Data objects
@@ -600,6 +602,11 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
                         InformationElement elem = ((ResourcedEvent)e).targettedResource;
                         elem.weightedKeywords =
                             searchIndex.getKeywords(elem, weightType(keywords));
+                    } else if (e instanceof SearchEvent) {
+                        SearchEvent se = (SearchEvent)e;
+                        LOG.debug("Querifying string " + se.query);
+                        if (se.query != null)
+                            se.queryTerms = searchIndex.queryTerms(se.query);
                     }
                 }
             }
@@ -608,7 +615,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
             events.toArray(eventsArray);        
 
             return new ResponseEntity<Event[]>(eventsArray, HttpStatus.OK);
-        } catch (IllegalArgumentException | InvalidDataAccessApiUsageException e) {
+        } catch (IllegalArgumentException | InvalidDataAccessApiUsageException | IOException | SearchQueryException e) {
             throw new BadRequestException("Invalid arguments: " + e);
         }
     }   
@@ -823,6 +830,7 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam (Filtering) {String} [title] match title field
         @apiParam (Filtering) {String} [tag] exact tag matching (just
         one tag needs to match)
+        @apiParam (Filtering) {String} [@type] match internal class, e.g. Document
 
         @apiParam (Sorting) {String} [orderBy] field to sort by (currently only timeModified, timeCreated supported)
         @apiParam (Sorting) {Boolean} [desc] True if results should be ordered descending, false for ascending

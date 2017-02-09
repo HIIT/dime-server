@@ -723,6 +723,42 @@ public class SearchIndex {
     }
 
     /**
+       Extract Lucene query terms for arbitrary string.
+
+       @param query Text string
+       @return List of weighted keywords
+    */
+    public List<WeightedKeyword> queryTerms(String query) 
+        throws IOException, SearchQueryException {
+        try {
+            return extractQueryTerms(basicTextQuery(query));
+        } catch (QueryNodeException e) {
+            throw new SearchQueryException(e.getMessage());
+        }
+    }
+
+    private List<WeightedKeyword> extractQueryTerms(Query textQuery) 
+        throws IOException
+    {
+        // extract the terms of a string query
+        Weight w = searcher.createWeight(textQuery, false);
+        TreeSet<Term> textQueryTerms = new TreeSet<Term>();
+        w.extractTerms(textQueryTerms);
+
+        // add the terms to query terms
+        Iterator<Term> termsEnum = textQueryTerms.iterator();
+        List<WeightedKeyword> queryTerms = new ArrayList<WeightedKeyword>();
+        while (termsEnum.hasNext()){
+            // FIXME: if boosting in string is used, the
+            // weights are not 1
+            queryTerms.add(new WeightedKeyword(termsEnum.next().text(),
+                                               (float) 1));
+        }
+
+        return queryTerms;
+    }
+
+    /**
        Perform text search to Lucene index.
 
        @param query Query string
@@ -749,26 +785,8 @@ public class SearchIndex {
             if (query instanceof TextSearchQuery) {
                 textQuery = basicTextQuery(((TextSearchQuery)query).query);
 
-                if (termWeighting != WeightType.None) {
-                    // extract the terms of a string query
-                    Weight w = searcher.createWeight(textQuery, false);
-                    TreeSet<Term> textQueryTerms = new TreeSet<Term>();
-                    w.extractTerms(textQueryTerms);
-
-                    // add the terms to query terms
-                    Iterator<Term> termsEnum = textQueryTerms.iterator();
-                    List<WeightedKeyword> queryTerms =
-                        new ArrayList<WeightedKeyword>();
-                    while (termsEnum.hasNext()){
-                        // FIXME: if boosting in string is used, the
-                        // weights are not 1
-                        queryTerms.add(new WeightedKeyword(termsEnum.next().text(),
-                                                       (float) 1));
-                    }
-
-                    // return the extracted terms
-                    res.queryTerms = queryTerms;
-                }
+                if (termWeighting != WeightType.None)
+                    res.queryTerms = extractQueryTerms(textQuery);
 
             } else if (query instanceof KeywordSearchQuery) {
                 res.queryTerms = ((KeywordSearchQuery)query).weightedKeywords;

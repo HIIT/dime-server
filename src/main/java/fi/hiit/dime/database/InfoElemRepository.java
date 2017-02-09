@@ -73,6 +73,11 @@ class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
             case "mimetype":
                 name = "mimeType";
                 break;
+            case "@type":
+                criteria = "e.class=:myclass";
+                namedParams.put("myclass", value);
+                value = null;
+                break;
             case "uri":
             case "type":
             case "title":
@@ -85,7 +90,8 @@ class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
                 criteria = String.format("%s=:%s", name, name);
 
             q.append(" and " + criteria);
-            namedParams.put(name, value);
+            if (value != null)
+                namedParams.put(name, value);
         }
 
         if (order != null) {

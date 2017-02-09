@@ -24,9 +24,13 @@
 
 package fi.hiit.dime.data;
 
+import fi.hiit.dime.search.WeightedKeyword;
+
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
    A search event, i.e. the user doing a text query.
@@ -37,4 +41,7 @@ public class SearchEvent extends Event {
        The text of the query.
     */
     public String query;
+
+    @Transient
+    public List<WeightedKeyword> queryTerms;
 }
