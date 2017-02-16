@@ -72,6 +72,7 @@ class InfoElemRepositoryImpl extends DiMeRepositoryImpl<InformationElement> {
                 break;
             case "mimetype":
                 name = "mimeType";
+                criteria = "mimeType like :mimeType";
                 break;
             case "@type":
                 criteria = "e.class=:myclass";
