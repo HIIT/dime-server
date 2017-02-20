@@ -114,7 +114,7 @@ public class SearchIndex {
     private static final String typeField = "type";
 
     private static final String versionField = "dime_version";
-    private static final String currentVersionNumber = "6";
+    private static final String currentVersionNumber = "7";
 
     private static final String dataClassPrefix = "fi.hiit.dime.data.";
 
@@ -284,13 +284,14 @@ public class SearchIndex {
        is meant to be indexed.
     */
     private String dataContent(DiMeData obj) {
-        if (obj instanceof ReadingEvent)
+        if (obj instanceof ReadingEvent) {
             return ((ReadingEvent)obj).plainTextContent;
-        else if (obj instanceof SearchEvent)
+        } else if (obj instanceof SearchEvent) {
             return ((SearchEvent)obj).query;
-        else if (obj instanceof InformationElement)
-            return ((InformationElement)obj).plainTextContent;
-
+        } else if (obj instanceof InformationElement) {
+            InformationElement elem = (InformationElement)obj;
+            return elem.title + '\n' + elem.plainTextContent;
+        }
         return null;
     }
 

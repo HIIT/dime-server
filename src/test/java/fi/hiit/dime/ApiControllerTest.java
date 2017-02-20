@@ -103,7 +103,7 @@ public class ApiControllerTest extends RestTest {
         assertEquals(0, searchResEmpty.getDocs().size());
 
         // Create some events with messages
-        int numEvents = 12;
+        int numEvents = 15;
         Event[] events = new Event[numEvents];
 
         Set<Integer> idxToFind = new HashSet<Integer>();
@@ -126,6 +126,12 @@ public class ApiControllerTest extends RestTest {
 
             events[i] = event;
         }
+
+        // Set magicWord in title instead of content
+        int ti = 12;
+        idxToFind.add(ti);
+        InformationElement tiMsg = ((MessageEvent)events[ti]).targettedResource;
+        tiMsg.title += " " + magicWord;
 
         // Make a last event which contains a duplicate message
         MessageEvent extraEvent = new MessageEvent();
@@ -169,7 +175,7 @@ public class ApiControllerTest extends RestTest {
             assertTrue(data instanceof InformationElement);
             InformationElement elem = (InformationElement)data;
             // Check that each returned document contains the expected word
-            assertTrue(elem.plainTextContent.contains(magicWord));
+            assertTrue(elem.plainTextContent.contains(magicWord) || elem.title.contains(magicWord));
             idFound.add(elem.getId());
 
             assertTrue(elem.hasTags());

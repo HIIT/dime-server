@@ -58,7 +58,7 @@ test:
 testone:
 	rm -rf ./build/reports/tests/
 	rm -rf $(TMP_DIR)
-	SPRING_PROFILES_ACTIVE=cleandb $(GRADLE) test --tests fi.hiit.dime.ApiControllerTest.testIntentModelFeedback
+	SPRING_PROFILES_ACTIVE=cleandb $(GRADLE) test --tests fi.hiit.dime.ApiControllerTest.testSearch
 
 clean: dimeui-clean
 	$(GRADLE) clean
