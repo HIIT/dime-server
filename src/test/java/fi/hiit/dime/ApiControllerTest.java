@@ -313,7 +313,10 @@ public class ApiControllerTest extends RestTest {
                                             ScientificDocument.class);
         assertEquals(getDoc2.plainTextContent, doc.plainTextContent);
         assertTrue(getDoc2.weightedKeywords != null);
-        assertEquals(55, getDoc2.weightedKeywords.size());
+
+        // Depending on if we use StandardAnalyzer or EnglishAnalyzer
+        int kws = getDoc2.weightedKeywords.size();
+        assertTrue(kws == 55 || kws == 58);
 
         System.out.println(getDoc2.weightedKeywords.size());
     }
