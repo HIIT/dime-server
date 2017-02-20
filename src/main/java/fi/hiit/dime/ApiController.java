@@ -199,8 +199,7 @@ public class ApiController extends AuthorizedController {
         return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
     }   
 
-    @Transactional
-    @Scheduled(initialDelay=30000, fixedRate=30000)
+    @Scheduled(initialDelay=30000, fixedRate=300000)
     public void updateSearchIndex() {
         LOG.debug("Scheduled checking of Lucene index.");
         searchIndex.updateIndex();        

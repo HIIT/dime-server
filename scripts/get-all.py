@@ -25,9 +25,12 @@ if r.status_code != requests.codes.ok:
 
 params = ""
 if len(sys.argv) > 1:
-    params = "?" + "&".join(sys.argv[1:])
+    params = "?" + quote_plus("&".join(sys.argv[1:]), safe='&=')
 
-r = requests.get(server_url + '/data/informationelements' + params,
+get_url = server_url + '/data/informationelements' + params
+print("GET", get_url)
+
+r = requests.get(get_url,
                  headers={'content-type': 'application/json'},
                  auth=(server_username, server_password),
                  timeout=10)
@@ -41,8 +44,8 @@ j = r.json()
 print("Got {} InformationElements from DiMe.".format(len(j)), file=sys.stderr)
 
 with open(json_filename, 'w') as fp:
-    json.dump(j, fp)
+    json.dump(j, fp, indent=2)
     print("Wrote", json_filename)
 
-for elem in j:
-    print(elem['id'])
+# for elem in j:
+#     print(elem['id'])
