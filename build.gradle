@@ -45,6 +45,9 @@ jar {
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://artifactory.xdi2.org/xdi2-snapshot-local"
+    }
 }
 
 dependencies {
@@ -61,6 +64,13 @@ dependencies {
     compile 'org.apache.lucene:lucene-core:5.3.0'
     compile 'org.apache.lucene:lucene-analyzers-common:5.3.0'
     compile 'org.apache.lucene:lucene-queryparser:5.3.0'
+
+    compile('xdi2:xdi2-server:0.8-SNAPSHOT') {
+        exclude group: 'com.sleepycat', module: 'je'
+        exclude group: 'log4j', module: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.springframework', module: 'spring-web'
+    }
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
