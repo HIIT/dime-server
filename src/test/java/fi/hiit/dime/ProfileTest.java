@@ -50,8 +50,10 @@ public class ProfileTest {
         p.tags.add(new Tag("reknow"));
         p.tags.add(new Tag("dime"));
         p.tags.add(new Tag("knowledge work"));
+        p.attributes.put("foo", "bar");
 
         assertEquals(3, p.tags.size());
+        assertEquals(1, p.attributes.size());
 
         // Create some documents
         Document doc1 = new Document();

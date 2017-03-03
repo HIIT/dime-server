@@ -340,6 +340,7 @@ public class ApiControllerTest extends RestTest {
         Profile profile = new Profile("Kai's formula profile");
         profile.tags.add(new Tag("Formula1"));
         profile.tags.add(new Tag("motorsports"));
+        profile.attributes.put("foo", "bar");
         profile.addEvent(makeStub(outEvent1, FeedbackEvent.class), 0.9, "UnitTest");
         profile.addInformationElement(makeStub((Document)outEvent1.targettedResource, 
                                                Document.class), 0.8, "UnitTest");
@@ -351,6 +352,7 @@ public class ApiControllerTest extends RestTest {
 
         assertEquals(profile.name, uploadedProfile.name);
         assertEquals(profile.tags.size(), uploadedProfile.tags.size());
+        assertEquals(profile.attributes.size(), uploadedProfile.attributes.size());
         Long id = uploadedProfile.getId();
         assertTrue(id != null && id > 0);
 

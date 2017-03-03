@@ -33,6 +33,7 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -63,6 +64,7 @@ public class Profile extends AbstractPersistable<Long> {
         this.suggestedInformationElements = new ArrayList<InformationElementRelation>();
         this.validatedInformationElements = new ArrayList<InformationElementRelation>();
         this.tags = new ArrayList<Tag>();
+        this.attributes = new HashMap<String, String>();
     }
 
     public Profile() {
@@ -98,6 +100,10 @@ public class Profile extends AbstractPersistable<Long> {
     /** Intent model as a map of words to their weights */
     @ElementCollection
     public Map<String, Double> intent;
+
+    /** User-specified attributes */
+    @ElementCollection
+    public Map<String, String> attributes;
 
     /** List of validated events, i.e. user has confirmed they belong to the profile. */
     @OneToMany(cascade=CascadeType.ALL, orphanRemoval=true)
