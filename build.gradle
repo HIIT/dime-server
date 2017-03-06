@@ -45,6 +45,7 @@ jar {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven {
         url "https://artifactory.xdi2.org/xdi2-snapshot-local"
     }
