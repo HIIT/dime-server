@@ -33,3 +33,4 @@ npm-debug.log
 /src/main/resources/static/index.html
 /src/main/resources/templates/index.html
 /src/main/resources/static/manifest.json
+graph.xdi
