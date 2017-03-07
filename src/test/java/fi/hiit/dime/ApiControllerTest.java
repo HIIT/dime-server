@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -364,12 +364,35 @@ public class ApiControllerTest extends RestTest {
         Tag newTag = new Tag("kimi raikkonen");
         Tag uploadedTag = uploadData(profileApiUrl(id, "tags"), newTag, Tag.class);
 
+        Map<String, String> attr = new HashMap<String, String>();
+        attr.put("bar", "baz");
+        attr.put("qux", "quux");  // http://www.catb.org/~esr/jargon/html/F/foo.html
+
+        // Yes, it's a raw type. Hurray for Java
+        Map uploadedAttr = uploadData(profileApiUrl(id, "attributes"), attr, Map.class);
+
+        assertEquals(3, uploadedAttr.size());
+        assertTrue(uploadedAttr.containsKey("foo"));
+        assertEquals("bar", uploadedAttr.get("foo"));
+        assertTrue(uploadedAttr.containsKey("bar"));
+        assertEquals("baz", uploadedAttr.get("bar"));
+        assertTrue(uploadedAttr.containsKey("foo"));
+        assertEquals("quux", uploadedAttr.get("qux"));
+
         // Test fetching an existing one
         Profile gotProfile = getData(profileApiUrl(id), Profile.class);
         dumpData("gotProfile", gotProfile);
 
         assertEquals(profile.name, gotProfile.name);
         assertEquals(3, gotProfile.tags.size());
+        assertEquals(3, gotProfile.attributes.size());
+        assertTrue(gotProfile.attributes.containsKey("foo"));
+        assertEquals("bar", gotProfile.attributes.get("foo"));
+        assertTrue(gotProfile.attributes.containsKey("bar"));
+        assertEquals("baz", gotProfile.attributes.get("bar"));
+        assertTrue(gotProfile.attributes.containsKey("qux"));
+        assertEquals("quux", gotProfile.attributes.get("qux"));
+
         Long gotId = gotProfile.getId();
         assertEquals(id, gotId);
 
@@ -593,6 +616,34 @@ public class ApiControllerTest extends RestTest {
         dumpData("gotProfile12", gotProfile10);
         assertEquals(1, gotProfile12.suggestedEvents.size());
         assertEquals(0, gotProfile12.validatedEvents.size());
+
+        // Test getting all attributes
+        // Yes, it's a raw type. Hurray for Java
+        Map gotAttrs = getData(profileApiUrl(id, "attributes"), Map.class);
+
+        assertEquals(3, gotAttrs.size());
+        assertTrue(gotAttrs.containsKey("foo"));
+        assertEquals("bar", gotAttrs.get("foo"));
+        assertTrue(gotAttrs.containsKey("bar"));
+        assertEquals("baz", gotAttrs.get("bar"));
+        assertTrue(gotAttrs.containsKey("qux"));
+        assertEquals("quux", gotAttrs.get("qux"));
+
+        // Test getting a single attribute
+        String getSingleAttr = getData(profileApiUrl(id, "attributes", "bar"), String.class);
+        assertEquals("baz", getSingleAttr);
+
+        // Test deleting a single attribute
+        deleteData(profileApiUrl(id, "attributes", "foo"));
+        
+        Map gotAttrs2 = getData(profileApiUrl(id, "attributes"), Map.class);
+
+        assertEquals(2, gotAttrs2.size());
+        assertFalse(gotAttrs2.containsKey("foo"));
+        assertTrue(gotAttrs2.containsKey("bar"));
+        assertEquals("baz", gotAttrs2.get("bar"));
+        assertTrue(gotAttrs2.containsKey("qux"));
+        assertEquals("quux", gotAttrs2.get("qux"));
 
         // Try fetching a random non-existing profile
         getDataExpectError(profileApi + "/129382190");

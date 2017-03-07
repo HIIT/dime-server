@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -162,6 +162,10 @@ public abstract class RestTest {
 
     public String profileApiUrl(Long id, String path, Long elemId) {
         return profileApiUrl(id, path) + "/" + elemId;
+    }
+
+    public String profileApiUrl(Long id, String path, String name) {
+        return profileApiUrl(id, path) + "/" + name;
     }
 
     /**

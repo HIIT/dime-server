@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2016 University of Helsinki
+  Copyright (c) 2016-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -58,6 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Profiles API controller.
@@ -781,4 +782,106 @@ public class ProfilesController extends AuthorizedController {
         profile.removeTagById(tid);
         storeProfile(profile, user);
     }   
+
+
+    /** @api {post} /profiles/:id/attributes Add an attribute to the profile
+        @apiName PostAttributes
+        @apiParam {Number} id Profile's unique ID
+        @apiExample  {json} Example of JSON to upload
+            {
+              "foo": "bar"
+            }
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.2.1
+     */
+    @RequestMapping(value="/{id}/attributes", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, String>>
+        profilePostAttributes(Authentication auth, @PathVariable Long id, 
+                              @RequestBody Map<String, String> attributes)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+        
+        Profile profile = getProfile(id, user);
+
+        for (Map.Entry<String, String> attr : attributes.entrySet())
+            profile.attributes.put(attr.getKey(), attr.getValue());
+
+        profile = storeProfile(profile, user);
+
+        return new ResponseEntity<Map<String, String>>(profile.attributes, HttpStatus.OK);
+    }
+
+    /** @api {get} /profiles/:id/attributes Fetch all attributes of a profile
+        @apiName GetAttributes
+        @apiParam {Number} id Profile's unique ID
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.2.1
+     */
+    @RequestMapping(value="/{id}/attributes", method = RequestMethod.GET)
+    public ResponseEntity<Map<String, String>>
+        profileGetAttributes(Authentication auth, @PathVariable Long id)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+        
+        Profile profile = getProfile(id, user);
+
+        return new ResponseEntity<Map<String, String>>(profile.attributes, HttpStatus.OK);
+    }    
+
+    /** @api {get} /profiles/:id/attributes/:name Fetch the value of a single named attribute of a profile
+        @apiName GetSingleAttribute
+        @apiParam {Number} id Profile's unique ID
+        @apiParam {String} name Name of attribute
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.2.1
+     */
+    @RequestMapping(value="/{id}/attributes/{name}", method = RequestMethod.GET)
+    public ResponseEntity<String>
+        profileGetSingleAttribute(Authentication auth, @PathVariable Long id, @PathVariable String name)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+        
+        Profile profile = getProfile(id, user);
+
+        if (!profile.attributes.containsKey(name))
+            throw new NotFoundException("No such key name found!");
+
+        return new ResponseEntity<String>(profile.attributes.get(name), HttpStatus.OK);
+    }    
+
+    /** @api {delete} /profiles/:id/attributes/:name Delete single named attribute of a profile
+        @apiName DeleteSingleAttribute
+        @apiParam {Number} id Profile's unique ID
+        @apiParam {String} name Name of attribute
+
+        @apiPermission user
+        @apiGroup Profiles
+        @apiVersion 0.2.1
+     */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    @RequestMapping(value="/{id}/attributes/{name}", method = RequestMethod.DELETE)
+    public void profileDeleteSingleAttribute(Authentication auth, @PathVariable Long id,
+                                             @PathVariable String name)
+        throws NotFoundException, BadRequestException
+    {
+        User user = getUser(auth);
+        
+        Profile profile = getProfile(id, user);
+
+        if (!profile.attributes.containsKey(name))
+            throw new NotFoundException("No such key name found!");
+
+        profile.attributes.remove(name);
+
+        profile = storeProfile(profile, user);
+    }    
 }
