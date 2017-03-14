@@ -1328,8 +1328,9 @@ public class DataControllerTest extends RestTest {
             elems[i] = doc;
         }
 
-        Document[] outElems = uploadElements(elems, Document[].class);
-        assertEquals(elems.length, outElems.length);
+        // Upload one by one
+        for (int i=0; i<n; i++)
+            uploadElement(elems[i], Document.class);
 
         Document[] elemsDesc = getData(infoElemsApi + "?orderBy=timeModified&desc=true",
                                        Document[].class);

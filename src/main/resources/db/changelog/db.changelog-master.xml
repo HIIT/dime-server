@@ -1149,4 +1149,21 @@
     <changeSet author="mvsjober (generated)" id="1480940358399-9">
         <addForeignKeyConstraint baseColumnNames="INTENT_MODEL_FEEDBACK_EVENT_ID" baseTableName="INTENT_MODEL_FEEDBACK_EVENT_INTENT" constraintName="FK_S4P5JVTD933DPYWNCWAFD7O5U" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="EVENT"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1488537864271-1">
+        <createTable tableName="PROFILE_ATTRIBUTES">
+            <column name="PROFILE_ID" type="BIGINT(19)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ATTRIBUTES" type="VARCHAR(255)"/>
+            <column name="ATTRIBUTES_KEY" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1488537864271-2">
+        <addPrimaryKey columnNames="PROFILE_ID, ATTRIBUTES_KEY" constraintName="CONSTRAINT_31" tableName="PROFILE_ATTRIBUTES"/>
+    </changeSet>
+    <changeSet author="mvsjober (generated)" id="1488537864271-3">
+        <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_ATTRIBUTES" constraintName="FK_CFLVX5RLC26RR413QR2VQKOHO" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
+    </changeSet>
 </databaseChangeLog>
