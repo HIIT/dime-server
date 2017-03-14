@@ -79,14 +79,14 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 		// add some mapped sample data to the response
 
 		XdiEntity userXdiEntity = XdiEntitySingleton.fromContextNode(targetContextNode);
-		
+
 		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#first><#name>"), true).setLiteralString("Test FIrst Name");
 		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#last><#name>"), true).setLiteralString("Test Last Name");
 		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#email>"), true).setLiteralString(user.email);
 
 		XdiAttribute roleXdiAttribute = userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#role>"), true);
 		roleXdiAttribute.setLiteralString(user.role.name());
-		
+
 		XdiEntity profileXdiEntity = XdiEntitySingleton.fromContextNode(targetContextNode.setDeepContextNode(XDIAddress.create("#profile")));
 		profileXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#name>"), true).setLiteralString(profile.name);
 

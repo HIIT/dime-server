@@ -88,10 +88,10 @@ public class XdiController {
 		if (this.webSocketTransport == null) log.info("Bean 'WebSocketTransport' not found, support for WebSockets disabled.");
 		if (this.webSocketTransport != null) log.info("WebSocketTransport found and enabled.");
 
-		GraphMessagingContainer mc = (GraphMessagingContainer) this.uriMessagingContainerRegistry.getMessagingContainerMounts().get(0).getMessagingContainer();
-		DiMeXdiConnector c = mc.getContributors().getContributor(DiMeXdiConnector.class);
-		c.setUserDAO(this.userDAO);
-		c.setProfileDAO(this.profileDAO);
+		GraphMessagingContainer messagingContainer = (GraphMessagingContainer) this.uriMessagingContainerRegistry.getMessagingContainerMounts().get(0).getMessagingContainer();
+		DiMeXdiConnector connector = messagingContainer.getContributors().getContributor(DiMeXdiConnector.class);
+		connector.setUserDAO(this.userDAO);
+		connector.setProfileDAO(this.profileDAO);
 	}
 
 	@RequestMapping("/**")
