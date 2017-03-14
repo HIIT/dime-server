@@ -32,11 +32,16 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import fi.hiit.dime.database.ProfileDAO;
+import fi.hiit.dime.database.UserDAO;
+import fi.hiit.dime.xdi.DiMeXdiConnector;
+import xdi2.messaging.container.impl.graph.GraphMessagingContainer;
 import xdi2.transport.impl.http.HttpTransport;
 import xdi2.transport.impl.http.HttpTransportRequest;
 import xdi2.transport.impl.http.HttpTransportResponse;
@@ -55,7 +60,19 @@ public class XdiController {
 	private HttpTransport httpTransport;
 	private WebSocketTransport webSocketTransport;
 
-	public XdiController() {
+	private final UserDAO userDAO;
+	private final ProfileDAO profileDAO;
+
+	@Autowired
+	public XdiController(UserDAO userDAO, ProfileDAO profileDAO) {
+
+		this.userDAO = userDAO;
+		this.profileDAO = profileDAO;
+
+		initXdi();
+	}
+
+	private void initXdi() {
 
 		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
 		applicationContext.load(new UrlResource(XdiController.class.getClassLoader().getResource("xdi-applicationContext.xml")));
@@ -70,6 +87,11 @@ public class XdiController {
 		this.webSocketTransport = (WebSocketTransport) applicationContext.getBean("WebSocketTransport");
 		if (this.webSocketTransport == null) log.info("Bean 'WebSocketTransport' not found, support for WebSockets disabled.");
 		if (this.webSocketTransport != null) log.info("WebSocketTransport found and enabled.");
+
+		GraphMessagingContainer mc = (GraphMessagingContainer) this.uriMessagingContainerRegistry.getMessagingContainerMounts().get(0).getMessagingContainer();
+		DiMeXdiConnector c = mc.getContributors().getContributor(DiMeXdiConnector.class);
+		c.setUserDAO(this.userDAO);
+		c.setProfileDAO(this.profileDAO);
 	}
 
 	@RequestMapping("/**")
@@ -84,5 +106,19 @@ public class XdiController {
 		HttpTransportResponse response = ServletHttpTransportResponse.fromHttpServletResponse(httpServletResponse);
 
 		this.httpTransport.execute(request, response);
+	}
+
+	/*
+	 * Getters and setters
+	 */
+
+	public UserDAO getUserDAO() {
+
+		return this.userDAO;
+	}
+
+	public ProfileDAO getProfileDAO() {
+
+		return this.profileDAO;
 	}
 }

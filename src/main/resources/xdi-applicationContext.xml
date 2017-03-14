@@ -86,8 +86,8 @@
 					<property name="bootstrapOwner" value="=!:did:sov:21tDAKCERh95uGgKbJNHYp" />
 					<property name="bootstrapRootLinkContract" value="true" />
 					<property name="bootstrapPublicLinkContract" value="true" />
-					<property name="bootstrapConnectLinkContract" value="true" />
-					<property name="bootstrapSendLinkContract" value="true" />
+					<property name="bootstrapConnectLinkContract" value="false" />
+					<property name="bootstrapSendLinkContract" value="false" />
 					<property name="bootstrapTimestamp" value="true" />
 					<property name="bootstrapGraph">
 						<value>
@@ -95,12 +95,6 @@
 							({$self}/$public)($do/$get){$self}$msg$encrypt$keypair/$is#/{}
 							({$self}/$public)$contract$do/$get/{$self}$msg$sig$keypair&lt;$public&gt;&lt;$key&gt;
 							({$self}/$public)($do/$get){$self}$msg$sig$keypair/$is#/{}
-							&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://localhost:8080/xdi/dime"
-							&lt;$websocket&gt;&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"ws://localhost:8080/xdi/dime"
-							&lt;$connect&gt;&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://localhost:9202/auth"
-							({$self}/$public)$contract$do/$get/&lt;$xdi&gt;&lt;$uri&gt;
-							({$self}/$public)$contract$do/$get/&lt;$websocket&gt;&lt;$xdi&gt;&lt;$uri&gt;
-							({$self}/$public)$contract$do/$get/&lt;$connect&gt;&lt;$xdi&gt;&lt;$uri&gt;
 						</value>
 					</property>
 					<property name="bootstrapMessageEnvelope">
