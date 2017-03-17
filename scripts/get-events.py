@@ -5,12 +5,15 @@ import sys
 import socket
 import time
 import json
+import dime
 
 #------------------------------------------------------------------------------
 
 server_url = 'http://localhost:8080/api'
 server_username = 'testuser'
-server_password = 'testuser123'
+server_password = dime.password(server_username)
+
+json_filename = 'dime-events.json'
 
 #------------------------------------------------------------------------------
 
@@ -40,5 +43,9 @@ j = r.json()
 
 print("Got {} events from DiMe.".format(len(j)), file=sys.stderr)
 
-for elem in j[:2]:
-    print(json.dumps(elem, indent=2))
+# for elem in j[:2]:
+#     print(json.dumps(elem, indent=2))
+
+with open(json_filename, 'w') as fp:
+    json.dump(j, fp, indent=2)
+    print("Wrote", json_filename)
