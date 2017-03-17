@@ -1166,4 +1166,9 @@
     <changeSet author="mvsjober (generated)" id="1488537864271-3">
         <addForeignKeyConstraint baseColumnNames="PROFILE_ID" baseTableName="PROFILE_ATTRIBUTES" constraintName="FK_CFLVX5RLC26RR413QR2VQKOHO" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="ID" referencedTableName="PROFILE"/>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1489754309926-1">
+        <addColumn tableName="INFORMATION_ELEMENT">
+            <column name="DETECTED_LANGUAGE" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

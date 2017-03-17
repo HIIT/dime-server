@@ -62,6 +62,8 @@ dependencies {
     compile 'org.apache.lucene:lucene-analyzers-common:5.3.0'
     compile 'org.apache.lucene:lucene-queryparser:5.3.0'
 
+    compile 'com.optimaize.languagedetector:language-detector:0.6'
+
     testCompile 'org.springframework.boot:spring-boot-starter-test'
 }
 
