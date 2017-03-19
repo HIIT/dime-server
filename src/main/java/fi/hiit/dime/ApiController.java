@@ -28,6 +28,7 @@ import static fi.hiit.dime.search.SearchIndex.WeightType;
 import static fi.hiit.dime.search.SearchIndex.weightType;
 
 import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.database.EventDAO;
 import fi.hiit.dime.database.InformationElementDAO;
 import fi.hiit.dime.database.ProfileDAO;
@@ -197,7 +198,46 @@ public class ApiController extends AuthorizedController {
         }
 
         return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
-    }   
+    }
+
+    private Profile getProfile(Long profileId, User user) 
+        throws NotFoundException 
+    {
+        Profile profile = profileDAO.findById(profileId, user);
+        
+        if (profile == null || !profile.user.getId().equals(user.getId()))
+            throw new NotFoundException("Profile not found");
+        return profile;
+    }
+    
+    /** @api {post} /sendtopeoplefinder Upload profile to People Finder service
+        @apiName SendToPeopleFinder
+        @apiParam {Number} id The profile id
+        @apiDescription On success, the response will be an empty HTTP 204.
+
+        @apiPermission user
+        @apiGroup Status
+        @apiVersion 0.2.1
+     */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    @RequestMapping(value="/sendtopeoplefinder/{id}", method = RequestMethod.POST)
+    public ResponseEntity sendToPeopleFinder(Authentication auth, @PathVariable Long id)
+            throws NotFoundException
+    {
+        User user = getUser(auth);
+        Profile profile = getProfile(id, user);
+
+        LOG.info("Send to people finder, user {}, profile {}", user.username, profile.name);
+
+        // Do your stuff here ...
+
+        // On error
+        //     return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        // On success
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
+    
 
     @Transactional(readOnly=true)
     @Scheduled(initialDelay=30000, fixedRate=60000)

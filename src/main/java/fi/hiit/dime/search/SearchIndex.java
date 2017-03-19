@@ -77,6 +77,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.base.Optional;
+import com.optimaize.langdetect.LanguageDetector;
+import com.optimaize.langdetect.i18n.LdLocale;
+import com.optimaize.langdetect.text.CommonTextObjectFactories;
+import com.optimaize.langdetect.text.TextObject;
+import com.optimaize.langdetect.text.TextObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -134,6 +142,11 @@ public class SearchIndex {
 
     @Autowired
     private EventDAO eventDAO;
+
+    @Autowired
+    private LanguageDetector languageDetector;
+
+    private TextObjectFactory textObjectFactory = CommonTextObjectFactories.forDetectingOnLargeText();
 
     /**
        Constructor.
@@ -312,6 +325,17 @@ public class SearchIndex {
         return currentVersionNumber + "_" + analyzerName;
     }
 
+    private String detectLanguage(String text) {
+        if (text != null && !text.isEmpty()) {
+            TextObject textObject = textObjectFactory.forText(text);
+            Optional<LdLocale> lang = languageDetector.detect(textObject);
+            if (lang.isPresent())
+                return lang.get().getLanguage();
+        }
+        return null;
+    }    
+
+
     /**
        Call to update index, e.g. after adding new information elements.
 
@@ -384,7 +408,8 @@ public class SearchIndex {
                     if (firstUpdate) {
                         if (event instanceof ResourcedEvent) {
                             ResourcedEvent re = (ResourcedEvent)event;
-                            if (re.targettedResource.addTargetingEvent(re)) {
+                            InformationElement elem = re.targettedResource;
+                            if (elem.addTargetingEvent(re)) {
                                 targetingEventCount += 1;
                                 eventDAO.save(re);
                             }
@@ -394,6 +419,7 @@ public class SearchIndex {
             }
 
             Map<String, Long> cHist = new HashMap<String, Long>();
+            Map<String, Long> lHist = new HashMap<String, Long>();
 
             // create a field that stores term vectors, i.e. tf (idf) values
             FieldType fieldType = new FieldType();
@@ -409,6 +435,18 @@ public class SearchIndex {
                     String cName = getClassName(obj);
                     long c = cHist.containsKey(cName) ? cHist.get(cName) : 0;
                     cHist.put(cName, c + 1);
+
+                    if (obj instanceof InformationElement) {
+                        InformationElement elem = (InformationElement)obj;
+                        if (elem.detectedLanguage == null) {
+                            String lang = detectLanguage(dataContent(elem));
+                            elem.detectedLanguage = lang;
+                            infoElemDAO.save(elem, false);
+
+                            c = lHist.containsKey(lang) ? lHist.get(lang) : 0;
+                            lHist.put(lang, c + 1);
+                        }
+                    }
                 } else {
                     skipped += 1;
                 }
@@ -430,6 +468,13 @@ public class SearchIndex {
             if (cHist.size() > 0) {
                 LOG.debug("Indexed of different classes:");
                 for (Map.Entry<String, Long> entry : cHist.entrySet()) {
+                    LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
+                }
+            }
+
+            if (lHist.size() > 0) {
+                LOG.debug("Languages detected:");
+                for (Map.Entry<String, Long> entry : lHist.entrySet()) {
                     LOG.debug("    {}\t {}", entry.getValue(), entry.getKey());
                 }
             }

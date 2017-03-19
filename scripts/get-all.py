@@ -5,12 +5,13 @@ import sys
 import socket
 import time
 import json
+import dime
 
 #------------------------------------------------------------------------------
 
 server_url = 'http://localhost:8080/api'
 server_username = 'testuser'
-server_password = 'testuser123'
+server_password = dime.password(server_username)
 
 json_filename = 'dime-elements.json'
 

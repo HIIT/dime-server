@@ -43,11 +43,17 @@ public class DiMeDAO<T extends DiMeData, R extends DiMeRepository<T>> {
 
     @Transactional
     public void save(T obj) {
+        save(obj, true);
+    }
+
+    @Transactional
+    public void save(T obj, boolean index) {
         if (obj.timeCreated == null)
             obj.timeCreated = new Date();
         obj.timeModified = new Date();
 
-        notIndexed.add(obj);
+        if (index)
+            notIndexed.add(obj);
         repo.save(obj);
     }
 

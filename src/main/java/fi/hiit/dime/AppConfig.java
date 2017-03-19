@@ -28,6 +28,11 @@ import fi.hiit.dime.search.SearchIndex;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.optimaize.langdetect.LanguageDetector;
+import com.optimaize.langdetect.LanguageDetectorBuilder;
+import com.optimaize.langdetect.ngram.NgramExtractors;
+import com.optimaize.langdetect.profiles.LanguageProfile;
+import com.optimaize.langdetect.profiles.LanguageProfileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +47,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import java.io.IOException;
+import java.util.List;
 
 @Configuration
 @EnableScheduling
@@ -59,6 +67,15 @@ public class AppConfig {
                                dimeConfig.getLuceneAnalyzer());
     }
 
+    @Bean
+    public LanguageDetector languageDetector() throws IOException {
+        List<LanguageProfile> languageProfiles = new LanguageProfileReader().readAllBuiltIn();
+
+        return LanguageDetectorBuilder.create(NgramExtractors.standard())
+            .withProfiles(languageProfiles)
+            .build();
+    }
+    
     @Bean
     public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
         return builder

@@ -78,6 +78,9 @@ public class InformationElement extends DiMeData {
 	    (plainTextContent == null || plainTextContent.isEmpty());
     }
 
+    /** Auto-detected language */
+    public String detectedLanguage;
+
     /** String value to uniquely identify an object. */
     public String contentHash;
 
