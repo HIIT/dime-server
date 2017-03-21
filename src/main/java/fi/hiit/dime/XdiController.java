@@ -29,69 +29,26 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.GenericXmlApplicationContext;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import fi.hiit.dime.database.ProfileDAO;
-import fi.hiit.dime.database.UserDAO;
-import fi.hiit.dime.xdi.DiMeXdiConnector;
-import xdi2.messaging.container.impl.graph.GraphMessagingContainer;
-import xdi2.transport.impl.http.HttpTransport;
+import fi.hiit.dime.xdi.XdiService;
 import xdi2.transport.impl.http.HttpTransportRequest;
 import xdi2.transport.impl.http.HttpTransportResponse;
 import xdi2.transport.impl.http.impl.servlet.ServletHttpTransportRequest;
 import xdi2.transport.impl.http.impl.servlet.ServletHttpTransportResponse;
-import xdi2.transport.impl.websocket.WebSocketTransport;
-import xdi2.transport.registry.impl.uri.UriMessagingContainerRegistry;
 
 @Controller
 @RequestMapping("/xdi")
 public class XdiController {
 
-	private static final Logger log = LoggerFactory.getLogger(XdiController.class);
-
-	private UriMessagingContainerRegistry uriMessagingContainerRegistry;
-	private HttpTransport httpTransport;
-	private WebSocketTransport webSocketTransport;
-
-	private final UserDAO userDAO;
-	private final ProfileDAO profileDAO;
+	private final XdiService xdiService;
 
 	@Autowired
-	public XdiController(UserDAO userDAO, ProfileDAO profileDAO) {
+	public XdiController(XdiService xdiService) {
 
-		this.userDAO = userDAO;
-		this.profileDAO = profileDAO;
-
-		initXdi();
-	}
-
-	private void initXdi() {
-
-		GenericXmlApplicationContext applicationContext = new GenericXmlApplicationContext();
-		applicationContext.load(new UrlResource(XdiController.class.getClassLoader().getResource("xdi-applicationContext.xml")));
-		applicationContext.refresh();
-
-		this.uriMessagingContainerRegistry = (UriMessagingContainerRegistry) applicationContext.getBean("UriMessagingContainerRegistry");
-		if (this.uriMessagingContainerRegistry == null) throw new NoSuchBeanDefinitionException("Required bean 'UriMessagingContainerRegistry' not found.");
-
-		this.httpTransport = (HttpTransport) applicationContext.getBean("HttpTransport");
-		if (this.httpTransport == null) throw new NoSuchBeanDefinitionException("Required bean 'HttpTransport' not found.");
-
-		this.webSocketTransport = (WebSocketTransport) applicationContext.getBean("WebSocketTransport");
-		if (this.webSocketTransport == null) log.info("Bean 'WebSocketTransport' not found, support for WebSockets disabled.");
-		if (this.webSocketTransport != null) log.info("WebSocketTransport found and enabled.");
-
-		GraphMessagingContainer messagingContainer = (GraphMessagingContainer) this.uriMessagingContainerRegistry.getMessagingContainerMounts().get(0).getMessagingContainer();
-		DiMeXdiConnector connector = messagingContainer.getContributors().getContributor(DiMeXdiConnector.class);
-		connector.setUserDAO(this.userDAO);
-		connector.setProfileDAO(this.profileDAO);
+		this.xdiService = xdiService;
 	}
 
 	@RequestMapping("/**")
@@ -105,20 +62,6 @@ public class XdiController {
 		HttpTransportRequest request = ServletHttpTransportRequest.fromHttpServletRequest(httpServletRequest, "/xdi");
 		HttpTransportResponse response = ServletHttpTransportResponse.fromHttpServletResponse(httpServletResponse);
 
-		this.httpTransport.execute(request, response);
-	}
-
-	/*
-	 * Getters and setters
-	 */
-
-	public UserDAO getUserDAO() {
-
-		return this.userDAO;
-	}
-
-	public ProfileDAO getProfileDAO() {
-
-		return this.profileDAO;
+		this.xdiService.httpTransport.execute(request, response);
 	}
 }

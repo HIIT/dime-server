@@ -20,28 +20,16 @@
   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-*/
+ */
 
 package fi.hiit.dime;
 
-import static fi.hiit.dime.search.SearchIndex.WeightType;
 import static fi.hiit.dime.search.SearchIndex.weightType;
 
-import fi.hiit.dime.authentication.User;
-import fi.hiit.dime.data.Profile;
-import fi.hiit.dime.database.EventDAO;
-import fi.hiit.dime.database.InformationElementDAO;
-import fi.hiit.dime.database.ProfileDAO;
-import fi.hiit.dime.search.KeywordSearchQuery;
-import fi.hiit.dime.search.SearchIndex.SearchQueryException;
-import fi.hiit.dime.search.SearchIndex;
-import fi.hiit.dime.search.SearchQuery;
-import fi.hiit.dime.search.SearchResults;
-import fi.hiit.dime.search.TextSearchQuery;
-import fi.hiit.dime.search.WeightedKeyword;
+import java.io.IOException;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.servlet.ServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,9 +50,33 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.servlet.ServletRequest;
+import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.Profile;
+import fi.hiit.dime.database.EventDAO;
+import fi.hiit.dime.database.InformationElementDAO;
+import fi.hiit.dime.database.ProfileDAO;
+import fi.hiit.dime.search.KeywordSearchQuery;
+import fi.hiit.dime.search.SearchIndex;
+import fi.hiit.dime.search.SearchIndex.SearchQueryException;
+import fi.hiit.dime.search.SearchIndex.WeightType;
+import fi.hiit.dime.search.SearchQuery;
+import fi.hiit.dime.search.SearchResults;
+import fi.hiit.dime.search.TextSearchQuery;
+import fi.hiit.dime.search.WeightedKeyword;
+import fi.hiit.dime.xdi.XdiService;
+import xdi2.client.exceptions.Xdi2ClientException;
+import xdi2.client.impl.http.XDIHttpClient;
+import xdi2.client.impl.local.XDILocalClient;
+import xdi2.core.Graph;
+import xdi2.core.syntax.XDIAddress;
+import xdi2.core.util.XDIAddressUtil;
+import xdi2.messaging.Message;
+import xdi2.messaging.MessageEnvelope;
+import xdi2.messaging.container.MessagingContainer;
+import xdi2.messaging.response.MessagingResponse;
 
 /**
  * General API controller, for things that go directly under the /api
@@ -75,46 +87,46 @@ import javax.servlet.ServletRequest;
 @RestController
 @RequestMapping("/api")
 public class ApiController extends AuthorizedController {
-    private static final Logger LOG =
-        LoggerFactory.getLogger(ApiController.class);
+	private static final Logger LOG =
+			LoggerFactory.getLogger(ApiController.class);
 
-    private final EventDAO eventDAO;
-    private final InformationElementDAO infoElemDAO;
-    private final ProfileDAO profileDAO;
+	private final EventDAO eventDAO;
+	private final InformationElementDAO infoElemDAO;
+	private final ProfileDAO profileDAO;
 
-    @Value("${application.formatted-version}")
-    private String dimeVersion;
+	@Value("${application.formatted-version}")
+	private String dimeVersion;
 
-    @Autowired
-    private DiMeProperties dimeConfig;
+	@Autowired
+	private DiMeProperties dimeConfig;
 
-    @Autowired
-    SearchIndex searchIndex;
+	@Autowired
+	SearchIndex searchIndex;
 
-    @Autowired 
-    private ObjectMapper objectMapper;
+	@Autowired 
+	private ObjectMapper objectMapper;
 
-    @Autowired
-    ApiController(EventDAO eventDAO,
-                  InformationElementDAO infoElemDAO,
-                  ProfileDAO profileDAO) {
-        this.eventDAO = eventDAO;
-        this.infoElemDAO = infoElemDAO;
-        this.profileDAO = profileDAO;
-    }
+	@Autowired
+	ApiController(EventDAO eventDAO,
+			InformationElementDAO infoElemDAO,
+			ProfileDAO profileDAO) {
+		this.eventDAO = eventDAO;
+		this.infoElemDAO = infoElemDAO;
+		this.profileDAO = profileDAO;
+	}
 
-    /**
+	/**
         Class for "dummy" API responses which just return a simple
         message string.
-    */
-    @JsonInclude(value=JsonInclude.Include.NON_NULL)
-    public static class ApiMessage {
-        public String message;
-        public String version;
-        public String userId;
-    }
+	 */
+	@JsonInclude(value=JsonInclude.Include.NON_NULL)
+	public static class ApiMessage {
+		public String message;
+		public String version;
+		public String userId;
+	}
 
-    /**
+	/**
         @api {get} /ping Ping server
         @apiName Ping
         @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access. Also returns the DiMe server version.  Authentication is optional, but if you're authenticated it also returns the userId of the authenticated user.
@@ -133,33 +145,33 @@ public class ApiController extends AuthorizedController {
             }
         @apiGroup Status
         @apiVersion 0.1.2
-    */
-    @RequestMapping("/ping")
-    public ResponseEntity<ApiMessage> ping(Authentication auth, ServletRequest req) {
-        LOG.info("Received ping from " + req.getRemoteHost());
+	 */
+	@RequestMapping("/ping")
+	public ResponseEntity<ApiMessage> ping(Authentication auth, ServletRequest req) {
+		LOG.info("Received ping from " + req.getRemoteHost());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
 
-        ApiMessage msg = new ApiMessage();
-        msg.message = "pong";
-        msg.version = dimeVersion;
-        msg.userId = null;
-        if (auth != null)
-            msg.userId = getUser(auth).userId;
+		ApiMessage msg = new ApiMessage();
+		msg.message = "pong";
+		msg.version = dimeVersion;
+		msg.userId = null;
+		if (auth != null)
+			msg.userId = getUser(auth).userId;
 
-        return new ResponseEntity<ApiMessage>(msg, headers, HttpStatus.OK);
-    }
+		return new ResponseEntity<ApiMessage>(msg, headers, HttpStatus.OK);
+	}
 
-    @JsonInclude(value=JsonInclude.Include.NON_NULL)
-    public static class LeaderboardPayload {
-        public String userId;
-        public String username;
-        public Long eventCount;
-        public Double time;
-    }
+	@JsonInclude(value=JsonInclude.Include.NON_NULL)
+	public static class LeaderboardPayload {
+		public String userId;
+		public String username;
+		public Long eventCount;
+		public Double time;
+	}
 
-    /** @api {post} /updateleaderboard Update event count to the DiMe leaderboard
+	/** @api {post} /updateleaderboard Update event count to the DiMe leaderboard
         @apiName UpdateLeaderboard
         @apiDescription On success, the response will be the JSON object returned by the leaderboard server.
 
@@ -174,43 +186,43 @@ public class ApiController extends AuthorizedController {
         @apiPermission user
         @apiGroup Status
         @apiVersion 0.2.0
-     */
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    @RequestMapping(value="/updateleaderboard", method = RequestMethod.POST)
-    public ResponseEntity<LeaderboardPayload> updateLeaderboard(Authentication auth) {
-        User user = getUser(auth);
+	 */
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
+	@RequestMapping(value="/updateleaderboard", method = RequestMethod.POST)
+	public ResponseEntity<LeaderboardPayload> updateLeaderboard(Authentication auth) {
+		User user = getUser(auth);
 
-        LeaderboardPayload payload = new LeaderboardPayload();
-        payload.userId = user.userId;
-        payload.username = user.username;
-        payload.eventCount = eventDAO.count(user);
+		LeaderboardPayload payload = new LeaderboardPayload();
+		payload.userId = user.userId;
+		payload.username = user.username;
+		payload.eventCount = eventDAO.count(user);
 
-        RestTemplate rest = new RestTemplate();
-        String endpoint = dimeConfig.getLeaderboardEndpoint();
-        ResponseEntity<LeaderboardPayload> res = 
-            rest.postForEntity(endpoint, payload, LeaderboardPayload.class);
-        assert(res.getStatusCode().is2xxSuccessful());
+		RestTemplate rest = new RestTemplate();
+		String endpoint = dimeConfig.getLeaderboardEndpoint();
+		ResponseEntity<LeaderboardPayload> res = 
+				rest.postForEntity(endpoint, payload, LeaderboardPayload.class);
+		assert(res.getStatusCode().is2xxSuccessful());
 
-        LOG.info("Response from leaderboard ({}):", endpoint);
-        try {
-            LOG.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(res.getBody()));
-        } catch (IOException e) {
-        }
+		LOG.info("Response from leaderboard ({}):", endpoint);
+		try {
+			LOG.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(res.getBody()));
+		} catch (IOException e) {
+		}
 
-        return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
-    }
+		return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
+	}
 
-    private Profile getProfile(Long profileId, User user) 
-        throws NotFoundException 
-    {
-        Profile profile = profileDAO.findById(profileId, user);
-        
-        if (profile == null || !profile.user.getId().equals(user.getId()))
-            throw new NotFoundException("Profile not found");
-        return profile;
-    }
-    
-    /** @api {post} /sendtopeoplefinder Upload profile to People Finder service
+	private Profile getProfile(Long profileId, User user) 
+			throws NotFoundException 
+	{
+		Profile profile = profileDAO.findById(profileId, user);
+
+		if (profile == null || !profile.user.getId().equals(user.getId()))
+			throw new NotFoundException("Profile not found");
+		return profile;
+	}
+
+	/** @api {post} /sendtopeoplefinder Upload profile to People Finder service
         @apiName SendToPeopleFinder
         @apiParam {Number} id The profile id
         @apiDescription On success, the response will be an empty HTTP 204.
@@ -218,94 +230,135 @@ public class ApiController extends AuthorizedController {
         @apiPermission user
         @apiGroup Status
         @apiVersion 0.2.1
-     */
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    @RequestMapping(value="/sendtopeoplefinder/{id}", method = RequestMethod.POST)
-    public ResponseEntity sendToPeopleFinder(Authentication auth, @PathVariable Long id)
-            throws NotFoundException
-    {
-        User user = getUser(auth);
-        Profile profile = getProfile(id, user);
+	 */
+	@ResponseStatus(value = HttpStatus.NO_CONTENT)
+	@RequestMapping(value="/sendtopeoplefinder/{id}", method = RequestMethod.POST)
+	public ResponseEntity sendToPeopleFinder(Authentication auth, @PathVariable Long id)
+			throws NotFoundException
+	{
+		User user = getUser(auth);
+		Profile profile = getProfile(id, user);
 
-        LOG.info("Send to people finder, user {}, profile {}", user.username, profile.name);
+		LOG.info("Send to people finder, user {}, profile {}", user.username, profile.name);
 
-        // Do your stuff here ...
+		XDIAddress userIdXDIAddress = XdiService.XDIAddressFromUserId(user.userId);
+		XDIAddress peopleFinderXDIAddress = XDIAddress.create("+!:did:sov:VpumqBbcVi86RvpEo8lvOn");
+		Graph userGraph;
 
-        // On error
-        //     return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+		try {
 
-        // On success
-        return new ResponseEntity(HttpStatus.NO_CONTENT);
-    }
-    
+			// XDI request to local messaging container
 
-    @Transactional(readOnly=true)
-    @Scheduled(initialDelay=30000, fixedRate=60000)
-    public void updateSearchIndex() {
-        LOG.debug("Scheduled checking of Lucene index.");
-        searchIndex.updateIndex();        
-    }
+			MessagingContainer messagingContainer = XdiService.get().uriMessagingContainerRegistry.getMessagingContainer("/dime");
+			MessageEnvelope messageEnvelope = new MessageEnvelope();
+			Message message = messageEnvelope.createMessage(userIdXDIAddress, -1);
+			message.setFromXDIAddress(userIdXDIAddress);
+			message.setToXDIAddress(userIdXDIAddress);
+			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(userIdXDIAddress, XDIAddress.create("#dime")));
 
-    /**
+			XDILocalClient client = new XDILocalClient(messagingContainer);
+			userGraph = client.send(messageEnvelope).getResultGraph();
+		} catch (Xdi2ClientException ex) {
+
+			LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
+			return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		try {
+
+			// XDI request to People Finder
+
+			MessageEnvelope messageEnvelope = new MessageEnvelope();
+			Message message1 = messageEnvelope.createMessage(userIdXDIAddress, -1);
+			message1.setFromXDIAddress(userIdXDIAddress);
+			message1.setToXDIAddress(peopleFinderXDIAddress);
+			message1.createDelOperation(userIdXDIAddress);
+			Message message2 = messageEnvelope.createMessage(userIdXDIAddress, -1);
+			message2.setFromXDIAddress(userIdXDIAddress);
+			message2.setToXDIAddress(peopleFinderXDIAddress);
+			message2.createSetOperation(userGraph);
+
+			XDIHttpClient client = new XDIHttpClient("http://localhost:7401/xdi/graph");
+			client.send(messageEnvelope);
+			client.close();
+		} catch (Xdi2ClientException ex) {
+
+			LOG.error("Cannot send XDI message to People Finder: " + ex.getMessage(), ex);
+			return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		// On success
+		return new ResponseEntity(HttpStatus.NO_CONTENT);
+	}
+
+
+	@Transactional(readOnly=true)
+	@Scheduled(initialDelay=30000, fixedRate=60000)
+	public void updateSearchIndex() {
+		LOG.debug("Scheduled checking of Lucene index.");
+		searchIndex.updateIndex();        
+	}
+
+	/**
        Helper method to transform the search results into an
        appropriate format for returning from the API.
-    */
+	 */
 
-    protected SearchResults doSearch(SearchQuery query, String className,
-                                     String typeName, int limit, User user,
-                                     WeightType termWeighting, boolean updateIndex)
-        throws IOException, SearchQueryException
-    {
-        if (query.isEmpty())
-            return new SearchResults();
+	protected SearchResults doSearch(SearchQuery query, String className,
+			String typeName, int limit, User user,
+			WeightType termWeighting, boolean updateIndex)
+					throws IOException, SearchQueryException
+	{
+		if (query.isEmpty())
+			return new SearchResults();
 
-        if (updateIndex)
-            searchIndex.updateIndex();
+		if (updateIndex)
+			searchIndex.updateIndex();
 
-        SearchResults res = searchIndex.search(query, className, typeName,
-                                               limit, user.getId(),
-                                               termWeighting);
-        searchIndex.mapToElements(res);
+		SearchResults res = searchIndex.search(query, className, typeName,
+				limit, user.getId(),
+				termWeighting);
+		searchIndex.mapToElements(res);
 
-        LOG.info("Search query \"{}\" (limit={}) returned {} results.",
-                 query, limit, res.getNumFound());
-        return res;
-    }
+		LOG.info("Search query \"{}\" (limit={}) returned {} results.",
+				query, limit, res.getNumFound());
+		return res;
+	}
 
-    /**
+	/**
        Helper method to transform the information element search
        results into their corresponding events for returning from the
        API.
-    */
+	 */
 
-    protected SearchResults doEventSearch(SearchQuery query, String className,
-                                          String typeName, int limit, User user,
-                                          WeightType termWeighting, boolean updateIndex)
-        throws IOException, SearchQueryException
-    {
-        if (query.isEmpty())
-            return new SearchResults();
+	protected SearchResults doEventSearch(SearchQuery query, String className,
+			String typeName, int limit, User user,
+			WeightType termWeighting, boolean updateIndex)
+					throws IOException, SearchQueryException
+	{
+		if (query.isEmpty())
+			return new SearchResults();
 
-        if (updateIndex)
-            searchIndex.updateIndex();
+		if (updateIndex)
+			searchIndex.updateIndex();
 
-        SearchResults res = searchIndex.search(query, className, typeName,
-                                               limit, user.getId(),
-                                               termWeighting);
-        searchIndex.mapToEvents(res, user);
+		SearchResults res = searchIndex.search(query, className, typeName,
+				limit, user.getId(),
+				termWeighting);
+		searchIndex.mapToEvents(res, user);
 
-        LOG.info("Search query \"{}\" (limit={}) returned {} results.",
-                 query, limit, res.getNumFound());
+		LOG.info("Search query \"{}\" (limit={}) returned {} results.",
+				query, limit, res.getNumFound());
 
-        return res;
-    }
+		return res;
+	}
 
-    /**
+	/**
        @apiDefine user User access 
        You need to be authenticated as a registered DiMe user.
-    */
+	 */
 
-    /** HTTP end point for uploading a single event. 
+	/** HTTP end point for uploading a single event. 
         @api {get} /search Information element search
         @apiName SearchInformationElement
         @apiDescription Perform a text search on existing information elements in DiMe. The search is performed using Lucene in the DiMe backend.
@@ -369,38 +422,38 @@ It returns an object that contains some meta-data and in the "docs" element a li
         @apiPermission user
         @apiGroup Search
         @apiVersion 0.1.2
-    */
-    @RequestMapping(value="/search", method = RequestMethod.GET)
-    public ResponseEntity<SearchResults>
-        search(Authentication auth,
-               @RequestParam String query,
-               @RequestParam(value="@type", required=false) String className,
-               @RequestParam(value="type", required=false) String typeName,
-               @RequestParam(value="includeTerms", required=false, 
-                             defaultValue="") String includeTerms,
-               @RequestParam(defaultValue="-1") int limit,
-               @RequestParam(defaultValue="false") boolean updateIndex)
-    {
-        User user = getUser(auth);
+	 */
+	@RequestMapping(value="/search", method = RequestMethod.GET)
+	public ResponseEntity<SearchResults>
+	search(Authentication auth,
+			@RequestParam String query,
+			@RequestParam(value="@type", required=false) String className,
+			@RequestParam(value="type", required=false) String typeName,
+			@RequestParam(value="includeTerms", required=false, 
+			defaultValue="") String includeTerms,
+			@RequestParam(defaultValue="-1") int limit,
+			@RequestParam(defaultValue="false") boolean updateIndex)
+	{
+		User user = getUser(auth);
 
-        try {
-            TextSearchQuery textQuery = new TextSearchQuery(query);
-            SearchResults results = doSearch(textQuery, className, typeName, limit, user, 
-                                             weightType(includeTerms), updateIndex);
+		try {
+			TextSearchQuery textQuery = new TextSearchQuery(query);
+			SearchResults results = doSearch(textQuery, className, typeName, limit, user, 
+					weightType(includeTerms), updateIndex);
 
-            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-        } catch (IOException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (SearchQueryException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.BAD_REQUEST);
-        }
-    }
+			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+		} catch (IOException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (SearchQueryException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    /**
+	/**
         @api {get} /eventsearch Event search
         @apiName SearchEvent
         @apiDescription Perform a text search on existing events in
@@ -429,37 +482,37 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiPermission user
         @apiGroup Search
         @apiVersion 0.1.2
-    */
-    @RequestMapping(value="/eventsearch", method = RequestMethod.GET)
-    public ResponseEntity<SearchResults>
-        eventSearch(Authentication auth,
-                    @RequestParam String query,
-                    @RequestParam(value="@type", required=false) String className,
-                    @RequestParam(value="type", required=false) String typeName,
-                    @RequestParam(value="includeTerms", required=false,
-                                  defaultValue="") String includeTerms,
-                    @RequestParam(defaultValue="-1") int limit,
-                    @RequestParam(defaultValue="false") boolean updateIndex) {
-        User user = getUser(auth);
+	 */
+	@RequestMapping(value="/eventsearch", method = RequestMethod.GET)
+	public ResponseEntity<SearchResults>
+	eventSearch(Authentication auth,
+			@RequestParam String query,
+			@RequestParam(value="@type", required=false) String className,
+			@RequestParam(value="type", required=false) String typeName,
+			@RequestParam(value="includeTerms", required=false,
+			defaultValue="") String includeTerms,
+			@RequestParam(defaultValue="-1") int limit,
+			@RequestParam(defaultValue="false") boolean updateIndex) {
+		User user = getUser(auth);
 
-        try {
-            TextSearchQuery textQuery = new TextSearchQuery(query);
-            SearchResults results = doEventSearch(textQuery, className, typeName, limit, user,
-                                                  weightType(includeTerms), updateIndex);
+		try {
+			TextSearchQuery textQuery = new TextSearchQuery(query);
+			SearchResults results = doEventSearch(textQuery, className, typeName, limit, user,
+					weightType(includeTerms), updateIndex);
 
-            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-        } catch (IOException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (SearchQueryException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.BAD_REQUEST);
-        }
-    }
+			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+		} catch (IOException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (SearchQueryException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    /**
+	/**
         @api {post} /keywordsearch 
         @apiName KeywordSearch
         @apiDescription Perform an information element search based on
@@ -468,30 +521,30 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiPermission user
         @apiGroup Search
         @apiVersion 0.1.2
-    */
-    @RequestMapping(value="/keywordsearch", method = RequestMethod.POST)
-    public ResponseEntity<SearchResults>
-        search(Authentication auth, @RequestBody WeightedKeyword[] input) 
-    {
-        User user = getUser(auth);
+	 */
+	@RequestMapping(value="/keywordsearch", method = RequestMethod.POST)
+	public ResponseEntity<SearchResults>
+	search(Authentication auth, @RequestBody WeightedKeyword[] input) 
+	{
+		User user = getUser(auth);
 
-        try {
-            KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doSearch(query, null, null,  -1, user, 
-                                             WeightType.Tf, true);
-            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-        } catch (IOException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (SearchQueryException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.BAD_REQUEST);
-        }
-    }
+		try {
+			KeywordSearchQuery query = new KeywordSearchQuery(input);
+			SearchResults results = doSearch(query, null, null,  -1, user, 
+					WeightType.Tf, true);
+			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+		} catch (IOException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (SearchQueryException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.BAD_REQUEST);
+		}
+	}
 
-    /**
+	/**
         @api {post} /eventkeywordsearch 
         @apiName EventKeywordSearch
         @apiDescription Perform an event search based on the POSTed weighted keywords.
@@ -499,27 +552,27 @@ The return format is the same as for the <a href="#api-Search-SearchInformationE
         @apiPermission user
         @apiGroup Search
         @apiVersion 0.1.2
-    */
-    @RequestMapping(value="/eventkeywordsearch", method = RequestMethod.POST)
-    public ResponseEntity<SearchResults>
-        eventSearch(Authentication auth, @RequestBody WeightedKeyword[] input) 
-    {
-        User user = getUser(auth);
+	 */
+	@RequestMapping(value="/eventkeywordsearch", method = RequestMethod.POST)
+	public ResponseEntity<SearchResults>
+	eventSearch(Authentication auth, @RequestBody WeightedKeyword[] input) 
+	{
+		User user = getUser(auth);
 
-        try {
-            KeywordSearchQuery query = new KeywordSearchQuery(input);
-            SearchResults results = doEventSearch(query, null, null, -1, user, 
-                                                  WeightType.Tf, true);
+		try {
+			KeywordSearchQuery query = new KeywordSearchQuery(input);
+			SearchResults results = doEventSearch(query, null, null, -1, user, 
+					WeightType.Tf, true);
 
-            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-        } catch (IOException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (SearchQueryException e) {
-            return new ResponseEntity<SearchResults>
-                (new SearchResults(e.getMessage()),
-                 HttpStatus.BAD_REQUEST);
-        }
-    }
+			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+		} catch (IOException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (SearchQueryException e) {
+			return new ResponseEntity<SearchResults>
+			(new SearchResults(e.getMessage()),
+					HttpStatus.BAD_REQUEST);
+		}
+	}
 }

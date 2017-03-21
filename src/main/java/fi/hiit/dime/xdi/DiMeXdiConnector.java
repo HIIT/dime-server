@@ -1,13 +1,13 @@
 package fi.hiit.dime.xdi;
 
+import java.util.Map.Entry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.Tag;
-import fi.hiit.dime.database.ProfileDAO;
-import fi.hiit.dime.database.UserDAO;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
 import xdi2.core.features.nodetypes.XdiAttribute;
@@ -15,6 +15,7 @@ import xdi2.core.features.nodetypes.XdiAttributeCollection;
 import xdi2.core.features.nodetypes.XdiEntity;
 import xdi2.core.features.nodetypes.XdiEntitySingleton;
 import xdi2.core.syntax.XDIAddress;
+import xdi2.core.util.XDIAddressUtil;
 import xdi2.messaging.container.MessagingContainer;
 import xdi2.messaging.container.Prototype;
 import xdi2.messaging.container.contributor.ContributorMount;
@@ -28,9 +29,6 @@ import xdi2.messaging.operations.GetOperation;
 public class DiMeXdiConnector extends AbstractContributor implements Prototype<DiMeXdiConnector> {
 
 	private static final Logger log = LoggerFactory.getLogger(DiMeXdiConnector.class);
-
-	private UserDAO userDAO;
-	private ProfileDAO profileDAO;
 
 	public DiMeXdiConnector() {
 
@@ -71,29 +69,47 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 
 		ContextNode targetContextNode = operationResultGraph.setDeepContextNode(targetXDIAddress);
 
-		// get a user and profile
+		// map the user
 
-		User user = this.userDAO.findByUsername("peacekeeper");
-		Profile profile = this.profileDAO.profilesForUser(user.getId()).get(0);
+		XDIAddress userIdXDIAddress = XDIAddressUtil.parentXDIAddress(targetXDIAddress, 1);
+		String userId = XdiService.userIdFromXDIAddress(userIdXDIAddress);
 
-		// add some mapped sample data to the response
+		User user = findUserByUserId(userId);
+		if (user == null) return ContributorResult.DEFAULT;
 
 		XdiEntity userXdiEntity = XdiEntitySingleton.fromContextNode(targetContextNode);
-
-		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#first><#name>"), true).setLiteralString("Test FIrst Name");
-		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#last><#name>"), true).setLiteralString("Test Last Name");
+		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#username>"), true).setLiteralString(user.username);
 		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#email>"), true).setLiteralString(user.email);
+		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#role>"), true).setLiteralString(user.role.name());
 
-		XdiAttribute roleXdiAttribute = userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#role>"), true);
-		roleXdiAttribute.setLiteralString(user.role.name());
+		// map all profiles
 
-		XdiEntity profileXdiEntity = XdiEntitySingleton.fromContextNode(targetContextNode.setDeepContextNode(XDIAddress.create("#profile")));
-		profileXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#name>"), true).setLiteralString(profile.name);
+		for (Profile profile : XdiService.get().profileDAO.profilesForUser(user.getId())) {
 
-		for (Tag tag : profile.tags) {
+			// map the profile
 
-			XdiAttributeCollection tagsXdiAttributeCollection = profileXdiEntity.getXdiAttributeCollection(XDIAddress.create("[<#tag>]"), true);
-			tagsXdiAttributeCollection.setXdiInstanceOrdered().setLiteralString(tag.text);
+			XDIAddress profileXdiEntityXDIAddress = XDIAddressFromProfileName(profile.name);
+			XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(profileXdiEntityXDIAddress, true);
+
+			// map the tags
+
+			if (profile.tags != null) for (Tag tag : profile.tags) {
+
+				XdiAttributeCollection tagsXdiAttributeCollection = profileXdiEntity.getXdiAttributeCollection(XDIAddress.create("[<#tag>]"), true);
+				tagsXdiAttributeCollection.setXdiInstanceOrdered().setLiteralString(tag.text);
+			}
+
+			// map the attributes
+
+			if (profile.attributes != null) for (Entry<String, String> entry : profile.attributes.entrySet()) {
+
+				String key = entry.getKey();
+				String value = entry.getValue();
+
+				XDIAddress attributeXdiAttributeXDIAddress = XDIAddressFromProfileAttributeKey(key);
+				XdiAttribute attributeXdiAttribute = profileXdiEntity.getXdiAttributeSingleton(attributeXdiAttributeXDIAddress, true);
+				attributeXdiAttribute.setLiteralString(value);
+			}
 		}
 
 		// done
@@ -102,26 +118,26 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 	}
 
 	/*
-	 * Getters and setters
+	 * Helper methods
 	 */
 
-	public UserDAO getUserDAO() {
+	private static User findUserByUserId(String userId) {
 
-		return this.userDAO;
+		for (User user : XdiService.get().userDAO.findAll()) {
+
+			if (userId.equals(user.userId)) return user;
+		}
+
+		return null;
 	}
 
-	public void setUserDAO(UserDAO userDAO) {
+	private static XDIAddress XDIAddressFromProfileName(String name) {
 
-		this.userDAO = userDAO;
+		return XDIAddress.create("#" + name.replace(" ", ""));
 	}
 
-	public ProfileDAO getProfileDAO() {
+	private static XDIAddress XDIAddressFromProfileAttributeKey(String key) {
 
-		return this.profileDAO;
-	}
-
-	public void setProfileDAO(ProfileDAO profileDAO) {
-
-		this.profileDAO = profileDAO;
+		return XDIAddress.create("<#" + key.replace(" ", "") + ">");
 	}
 }
