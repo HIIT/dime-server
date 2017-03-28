@@ -278,7 +278,7 @@ public class ApiController extends AuthorizedController {
 			message2.setToXDIAddress(peopleFinderXDIAddress);
 			message2.createSetOperation(userGraph);
 
-			XDIHttpClient client = new XDIHttpClient("http://localhost:7401/xdi/graph");
+			XDIHttpClient client = new XDIHttpClient(dimeConfig.getPeoplefinderEndpoint());
 			client.send(messageEnvelope);
 			client.close();
 		} catch (Xdi2ClientException ex) {

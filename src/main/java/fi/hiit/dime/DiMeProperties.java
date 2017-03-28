@@ -48,4 +48,8 @@ public class DiMeProperties {
     private String leaderboardEndpoint = "https://dimeproxy.hiit.fi/dime-leaderboards/api/event";
     public void setLeaderboardEndpoint(String s) { leaderboardEndpoint = s; }
     public String getLeaderboardEndpoint() { return leaderboardEndpoint; }
+
+    private String peoplefinderEndpoint = "https://peoplefinder.danubetech.com/xdi/graph";
+    public void setPeoplefinderEndpoint(String s) { peoplefinderEndpoint = s; }
+    public String getPeoplefinderEndpoint() { return peoplefinderEndpoint; }
 }
