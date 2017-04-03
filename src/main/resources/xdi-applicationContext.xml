@@ -45,10 +45,10 @@
 			<bean class="xdi2.client.impl.local.XDILocalClient">
 				<property name="graph">
 					<value>
-(=dimealice)/$ref/(=!:uuid:a9d5ff17-b55e-40c7-9a17-1586fc604d97)
-(=!:uuid:a9d5ff17-b55e-40c7-9a17-1586fc604d97)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimealice.freedombox.me/xdi/dime"
-(=dimebob)/$ref/(=!:uuid:d27311cc-29db-48b8-86f2-33f98ef8378c)
-(=!:uuid:d27311cc-29db-48b8-86f2-33f98ef8378c)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimebob.freedombox.me/xdi/dime"
+(=dimealice)/$ref/(=!:uuid:6df42a88-090f-4176-acd8-90b101767285)
+(=!:uuid:6df42a88-090f-4176-acd8-90b101767285)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimealice.freedombox.me/xdi/dime"
+(=dimebob)/$ref/(=!:uuid:88a6ae4f-73a0-4a43-9a2b-bf80951fb0fe)
+(=!:uuid:88a6ae4f-73a0-4a43-9a2b-bf80951fb0fe)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimebob.freedombox.me/xdi/dime"
 					</value>
 				</property>
 			</bean>
