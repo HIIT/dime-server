@@ -40,11 +40,22 @@
 
 	<!-- XDI DISCOVERY CLIENT AND AGENT -->
 
-	<bean id="XdiDiscoveryClient" class="xdi2.discovery.XDIDiscoveryClient">
-		<property name="registryXdiClient" value="https://registry.xdi2.org/" />
+	<bean id="XDIDiscoveryClient" class="xdi2.discovery.XDIDiscoveryClient">
+		<property name="registryXdiClient">
+			<bean class="xdi2.client.impl.local.XDILocalClient">
+				<property name="graph">
+					<value>
+(=dimealice)/$ref/(=!:uuid:a9d5ff17-b55e-40c7-9a17-1586fc604d97)
+(=!:uuid:a9d5ff17-b55e-40c7-9a17-1586fc604d97)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimealice.freedombox.me/xdi/dime"
+(=dimebob)/$ref/(=!:uuid:d27311cc-29db-48b8-86f2-33f98ef8378c)
+(=!:uuid:d27311cc-29db-48b8-86f2-33f98ef8378c)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimebob.freedombox.me/xdi/dime"
+					</value>
+				</property>
+			</bean>
+		</property>
 	</bean>
 
-	<bean id="XdiAgent" class="xdi2.agent.impl.XDIBasicAgent">
+	<bean id="XDIAgent" class="xdi2.agent.impl.XDIBasicAgent">
 		<property name="agentRouters">
 			<util:list>
 				<bean class="xdi2.agent.routing.impl.bootstrap.XDIBootstrapLocalAgentRouter" />
@@ -60,7 +71,7 @@
 					<property name="webSocketTransport" ref="WebSocketTransport" />
 				</bean>
 				<bean class="xdi2.agent.routing.impl.http.XDIHttpDiscoveryAgentRouter">
-					<property name="xdiDiscoveryClient" ref="XdiDiscoveryClient" />
+					<property name="xdiDiscoveryClient" ref="XDIDiscoveryClient" />
 				</bean>
 			</util:list>
 		</property>
@@ -109,16 +120,16 @@
 						</value>
 					</property>
 				</bean>
-<!-- 				<bean class="xdi2.messaging.container.interceptor.impl.ToInterceptor" /> -->
+				<bean class="xdi2.messaging.container.interceptor.impl.ToInterceptor" />
 				<bean class="xdi2.messaging.container.interceptor.impl.RefInterceptor" />
 				<bean class="xdi2.messaging.container.interceptor.impl.HasInterceptor" />
-<!--				<bean class="xdi2.messaging.container.interceptor.impl.security.secrettoken.SecretTokenInterceptor">
+				<bean class="xdi2.messaging.container.interceptor.impl.security.secrettoken.SecretTokenInterceptor">
 					<property name="secretTokenValidator">
 						<bean class="xdi2.messaging.container.interceptor.impl.security.secrettoken.StaticSecretTokenValidator">
 							<property name="globalSalt" value="00000000-0000-0000-0000-000000000000" />
 							<property name="localSaltAndDigestSecretTokens">
 								<util:map>
-									<entry key="=!:did:sov:21tDAKCERh95uGgKbJNHYp" value="xdi2-digest:ec136367-5969-4e69-9c8a-483e330c317f:8a447e411ad21477b67b8793e5be16749416b996c61a40476c17231be4d9390a8e703b87cf8750b66fb541f208799d3b564ee6ed33cae8f9f84ce39c1527e62e" />
+									<entry key="=!:uuid:743c7cf0-97b8-48ed-90ee-f0767550973c" value="xdi2-digest:ec136367-5969-4e69-9c8a-483e330c317f:8a447e411ad21477b67b8793e5be16749416b996c61a40476c17231be4d9390a8e703b87cf8750b66fb541f208799d3b564ee6ed33cae8f9f84ce39c1527e62e" />
 								</util:map>
 							</property>
 						</bean>
@@ -128,11 +139,11 @@
 					<property name="signatureValidators">
 						<util:list>
 							<bean class="xdi2.core.security.signature.validate.RSADiscoveryPublicKeySignatureValidator">
-								<property name="xdiDiscoveryClient" ref="XdiDiscoveryClient" />
+								<property name="xdiDiscoveryClient" ref="XDIDiscoveryClient" />
 							</bean>
 						</util:list>
 					</property>
-				</bean> -->
+				</bean>
 				<bean class="xdi2.messaging.container.interceptor.impl.security.digest.DigestInterceptor">
 					<property name="digestValidators">
 						<util:list>
@@ -141,14 +152,14 @@
 						</util:list>
 					</property>
 				</bean>
-<!--				<bean class="xdi2.messaging.container.interceptor.impl.linkcontract.LinkContractInterceptor" /> -->
+				<bean class="xdi2.messaging.container.interceptor.impl.linkcontract.LinkContractInterceptor" />
 				<bean class="xdi2.messaging.container.interceptor.impl.signing.SigningInterceptor">
 					<property name="signatureCreator">
 						<bean class="xdi2.core.security.signature.create.RSAGraphPrivateKeySignatureCreator" />
 					</property>
 				</bean>
 				<bean class="xdi2.messaging.container.interceptor.impl.connect.ConnectInterceptor">
-					<property name="xdiAgent" ref="XdiAgent" />
+					<property name="xdiAgent" ref="XDIAgent" />
 					<property name="manipulators">
 						<util:list>
 							<bean class="xdi2.client.manipulator.impl.signing.SigningManipulator">
@@ -162,7 +173,7 @@
 					</property>
 				</bean>
 				<bean class="xdi2.messaging.container.interceptor.impl.send.SendInterceptor">
-					<property name="xdiAgent" ref="XdiAgent" />
+					<property name="xdiAgent" ref="XDIAgent" />
 					<property name="manipulators">
 						<util:list>
 							<bean class="xdi2.client.manipulator.impl.signing.SigningManipulator">
@@ -179,7 +190,7 @@
 				<bean class="xdi2.messaging.container.interceptor.impl.push.PushOutInterceptor">
 					<property name="pushGateway">
 						<bean class="xdi2.messaging.container.interceptor.impl.push.BasicPushGateway">
-							<property name="xdiAgent" ref="XdiAgent" />
+							<property name="xdiAgent" ref="XDIAgent" />
 						</bean>
 					</property>
 				</bean>

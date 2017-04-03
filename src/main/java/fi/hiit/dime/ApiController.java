@@ -242,31 +242,30 @@ public class ApiController extends AuthorizedController {
 		LOG.info("Send to people finder, user {}, profile {}", user.username, profile.name);
 
 		XDIAddress userIdXDIAddress = XdiService.XDIAddressFromUserId(user.userId);
+		XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
 		XDIAddress peopleFinderXDIAddress = XDIAddress.create("+!:did:sov:VpumqBbcVi86RvpEo8lvOn");
-		Graph userGraph;
+		Graph resultGraph;
+
+		// XDI request to local messaging container
 
 		try {
 
-			// XDI request to local messaging container
-
-			MessagingContainer messagingContainer = XdiService.get().uriMessagingContainerRegistry.getMessagingContainer("/dime");
+			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(getUser(auth));
 			MessageEnvelope messageEnvelope = new MessageEnvelope();
 			Message message = messageEnvelope.createMessage(userIdXDIAddress, -1);
-			message.setFromXDIAddress(userIdXDIAddress);
-			message.setToXDIAddress(userIdXDIAddress);
-			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(userIdXDIAddress, XDIAddress.create("#dime")));
+			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(userIdXDIAddress, XDIAddress.create("#dime"), profileNameXDIAddress, XDIAddress.create("[<#tag>]")));
 
 			XDILocalClient client = new XDILocalClient(messagingContainer);
-			userGraph = client.send(messageEnvelope).getResultGraph();
+			resultGraph = client.send(messageEnvelope).getResultGraph();
 		} catch (Xdi2ClientException ex) {
 
 			LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
 			return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		try {
+		// XDI request to People Finder
 
-			// XDI request to People Finder
+		try {
 
 			MessageEnvelope messageEnvelope = new MessageEnvelope();
 			Message message1 = messageEnvelope.createMessage(userIdXDIAddress, -1);
@@ -276,7 +275,7 @@ public class ApiController extends AuthorizedController {
 			Message message2 = messageEnvelope.createMessage(userIdXDIAddress, -1);
 			message2.setFromXDIAddress(userIdXDIAddress);
 			message2.setToXDIAddress(peopleFinderXDIAddress);
-			message2.createSetOperation(userGraph);
+			message2.createSetOperation(resultGraph);
 
 			XDIHttpClient client = new XDIHttpClient(dimeConfig.getPeoplefinderEndpoint());
 			client.send(messageEnvelope);
@@ -288,6 +287,7 @@ public class ApiController extends AuthorizedController {
 		}
 
 		// On success
+
 		return new ResponseEntity(HttpStatus.NO_CONTENT);
 	}
 

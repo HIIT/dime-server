@@ -2,9 +2,6 @@ package fi.hiit.dime.xdi;
 
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.Tag;
@@ -27,8 +24,6 @@ import xdi2.messaging.operations.GetOperation;
 
 @ContributorMount(contributorXDIAddresses={"{}#dime"})
 public class DiMeXdiConnector extends AbstractContributor implements Prototype<DiMeXdiConnector> {
-
-	private static final Logger log = LoggerFactory.getLogger(DiMeXdiConnector.class);
 
 	public DiMeXdiConnector() {
 
@@ -66,16 +61,17 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 
 		XDIAddress targetXDIAddress = contributorsXDIAddress;
 		if (targetXDIAddress.equals("{}#dime")) return ContributorResult.DEFAULT;
-
-		ContextNode targetContextNode = operationResultGraph.setDeepContextNode(targetXDIAddress);
+		if (targetXDIAddress.getNumXDIArcs() > 2) return ContributorResult.DEFAULT;
 
 		// map the user
 
 		XDIAddress userIdXDIAddress = XDIAddressUtil.parentXDIAddress(targetXDIAddress, 1);
 		String userId = XdiService.userIdFromXDIAddress(userIdXDIAddress);
 
-		User user = findUserByUserId(userId);
+		User user = userId == null ? null : findUserByUserId(userId);
 		if (user == null) return ContributorResult.DEFAULT;
+
+		ContextNode targetContextNode = operationResultGraph.setDeepContextNode(targetXDIAddress);
 
 		XdiEntity userXdiEntity = XdiEntitySingleton.fromContextNode(targetContextNode);
 		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#username>"), true).setLiteralString(user.username);
@@ -88,8 +84,8 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 
 			// map the profile
 
-			XDIAddress profileXdiEntityXDIAddress = XDIAddressFromProfileName(profile.name);
-			XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(profileXdiEntityXDIAddress, true);
+			XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
+			XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(profileNameXDIAddress, true);
 
 			// map the tags
 
@@ -106,9 +102,9 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 				String key = entry.getKey();
 				String value = entry.getValue();
 
-				XDIAddress attributeXdiAttributeXDIAddress = XDIAddressFromProfileAttributeKey(key);
-				XdiAttribute attributeXdiAttribute = profileXdiEntity.getXdiAttributeSingleton(attributeXdiAttributeXDIAddress, true);
-				attributeXdiAttribute.setLiteralString(value);
+				XDIAddress profileAttributeKeyXDIAddress = XdiService.XDIAddressFromProfileAttributeKey(key);
+				XdiAttribute profileAttributeXdiAttribute = profileXdiEntity.getXdiAttributeSingleton(profileAttributeKeyXDIAddress, true);
+				profileAttributeXdiAttribute.setLiteralString(value);
 			}
 		}
 
@@ -129,15 +125,5 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 		}
 
 		return null;
-	}
-
-	private static XDIAddress XDIAddressFromProfileName(String name) {
-
-		return XDIAddress.create("#" + name.replace(" ", ""));
-	}
-
-	private static XDIAddress XDIAddressFromProfileAttributeKey(String key) {
-
-		return XDIAddress.create("<#" + key.replace(" ", "") + ">");
 	}
 }

@@ -62,6 +62,6 @@ public class XdiController {
 		HttpTransportRequest request = ServletHttpTransportRequest.fromHttpServletRequest(httpServletRequest, "/xdi");
 		HttpTransportResponse response = ServletHttpTransportResponse.fromHttpServletResponse(httpServletResponse);
 
-		this.xdiService.httpTransport.execute(request, response);
+		this.xdiService.getHttpTransport().execute(request, response);
 	}
 }
