@@ -587,14 +587,6 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         try {
             List<Event> events = eventDAO.find(user.getId(), params, page, limit, orderBy, desc);
 
-            // We remove plainTextContents of linked
-            // InformationElements to reduce verbosity
-            if (!includePlainTextContent) {
-                for (Event e : events)
-                    if (e instanceof ResourcedEvent)
-                        ((ResourcedEvent)e).targettedResource.plainTextContent = null;
-            }
-
             if (!keywords.isEmpty()) {
                 searchIndex.updateIndex();
                 for (Event e : events) {
@@ -609,6 +601,14 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
                             se.queryTerms = searchIndex.queryTerms(se.query);
                     }
                 }
+            }
+
+            // We remove plainTextContents of linked
+            // InformationElements to reduce verbosity
+            if (!includePlainTextContent) {
+                for (Event e : events)
+                    if (e instanceof ResourcedEvent)
+                        ((ResourcedEvent)e).targettedResource.plainTextContent = null;
             }
 
             Event[] eventsArray = new Event[events.size()];
