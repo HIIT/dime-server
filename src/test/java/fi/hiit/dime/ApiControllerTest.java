@@ -27,6 +27,7 @@ package fi.hiit.dime;
 import static org.junit.Assert.*;
 import static fi.hiit.dime.data.DiMeData.makeStub;
 
+import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.ApiController.ApiMessage;
 import fi.hiit.dime.data.DiMeData;
 import fi.hiit.dime.data.Document;
@@ -700,5 +701,47 @@ public class ApiControllerTest extends RestTest {
         // Test deleting profile
         deleteData(profileApiUrl(id));
         getDataExpectError(profileApiUrl(id));
+    }
+
+    @Test
+    public void testUserDeletionBug() throws Exception {
+        // // "Log out"
+        // setTemporaryUnauthenticatedRest();
+
+        // Register a new user
+        User newUser = new User();
+        newUser.username = "testuser42";
+        newUser.password = "testuser123";
+
+        User createdUser = uploadData(apiUrl("users"), newUser, User.class);
+        Long userId = createdUser.getId();
+
+        // "Log in" as new user
+        setTemporaryRest(newUser.username, newUser.password);
+
+        // Create event
+        SearchEvent event = new SearchEvent();
+        event.query = "foo bar";
+        SearchEvent outEvent = uploadEvent(event, SearchEvent.class);
+
+        // Upload a new profile
+        Profile profile = new Profile("Profile1");
+        profile.tags.add(new Tag("baz"));
+        profile.attributes.put("foo", "bar");
+        profile.addEvent(makeStub(outEvent, SearchEvent.class), 0.9, "UnitTest");
+
+        Profile uploadedProfile = uploadData(profileApi, profile, Profile.class);
+        Long profileId = uploadedProfile.getId();
+        
+        // Test adding a suggested event
+        EventRelation eventSuggestion = new EventRelation(outEvent, 0.42, "UnitTest");
+        EventRelation suggestedEvent = uploadData(profileApiUrl(profileId, "suggestedevents"),
+                                                  eventSuggestion, EventRelation.class);
+        
+        // Delete user
+        deleteData(apiUrl("users", userId));
+        getDataExpectError(apiUrl("users", userId));
+
+        removeTemporaryRest();
     }
 }
