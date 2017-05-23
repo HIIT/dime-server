@@ -102,7 +102,7 @@
 					</property>
 					<property name="bootstrapRootLinkContract" value="true" />
 					<property name="bootstrapPublicLinkContract" value="true" />
-					<property name="bootstrapConnectLinkContract" value="false" />
+					<property name="bootstrapConnectLinkContract" value="true" />
 					<property name="bootstrapSendLinkContract" value="false" />
 					<property name="bootstrapTimestamp" value="true" />
 					<property name="bootstrapGraph">
