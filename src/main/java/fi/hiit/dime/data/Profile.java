@@ -372,4 +372,11 @@ public class Profile extends AbstractPersistable<Long> {
         stub.setId(data.getId());
         return stub;
     }
+
+    public void removeAllRelations() {
+        suggestedEvents.clear();
+        validatedEvents.clear();
+        suggestedInformationElements.clear();
+        validatedInformationElements.clear();
+    }
 }

@@ -705,9 +705,6 @@ public class ApiControllerTest extends RestTest {
 
     @Test
     public void testUserDeletionBug() throws Exception {
-        // // "Log out"
-        // setTemporaryUnauthenticatedRest();
-
         // Register a new user
         User newUser = new User();
         newUser.username = "testuser42";
@@ -737,6 +734,45 @@ public class ApiControllerTest extends RestTest {
         EventRelation eventSuggestion = new EventRelation(outEvent, 0.42, "UnitTest");
         EventRelation suggestedEvent = uploadData(profileApiUrl(profileId, "suggestedevents"),
                                                   eventSuggestion, EventRelation.class);
+        
+        // Delete user
+        deleteData(apiUrl("users", userId));
+        getDataExpectError(apiUrl("users", userId));
+
+        removeTemporaryRest();
+    }
+
+    @Test
+    public void testUserDeletionBugWithIntentModelFeedback() throws Exception {
+        // Register a new user
+        User newUser = new User();
+        newUser.username = "testuser43";
+        newUser.password = "testuser123";
+
+        User createdUser = uploadData(apiUrl("users"), newUser, User.class);
+        Long userId = createdUser.getId();
+
+        // "Log in" as new user
+        setTemporaryRest(newUser.username, newUser.password);
+
+        Profile profile = new Profile("A profile");
+        Map<String, Double> intent = new HashMap<String, Double>();
+        intent.put("foo", 0.1);
+        intent.put("bar", 0.2);
+        intent.put("baz", 0.3);
+        profile.intent = intent;
+
+        Profile uploadedProfile = uploadData(profileApi, profile, Profile.class);
+
+        Profile stubProfile = Profile.makeStub(uploadedProfile);
+
+        IntentModelFeedbackEvent event1 = new IntentModelFeedbackEvent();
+        event1.relatedProfile = stubProfile;
+        event1.intent = intent;
+        event1.weight = 0.42;
+
+        IntentModelFeedbackEvent uploadedEvent1 =
+            uploadData(eventApi, event1, IntentModelFeedbackEvent.class);
         
         // Delete user
         deleteData(apiUrl("users", userId));
