@@ -188,7 +188,6 @@ public class RequestsController extends AuthorizedController {
 				message.setFromXDIAddress(didXDIAddress);
 				message.setToXDIAddress(didXDIAddress);
 				message.setLinkContractClass(RootLinkContract.class);
-				message.setSecretToken("alice");
 				message.createSendOperation(requestMessage);
 				message.createDelOperation(XDIaddress);
 
