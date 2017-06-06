@@ -35,6 +35,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fi.hiit.dime.data.Profile;
@@ -207,9 +208,9 @@ public class RequestsController extends AuthorizedController {
 		return found ? new ResponseEntity<String>(HttpStatus.NO_CONTENT) : new ResponseEntity<String>(HttpStatus.NOT_FOUND);
 	}
 
-	@RequestMapping(value="/delete/{address}", method = RequestMethod.POST)
+	@RequestMapping(value="/delete", method = RequestMethod.POST)
 	public ResponseEntity<String>
-	requestsDelete(Authentication auth, @PathVariable String address)
+	requestsDelete(Authentication auth, @RequestParam String address)
 			throws NotFoundException, BadRequestException
 	{
 		XDIAddress XDIaddress = XDIAddress.create(address);

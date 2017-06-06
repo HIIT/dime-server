@@ -36,6 +36,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fi.hiit.dime.data.Profile;
@@ -111,9 +112,9 @@ public class LinkContractsController extends AuthorizedController {
 		return new ResponseEntity<List<XdiLinkContract>>(result, HttpStatus.OK);
 	}
 
-	@RequestMapping(value="/delete/{address}", method = RequestMethod.POST)
+	@RequestMapping(value="/delete", method = RequestMethod.POST)
 	public ResponseEntity<String>
-	linkContractsDelete(Authentication auth, @PathVariable String address)
+	linkContractsDelete(Authentication auth, @RequestParam String address)
 			throws NotFoundException, BadRequestException
 	{
 		XDIAddress XDIaddress = XDIAddress.create(address);
