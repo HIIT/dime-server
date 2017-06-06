@@ -149,7 +149,7 @@ public class LinkContractsController extends AuthorizedController {
 		return new ResponseEntity<String>(HttpStatus.NO_CONTENT);
 	}
 
-	@RequestMapping(value="/data/{address}", method = RequestMethod.GET)
+	@RequestMapping(value="/data/{target}", method = RequestMethod.GET)
 	public ResponseEntity<String>
 	linkContractsData(Authentication auth, @PathVariable String target)
 			throws NotFoundException, BadRequestException
