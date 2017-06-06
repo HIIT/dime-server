@@ -41,18 +41,7 @@
 	<!-- XDI DISCOVERY CLIENT AND AGENT -->
 
 	<bean id="XDIDiscoveryClient" class="xdi2.discovery.XDIDiscoveryClient">
-		<property name="registryXdiClient">
-			<bean class="xdi2.client.impl.local.XDILocalClient">
-				<property name="graph">
-					<value>
-(=dimealice)/$ref/(=!:uuid:6df42a88-090f-4176-acd8-90b101767285)
-(=!:uuid:6df42a88-090f-4176-acd8-90b101767285)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimealice.freedombox.me/xdi/dime"
-(=dimebob)/$ref/(=!:uuid:88a6ae4f-73a0-4a43-9a2b-bf80951fb0fe)
-(=!:uuid:88a6ae4f-73a0-4a43-9a2b-bf80951fb0fe)&lt;$xdi&gt;&lt;$uri&gt;/&amp;/"http://dimebob.freedombox.me/xdi/dime"
-					</value>
-				</property>
-			</bean>
-		</property>
+		<property name="registryXdiClient" value="https://xdi.sovrin.at/" />
 	</bean>
 
 	<bean id="XDIAgent" class="xdi2.agent.impl.XDIBasicAgent">
@@ -77,46 +66,31 @@
 		</property>
 	</bean>
 
-	<!-- MESSAGING CONTAINER at /dime -->
-	<!-- MessagingContainer: GraphMessagingContainer backed by a FileGraph -->
+	<!-- MESSAGING CONTAINER FACTORY at /dime -->
 
-	<bean id="graphfactoryDime" class="xdi2.core.impl.wrapped.file.FileWrapperGraphFactory">
+	<bean id="dimeGraphFactory" class="xdi2.core.impl.wrapped.file.FileWrapperGraphFactory">
 		<property name="path" value="./graph.xdi" />
 		<property name="mimeType" value="text/xdi;ordered=1" />
 	</bean>
 
-	<bean id="graphDime" factory-bean="graphfactoryDime" factory-method="openGraph">
-		<constructor-arg><value>(=!:did:sov:21tDAKCERh95uGgKbJNHYp)</value></constructor-arg>
-	</bean>
+	<bean id="dimeGraph" factory-bean="dimeGraphFactory" factory-method="openGraph" />
 
-	<bean name="/dime" class="xdi2.messaging.container.impl.graph.GraphMessagingContainer">
-		<property name="graph" ref="graphDime" />
+	<bean id="dimeMessagingContainer" class="xdi2.messaging.container.impl.graph.GraphMessagingContainer">
+		<property name="graph" ref="dimeGraph" />
 		<property name="interceptors">
 			<util:list>
 				<bean class="xdi2.messaging.container.interceptor.impl.BootstrapInterceptor">
-					<property name="bootstrapOwner" value="=!:uuid:743c7cf0-97b8-48ed-90ee-f0767550973c" />
-					<property name="bootstrapOwnerSynonyms">
-						<util:list>
-							<value>=!:did:sov:21tDAKCERh95uGgKbJNHYp</value>
-						</util:list>
-					</property>
 					<property name="bootstrapRootLinkContract" value="true" />
 					<property name="bootstrapPublicLinkContract" value="true" />
 					<property name="bootstrapConnectLinkContract" value="true" />
-					<property name="bootstrapSendLinkContract" value="false" />
+					<property name="bootstrapSendLinkContract" value="true" />
 					<property name="bootstrapTimestamp" value="true" />
 					<property name="bootstrapGraph">
 						<value>
-							({$self}/$public)$contract$do/$get/{$self}$msg$encrypt$keypair&lt;$public&gt;&lt;$key&gt;
-							({$self}/$public)($do/$get){$self}$msg$encrypt$keypair/$is#/{}
-							({$self}/$public)$contract$do/$get/{$self}$msg$sig$keypair&lt;$public&gt;&lt;$key&gt;
-							({$self}/$public)($do/$get){$self}$msg$sig$keypair/$is#/{}
 						</value>
 					</property>
 					<property name="bootstrapMessageEnvelope">
 						<value>
-							($anon[$msg]*!1$do/$do$keypair){$self}$msg$encrypt$keypair/$is#/$rsa$2048
-							($anon[$msg]*!1$do/$do$keypair){$self}$msg$sig$keypair/$is#/$rsa$2048
 						</value>
 					</property>
 				</bean>
@@ -129,7 +103,6 @@
 							<property name="globalSalt" value="00000000-0000-0000-0000-000000000000" />
 							<property name="localSaltAndDigestSecretTokens">
 								<util:map>
-									<entry key="=!:uuid:743c7cf0-97b8-48ed-90ee-f0767550973c" value="xdi2-digest:ec136367-5969-4e69-9c8a-483e330c317f:8a447e411ad21477b67b8793e5be16749416b996c61a40476c17231be4d9390a8e703b87cf8750b66fb541f208799d3b564ee6ed33cae8f9f84ce39c1527e62e" />
 								</util:map>
 							</property>
 						</bean>
@@ -160,31 +133,31 @@
 				</bean>
 				<bean class="xdi2.messaging.container.interceptor.impl.connect.ConnectInterceptor">
 					<property name="xdiAgent" ref="XDIAgent" />
-					<property name="manipulators">
+<!-- 					<property name="manipulators">
 						<util:list>
 							<bean class="xdi2.client.manipulator.impl.signing.SigningManipulator">
 								<property name="signatureCreator">
 									<bean class="xdi2.core.security.signature.create.RSAGraphPrivateKeySignatureCreator">
-										<property name="privateKeyGraph" ref="graphDime" />
+										<property name="privateKeyGraph" ref="dimeGraph" />
 									</bean>
 								</property>
 							</bean>
 						</util:list>
-					</property>
+					</property> -->
 				</bean>
 				<bean class="xdi2.messaging.container.interceptor.impl.send.SendInterceptor">
 					<property name="xdiAgent" ref="XDIAgent" />
-					<property name="manipulators">
+<!-- 					<property name="manipulators">
 						<util:list>
 							<bean class="xdi2.client.manipulator.impl.signing.SigningManipulator">
 								<property name="signatureCreator">
 									<bean class="xdi2.core.security.signature.create.RSAGraphPrivateKeySignatureCreator">
-										<property name="privateKeyGraph" ref="graphDime" />
+										<property name="privateKeyGraph" ref="dimeGraph" />
 									</bean>
 								</property>
 							</bean>
 						</util:list>
-					</property>
+					</property> -->
 				</bean>
 				<bean class="xdi2.messaging.container.interceptor.impl.push.PushInInterceptor" />
 				<bean class="xdi2.messaging.container.interceptor.impl.push.PushOutInterceptor">
@@ -202,10 +175,14 @@
 				<bean class="xdi2.messaging.container.contributor.impl.digest.GenerateDigestSecretTokenContributor">
 					<property name="globalSalt" value="00000000-0000-0000-0000-000000000000" />
 				</bean>
-				<bean class="xdi2.messaging.container.contributor.impl.keygen.GenerateKeyContributor" />
+<!-- 				<bean class="xdi2.messaging.container.contributor.impl.keygen.GenerateKeyContributor" /> -->
 				<bean class="fi.hiit.dime.xdi.DiMeXdiConnector" />
 			</util:list>
 		</property>
+	</bean>
+
+	<bean name="/dime/*" class="fi.hiit.dime.xdi.DiMeMessagingContainerFactory">
+		<property name="prototypeMessagingContainer" ref="dimeMessagingContainer" />
 	</bean>
 
 </beans>

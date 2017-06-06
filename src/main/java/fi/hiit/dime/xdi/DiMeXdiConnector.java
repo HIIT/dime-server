@@ -2,6 +2,9 @@ package fi.hiit.dime.xdi;
 
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import fi.hiit.dime.authentication.User;
 import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.Tag;
@@ -24,6 +27,8 @@ import xdi2.messaging.operations.GetOperation;
 
 @ContributorMount(contributorXDIAddresses={"{}#dime"})
 public class DiMeXdiConnector extends AbstractContributor implements Prototype<DiMeXdiConnector> {
+
+	private static final Logger LOG = LoggerFactory.getLogger(DiMeXdiConnector.class);
 
 	public DiMeXdiConnector() {
 
@@ -63,13 +68,15 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 		if (targetXDIAddress.equals("{}#dime")) return ContributorResult.DEFAULT;
 		if (targetXDIAddress.getNumXDIArcs() > 2) return ContributorResult.DEFAULT;
 
-		// map the user
+		// find the profile
 
-		XDIAddress userIdXDIAddress = XDIAddressUtil.parentXDIAddress(targetXDIAddress, 1);
-		String userId = XdiService.userIdFromXDIAddress(userIdXDIAddress);
+		XDIAddress didXDIAddress = XDIAddressUtil.parentXDIAddress(targetXDIAddress, 1);
 
-		User user = userId == null ? null : findUserByUserId(userId);
-		if (user == null) return ContributorResult.DEFAULT;
+		Profile profile = didXDIAddress == null ? null : XdiService.findProfileByDidXDIAddress(didXDIAddress);
+		if (profile == null) { LOG.warn("Profile for DID " + didXDIAddress + " not found."); return ContributorResult.DEFAULT; }
+
+		User user = profile.user;
+		if (user == null) { LOG.warn("User for DID " + didXDIAddress + " not found."); return ContributorResult.DEFAULT; }
 
 		ContextNode targetContextNode = operationResultGraph.setDeepContextNode(targetXDIAddress);
 
@@ -78,52 +85,33 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#email>"), true).setLiteralString(user.email);
 		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#role>"), true).setLiteralString(user.role.name());
 
-		// map all profiles
+		// map the profile
 
-		for (Profile profile : XdiService.get().profileDAO.profilesForUser(user.getId())) {
+		XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
+		XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(profileNameXDIAddress, true);
 
-			// map the profile
+		// map the tags
 
-			XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
-			XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(profileNameXDIAddress, true);
+		if (profile.tags != null) for (Tag tag : profile.tags) {
 
-			// map the tags
+			XdiAttributeCollection tagsXdiAttributeCollection = profileXdiEntity.getXdiAttributeCollection(XDIAddress.create("[<#tag>]"), true);
+			tagsXdiAttributeCollection.setXdiInstanceOrdered().setLiteralString(tag.text);
+		}
 
-			if (profile.tags != null) for (Tag tag : profile.tags) {
+		// map the attributes
 
-				XdiAttributeCollection tagsXdiAttributeCollection = profileXdiEntity.getXdiAttributeCollection(XDIAddress.create("[<#tag>]"), true);
-				tagsXdiAttributeCollection.setXdiInstanceOrdered().setLiteralString(tag.text);
-			}
+		if (profile.attributes != null) for (Entry<String, String> entry : profile.attributes.entrySet()) {
 
-			// map the attributes
+			String key = entry.getKey();
+			String value = entry.getValue();
 
-			if (profile.attributes != null) for (Entry<String, String> entry : profile.attributes.entrySet()) {
-
-				String key = entry.getKey();
-				String value = entry.getValue();
-
-				XDIAddress profileAttributeKeyXDIAddress = XdiService.XDIAddressFromProfileAttributeKey(key);
-				XdiAttribute profileAttributeXdiAttribute = profileXdiEntity.getXdiAttributeSingleton(profileAttributeKeyXDIAddress, true);
-				profileAttributeXdiAttribute.setLiteralString(value);
-			}
+			XDIAddress profileAttributeKeyXDIAddress = XdiService.XDIAddressFromProfileAttributeKey(key);
+			XdiAttribute profileAttributeXdiAttribute = profileXdiEntity.getXdiAttributeSingleton(profileAttributeKeyXDIAddress, true);
+			profileAttributeXdiAttribute.setLiteralString(value);
 		}
 
 		// done
 
 		return ContributorResult.DEFAULT;
-	}
-
-	/*
-	 * Helper methods
-	 */
-
-	private static User findUserByUserId(String userId) {
-
-		for (User user : XdiService.get().userDAO.findAll()) {
-
-			if (userId.equals(user.userId)) return user;
-		}
-
-		return null;
 	}
 }

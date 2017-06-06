@@ -37,12 +37,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.xdi.XdiService;
 import xdi2.client.XDIClientRoute;
 import xdi2.client.exceptions.Xdi2ClientException;
 import xdi2.client.impl.XDIAbstractClient;
 import xdi2.client.impl.local.XDILocalClient;
-import xdi2.client.manipulator.impl.signing.SigningManipulator;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
 import xdi2.core.bootstrap.XDIBootstrap;
@@ -50,8 +50,6 @@ import xdi2.core.exceptions.Xdi2Exception;
 import xdi2.core.features.aggregation.Aggregation;
 import xdi2.core.features.linkcontracts.instance.ConnectLinkContract;
 import xdi2.core.features.linkcontracts.instance.RootLinkContract;
-import xdi2.core.security.signature.create.RSAGraphPrivateKeySignatureCreator;
-import xdi2.core.security.signature.create.RSASignatureCreator;
 import xdi2.core.syntax.XDIAddress;
 import xdi2.core.syntax.XDIArc;
 import xdi2.core.util.XDIAddressUtil;
@@ -81,7 +79,10 @@ public class RequestsController extends AuthorizedController {
 	requestsSend(Authentication auth, @PathVariable String target)
 			throws NotFoundException, BadRequestException
 	{
-		XDIAddress userIdXDIAddress = XdiService.XDIAddressFromUserId(getUser(auth).userId);
+		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
+		String profileDid = profile.attributes.get("did");
+		XDIAddress didXDIAddress = XDIAddress.create(profileDid);
+
 		XDIAddress targetXDIAddress = XDIAddress.create(target);
 
 		// find XDI route
@@ -98,8 +99,8 @@ public class RequestsController extends AuthorizedController {
 
 		// build XDI message
 
-		Message message = route.createMessage(userIdXDIAddress, -1);
-		message.setFromXDIAddress(userIdXDIAddress);
+		Message message = route.createMessage(didXDIAddress, -1);
+		message.setFromXDIAddress(didXDIAddress);
 		message.setToXDIAddress(targetXDIAddress);
 		message.setLinkContractClass(ConnectLinkContract.class);
 		Operation operation = message.createConnectOperation(XDIBootstrap.GET_LINK_CONTRACT_TEMPLATE_ADDRESS);
@@ -111,10 +112,10 @@ public class RequestsController extends AuthorizedController {
 
 		try {
 
-			RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
+/*			RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
 			SigningManipulator manipulator = new SigningManipulator();
 			manipulator.setSignatureCreator(signatureCreator);
-			client.getManipulators().addManipulator(manipulator);
+			client.getManipulators().addManipulator(manipulator);*/
 
 			client.send(message.getMessageEnvelope());
 		} catch (Xdi2ClientException ex) {
@@ -132,21 +133,25 @@ public class RequestsController extends AuthorizedController {
 	requestsView(Authentication auth)
 			throws NotFoundException, BadRequestException
 	{
-		// look in XDI graph
-
-		Graph graph = XdiService.get().myGraph(getUser(auth));
-		ContextNode requestsContextNode = graph.getDeepContextNode(XDIAddress.create("[$msg]"));
-		ReadOnlyIterator<ContextNode> requestContextNodes = requestsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(requestsContextNode);
-
-		// result
-
 		List<XdiRequest> result = new ArrayList<XdiRequest> ();
-		for (ContextNode requestContextNode : requestContextNodes) {
 
-			Message requestMessage = Message.fromContextNode(requestContextNode);
-			result.add(new XdiRequest(
-					requestMessage.getContextNode().getXDIAddress().toString(), 
-					requestMessage.getFromXDIAddress().toString()));
+		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
+
+			// look in XDI graph
+	
+			Graph graph = XdiService.get().myGraph(profile);
+			ContextNode requestsContextNode = graph.getDeepContextNode(XDIAddress.create("[$msg]"));
+			ReadOnlyIterator<ContextNode> requestContextNodes = requestsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(requestsContextNode);
+
+			// result
+
+			for (ContextNode requestContextNode : requestContextNodes) {
+	
+				Message requestMessage = Message.fromContextNode(requestContextNode);
+				result.add(new XdiRequest(
+						requestMessage.getContextNode().getXDIAddress().toString(), 
+						requestMessage.getFromXDIAddress().toString()));
+			}
 		}
 
 		// done
@@ -159,41 +164,47 @@ public class RequestsController extends AuthorizedController {
 	requestsApprove(Authentication auth, @PathVariable String address)
 			throws NotFoundException, BadRequestException
 	{
-		XDIAddress userIdXDIAddress = XdiService.XDIAddressFromUserId(getUser(auth).userId);
+		XDIAddress XDIaddress = XDIAddress.create(address);
+		boolean found = false;
 
-		// look in XDI graph
+		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
 
-		Graph graph = XdiService.get().myGraph(getUser(auth));
-		ContextNode requestContextNode = graph.getDeepContextNode(XDIAddress.create(address));
-		Message requestMessage = requestContextNode == null ? null : Message.fromContextNode(requestContextNode);
+			XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
-		if (requestMessage == null) return new ResponseEntity<String>(HttpStatus.NOT_FOUND);
+			// look in XDI graph
 
-		// XDI request to local messaging container
+			Graph graph = XdiService.get().myGraph(profile);
+			ContextNode requestContextNode = graph.getDeepContextNode(XDIaddress);
+			Message requestMessage = requestContextNode == null ? null : Message.fromContextNode(requestContextNode);
 
-		try {
+			if (requestMessage == null) continue; else found = true;
 
-			MessagingContainer messagingContainer = XdiService.get().myMessagingContainer(getUser(auth));
-			MessageEnvelope messageEnvelope = new MessageEnvelope();
-			Message message = messageEnvelope.createMessage(userIdXDIAddress, -1);
-			message.setFromXDIAddress(userIdXDIAddress);
-			message.setToXDIAddress(userIdXDIAddress);
-			message.setLinkContractClass(RootLinkContract.class);
-			message.setSecretToken("alice");
-			message.createSendOperation(requestMessage);
-			message.createDelOperation(XDIAddress.create(address));
+			// XDI request to local messaging container
 
-			XDILocalClient client = new XDILocalClient(messagingContainer);
-			client.send(messageEnvelope);
-		} catch (Xdi2ClientException ex) {
+			try {
 
-			LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
-			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+				MessagingContainer messagingContainer = XdiService.get().myMessagingContainer(profile);
+				MessageEnvelope messageEnvelope = new MessageEnvelope();
+				Message message = messageEnvelope.createMessage(didXDIAddress, -1);
+				message.setFromXDIAddress(didXDIAddress);
+				message.setToXDIAddress(didXDIAddress);
+				message.setLinkContractClass(RootLinkContract.class);
+				message.setSecretToken("alice");
+				message.createSendOperation(requestMessage);
+				message.createDelOperation(XDIaddress);
+
+				XDILocalClient client = new XDILocalClient(messagingContainer);
+				client.send(messageEnvelope);
+			} catch (Xdi2ClientException ex) {
+
+				LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
+				return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}
 
 		// done
 
-		return new ResponseEntity<String>(HttpStatus.NO_CONTENT);
+		return found ? new ResponseEntity<String>(HttpStatus.NO_CONTENT) : new ResponseEntity<String>(HttpStatus.NOT_FOUND);
 	}
 
 	@RequestMapping(value="/delete/{address}", method = RequestMethod.POST)
@@ -201,26 +212,31 @@ public class RequestsController extends AuthorizedController {
 	requestsDelete(Authentication auth, @PathVariable String address)
 			throws NotFoundException, BadRequestException
 	{
-		XDIAddress userIdXDIAddress = XdiService.XDIAddressFromUserId(getUser(auth).userId);
+		XDIAddress XDIaddress = XDIAddress.create(address);
 
-		// XDI request to local messaging container
+		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
 
-		try {
+			XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
-			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(getUser(auth));
-			MessageEnvelope messageEnvelope = new MessageEnvelope();
-			Message message = messageEnvelope.createMessage(userIdXDIAddress, -1);
-			message.setFromXDIAddress(userIdXDIAddress);
-			message.setToXDIAddress(userIdXDIAddress);
-			message.setLinkContractClass(RootLinkContract.class);
-			message.createDelOperation(XDIAddress.create(address));
+			// XDI request to local messaging container
 
-			XDILocalClient client = new XDILocalClient(messagingContainer);
-			client.send(messageEnvelope);
-		} catch (Xdi2ClientException ex) {
+			try {
 
-			LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
-			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+				MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
+				MessageEnvelope messageEnvelope = new MessageEnvelope();
+				Message message = messageEnvelope.createMessage(didXDIAddress, -1);
+				message.setFromXDIAddress(didXDIAddress);
+				message.setToXDIAddress(didXDIAddress);
+				message.setLinkContractClass(RootLinkContract.class);
+				message.createDelOperation(XDIaddress);
+
+				XDILocalClient client = new XDILocalClient(messagingContainer);
+				client.send(messageEnvelope);
+			} catch (Xdi2ClientException ex) {
+
+				LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
+				return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}
 
 		// done

@@ -1,7 +1,7 @@
 package fi.hiit.dime.xdi;
 
-import java.util.ArrayList;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 
 import fi.hiit.dime.XdiController;
 import fi.hiit.dime.authentication.User;
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.database.ProfileDAO;
 import fi.hiit.dime.database.UserDAO;
 import xdi2.agent.XDIAgent;
-import xdi2.client.manipulator.Manipulator;
 import xdi2.core.Graph;
 import xdi2.core.syntax.XDIAddress;
 import xdi2.messaging.container.MessagingContainer;
@@ -24,11 +24,14 @@ import xdi2.messaging.container.interceptor.impl.RefInterceptor;
 import xdi2.messaging.container.interceptor.impl.connect.ConnectInterceptor;
 import xdi2.messaging.container.interceptor.impl.send.SendInterceptor;
 import xdi2.transport.impl.http.HttpTransport;
+import xdi2.transport.registry.MessagingContainerMount;
 import xdi2.transport.registry.impl.uri.UriMessagingContainerRegistry;
 
 @Service
 @Scope("singleton")
 public class XdiService {
+
+	private static final Logger LOG = LoggerFactory.getLogger(XdiService.class);
 
 	private static XdiService instance = null;
 	public UserDAO userDAO = null;
@@ -45,6 +48,8 @@ public class XdiService {
 
 	@Autowired
 	public XdiService(UserDAO userDAO, ProfileDAO profileDAO) {
+
+		LOG.debug("Initializing...");
 
 		instance = this;
 		this.userDAO = userDAO;
@@ -75,14 +80,28 @@ public class XdiService {
 		return httpTransport;
 	}
 
-	public MessagingContainer myMessagingContainer(User user) {
+	public MessagingContainer myMessagingContainer(Profile profile) {
 
-		return uriMessagingContainerRegistry.getMessagingContainer("/dime");
+		XDIAddress didXDIAddress = getProfileDidXDIAddress(profile);
+		MessagingContainerMount messagingContainerMount = null;
+
+		try {
+
+			messagingContainerMount = uriMessagingContainerRegistry.lookup("/dime/" + didXDIAddress.toString());
+		} catch (Exception ex) {
+
+			LOG.warn("Cannot look up XDI messaging container: " + ex.getMessage(), ex);
+		}
+
+		MessagingContainer messagingContainer = messagingContainerMount == null ? null : messagingContainerMount.getMessagingContainer();
+		LOG.info("Found messaging container for profile " + profile + " and DID " + didXDIAddress + ": " + messagingContainer);
+
+		return messagingContainer;
 	}
 
-	public MessagingContainer myLocalMessagingContainer(User user) {
+	public MessagingContainer myLocalMessagingContainer(Profile profile) {
 
-		GraphMessagingContainer messagingContainer = new GraphMessagingContainer(myGraph(user));
+		GraphMessagingContainer messagingContainer = new GraphMessagingContainer(myGraph(profile));
 		messagingContainer.getInterceptors().addInterceptor(new RefInterceptor());
 		messagingContainer.getInterceptors().addInterceptor(new HasInterceptor());
 		messagingContainer.getInterceptors().addInterceptor(new ConnectInterceptor(null, this.xdiAgent));
@@ -92,31 +111,70 @@ public class XdiService {
 		return messagingContainer;
 	}
 
-	public Graph myGraph(User user) {
+	public Graph myGraph(Profile profile) {
 
-		return ((GraphMessagingContainer) myMessagingContainer(user)).getGraph();
+		GraphMessagingContainer graphMessagingContainer = (GraphMessagingContainer) myMessagingContainer(profile);
+		return graphMessagingContainer == null ? null : graphMessagingContainer.getGraph();
 	}
 
 	/*
 	 * Helper methods
 	 */
-	
-	/**
-	 * Maps an XDI identifier to a DiMe user ID.
-	 * E.g. =!:uuid:e1ea806e-3ecd-4827-adbe-2a76ab178d54 -> e1ea806e-3ecd-4827-adbe-2a76ab178d54
-	 */
-	public static String userIdFromXDIAddress(XDIAddress userIdXDIArc) {
 
-		return userIdXDIArc.toString().startsWith("=!:uuid:") ? userIdXDIArc.toString().substring("=!:uuid:".length()) : null;
+	/**
+	 * Finds the DiMe profile associated with a given XDI identifier. 
+	 */
+	public static Profile findProfileByDidXDIAddress(XDIAddress didXDIAddress) {
+
+		for (User user : XdiService.get().userDAO.findAll()) {
+
+			for (Profile profile : XdiService.get().profileDAO.profilesForUser(user.getId())) {
+
+				String profileDid = profile.attributes.get("did");
+				if (didXDIAddress.toString().equals(profileDid)) {
+
+					LOG.info("Found profile for DID " + didXDIAddress + ": " + profile);
+					return profile;
+				}
+			}
+		}
+
+		LOG.info("Found profile for DID " + didXDIAddress + ": " + null);
+		return null;
+	}
+
+	public static XDIAddress getProfileDidXDIAddress(Profile profile) {
+
+		String didXDIAddressString = profile.attributes.get("did");
+		XDIAddress didXDIAddress = didXDIAddressString == null ? null : XDIAddress.create(didXDIAddressString);
+		LOG.info("Found DID for profile " + profile + ": " + didXDIAddress);
+
+		return didXDIAddress;
+	}
+
+	public static void setProfileDidXDIAddress(Profile profile, XDIAddress didXDIAddress) {
+
+		profile.attributes.put("did", didXDIAddress.toString());
+		XdiService.get().profileDAO.save(profile);
+		LOG.info("Set DID for profile " + profile + ": " + didXDIAddress);
 	}
 
 	/**
-	 * Maps a DiMe user ID to an XDI identifier.
-	 * E.g. e1ea806e-3ecd-4827-adbe-2a76ab178d54 -> =!:uuid:e1ea806e-3ecd-4827-adbe-2a76ab178d54
+	 * Maps an XDI identifier to a DID.
+	 * E.g. =!:did:sov:RFrnVYLnRPRrgKY5pY9MHK -> RFrnVYLnRPRrgKY5pY9MHK
 	 */
-	public static XDIAddress XDIAddressFromUserId(String userId) {
+	public static String didStringFromXDIAddress(XDIAddress XDIaddress) {
 
-		return XDIAddress.create("=!:uuid:" + userId);
+		return XDIaddress.toString().startsWith("=!:did:sov:") ? XDIaddress.toString().substring("=!:did:sov:".length()) : null;
+	}
+
+	/**
+	 * Maps a DID to an XDI identifier.
+	 * E.g. RFrnVYLnRPRrgKY5pY9MHK -> =!:did:sov:RFrnVYLnRPRrgKY5pY9MHK
+	 */
+	public static XDIAddress XDIAddressFromDidString(String did) {
+
+		return XDIAddress.create("=!:did:sov:" + did);
 	}
 
 	/**

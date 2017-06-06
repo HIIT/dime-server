@@ -72,6 +72,7 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
         exclude group: 'org.springframework', module: 'spring-web'
     }
+    compile 'com.danubetech:libsovrin-java:0.1-SNAPSHOT'
     compile 'com.optimaize.languagedetector:language-detector:0.6'
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'

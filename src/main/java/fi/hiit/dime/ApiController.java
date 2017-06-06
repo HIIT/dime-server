@@ -50,6 +50,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.danubetech.libsovrin.SovrinConstants;
+import com.danubetech.libsovrin.ledger.Ledger;
+import com.danubetech.libsovrin.ledger.LedgerResults.BuildAttribRequestResult;
+import com.danubetech.libsovrin.ledger.LedgerResults.BuildNymRequestResult;
+import com.danubetech.libsovrin.ledger.LedgerResults.SignAndSubmitRequestResult;
+import com.danubetech.libsovrin.signus.Signus;
+import com.danubetech.libsovrin.signus.SignusJSONParameters.CreateAndStoreMyDidJSONParameter;
+import com.danubetech.libsovrin.signus.SignusResults.CreateAndStoreMyDidResult;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -66,6 +74,7 @@ import fi.hiit.dime.search.SearchQuery;
 import fi.hiit.dime.search.SearchResults;
 import fi.hiit.dime.search.TextSearchQuery;
 import fi.hiit.dime.search.WeightedKeyword;
+import fi.hiit.dime.sovrin.SovrinService;
 import fi.hiit.dime.xdi.XdiService;
 import xdi2.client.exceptions.Xdi2ClientException;
 import xdi2.client.impl.http.XDIHttpClient;
@@ -76,7 +85,6 @@ import xdi2.core.util.XDIAddressUtil;
 import xdi2.messaging.Message;
 import xdi2.messaging.MessageEnvelope;
 import xdi2.messaging.container.MessagingContainer;
-import xdi2.messaging.response.MessagingResponse;
 
 /**
  * General API controller, for things that go directly under the /api
@@ -241,7 +249,80 @@ public class ApiController extends AuthorizedController {
 
 		LOG.info("Send to people finder, user {}, profile {}", user.username, profile.name);
 
-		XDIAddress userIdXDIAddress = XdiService.XDIAddressFromUserId(user.userId);
+		// create DID in Sovrin
+
+		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+
+		if (didXDIAddress == null) {
+
+			try {
+
+				// create USER DID
+
+				CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameter = new CreateAndStoreMyDidJSONParameter(null, null, null, null);
+				CreateAndStoreMyDidResult createAndStoreMyDidResult = Signus.createAndStoreMyDid(SovrinService.get().getWallet(), createAndStoreMyDidJSONParameter).get();
+				LOG.info("CreateAndStoreMyDidResult: " + createAndStoreMyDidResult);
+
+				String did = createAndStoreMyDidResult.getDid();
+				String verkey = createAndStoreMyDidResult.getVerkey();
+
+				// create NYM request
+
+				BuildNymRequestResult buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_VERKEY, did, verkey, null, null, SovrinConstants.ROLE_STEWARD).get();
+				LOG.info("BuildNymRequestResult: " + buildNymRequestResult);
+
+				// sign and submit request to ledger
+
+				SignAndSubmitRequestResult signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), SovrinService.TRUSTEE_DID, buildNymRequestResult.getRequestJson()).get();
+				LOG.info("SignAndSubmitRequestResult: " + signAndSubmitRequestResult);
+
+				// done
+
+				didXDIAddress = XdiService.XDIAddressFromDidString(did);
+
+				LOG.info("Created DID in Sovrin: " + didXDIAddress + " with verkey " + verkey);
+				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+			} catch (Exception ex) {
+
+				throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
+			}
+		}
+
+		// set host in Sovrin
+
+		String host = (String) profile.attributes.get("host");
+		if (host == null) host = "http://localhost:8080/";
+
+		if (host != null) {
+
+			try {
+
+				String did = XdiService.didStringFromXDIAddress(didXDIAddress);
+
+				// create ATTRIB request
+
+				BuildAttribRequestResult buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + host.replace("\"", "\\\"") + "\"}}", null).get();
+				LOG.info("BuildAttribRequestResult: " + buildAttribRequestResult);
+
+				// sign and submit request to ledger
+
+				SignAndSubmitRequestResult signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult.getRequestJson()).get();
+				LOG.info("SignAndSubmitRequestResult: " + signAndSubmitRequestResult);
+
+				// done
+
+				didXDIAddress = XdiService.XDIAddressFromDidString(did);
+
+				LOG.info("Set host in Sovrin: " + host);
+				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+			} catch (Exception ex) {
+
+				throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
+			}
+		}
+
+		// prepare XDI request
+
 		XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
 		XDIAddress peopleFinderXDIAddress = XDIAddress.create("+!:did:sov:VpumqBbcVi86RvpEo8lvOn");
 		Graph resultGraph;
@@ -250,10 +331,10 @@ public class ApiController extends AuthorizedController {
 
 		try {
 
-			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(getUser(auth));
+			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
 			MessageEnvelope messageEnvelope = new MessageEnvelope();
-			Message message = messageEnvelope.createMessage(userIdXDIAddress, -1);
-			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(userIdXDIAddress, XDIAddress.create("#dime"), profileNameXDIAddress, XDIAddress.create("[<#tag>]")));
+			Message message = messageEnvelope.createMessage(didXDIAddress, -1);
+			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(didXDIAddress, XDIAddress.create("#dime"), profileNameXDIAddress, XDIAddress.create("[<#tag>]")));
 
 			XDILocalClient client = new XDILocalClient(messagingContainer);
 			resultGraph = client.send(messageEnvelope).getResultGraph();
@@ -268,12 +349,12 @@ public class ApiController extends AuthorizedController {
 		try {
 
 			MessageEnvelope messageEnvelope = new MessageEnvelope();
-			Message message1 = messageEnvelope.createMessage(userIdXDIAddress, -1);
-			message1.setFromXDIAddress(userIdXDIAddress);
+			Message message1 = messageEnvelope.createMessage(didXDIAddress, -1);
+			message1.setFromXDIAddress(didXDIAddress);
 			message1.setToXDIAddress(peopleFinderXDIAddress);
-			message1.createDelOperation(userIdXDIAddress);
-			Message message2 = messageEnvelope.createMessage(userIdXDIAddress, -1);
-			message2.setFromXDIAddress(userIdXDIAddress);
+			message1.createDelOperation(didXDIAddress);
+			Message message2 = messageEnvelope.createMessage(didXDIAddress, -1);
+			message2.setFromXDIAddress(didXDIAddress);
 			message2.setToXDIAddress(peopleFinderXDIAddress);
 			message2.createSetOperation(resultGraph);
 

@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.xdi.XdiService;
 import xdi2.client.exceptions.Xdi2ClientException;
 import xdi2.client.impl.local.XDILocalClient;
@@ -72,24 +73,28 @@ public class LinkContractsController extends AuthorizedController {
 	linkContractsView(Authentication auth)
 			throws NotFoundException, BadRequestException
 	{
-		// look in XDI graph
-
-		Graph graph = XdiService.get().myGraph(getUser(auth));
-		ContextNode linkContractsContextNode = graph.getDeepContextNode(XDIAddress.create("[$contract]"));
-		ReadOnlyIterator<ContextNode> linkContractContextNodes = linkContractsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(linkContractsContextNode);
-
-		// result
-
 		List<XdiLinkContract> result = new ArrayList<XdiLinkContract> ();
-		for (ContextNode linkContractContextNode : linkContractContextNodes) {
 
-			if (linkContractContextNode.getXDIAddress().toString().contains("$defer")) continue;
+		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
 
-			RelationshipLinkContract linkContract = (RelationshipLinkContract) LinkContract.fromContextNode(linkContractContextNode);
-			result.add(new XdiLinkContract(
-					linkContract.getContextNode().getXDIAddress().toString(), 
-					linkContract.getAuthorizingAuthority().toString(),
-					linkContract.getRequestingAuthority().toString()));
+			// look in XDI graph
+
+			Graph graph = XdiService.get().myGraph(profile);
+			ContextNode linkContractsContextNode = graph.getDeepContextNode(XDIAddress.create("[$contract]"));
+			ReadOnlyIterator<ContextNode> linkContractContextNodes = linkContractsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(linkContractsContextNode);
+
+			// result
+
+			for (ContextNode linkContractContextNode : linkContractContextNodes) {
+
+				if (linkContractContextNode.getXDIAddress().toString().contains("$defer")) continue;
+
+				RelationshipLinkContract linkContract = (RelationshipLinkContract) LinkContract.fromContextNode(linkContractContextNode);
+				result.add(new XdiLinkContract(
+						linkContract.getContextNode().getXDIAddress().toString(), 
+						linkContract.getAuthorizingAuthority().toString(),
+						linkContract.getRequestingAuthority().toString()));
+			}
 		}
 
 		// done
@@ -102,26 +107,31 @@ public class LinkContractsController extends AuthorizedController {
 	linkContractsDelete(Authentication auth, @PathVariable String address)
 			throws NotFoundException, BadRequestException
 	{
-		XDIAddress userIdXDIAddress = XdiService.XDIAddressFromUserId(getUser(auth).userId);
+		XDIAddress XDIaddress = XDIAddress.create(address);
 
-		// XDI request to local messaging container
+		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
 
-		try {
+			XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
-			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(getUser(auth));
-			MessageEnvelope messageEnvelope = new MessageEnvelope();
-			Message message = messageEnvelope.createMessage(userIdXDIAddress, -1);
-			message.setFromXDIAddress(userIdXDIAddress);
-			message.setToXDIAddress(userIdXDIAddress);
-			message.setLinkContractClass(RootLinkContract.class);
-			message.createDelOperation(XDIAddress.create(address));
+			// XDI request to local messaging container
 
-			XDILocalClient client = new XDILocalClient(messagingContainer);
-			client.send(messageEnvelope);
-		} catch (Xdi2ClientException ex) {
+			try {
 
-			LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
-			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+				MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
+				MessageEnvelope messageEnvelope = new MessageEnvelope();
+				Message message = messageEnvelope.createMessage(didXDIAddress, -1);
+				message.setFromXDIAddress(didXDIAddress);
+				message.setToXDIAddress(didXDIAddress);
+				message.setLinkContractClass(RootLinkContract.class);
+				message.createDelOperation(XDIaddress);
+
+				XDILocalClient client = new XDILocalClient(messagingContainer);
+				client.send(messageEnvelope);
+			} catch (Xdi2ClientException ex) {
+
+				LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
+				return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}
 
 		// done
