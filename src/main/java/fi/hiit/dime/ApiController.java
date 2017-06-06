@@ -290,9 +290,10 @@ public class ApiController extends AuthorizedController {
 
 		// set host in Sovrin
 
-		String uri = XdiService.getProfileUri(profile);
+		String uri = dimeConfig.getBaseUri();
 		if (uri == null) uri = "http://localhost:8080/";
-		if (uri != null) uri += "xdi/dime/" + didXDIAddress.toString();
+		if (! uri.endsWith("/")) uri += "/";
+		uri += "xdi/dime/" + didXDIAddress.toString();
 
 		if (uri != null) {
 

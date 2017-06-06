@@ -52,4 +52,8 @@ public class DiMeProperties {
     private String peoplefinderEndpoint = "https://peoplefinder.danubetech.com/xdi/graph";
     public void setPeoplefinderEndpoint(String s) { peoplefinderEndpoint = s; }
     public String getPeoplefinderEndpoint() { return peoplefinderEndpoint; }
+
+    private String baseUri = "http://localhost:8080/";
+    public void setBaseUri(String s) { baseUri = s; }
+    public String getBaseUri() { return baseUri; }
 }
