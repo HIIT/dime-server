@@ -51,8 +51,8 @@ public class SovrinService {
 
 		try {
 
-			LOG.info("Loading libsovrin: " + new File("./lib/libsovrin.so").getAbsolutePath());
-			if (! LibSovrin.isInitialized()) LibSovrin.init(new File("./lib/libsovrin.so"));
+			LOG.info("Loading libsovrin: " + new File("lib/libsovrin.so").getAbsolutePath());
+			if (! LibSovrin.isInitialized()) LibSovrin.init(new File("lib/libsovrin.so"));
 		} catch (Throwable ex) {
 
 			LOG.warn(ex.getMessage(), ex);
