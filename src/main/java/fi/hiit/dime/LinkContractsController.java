@@ -26,6 +26,7 @@ package fi.hiit.dime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,20 +40,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.xdi.XdiService;
+import xdi2.client.XDIClientRoute;
 import xdi2.client.exceptions.Xdi2ClientException;
+import xdi2.client.impl.XDIAbstractClient;
 import xdi2.client.impl.local.XDILocalClient;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
+import xdi2.core.constants.XDILinkContractConstants;
+import xdi2.core.exceptions.Xdi2Exception;
 import xdi2.core.features.aggregation.Aggregation;
 import xdi2.core.features.linkcontracts.instance.LinkContract;
 import xdi2.core.features.linkcontracts.instance.RelationshipLinkContract;
 import xdi2.core.features.linkcontracts.instance.RootLinkContract;
 import xdi2.core.syntax.XDIAddress;
+import xdi2.core.util.XDIAddressUtil;
 import xdi2.core.util.iterators.EmptyIterator;
 import xdi2.core.util.iterators.ReadOnlyIterator;
 import xdi2.messaging.Message;
 import xdi2.messaging.MessageEnvelope;
 import xdi2.messaging.container.MessagingContainer;
+import xdi2.messaging.response.MessagingResponse;
 
 /**
  * Requests API controller.
@@ -135,10 +142,65 @@ public class LinkContractsController extends AuthorizedController {
 				return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		}
-
+		
 		// done
 
 		return new ResponseEntity<String>(HttpStatus.NO_CONTENT);
+	}
+
+	@RequestMapping(value="/data/{address}", method = RequestMethod.GET)
+	public ResponseEntity<String>
+	linkContractsData(Authentication auth, @PathVariable String target)
+			throws NotFoundException, BadRequestException
+	{
+		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
+		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+
+		XDIAddress targetXDIAddress = XDIAddress.create(target);
+
+		// find XDI route
+
+		XDIClientRoute<?> route;
+
+		try {
+
+			route = XdiService.get().getXDIAgent().route(targetXDIAddress);
+		} catch (Xdi2Exception ex) {
+
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+
+		// build XDI message
+
+		Message message = route.createMessage(didXDIAddress, -1);
+		message.setFromXDIAddress(didXDIAddress);
+		message.setToXDIAddress(targetXDIAddress);
+		message.setLinkContractXDIAddress(RelationshipLinkContract.createRelationshipLinkContractXDIAddress(targetXDIAddress, didXDIAddress, XDILinkContractConstants.XDI_ADD_GET));
+		message.createGetOperation(XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime")));
+
+		// send to XDI target
+
+		XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
+
+		String result;
+
+		try {
+
+/*			RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
+			SigningManipulator manipulator = new SigningManipulator();
+			manipulator.setSignatureCreator(signatureCreator);
+			client.getManipulators().addManipulator(manipulator);*/
+
+			MessagingResponse response = client.send(message.getMessageEnvelope());
+			result = response.getResultGraph().toString();
+		} catch (Xdi2ClientException ex) {
+
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+
+		// done
+
+		return new ResponseEntity<String>(result, HttpStatus.OK);
 	}
 
 	private static class XdiLinkContract {
@@ -146,5 +208,9 @@ public class LinkContractsController extends AuthorizedController {
 		public String authorizingAuthority;
 		public String requestingAuthority;
 		public XdiLinkContract(String address, String authorizingAuthority, String requestingAuthority) { this.address = address; this.authorizingAuthority = authorizingAuthority; this.requestingAuthority = requestingAuthority;} 
+	}
+	
+	private static class XdiData {
+		public Map<String, String> data;
 	}
 }
