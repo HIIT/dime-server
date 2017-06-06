@@ -80,6 +80,8 @@ public class LinkContractsController extends AuthorizedController {
 			// look in XDI graph
 
 			Graph graph = XdiService.get().myGraph(profile);
+			if (graph == null) continue;
+
 			ContextNode linkContractsContextNode = graph.getDeepContextNode(XDIAddress.create("[$contract]"));
 			ReadOnlyIterator<ContextNode> linkContractContextNodes = linkContractsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(linkContractsContextNode);
 

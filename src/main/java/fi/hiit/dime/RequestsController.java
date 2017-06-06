@@ -139,6 +139,8 @@ public class RequestsController extends AuthorizedController {
 			// look in XDI graph
 	
 			Graph graph = XdiService.get().myGraph(profile);
+			if (graph == null) continue;
+
 			ContextNode requestsContextNode = graph.getDeepContextNode(XDIAddress.create("[$msg]"));
 			ReadOnlyIterator<ContextNode> requestContextNodes = requestsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(requestsContextNode);
 

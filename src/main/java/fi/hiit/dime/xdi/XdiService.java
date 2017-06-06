@@ -83,6 +83,8 @@ public class XdiService {
 	public MessagingContainer myMessagingContainer(Profile profile) {
 
 		XDIAddress didXDIAddress = getProfileDidXDIAddress(profile);
+		if (didXDIAddress == null) return null;
+
 		MessagingContainerMount messagingContainerMount = null;
 
 		try {
@@ -101,7 +103,10 @@ public class XdiService {
 
 	public MessagingContainer myLocalMessagingContainer(Profile profile) {
 
-		GraphMessagingContainer messagingContainer = new GraphMessagingContainer(myGraph(profile));
+		Graph graph = myGraph(profile);
+		if (graph == null) return null;
+
+		GraphMessagingContainer messagingContainer = new GraphMessagingContainer(graph);
 		messagingContainer.getInterceptors().addInterceptor(new RefInterceptor());
 		messagingContainer.getInterceptors().addInterceptor(new HasInterceptor());
 		messagingContainer.getInterceptors().addInterceptor(new ConnectInterceptor(null, this.xdiAgent));
