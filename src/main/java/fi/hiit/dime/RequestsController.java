@@ -80,8 +80,7 @@ public class RequestsController extends AuthorizedController {
 			throws NotFoundException, BadRequestException
 	{
 		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
-		String profileDid = profile.attributes.get("did");
-		XDIAddress didXDIAddress = XDIAddress.create(profileDid);
+		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
 		XDIAddress targetXDIAddress = XDIAddress.create(target);
 
