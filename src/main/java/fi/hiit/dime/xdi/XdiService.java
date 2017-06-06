@@ -159,6 +159,14 @@ public class XdiService {
 		LOG.info("Set DID for profile " + profile + ": " + didXDIAddress);
 	}
 
+	public static String getProfileUri(Profile profile) {
+
+		String uri = profile.attributes.get("uri");
+		LOG.info("Found URI for profile " + profile + ": " + uri);
+
+		return uri;
+	}
+
 	/**
 	 * Maps an XDI identifier to a DID.
 	 * E.g. =!:did:sov:RFrnVYLnRPRrgKY5pY9MHK -> RFrnVYLnRPRrgKY5pY9MHK

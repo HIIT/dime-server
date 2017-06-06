@@ -290,10 +290,10 @@ public class ApiController extends AuthorizedController {
 
 		// set host in Sovrin
 
-		String host = (String) profile.attributes.get("host");
-		if (host == null) host = "http://localhost:8080/";
+		String uri = XdiService.getProfileUri(profile);
+		if (uri == null) uri = "http://localhost:8080/xdi/dime/" + didXDIAddress.toString();
 
-		if (host != null) {
+		if (uri != null) {
 
 			try {
 
@@ -301,7 +301,7 @@ public class ApiController extends AuthorizedController {
 
 				// create ATTRIB request
 
-				BuildAttribRequestResult buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + host.replace("\"", "\\\"") + "\"}}", null).get();
+				BuildAttribRequestResult buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get();
 				LOG.info("BuildAttribRequestResult: " + buildAttribRequestResult);
 
 				// sign and submit request to ledger
@@ -313,8 +313,7 @@ public class ApiController extends AuthorizedController {
 
 				didXDIAddress = XdiService.XDIAddressFromDidString(did);
 
-				LOG.info("Set host in Sovrin: " + host);
-				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+				LOG.info("Set URI in Sovrin: " + uri);
 			} catch (Exception ex) {
 
 				throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
