@@ -160,14 +160,14 @@
 						</util:list>
 					</property> -->
 				</bean>
-				<bean class="xdi2.messaging.container.interceptor.impl.push.PushInInterceptor" />
+<!-- 				<bean class="xdi2.messaging.container.interceptor.impl.push.PushInInterceptor" />
 				<bean class="xdi2.messaging.container.interceptor.impl.push.PushOutInterceptor">
 					<property name="pushGateway">
 						<bean class="xdi2.messaging.container.interceptor.impl.push.BasicPushGateway">
 							<property name="xdiAgent" ref="XDIAgent" />
 						</bean>
 					</property>
-				</bean>
+				</bean> -->
 				<bean class="xdi2.messaging.container.interceptor.impl.defer.DeferResultInterceptor" />
 			</util:list>
 		</property>
