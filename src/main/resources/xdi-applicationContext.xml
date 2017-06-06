@@ -97,11 +97,24 @@
 						</bean>
 					</property>
 				</bean>
- 				<bean class="xdi2.messaging.container.interceptor.impl.security.signature.SignatureInterceptor">
+<!-- 				<bean class="xdi2.messaging.container.interceptor.impl.security.signature.SignatureInterceptor">
 					<property name="signatureValidators">
 						<util:list>
 							<bean class="xdi2.core.security.signature.validate.RSADiscoveryPublicKeySignatureValidator">
 								<property name="xdiDiscoveryClient" ref="XDIDiscoveryClient" />
+							</bean>
+						</util:list>
+					</property>
+				</bean> -->
+				<bean class="xdi2.messaging.container.interceptor.impl.ManipulatingInterceptor">
+					<property name="manipulators">
+						<util:list>
+							<bean class="xdi2.client.manipulator.impl.SetStatementsMessageManipulator">
+								<property name="statements">
+									<util:list>
+										<value>&lt;$sig&gt;&lt;$valid&gt;/&amp;/true</value>
+									</util:list>
+								</property>
 							</bean>
 						</util:list>
 					</property>
