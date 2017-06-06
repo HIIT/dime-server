@@ -58,7 +58,6 @@
 	<!-- MESSAGING CONTAINER FACTORY at /dime -->
 
 	<bean id="dimeGraphFactory" class="xdi2.core.impl.wrapped.file.FileWrapperGraphFactory">
-		<property name="path" value="./graph.xdi" />
 		<property name="mimeType" value="text/xdi;ordered=1" />
 	</bean>
 
