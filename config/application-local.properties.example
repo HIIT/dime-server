@@ -6,6 +6,9 @@
 # Changing server port
 # server.port=8080
 
+# If you change the port or domain name 
+# dime.baseUri=http://localhost:8080/
+
 # Using MySQL instead of H2
 # spring.datasource.url=jdbc:mysql://localhost:3306/dime
 # spring.datasource.username=dime
@@ -25,3 +28,6 @@
 
 # To enable CORS for a given domain
 # dime.corsAllowOrigin=http://localhost:3000,chrome-extension://beidaccpdlllohiaoglaeclolnfheeac
+
+# To point to an alternate people finder service
+# dime.peoplefinderEndpoint=http://localhost:7401/xdi/graph
