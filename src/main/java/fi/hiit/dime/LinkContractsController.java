@@ -25,6 +25,7 @@
 package fi.hiit.dime;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ import xdi2.client.impl.XDIAbstractClient;
 import xdi2.client.impl.local.XDILocalClient;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
+import xdi2.core.LiteralNode;
 import xdi2.core.constants.XDILinkContractConstants;
 import xdi2.core.exceptions.Xdi2Exception;
 import xdi2.core.features.aggregation.Aggregation;
@@ -150,7 +152,7 @@ public class LinkContractsController extends AuthorizedController {
 	}
 
 	@RequestMapping(value="/data/{target}", method = RequestMethod.GET)
-	public ResponseEntity<String>
+	public ResponseEntity<XdiData>
 	linkContractsData(Authentication auth, @PathVariable String target)
 			throws NotFoundException, BadRequestException
 	{
@@ -183,7 +185,7 @@ public class LinkContractsController extends AuthorizedController {
 
 		XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
 
-		String result;
+		XdiData result = new XdiData();
 
 		try {
 
@@ -193,7 +195,16 @@ public class LinkContractsController extends AuthorizedController {
 			client.getManipulators().addManipulator(manipulator);*/
 
 			MessagingResponse response = client.send(message.getMessageEnvelope());
-			result = response.getResultGraph().toString();
+			
+			Graph resultGraph = response.getResultGraph();
+			
+			for (LiteralNode literalNode : resultGraph.getRootContextNode().getAllLiteralNodes()) {
+				
+				XDIAddress key = XDIAddressUtil.localXDIAddress(literalNode.getContextNode().getXDIAddress(), -1);
+				Object value = literalNode.getLiteralData();
+				
+				if (key != null) result.data.put(key.toString(), value == null ? null : value.toString());
+			}
 		} catch (Xdi2ClientException ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
@@ -201,7 +212,7 @@ public class LinkContractsController extends AuthorizedController {
 
 		// done
 
-		return new ResponseEntity<String>(result, HttpStatus.OK);
+		return new ResponseEntity<XdiData>(result, HttpStatus.OK);
 	}
 
 	private static class XdiLinkContract {
@@ -212,6 +223,6 @@ public class LinkContractsController extends AuthorizedController {
 	}
 	
 	private static class XdiData {
-		public Map<String, String> data;
+		public Map<String, String> data = new HashMap<String, String>();
 	}
 }
