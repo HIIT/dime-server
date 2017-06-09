@@ -1391,5 +1391,42 @@ public class DataControllerTest extends RestTest {
         }
     }
 
+    // Test plainTextContent deletion bug reported by Andrej Gisbrecht
+    @Test
+    public void testTextDeletionBug() throws Exception {
+        Document doc = new Document();
+        doc.title = "test";
+        doc.plainTextContent = "test";
+
+        DesktopEvent event = new DesktopEvent();
+        event.actor = "MemEx";
+        event.targettedResource = doc;
+        event.start = new Date(1493298058916L);
+        event.end = new Date(1493298062368L);
+
+        DesktopEvent uploadedEvent = uploadEvent(event, DesktopEvent.class);
+        assertEquals(uploadedEvent.targettedResource.plainTextContent, doc.plainTextContent);
+
+        DesktopEvent gotEvent = getEvent(uploadedEvent.getId(), DesktopEvent.class);
+        assertEquals(doc.plainTextContent, gotEvent.targettedResource.plainTextContent);
+
+        String urlArguments = "?limit=100&page=0&after=0&orderBy=start&desc=False";
+        urlArguments += "&keywords=tfidf";
+        // urlArguments += "&includePlainTextContent=true";
+        Event[] gotEvents = getData(eventsApi + urlArguments, Event[].class);
+
+        int foundIdx = -1;
+        
+        for (int i=0; i<gotEvents.length; i++) {
+            if (gotEvents[i].getId().equals(uploadedEvent.getId()))
+                foundIdx = i;
+        }
+        assertTrue(foundIdx != -1);
+        DesktopEvent gotEvent2 = (DesktopEvent)gotEvents[foundIdx];
+        //assertEquals(doc.plainTextContent, gotEvent2.targettedResource.plainTextContent);
+
+        DesktopEvent gotEvent3 = getEvent(uploadedEvent.getId(), DesktopEvent.class);
+        assertEquals(doc.plainTextContent, gotEvent3.targettedResource.plainTextContent);
+    }
 
 }

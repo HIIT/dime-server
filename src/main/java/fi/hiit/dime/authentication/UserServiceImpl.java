@@ -24,6 +24,7 @@
 
 package fi.hiit.dime.authentication;
 
+import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.database.*;
 import fi.hiit.dime.util.RandomPassword;
 
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.Collection;
+import java.util.List;
 import javax.annotation.PostConstruct;
 
 /**
@@ -135,6 +137,9 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public boolean removeAllForUserId(Long id) {
+        List<Profile> profiles = profileDAO.profilesForUser(id);
+        for (Profile p : profiles) p.removeAllRelations();
+
 	eventDAO.removeForUser(id);
 	infoElemDAO.removeForUser(id);
         profileDAO.removeForUser(id);

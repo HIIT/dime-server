@@ -534,32 +534,23 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiDescription Access events through filtering with parameters.
 
         @apiParam (Filtering) {String} [appid] appId to match (exactly)
-        @apiParam (Filtering) {String} [elemid] the numeric id of the
-        related information element
+        @apiParam (Filtering) {String} [elemid] the numeric id of the related information element
         @apiParam (Filtering) {String} [actor] match actor field 
         @apiParam (Filtering) {String} [origin] match origin field
         @apiParam (Filtering) {String} [type] match type field
         @apiParam (Filtering) {String} [query] match query field
-        @apiParam (Filtering) {String} [tag] exact tag matching (just
-        one tag needs to match)
-        @apiParam (Filtering) {String} [@type] match internal class, e.g. SearchEvent
-        @apiParam (Filtering) {DateTime} [after] matches events
-        occurring after this time stamp, the time stamp format is the
-        same as for the start and end properties of the Data objects
-        @apiParam (Filtering) {DateTime} [before] matches events
-        occurring before this time stamp (can be combined with after
-        to get a time interval)
+        @apiParam (Filtering) {String} [tag] exact tag matching (just one tag needs to match)
+        @apiParam (Filtering) {String} [at-type] <b>(field is actually: @type, but apidocs doesn't like that)</b> match internal class, e.g. SearchEvent
+        @apiParam (Filtering) {DateTime} [after] matches events occurring after this time stamp, the time stamp format is the same as for the start and end properties of the Data objects
+        @apiParam (Filtering) {DateTime} [before] matches events occurring before this time stamp (can be combined with after to get a time interval)
 
         @apiParam (Sorting) {String} [orderBy] field to sort by (currently only start, end supported)
         @apiParam (Sorting) {Boolean} [desc] True if results should be ordered descending, false for ascending
 
-        @apiParam (Options) {Integer} [limit] limit number of results
-        @apiParam (Options) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
-        @apiParam (Options) {Boolean} [includePlainTextContent] set to
-        'true' if you wish to include the plainTextContent of the
-        InformationElements linked to the Events (these are normally
-        removed to reduce verbosity)
-        @apiParam (Options) {String} [keywords] specify if you wish to include Lucene's weighted keywords, possible values include df, idf, tfidf
+        @apiParam (Parameter) {Integer} [limit] limit number of results
+        @apiParam (Parameter) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
+        @apiParam (Parameter) {Boolean} [includePlainTextContent] set to 'true' if you wish to include the plainTextContent of the InformationElements linked to the Events (these are normally removed to reduce verbosity)
+        @apiParam (Parameter) {String} [keywords] specify if you wish to include Lucene's weighted keywords, possible values include df, idf, tfidf
 
         @apiPermission user
         @apiGroup Events
@@ -587,14 +578,6 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         try {
             List<Event> events = eventDAO.find(user.getId(), params, page, limit, orderBy, desc);
 
-            // We remove plainTextContents of linked
-            // InformationElements to reduce verbosity
-            if (!includePlainTextContent) {
-                for (Event e : events)
-                    if (e instanceof ResourcedEvent)
-                        ((ResourcedEvent)e).targettedResource.plainTextContent = null;
-            }
-
             if (!keywords.isEmpty()) {
                 searchIndex.updateIndex();
                 for (Event e : events) {
@@ -609,6 +592,14 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
                             se.queryTerms = searchIndex.queryTerms(se.query);
                     }
                 }
+            }
+
+            // We remove plainTextContents of linked
+            // InformationElements to reduce verbosity
+            if (!includePlainTextContent) {
+                for (Event e : events)
+                    if (e instanceof ResourcedEvent)
+                        ((ResourcedEvent)e).targettedResource.plainTextContent = null;
             }
 
             Event[] eventsArray = new Event[events.size()];
@@ -713,7 +704,7 @@ On success, the response will be the uploaded object with some fields like the i
         @apiName Get
         @apiParam {Number} id The information elements's unique ID
 
-        @apiParam (Options) {String} [keywords] specify if you wish to include Lucene's weighted keywords, possible values include df, idf, tfidf
+        @apiParam (Parameter) {String} [keywords] specify if you wish to include Lucene's weighted keywords, possible values include df, idf, tfidf
 
         @apiDescription On success the response will be the information element with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
         @apiSuccessExample {json} Example successful response:
@@ -830,13 +821,13 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam (Filtering) {String} [title] match title field
         @apiParam (Filtering) {String} [tag] exact tag matching (just
         one tag needs to match)
-        @apiParam (Filtering) {String} [@type] match internal class, e.g. Document
+        @apiParam (Filtering) {String} [at-type] <b>(field is actually: @type, but apidocs doesn't like that)</b> match internal class, e.g. Document
 
         @apiParam (Sorting) {String} [orderBy] field to sort by (currently only timeModified, timeCreated supported)
         @apiParam (Sorting) {Boolean} [desc] True if results should be ordered descending, false for ascending
 
-        @apiParam (Options) {Integer} [limit] limit number of results
-        @apiParam (Options) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
+        @apiParam (Parameter) {Integer} [limit] limit number of results
+        @apiParam (Parameter) {Integer} [page] when using limit, page=0 is the first set of items, page=1 is the next and so on
 
         @apiExample {HTTP} Example usage:
         # Get all elements containing tag "dime" and mimetype "text/html"

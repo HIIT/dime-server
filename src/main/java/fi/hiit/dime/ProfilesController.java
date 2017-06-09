@@ -787,7 +787,7 @@ public class ProfilesController extends AuthorizedController {
     /** @api {post} /profiles/:id/attributes Add an attribute to the profile
         @apiName PostAttributes
         @apiParam {Number} id Profile's unique ID
-        @apiExample  {json} Example of JSON to upload
+        @apiExample {json} Example of JSON to upload
             {
               "foo": "bar"
             }
