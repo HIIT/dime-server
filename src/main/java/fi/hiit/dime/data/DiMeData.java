@@ -74,6 +74,7 @@ import java.util.List;
             @JsonSubTypes.Type(value=fi.hiit.dime.data.IntentModelFeedbackEvent.class, name="IntentModelFeedbackEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.PhysicalEvent.class, name="PhysicalEvent"),
             @JsonSubTypes.Type(value=fi.hiit.dime.data.HealthTrackerEvent.class, name="HealthTrackerEvent"),
+            @JsonSubTypes.Type(value=fi.hiit.dime.data.ActivityEvent.class, name="ActivityEvent"),
 })
 @MappedSuperclass
 public class DiMeData extends AbstractPersistable<Long> {

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-import requests
-import sys
-import socket
-import time
-import json
 import dime
+import json
+import sys
+import requests
 
 #------------------------------------------------------------------------------
 
@@ -30,10 +28,10 @@ class DiMeConnection:
                       file=sys.stderr)
             return r.json()
 
-    def post(self, url):
+    def post(self, url, data=None):
         print("POST", url)
         r = requests.post(self.url + url, headers={'content-type': 'application/json'},
-                          auth=(self.username, self.password), timeout=10)
+                          data=data, auth=(self.username, self.password), timeout=10)
         return r
 
     def get(self, url):
@@ -42,37 +40,14 @@ class DiMeConnection:
                           auth=(self.username, self.password), timeout=10)
         return r
 
-    def delete(self, url):
-        print("DELETE", url)
-        r = requests.delete(self.url + url, headers={'content-type': 'application/json'},
-                            auth=(self.username, self.password), timeout=10)
-        return r
-    
 #------------------------------------------------------------------------------
 
-dime = DiMeConnection('http://localhost:8081/api', 'demouser')
-
-if not dime.ping():
-    sys.exit(1)
-
-r = dime.get('/data/events?' + sys.argv[1])
-
-rj = r.json()
-
-if len(rj) == 0:
-    print('No events found.')
-    sys.exit(1)
-
-print('These would be deleted:', json.dumps(rj, indent=2))
-
-input('Press enter to continue (or Ctrl-C to cancel)')
-
-
-for item in rj:
-    item_id = item['id']
-    r = dime.delete('/data/event/' + str(item_id))
-
-    if r.status_code == requests.codes.ok:
-        print('Successfully deleted event', item_id)
+with open(sys.argv[1], 'r') as fp:
+    data = json.loads(fp.read())
+    dime = DiMeConnection('http://localhost:8081/api', 'demouser')
+    res=dime.post("/data/events", data=json.dumps(data))
+    if res.status_code == 200:
+        print("Uploaded {} events.".format(len(res.json())))
     else:
-        print('Error deleting event', item_id, r)
+        print(res.text)
+
