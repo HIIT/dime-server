@@ -1171,4 +1171,9 @@
             <column name="DETECTED_LANGUAGE" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
+    <changeSet author="mvsjober (generated)" id="1497033461069-1">
+        <addColumn tableName="EVENT">
+            <column name="ACTIVITY" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
