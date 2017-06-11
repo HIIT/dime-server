@@ -268,7 +268,7 @@ public class ApiController extends AuthorizedController {
 
 				// create NYM request
 
-				BuildNymRequestResult buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_VERKEY, did, verkey, null, null, SovrinConstants.ROLE_STEWARD).get();
+				BuildNymRequestResult buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_VERKEY, did, verkey, null, SovrinConstants.ROLE_STEWARD).get();
 				LOG.info("BuildNymRequestResult: " + buildNymRequestResult);
 
 				// sign and submit request to ledger
