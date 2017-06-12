@@ -166,8 +166,9 @@ public class RequestsController extends AuthorizedController {
 					
 					if (variableValue.getValue() instanceof List) {
 						
-						value = new ArrayList<String> ();
-						for (Object item : ((List) variableValue.getValue())) ((List<String>) value).add("" + item);
+						List<String> valueList = new ArrayList<String> ();
+						for (Object item : ((List<?>) variableValue.getValue())) valueList.add("" + item);
+						value = valueList;
 					} else {
 						
 						value = "" + variableValue.getValue();
