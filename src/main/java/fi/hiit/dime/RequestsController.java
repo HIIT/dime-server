@@ -25,7 +25,10 @@
 package fi.hiit.dime;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,11 +151,37 @@ public class RequestsController extends AuthorizedController {
 			// result
 
 			for (ContextNode requestContextNode : requestContextNodes) {
-	
+
 				Message requestMessage = Message.fromContextNode(requestContextNode);
+				String address = requestMessage.getContextNode().getXDIAddress().toString();
+				String from = requestMessage.getFromXDIAddress().toString();
+				String operation = "" + requestMessage.getOperations().next().getOperationXDIAddress();
+				String operationTarget = "" + requestMessage.getOperations().next().getTargetXDIAddress();
+				Map<String, Object> operationVariables = new HashMap<String, Object> ();
+
+				for (Entry<XDIArc, Object> variableValue : requestMessage.getOperations().next().getVariableValues().entrySet()) {
+
+					String key = variableValue.getKey().toString();
+					Object value;
+					
+					if (variableValue.getValue() instanceof List) {
+						
+						value = new ArrayList<String> ();
+						for (Object item : ((List) variableValue.getValue())) ((List<String>) value).add("" + item);
+					} else {
+						
+						value = "" + variableValue.getValue();
+					}
+					
+					operationVariables.put(key, value);
+				}
+
 				result.add(new XdiRequest(
-						requestMessage.getContextNode().getXDIAddress().toString(), 
-						requestMessage.getFromXDIAddress().toString()));
+						address, 
+						from,
+						operation,
+						operationTarget,
+						operationVariables));
 			}
 		}
 
@@ -248,6 +277,9 @@ public class RequestsController extends AuthorizedController {
 	private static class XdiRequest {
 		public String address;
 		public String from;
-		public XdiRequest(String address, String from) { this.address = address; this.from = from; } 
+		public String operation;
+		public String operationTarget;
+		public Map<String, Object> operationVariables;
+		public XdiRequest(String address, String from, String operation, String operationTarget, Map<String, Object> operationVariables) { this.address = address; this.from = from; this.operation = operation; this.operationTarget = operationTarget; this.operationVariables = operationVariables; } 
 	}
 }
