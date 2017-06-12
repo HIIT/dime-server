@@ -25,3 +25,9 @@
 
 # To enable CORS for a given domain
 # dime.corsAllowOrigin=http://localhost:3000,chrome-extension://beidaccpdlllohiaoglaeclolnfheeac
+
+# To point to an alternate people finder service
+# dime.peoplefinderEndpoint=http://localhost:7401/xdi/graph
+
+# To specify the DiMe's public URI
+# dime.baseUri=http://localhost:8080/
