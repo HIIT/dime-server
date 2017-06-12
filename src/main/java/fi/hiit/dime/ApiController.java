@@ -27,6 +27,8 @@ package fi.hiit.dime;
 import static fi.hiit.dime.search.SearchIndex.weightType;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.servlet.ServletRequest;
 
@@ -97,6 +99,8 @@ import xdi2.messaging.container.MessagingContainer;
 public class ApiController extends AuthorizedController {
 	private static final Logger LOG =
 			LoggerFactory.getLogger(ApiController.class);
+
+	public static final int RETRIES = 3;
 
 	private final EventDAO eventDAO;
 	private final InformationElementDAO infoElemDAO;
@@ -266,15 +270,38 @@ public class ApiController extends AuthorizedController {
 				String did = createAndStoreMyDidResult.getDid();
 				String verkey = createAndStoreMyDidResult.getVerkey();
 
-				// create NYM request
+				// NYM request
 
-				BuildNymRequestResult buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_VERKEY, did, verkey, null, SovrinConstants.ROLE_STEWARD).get();
-				LOG.info("BuildNymRequestResult: " + buildNymRequestResult);
+				BuildNymRequestResult buildNymRequestResult = null;
+				SignAndSubmitRequestResult signAndSubmitRequestResult = null;
 
-				// sign and submit request to ledger
+				for (int i=0; i<RETRIES; i++) {
 
-				SignAndSubmitRequestResult signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), SovrinService.TRUSTEE_DID, buildNymRequestResult.getRequestJson()).get();
-				LOG.info("SignAndSubmitRequestResult: " + signAndSubmitRequestResult);
+					try {
+
+						buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_VERKEY, did, verkey, null, SovrinConstants.ROLE_STEWARD).get(2, TimeUnit.SECONDS);
+						LOG.info("Retry #" + i + ": Success: " + buildNymRequestResult);
+						break;
+					} catch (TimeoutException ex) {
+
+						LOG.warn("Retry #" + i + ": " + ex.getMessage());
+						if (i+1 < RETRIES) continue; else throw ex;
+					}
+				}
+
+				for (int i=0; i<RETRIES; i++) {
+
+					try {
+
+						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), SovrinService.TRUSTEE_DID, buildNymRequestResult.getRequestJson()).get(2, TimeUnit.SECONDS);
+						LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
+						break;
+					} catch (TimeoutException ex) {
+
+						LOG.warn("Retry #" + i + ": " + ex.getMessage());
+						if (i+1 < RETRIES) continue; else throw ex;
+					}
+				}
 
 				// done
 
@@ -301,15 +328,38 @@ public class ApiController extends AuthorizedController {
 
 				String did = XdiService.didStringFromXDIAddress(didXDIAddress);
 
-				// create ATTRIB request
+				// ATTRIB request
 
-				BuildAttribRequestResult buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get();
-				LOG.info("BuildAttribRequestResult: " + buildAttribRequestResult);
+				BuildAttribRequestResult buildAttribRequestResult = null;
+				SignAndSubmitRequestResult signAndSubmitRequestResult = null;
 
-				// sign and submit request to ledger
+				for (int i=0; i<RETRIES; i++) {
 
-				SignAndSubmitRequestResult signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult.getRequestJson()).get();
-				LOG.info("SignAndSubmitRequestResult: " + signAndSubmitRequestResult);
+					try {
+
+						buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get(1, TimeUnit.SECONDS);
+						LOG.info("Retry #" + i + ": Success: " + buildAttribRequestResult);
+						break;
+					} catch (TimeoutException ex) {
+
+						LOG.warn("Retry #" + i + ": " + ex.getMessage());
+						if (i+1 < RETRIES) continue; else throw ex;
+					}
+				}
+
+				for (int i=0; i<RETRIES; i++) {
+
+					try {
+
+						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult.getRequestJson()).get(1, TimeUnit.SECONDS);
+						LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
+						break;
+					} catch (TimeoutException ex) {
+
+						LOG.warn("Retry #" + i + ": " + ex.getMessage());
+						if (i+1 < RETRIES) continue; else throw ex;
+					}
+				}
 
 				// done
 
