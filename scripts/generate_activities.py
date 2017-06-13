@@ -88,7 +88,7 @@ for e in events:
         
     if prev_end is not None:
         diff = start-prev_end
-        if diff > 5*60*1000: # five minutes
+        if diff > 15*60*1000: # five minutes
             act_events.append({
                 '@type':    'ActivityEvent',
                 'actor':    'generate_activities.py',

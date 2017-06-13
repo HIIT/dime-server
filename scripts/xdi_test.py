@@ -45,10 +45,10 @@ class DiMeConnection:
 
 #------------------------------------------------------------------------------
 
-dime_a = DiMeConnection('http://localhost:8080/api', 'mvsjober')
+dime_a = DiMeConnection('http://localhost:8081/api', 'mvsjober')
 
 dime_b = DiMeConnection('http://localhost:8082/api', 'bob',
-                        '=!:did:sov:EjSBN9x81AHZiFjRBqJkpG')
+                        '=!:did:sov:TJrPGZ3e6uWC4xmSZrJPar')
 
 #------------------------------------------------------------------------------
 
@@ -59,33 +59,33 @@ dime_a.post('/requests/send/' + dime_b.uid)
 
 reqs = dime_b.get('/requests/view').json()
 print("Current requests (b):")
-print(reqs)
+print(json.dumps(reqs, indent=2))
 
-#dime_b.post('/requests/delete?address=' + reqs[0]['address'])
-dime_b.post('/requests/approve/' + reqs[0]['address'])
+# dime_b.post('/requests/delete?address=' + reqs[0]['address'])
+# dime_b.post('/requests/approve/' + reqs[0]['address'])
 
-reqs = dime_b.get('/requests/view').json()
-print("Current requests (b) (AFTER):")
-print(reqs)
-
-
-contracts_a = dime_a.get('/linkcontracts/view').json()
-print("Contracts (a)")
-print(contracts_a)
-
-contracts_b = dime_b.get('/linkcontracts/view').json()
-print("Contracts (b)")
-print(contracts_b)
-
-if len(contracts_b) > 0:
-    address_quoted = urllib.parse.quote_plus(contracts_b[0]['address'])
-    #ret = dime_b.post('/linkcontracts/delete?address=' + address_quoted)
-
-    # contracts_b = dime_b.get('/linkcontracts/view').json()
-    # print("Contracts (b) (AFTER)")
-    # print(contracts_b)
+# reqs = dime_b.get('/requests/view').json()
+# print("Current requests (b) (AFTER):")
+# print(reqs)
 
 
-    data = dime_a.get('/linkcontracts/data/' + dime_b.uid)
-    print(data.text)
+# contracts_a = dime_a.get('/linkcontracts/view').json()
+# print("Contracts (a)")
+# print(contracts_a)
+
+# contracts_b = dime_b.get('/linkcontracts/view').json()
+# print("Contracts (b)")
+# print(contracts_b)
+
+# if len(contracts_b) > 0:
+#     address_quoted = urllib.parse.quote_plus(contracts_b[0]['address'])
+#     #ret = dime_b.post('/linkcontracts/delete?address=' + address_quoted)
+
+#     # contracts_b = dime_b.get('/linkcontracts/view').json()
+#     # print("Contracts (b) (AFTER)")
+#     # print(contracts_b)
+
+
+data = dime_a.get('/linkcontracts/data/' + dime_b.uid)
+print(json.dumps(data.json(), indent=2))
 
