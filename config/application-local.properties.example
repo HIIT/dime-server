@@ -31,3 +31,6 @@
 
 # To point to an alternate people finder service
 # dime.peoplefinderEndpoint=http://localhost:7401/xdi/graph
+
+# To specify the DiMe's public URI, needed by Sovrin/XDI for discovery
+# dime.baseUri=http://localhost:8080/
