@@ -155,6 +155,7 @@ public class RequestsController extends AuthorizedController {
 				Message requestMessage = Message.fromContextNode(requestContextNode);
 				String address = requestMessage.getContextNode().getXDIAddress().toString();
 				String from = requestMessage.getFromXDIAddress().toString();
+				String to = requestMessage.getToXDIAddress().toString();
 				String operation = "" + requestMessage.getOperations().next().getOperationXDIAddress();
 				String operationTarget = "" + requestMessage.getOperations().next().getTargetXDIAddress();
 				Map<String, Object> operationVariables = new HashMap<String, Object> ();
@@ -180,6 +181,7 @@ public class RequestsController extends AuthorizedController {
 				result.add(new XdiRequest(
 						address, 
 						from,
+						to,
 						operation,
 						operationTarget,
 						operationVariables));
@@ -278,9 +280,10 @@ public class RequestsController extends AuthorizedController {
 	private static class XdiRequest {
 		public String address;
 		public String from;
+		public String to;
 		public String operation;
 		public String operationTarget;
 		public Map<String, Object> operationVariables;
-		public XdiRequest(String address, String from, String operation, String operationTarget, Map<String, Object> operationVariables) { this.address = address; this.from = from; this.operation = operation; this.operationTarget = operationTarget; this.operationVariables = operationVariables; } 
+		public XdiRequest(String address, String from, String to, String operation, String operationTarget, Map<String, Object> operationVariables) { this.address = address; this.from = from; this.to = to; this.operation = operation; this.operationTarget = operationTarget; this.operationVariables = operationVariables; } 
 	}
 }
