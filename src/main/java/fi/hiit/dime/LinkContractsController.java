@@ -53,6 +53,7 @@ import xdi2.core.constants.XDILinkContractConstants;
 import xdi2.core.exceptions.Xdi2Exception;
 import xdi2.core.features.aggregation.Aggregation;
 import xdi2.core.features.linkcontracts.instance.LinkContract;
+import xdi2.core.features.linkcontracts.instance.PublicLinkContract;
 import xdi2.core.features.linkcontracts.instance.RelationshipLinkContract;
 import xdi2.core.features.linkcontracts.instance.RootLinkContract;
 import xdi2.core.syntax.XDIAddress;
@@ -180,6 +181,70 @@ public class LinkContractsController extends AuthorizedController {
 		message.setToXDIAddress(targetXDIAddress);
 		message.setLinkContractXDIAddress(RelationshipLinkContract.createRelationshipLinkContractXDIAddress(targetXDIAddress, didXDIAddress, XDILinkContractConstants.XDI_ADD_GET));
 		message.createGetOperation(XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime")));
+
+		// send to XDI target
+
+		XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
+
+		XdiData result = new XdiData();
+
+		try {
+
+/*			RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
+			SigningManipulator manipulator = new SigningManipulator();
+			manipulator.setSignatureCreator(signatureCreator);
+			client.getManipulators().addManipulator(manipulator);*/
+
+			MessagingResponse response = client.send(message.getMessageEnvelope());
+			
+			Graph resultGraph = response.getResultGraph();
+			
+			for (LiteralNode literalNode : resultGraph.getRootContextNode().getAllLiteralNodes()) {
+				
+				XDIAddress key = XDIAddressUtil.localXDIAddress(literalNode.getContextNode().getXDIAddress(), -1);
+				Object value = literalNode.getLiteralData();
+				
+				if (key != null) result.data.put(key.toString(), value == null ? null : value.toString());
+			}
+		} catch (Xdi2ClientException ex) {
+
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+
+		// done
+
+		return new ResponseEntity<XdiData>(result, HttpStatus.OK);
+	}
+
+	@RequestMapping(value="/publicdata/{target}", method = RequestMethod.GET)
+	public ResponseEntity<XdiData>
+	linkContractsPublicData(Authentication auth, @PathVariable String target)
+			throws NotFoundException, BadRequestException
+	{
+		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
+		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+
+		XDIAddress targetXDIAddress = XDIAddress.create(target);
+
+		// find XDI route
+
+		XDIClientRoute<?> route;
+
+		try {
+
+			route = XdiService.get().getXDIAgent().route(targetXDIAddress);
+		} catch (Xdi2Exception ex) {
+
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+
+		// build XDI message
+
+		Message message = route.createMessage(didXDIAddress, -1);
+		message.setFromXDIAddress(didXDIAddress);
+		message.setToXDIAddress(targetXDIAddress);
+		message.setLinkContractClass(PublicLinkContract.class);
+		message.createGetOperation(XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime#profile[<#tag>]")));
 
 		// send to XDI target
 
