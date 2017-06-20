@@ -385,7 +385,7 @@ public class ApiController extends AuthorizedController {
 			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
 			MessageEnvelope messageEnvelope = new MessageEnvelope();
 			Message message = messageEnvelope.createMessage(didXDIAddress, -1);
-			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(didXDIAddress, XDIAddress.create("#dime"), profileNameXDIAddress, XDIAddress.create("[<#tag>]")));
+			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(didXDIAddress, XDIAddress.create("#dime#profile"), XDIAddress.create("[<#tag>]")));
 
 			XDILocalClient client = new XDILocalClient(messagingContainer);
 			resultGraph = client.send(messageEnvelope).getResultGraph();

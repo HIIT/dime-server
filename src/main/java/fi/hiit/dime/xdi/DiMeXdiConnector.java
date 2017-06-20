@@ -10,6 +10,7 @@ import fi.hiit.dime.data.Profile;
 import fi.hiit.dime.data.Tag;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
+import xdi2.core.features.dictionary.Dictionary;
 import xdi2.core.features.nodetypes.XdiAttribute;
 import xdi2.core.features.nodetypes.XdiAttributeCollection;
 import xdi2.core.features.nodetypes.XdiEntity;
@@ -88,7 +89,8 @@ public class DiMeXdiConnector extends AbstractContributor implements Prototype<D
 		// map the profile
 
 		XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
-		XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(profileNameXDIAddress, true);
+		XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(XDIAddress.create("#profile"), true);
+		Dictionary.setContextNodeType(profileXdiEntity.getContextNode(), profileNameXDIAddress);
 
 		// map the tags
 
