@@ -82,7 +82,10 @@ import xdi2.client.exceptions.Xdi2ClientException;
 import xdi2.client.impl.http.XDIHttpClient;
 import xdi2.client.impl.local.XDILocalClient;
 import xdi2.core.Graph;
+import xdi2.core.constants.XDILinkContractConstants;
+import xdi2.core.features.linkcontracts.instance.PublicLinkContract;
 import xdi2.core.syntax.XDIAddress;
+import xdi2.core.syntax.XDIStatement;
 import xdi2.core.util.XDIAddressUtil;
 import xdi2.messaging.Message;
 import xdi2.messaging.MessageEnvelope;
@@ -374,8 +377,9 @@ public class ApiController extends AuthorizedController {
 
 		// prepare XDI request
 
-		XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
 		XDIAddress peopleFinderXDIAddress = XDIAddress.create("+!:did:sov:VpumqBbcVi86RvpEo8lvOn");
+		XDIAddress profileTagsXDIAddress = XDIAddressUtil.concatXDIAddresses(didXDIAddress, XDIAddress.create("#dime#profile[<#tag>]"));
+		XDIAddress publicLinkContractXDIAddress = PublicLinkContract.createPublicLinkContractXDIAddress(didXDIAddress);
 		Graph resultGraph;
 
 		// XDI request to local messaging container
@@ -385,7 +389,8 @@ public class ApiController extends AuthorizedController {
 			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
 			MessageEnvelope messageEnvelope = new MessageEnvelope();
 			Message message = messageEnvelope.createMessage(didXDIAddress, -1);
-			message.createGetOperation(XDIAddressUtil.concatXDIAddresses(didXDIAddress, XDIAddress.create("#dime#profile"), XDIAddress.create("[<#tag>]")));
+			message.createGetOperation(profileTagsXDIAddress);
+			message.createSetOperation(XDIStatement.fromComponents(XDIAddressUtil.concatXDIAddresses(publicLinkContractXDIAddress, XDILinkContractConstants.XDI_ARC_DO), XDILinkContractConstants.XDI_ADD_GET, profileTagsXDIAddress));
 
 			XDILocalClient client = new XDILocalClient(messagingContainer);
 			resultGraph = client.send(messageEnvelope).getResultGraph();
