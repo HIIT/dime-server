@@ -126,6 +126,9 @@ public class LinkContractsController extends AuthorizedController {
 
 			XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
+			if (didXDIAddress == null)
+			    continue;
+
 			// XDI request to local messaging container
 
 			try {

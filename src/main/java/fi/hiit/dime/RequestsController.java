@@ -205,6 +205,9 @@ public class RequestsController extends AuthorizedController {
 
 			XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
+			if (didXDIAddress == null)
+			    continue;
+
 			// look in XDI graph
 
 			Graph graph = XdiService.get().myGraph(profile);
@@ -250,6 +253,9 @@ public class RequestsController extends AuthorizedController {
 		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
 
 			XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+
+			if (didXDIAddress == null)
+			    continue;
 
 			// XDI request to local messaging container
 
