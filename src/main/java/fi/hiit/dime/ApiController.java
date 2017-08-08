@@ -32,7 +32,6 @@ import java.util.concurrent.TimeoutException;
 
 import javax.servlet.ServletRequest;
 
-import org.hyperledger.indy.sdk.IndyConstants;
 import org.hyperledger.indy.sdk.ledger.Ledger;
 import org.hyperledger.indy.sdk.signus.Signus;
 import org.hyperledger.indy.sdk.signus.SignusJSONParameters.CreateAndStoreMyDidJSONParameter;
@@ -279,7 +278,7 @@ public class ApiController extends AuthorizedController {
 
 					try {
 
-						buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_VERKEY, did, verkey, null, IndyConstants.ROLE_STEWARD).get(2, TimeUnit.SECONDS);
+						buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_DID, did, verkey, null, null).get(5, TimeUnit.SECONDS);
 						LOG.info("Retry #" + i + ": Success: " + buildNymRequestResult);
 						break;
 					} catch (TimeoutException ex) {
@@ -293,7 +292,7 @@ public class ApiController extends AuthorizedController {
 
 					try {
 
-						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), SovrinService.TRUSTEE_DID, buildNymRequestResult).get(2, TimeUnit.SECONDS);
+						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), SovrinService.TRUSTEE_DID, buildNymRequestResult).get(5, TimeUnit.SECONDS);
 						LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
 						break;
 					} catch (TimeoutException ex) {
@@ -337,7 +336,7 @@ public class ApiController extends AuthorizedController {
 
 					try {
 
-						buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get(1, TimeUnit.SECONDS);
+						buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get(5, TimeUnit.SECONDS);
 						LOG.info("Retry #" + i + ": Success: " + buildAttribRequestResult);
 						break;
 					} catch (TimeoutException ex) {
@@ -351,7 +350,7 @@ public class ApiController extends AuthorizedController {
 
 					try {
 
-						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult).get(1, TimeUnit.SECONDS);
+						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult).get(5, TimeUnit.SECONDS);
 						LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
 						break;
 					} catch (TimeoutException ex) {
