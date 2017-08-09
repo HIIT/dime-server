@@ -5,8 +5,8 @@ buildscript {
     dependencies {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.3.3.RELEASE'
         classpath 'org.liquibase:liquibase-gradle-plugin:1.1.1'
-	classpath 'com.h2database:h2:1.4.190'
-    }	
+        classpath 'com.h2database:h2:1.4.190'
+    }
 }
 
 apply plugin: 'org.liquibase.gradle'
@@ -19,7 +19,7 @@ apply plugin: 'spring-boot'
 // targetCompatibility = '1.7'
 
 /*
- * Gets the version name from the latest Git tag        
+ * Gets the version name from the latest Git tag
  * From: http://www.ryanharter.com/blog/2013/07/30/automatic-versioning-with-git-and-gradle/
  */
 def getVersionName = { ->

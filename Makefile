@@ -34,6 +34,8 @@ $(DIMEUI_TARGET): $(DIMEUI_SUBMODULE) $(DIMEUI_SOURCE)
 	cd submodules/dime-ui; npm install; npm run build
 	rsync -var submodules/dime-ui/build/ src/main/resources/static/
 
+dimeui: $(DIMEUI_TARGET)
+
 $(DIMEUI_SUBMODULE):
 	git submodule init
 	git submodule update
