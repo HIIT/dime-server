@@ -2,23 +2,18 @@ package fi.hiit.dime.sovrin;
 
 import java.io.File;
 
+import org.hyperledger.indy.sdk.LibIndy;
+import org.hyperledger.indy.sdk.pool.Pool;
+import org.hyperledger.indy.sdk.pool.PoolJSONParameters.CreatePoolLedgerConfigJSONParameter;
+import org.hyperledger.indy.sdk.pool.PoolJSONParameters.OpenPoolLedgerJSONParameter;
+import org.hyperledger.indy.sdk.signus.Signus;
+import org.hyperledger.indy.sdk.signus.SignusJSONParameters.CreateAndStoreMyDidJSONParameter;
+import org.hyperledger.indy.sdk.signus.SignusResults.CreateAndStoreMyDidResult;
+import org.hyperledger.indy.sdk.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-
-import com.danubetech.libsovrin.LibSovrin;
-import com.danubetech.libsovrin.pool.Pool;
-import com.danubetech.libsovrin.pool.PoolJSONParameters.CreatePoolLedgerConfigJSONParameter;
-import com.danubetech.libsovrin.pool.PoolJSONParameters.OpenPoolLedgerJSONParameter;
-import com.danubetech.libsovrin.pool.PoolResults.CreatePoolLedgerConfigResult;
-import com.danubetech.libsovrin.pool.PoolResults.OpenPoolLedgerResult;
-import com.danubetech.libsovrin.signus.Signus;
-import com.danubetech.libsovrin.signus.SignusJSONParameters.CreateAndStoreMyDidJSONParameter;
-import com.danubetech.libsovrin.signus.SignusResults.CreateAndStoreMyDidResult;
-import com.danubetech.libsovrin.wallet.Wallet;
-import com.danubetech.libsovrin.wallet.WalletResults.CreateWalletResult;
-import com.danubetech.libsovrin.wallet.WalletResults.OpenWalletResult;
 
 @Service
 @Scope("singleton")
@@ -51,22 +46,22 @@ public class SovrinService {
 
 		try {
 
-			LOG.info("Loading libsovrin: " + new File("lib/libsovrin.so").getAbsolutePath());
-			if (! LibSovrin.isInitialized()) LibSovrin.init(new File("lib/libsovrin.so"));
+			LOG.info("Loading libindy: " + new File("lib/libindy.so").getAbsolutePath());
+			if (! LibIndy.isInitialized()) LibIndy.init(new File("lib/libindy.so"));
 		} catch (Throwable ex) {
 
 			LOG.warn(ex.getMessage(), ex);
 		}
 
-		if (! LibSovrin.isInitialized()) LibSovrin.init();
+		if (! LibIndy.isInitialized()) LibIndy.init();
 
 		// create pool
 
 		try {
 
 			CreatePoolLedgerConfigJSONParameter createPoolLedgerConfigJSONParameter = new CreatePoolLedgerConfigJSONParameter(poolLedgerConfigName + ".txn");
-			CreatePoolLedgerConfigResult createPoolLedgerConfigResult = Pool.createPoolLedgerConfig(poolLedgerConfigName, createPoolLedgerConfigJSONParameter).get();
-			LOG.info("Created pool: " + createPoolLedgerConfigResult);
+			Pool.createPoolLedgerConfig(poolLedgerConfigName, createPoolLedgerConfigJSONParameter.toJson()).get();
+			LOG.info("Created pool.");
 		} catch (Exception ex) {
 
 			LOG.warn("Cannot create pool: " + ex.getMessage());
@@ -76,8 +71,8 @@ public class SovrinService {
 
 		try {
 
-			CreateWalletResult createWalletResultTrustee = Wallet.createWallet(poolLedgerConfigName, walletName, "default", null, null).get();
-			LOG.info("Created wallet: " + createWalletResultTrustee);
+			Wallet.createWallet(poolLedgerConfigName, walletName, "default", null, null).get();
+			LOG.info("Created wallet.");
 		} catch (Exception ex) {
 
 			LOG.warn("Cannot create wallet: " + ex.getMessage());
@@ -89,10 +84,8 @@ public class SovrinService {
 
 			LOG.debug("Opening pool...");
 			OpenPoolLedgerJSONParameter openPoolLedgerJSONParameter = new OpenPoolLedgerJSONParameter(Boolean.TRUE, null, null);
-			OpenPoolLedgerResult openPoolLedgerResult = Pool.openPoolLedger(poolLedgerConfigName, openPoolLedgerJSONParameter).get();
-			LOG.debug("Opened pool: " + openPoolLedgerResult);
-
-			pool = openPoolLedgerResult.getPool();
+			pool = Pool.openPoolLedger(poolLedgerConfigName, openPoolLedgerJSONParameter.toJson()).get();
+			LOG.debug("Opened pool: " + pool);
 		} catch (Exception ex) {
 
 			throw new RuntimeException("Cannot open pool: " + ex.getMessage(), ex);
@@ -103,10 +96,8 @@ public class SovrinService {
 		try {
 
 			LOG.debug("Opening wallet...");
-			OpenWalletResult openWalletResult = Wallet.openWallet(walletName, null, null).get();
-			LOG.debug("Opening wallet: " + openWalletResult);
-
-			wallet = openWalletResult.getWallet();
+			wallet = Wallet.openWallet(walletName, null, null).get();
+			LOG.debug("Opening wallet: " + wallet);
 		} catch (Exception ex) {
 
 			throw new RuntimeException("Cannot open wallet: " + ex.getMessage(), ex);
@@ -117,7 +108,7 @@ public class SovrinService {
 		try {
 
 			CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameterTrustee = new CreateAndStoreMyDidJSONParameter(null, TRUSTEE_SEED, null, null);
-			CreateAndStoreMyDidResult createAndStoreMyDidResultTrustee = Signus.createAndStoreMyDid(wallet, createAndStoreMyDidJSONParameterTrustee).get();
+			CreateAndStoreMyDidResult createAndStoreMyDidResultTrustee = Signus.createAndStoreMyDid(wallet, createAndStoreMyDidJSONParameterTrustee.toJson()).get();
 			LOG.info("Created trustee DID: " + createAndStoreMyDidResultTrustee);
 		} catch (Exception ex) {
 
