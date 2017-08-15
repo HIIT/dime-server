@@ -50,10 +50,10 @@ import xdi2.client.impl.local.XDILocalClient;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
 import xdi2.core.bootstrap.XDIBootstrap;
-import xdi2.core.exceptions.Xdi2Exception;
 import xdi2.core.features.aggregation.Aggregation;
 import xdi2.core.features.linkcontracts.instance.ConnectLinkContract;
 import xdi2.core.features.linkcontracts.instance.RootLinkContract;
+import xdi2.core.features.nodetypes.XdiPeerRoot;
 import xdi2.core.syntax.XDIAddress;
 import xdi2.core.syntax.XDIArc;
 import xdi2.core.util.XDIAddressUtil;
@@ -84,8 +84,7 @@ public class RequestsController extends AuthorizedController {
 			throws NotFoundException, BadRequestException
 	{
 		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
-		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
-
+		XDIAddress senderXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 		XDIAddress targetXDIAddress = XDIAddress.create(target);
 
 		// find XDI route
@@ -94,16 +93,16 @@ public class RequestsController extends AuthorizedController {
 
 		try {
 
-			route = XdiService.get().getXDIAgent().route(targetXDIAddress);
-		} catch (Xdi2Exception ex) {
+			route = XdiService.get().getXDIAgent().route(XdiPeerRoot.createPeerRootXDIArc(targetXDIAddress));
+		} catch (Exception ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
 		}
 
 		// build XDI message
 
-		Message message = route.createMessage(didXDIAddress, -1);
-		message.setFromXDIAddress(didXDIAddress);
+		Message message = route.createMessage(senderXDIAddress, -1);
+		message.setFromXDIAddress(senderXDIAddress);
 		message.setToXDIAddress(targetXDIAddress);
 		message.setLinkContractClass(ConnectLinkContract.class);
 		Operation operation = message.createConnectOperation(XDIBootstrap.GET_LINK_CONTRACT_TEMPLATE_ADDRESS);
