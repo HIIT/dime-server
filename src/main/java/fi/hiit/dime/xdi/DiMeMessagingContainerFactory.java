@@ -44,6 +44,11 @@ public class DiMeMessagingContainerFactory extends PrototypingUriMessagingContai
 			throw new Xdi2TransportException("Invalid owner string " + ownerString + ": " + ex.getMessage(), ex);
 		}
 
+		// check if a profile with DID exists
+
+		boolean exists = XdiService.findProfileByDidXDIAddress(ownerXDIAddress) != null;
+		if (! exists) return null;
+
 		// create and mount the new messaging container
 
 		String messagingContainerPath = messagingContainerFactoryPath + "/" + ownerXDIAddress.toString();
