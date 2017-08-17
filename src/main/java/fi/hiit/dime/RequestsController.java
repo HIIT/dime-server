@@ -50,19 +50,27 @@ import xdi2.client.impl.local.XDILocalClient;
 import xdi2.core.ContextNode;
 import xdi2.core.Graph;
 import xdi2.core.bootstrap.XDIBootstrap;
-import xdi2.core.exceptions.Xdi2Exception;
+import xdi2.core.constants.XDILinkContractConstants;
 import xdi2.core.features.aggregation.Aggregation;
+import xdi2.core.features.index.Index;
 import xdi2.core.features.linkcontracts.instance.ConnectLinkContract;
+import xdi2.core.features.linkcontracts.instance.LinkContract;
 import xdi2.core.features.linkcontracts.instance.RootLinkContract;
+import xdi2.core.features.nodetypes.XdiEntityCollection;
+import xdi2.core.features.nodetypes.XdiPeerRoot;
 import xdi2.core.syntax.XDIAddress;
 import xdi2.core.syntax.XDIArc;
+import xdi2.core.util.CopyUtil;
 import xdi2.core.util.XDIAddressUtil;
 import xdi2.core.util.iterators.EmptyIterator;
 import xdi2.core.util.iterators.ReadOnlyIterator;
 import xdi2.messaging.Message;
 import xdi2.messaging.MessageEnvelope;
+import xdi2.messaging.constants.XDIMessagingConstants;
 import xdi2.messaging.container.MessagingContainer;
 import xdi2.messaging.operations.Operation;
+import xdi2.messaging.response.FullMessagingResponse;
+import xdi2.messaging.response.MessagingResponse;
 
 /**
  * Requests API controller.
@@ -84,8 +92,7 @@ public class RequestsController extends AuthorizedController {
 			throws NotFoundException, BadRequestException
 	{
 		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
-		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
-
+		XDIAddress senderXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 		XDIAddress targetXDIAddress = XDIAddress.create(target);
 
 		// find XDI route
@@ -94,24 +101,26 @@ public class RequestsController extends AuthorizedController {
 
 		try {
 
-			route = XdiService.get().getXDIAgent().route(targetXDIAddress);
-		} catch (Xdi2Exception ex) {
+			route = XdiService.get().getXDIAgent().route(XdiPeerRoot.createPeerRootXDIArc(targetXDIAddress));
+		} catch (Exception ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
 		}
 
 		// build XDI message
 
-		Message message = route.createMessage(didXDIAddress, -1);
-		message.setFromXDIAddress(didXDIAddress);
+		Message message = route.createMessage(senderXDIAddress, -1);
+		message.setFromXDIAddress(senderXDIAddress);
 		message.setToXDIAddress(targetXDIAddress);
 		message.setLinkContractClass(ConnectLinkContract.class);
+		message.setParameter(XDIMessagingConstants.XDI_ADD_MESSAGE_PARAMETER_MSG, Boolean.TRUE);
 		Operation operation = message.createConnectOperation(XDIBootstrap.GET_LINK_CONTRACT_TEMPLATE_ADDRESS);
 		operation.setVariableValue(XDIArc.create("{$get}"), XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime")));
 
 		// send to XDI target
 
 		XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
+		MessagingResponse messagingResponse;
 
 		try {
 
@@ -120,10 +129,19 @@ public class RequestsController extends AuthorizedController {
 			manipulator.setSignatureCreator(signatureCreator);
 			client.getManipulators().addManipulator(manipulator);*/
 
-			client.send(message.getMessageEnvelope());
+			messagingResponse = client.send(message.getMessageEnvelope());
 		} catch (Xdi2ClientException ex) {
 
 			throw new RuntimeException(ex.getMessage(), ex);
+		}
+
+		for (LinkContract pushLinkContract : FullMessagingResponse.getDeferredPushLinkContracts(messagingResponse)) {
+
+			// write push link contract and index into graph
+
+			CopyUtil.copyContextNode(pushLinkContract.getContextNode(), XdiService.get().myGraph(profile), null);
+			XdiEntityCollection xdiLinkContractIndex = Index.getEntityIndex(XdiService.get().myGraph(profile), XDILinkContractConstants.XDI_ARC_CONTRACT, true);
+			Index.setEntityIndexAggregation(xdiLinkContractIndex, pushLinkContract.getXdiEntity().getXDIAddress());
 		}
 
 		// done

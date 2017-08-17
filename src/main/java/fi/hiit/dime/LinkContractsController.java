@@ -103,10 +103,15 @@ public class LinkContractsController extends AuthorizedController {
 				if (linkContractContextNode.getXDIAddress().toString().contains("$defer")) continue;
 
 				RelationshipLinkContract linkContract = (RelationshipLinkContract) LinkContract.fromContextNode(linkContractContextNode);
+				String address = linkContract.getContextNode().getXDIAddress().toString();
+				String authorizingAuthority = linkContract.getAuthorizingAuthority().toString();
+				String requestingAuthority = linkContract.getRequestingAuthority().toString();
+				String direction = XdiService.findProfileByDidXDIAddress(linkContract.getAuthorizingAuthority()) != null ? "outgoing" : "incoming";
 				result.add(new XdiLinkContract(
-						linkContract.getContextNode().getXDIAddress().toString(), 
-						linkContract.getAuthorizingAuthority().toString(),
-						linkContract.getRequestingAuthority().toString()));
+						address, 
+						authorizingAuthority,
+						requestingAuthority,
+						direction));
 			}
 		}
 
@@ -287,7 +292,8 @@ public class LinkContractsController extends AuthorizedController {
 		public String address;
 		public String authorizingAuthority;
 		public String requestingAuthority;
-		public XdiLinkContract(String address, String authorizingAuthority, String requestingAuthority) { this.address = address; this.authorizingAuthority = authorizingAuthority; this.requestingAuthority = requestingAuthority;} 
+		public String direction;
+		public XdiLinkContract(String address, String authorizingAuthority, String requestingAuthority, String direction) { this.address = address; this.authorizingAuthority = authorizingAuthority; this.requestingAuthority = requestingAuthority; this.direction = direction; } 
 	}
 	
 	private static class XdiData {
