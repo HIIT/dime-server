@@ -53,6 +53,10 @@ public class DiMeProperties {
     public void setPeoplefinderEndpoint(String s) { peoplefinderEndpoint = s; }
     public String getPeoplefinderEndpoint() { return peoplefinderEndpoint; }
 
+    private String trustanchorEndpoint = "http://localhost:8000/";
+    public void setTrustanchorEndpoint(String s) { trustanchorEndpoint = s; }
+    public String getTrustanchorEndpoint() { return trustanchorEndpoint; }
+
     private String baseUri = "http://localhost:8080/";
     public void setBaseUri(String s) { baseUri = s; }
     public String getBaseUri() { return baseUri; }
