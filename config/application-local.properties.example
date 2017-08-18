@@ -32,5 +32,8 @@
 # To point to an alternate people finder service
 # dime.peoplefinderEndpoint=http://localhost:7401/xdi/graph
 
+# To point to an alternate trust anchor service for registering DIDs
+# dime.trustanchorEndpoint=http://localhost:8000/
+
 # To specify the DiMe's public URI, needed by Sovrin/XDI for discovery
 # dime.baseUri=http://localhost:8080/

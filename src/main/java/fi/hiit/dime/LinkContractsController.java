@@ -103,14 +103,18 @@ public class LinkContractsController extends AuthorizedController {
 				if (linkContractContextNode.getXDIAddress().toString().contains("$defer")) continue;
 
 				RelationshipLinkContract linkContract = (RelationshipLinkContract) LinkContract.fromContextNode(linkContractContextNode);
+				Profile authorizingAuthorityProfile = XdiService.findProfileByDidXDIAddress(linkContract.getAuthorizingAuthority());
+				Profile requestingAuthorityProfile = XdiService.findProfileByDidXDIAddress(linkContract.getRequestingAuthority());
 				String address = linkContract.getContextNode().getXDIAddress().toString();
 				String authorizingAuthority = linkContract.getAuthorizingAuthority().toString();
 				String requestingAuthority = linkContract.getRequestingAuthority().toString();
-				String direction = XdiService.findProfileByDidXDIAddress(linkContract.getAuthorizingAuthority()) != null ? "outgoing" : "incoming";
+				String profileName = authorizingAuthorityProfile != null ? authorizingAuthorityProfile.name : (requestingAuthorityProfile != null ? requestingAuthorityProfile.name : null);
+				String direction = authorizingAuthorityProfile != null ? "outgoing" : "incoming";
 				result.add(new XdiLinkContract(
 						address, 
 						authorizingAuthority,
 						requestingAuthority,
+						profileName,
 						direction));
 			}
 		}
@@ -292,8 +296,9 @@ public class LinkContractsController extends AuthorizedController {
 		public String address;
 		public String authorizingAuthority;
 		public String requestingAuthority;
+		public String profileName;
 		public String direction;
-		public XdiLinkContract(String address, String authorizingAuthority, String requestingAuthority, String direction) { this.address = address; this.authorizingAuthority = authorizingAuthority; this.requestingAuthority = requestingAuthority; this.direction = direction; } 
+		public XdiLinkContract(String address, String authorizingAuthority, String requestingAuthority, String profileName, String direction) { this.address = address; this.authorizingAuthority = authorizingAuthority; this.requestingAuthority = requestingAuthority; this.profileName = profileName; this.direction = direction; } 
 	}
 	
 	private static class XdiData {

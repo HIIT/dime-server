@@ -164,6 +164,21 @@ public class XdiService {
 		LOG.info("Set DID for profile " + profile + ": " + didXDIAddress);
 	}
 
+	public static String getProfileVerkey(Profile profile) {
+
+		String verkey = profile.attributes.get("verkey");
+		LOG.info("Found verkey for profile " + profile + ": " + verkey);
+
+		return verkey;
+	}
+
+	public static void setProfileVerkey(Profile profile, String verkey) {
+
+		profile.attributes.put("verkey", verkey);
+		XdiService.get().profileDAO.save(profile);
+		LOG.info("Set verkey for profile " + profile + ": " + verkey);
+	}
+
 	/**
 	 * Maps an XDI identifier to a DID.
 	 * E.g. =!:did:sov:RFrnVYLnRPRrgKY5pY9MHK -> RFrnVYLnRPRrgKY5pY9MHK

@@ -27,6 +27,7 @@ package fi.hiit.dime;
 import static fi.hiit.dime.search.SearchIndex.weightType;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -233,6 +235,65 @@ public class ApiController extends AuthorizedController {
 		return profile;
 	}
 
+	/** @api {get} /sendtotrustanchor Create a DID in our wallet and redirect to a Sovrin trust anchor
+        @apiName SendToTrustAnchor
+        @apiParam {Number} id The profile id
+        @apiDescription On success, an HTTP redirect will be issued.
+
+        @apiPermission user
+        @apiGroup Status
+        @apiVersion 0.2.1
+	 */
+	@RequestMapping(value="/sendtotrustanchor/{id}", method = RequestMethod.GET)
+	public RedirectView sendToTrustAnchor(Authentication auth, @PathVariable Long id)
+			throws NotFoundException
+	{
+		User user = getUser(auth);
+		Profile profile = getProfile(id, user);
+
+		LOG.info("Send to trust anchor, user {}, profile {}", user.username, profile.name);
+
+		// create DID locally
+
+		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+		String did = didXDIAddress == null ? null : XdiService.didStringFromXDIAddress(didXDIAddress);
+		String verkey = XdiService.getProfileVerkey(profile);
+
+		if (didXDIAddress == null || verkey == null) {
+
+			try {
+
+				// create USER DID
+
+				CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameter = new CreateAndStoreMyDidJSONParameter(null, null, null, null);
+				CreateAndStoreMyDidResult createAndStoreMyDidResult = Signus.createAndStoreMyDid(SovrinService.get().getWallet(), createAndStoreMyDidJSONParameter.toJson()).get();
+				LOG.info("CreateAndStoreMyDidResult: " + createAndStoreMyDidResult);
+
+				did = createAndStoreMyDidResult.getDid();
+				didXDIAddress = XdiService.XDIAddressFromDidString(did);
+				verkey = createAndStoreMyDidResult.getVerkey();
+
+				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+				XdiService.setProfileVerkey(profile, verkey);
+
+				// done
+
+				LOG.info("Created DID: " + did + " with verkey " + verkey);
+			} catch (Exception ex) {
+
+				throw new RuntimeException("Cannot create DID: " + ex.getMessage(), ex);
+			}
+		}
+
+		// redirect to trust anchor service
+
+		String uri = dimeConfig.getTrustanchorEndpoint();
+		uri += "?did=" + did;
+		uri += "&verkey=" + verkey;
+
+		return new RedirectView(uri);
+	}
+
 	/** @api {post} /sendtopeoplefinder Upload profile to People Finder service
         @apiName SendToPeopleFinder
         @apiParam {Number} id The profile id
@@ -255,8 +316,10 @@ public class ApiController extends AuthorizedController {
 		// create DID in Sovrin
 
 		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+		String did = didXDIAddress == null ? null : XdiService.didStringFromXDIAddress(didXDIAddress);
+		String verkey = XdiService.getProfileVerkey(profile);
 
-		if (didXDIAddress == null) {
+		if (didXDIAddress == null || verkey == null) {
 
 			try {
 
@@ -266,8 +329,12 @@ public class ApiController extends AuthorizedController {
 				CreateAndStoreMyDidResult createAndStoreMyDidResult = Signus.createAndStoreMyDid(SovrinService.get().getWallet(), createAndStoreMyDidJSONParameter.toJson()).get();
 				LOG.info("CreateAndStoreMyDidResult: " + createAndStoreMyDidResult);
 
-				String did = createAndStoreMyDidResult.getDid();
-				String verkey = createAndStoreMyDidResult.getVerkey();
+				did = createAndStoreMyDidResult.getDid();
+				didXDIAddress = XdiService.XDIAddressFromDidString(did);
+				verkey = createAndStoreMyDidResult.getVerkey();
+
+				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+				XdiService.setProfileVerkey(profile, verkey);
 
 				// NYM request
 
@@ -304,71 +371,60 @@ public class ApiController extends AuthorizedController {
 
 				// done
 
-				didXDIAddress = XdiService.XDIAddressFromDidString(did);
-
-				LOG.info("Created DID in Sovrin: " + didXDIAddress + " with verkey " + verkey);
-				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+				LOG.info("Created DID and registered in Sovrin: " + did + " with verkey " + verkey);
 			} catch (Exception ex) {
 
-				throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
+				throw new RuntimeException("Cannot create DID and register in Sovrin: " + ex.getMessage(), ex);
 			}
 		}
 
 		// set host in Sovrin
 
 		String uri = dimeConfig.getBaseUri();
-		if (uri == null) uri = "http://localhost:8080/";
 		if (! uri.endsWith("/")) uri += "/";
 		uri += "xdi/dime/" + didXDIAddress.toString();
 
-		if (uri != null) {
+		try {
 
-			try {
+			// ATTRIB request
 
-				String did = XdiService.didStringFromXDIAddress(didXDIAddress);
+			String buildAttribRequestResult = null;
+			String signAndSubmitRequestResult = null;
 
-				// ATTRIB request
+			for (int i=0; i<RETRIES; i++) {
 
-				String buildAttribRequestResult = null;
-				String signAndSubmitRequestResult = null;
+				try {
 
-				for (int i=0; i<RETRIES; i++) {
+					buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get(5, TimeUnit.SECONDS);
+					LOG.info("Retry #" + i + ": Success: " + buildAttribRequestResult);
+					break;
+				} catch (TimeoutException ex) {
 
-					try {
-
-						buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get(5, TimeUnit.SECONDS);
-						LOG.info("Retry #" + i + ": Success: " + buildAttribRequestResult);
-						break;
-					} catch (TimeoutException ex) {
-
-						LOG.warn("Retry #" + i + ": " + ex.getMessage());
-						if (i+1 < RETRIES) continue; else throw ex;
-					}
+					LOG.warn("Retry #" + i + ": " + ex.getMessage());
+					if (i+1 < RETRIES) continue; else throw ex;
 				}
-
-				for (int i=0; i<RETRIES; i++) {
-
-					try {
-
-						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult).get(5, TimeUnit.SECONDS);
-						LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
-						break;
-					} catch (TimeoutException ex) {
-
-						LOG.warn("Retry #" + i + ": " + ex.getMessage());
-						if (i+1 < RETRIES) continue; else throw ex;
-					}
-				}
-
-				// done
-
-				didXDIAddress = XdiService.XDIAddressFromDidString(did);
-
-				LOG.info("Set URI in Sovrin: " + uri);
-			} catch (Exception ex) {
-
-				throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
 			}
+
+			for (int i=0; i<RETRIES; i++) {
+
+				try {
+
+					signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult).get(5, TimeUnit.SECONDS);
+					LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
+					break;
+				} catch (TimeoutException ex) {
+
+					LOG.warn("Retry #" + i + ": " + ex.getMessage());
+					if (i+1 < RETRIES) continue; else throw ex;
+				}
+			}
+
+			// done
+
+			LOG.info("Set URI in Sovrin: " + uri);
+		} catch (Exception ex) {
+
+			throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
 		}
 
 		// prepare XDI request

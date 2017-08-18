@@ -171,9 +171,13 @@ public class RequestsController extends AuthorizedController {
 			for (ContextNode requestContextNode : requestContextNodes) {
 
 				Message requestMessage = Message.fromContextNode(requestContextNode);
+				Profile fromProfile = XdiService.findProfileByDidXDIAddress(requestMessage.getFromXDIAddress());
+				Profile toProfile = XdiService.findProfileByDidXDIAddress(requestMessage.getToXDIAddress());
 				String address = requestMessage.getContextNode().getXDIAddress().toString();
 				String from = requestMessage.getFromXDIAddress().toString();
 				String to = requestMessage.getToXDIAddress().toString();
+				String profileName = fromProfile != null ? fromProfile.name : (toProfile != null ? toProfile.name : null);
+				String direction = fromProfile != null ? "outgoing" : "incoming";
 				String operation = "" + requestMessage.getOperations().next().getOperationXDIAddress();
 				String operationTarget = "" + requestMessage.getOperations().next().getTargetXDIAddress();
 				Map<String, Object> operationVariables = new HashMap<String, Object> ();
@@ -200,6 +204,8 @@ public class RequestsController extends AuthorizedController {
 						address, 
 						from,
 						to,
+						profileName,
+						direction,
 						operation,
 						operationTarget,
 						operationVariables));
@@ -305,9 +311,11 @@ public class RequestsController extends AuthorizedController {
 		public String address;
 		public String from;
 		public String to;
+		public String profileName;
+		public String direction;
 		public String operation;
 		public String operationTarget;
 		public Map<String, Object> operationVariables;
-		public XdiRequest(String address, String from, String to, String operation, String operationTarget, Map<String, Object> operationVariables) { this.address = address; this.from = from; this.to = to; this.operation = operation; this.operationTarget = operationTarget; this.operationVariables = operationVariables; } 
+		public XdiRequest(String address, String from, String to, String profileName, String direction, String operation, String operationTarget, Map<String, Object> operationVariables) { this.address = address; this.from = from; this.to = to; this.profileName = profileName; this.direction = direction; this.operation = operation; this.operationTarget = operationTarget; this.operationVariables = operationVariables; } 
 	}
 }
