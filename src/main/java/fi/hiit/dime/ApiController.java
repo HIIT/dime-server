@@ -235,6 +235,11 @@ public class ApiController extends AuthorizedController {
 		return profile;
 	}
 
+    @JsonInclude(value=JsonInclude.Include.NON_NULL)
+    public static class TrustAnchorPayload {
+        public String registerURL;
+    }
+
 	/** @api {get} /sendtotrustanchor Create a DID in our wallet and redirect to a Sovrin trust anchor
         @apiName SendToTrustAnchor
         @apiParam {Number} id The profile id
@@ -245,7 +250,8 @@ public class ApiController extends AuthorizedController {
         @apiVersion 0.2.1
 	 */
 	@RequestMapping(value="/sendtotrustanchor/{id}", method = RequestMethod.GET)
-	public RedirectView sendToTrustAnchor(Authentication auth, @PathVariable Long id)
+	public ResponseEntity<TrustAnchorPayload> sendToTrustAnchor(Authentication auth,
+                                              @PathVariable Long id)
 			throws NotFoundException
 	{
 		User user = getUser(auth);
@@ -291,7 +297,11 @@ public class ApiController extends AuthorizedController {
 		uri += "?did=" + did;
 		uri += "&verkey=" + verkey;
 
-		return new RedirectView(uri);
+                //return new RedirectView(uri);
+
+                TrustAnchorPayload payload = new TrustAnchorPayload();
+                payload.registerURL = uri;
+                return new ResponseEntity<TrustAnchorPayload>(payload, HttpStatus.OK);
 	}
 
 	/** @api {post} /sendtopeoplefinder Upload profile to People Finder service
