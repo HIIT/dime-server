@@ -1,0 +1,44 @@
+################################################################################
+# Start Sovrin pool
+docker run -d --ip="10.0.0.2" --net=indy_pool_network indy_pool
+
+# Register our trust anchor
+sovrin
+connect test
+new key with seed 424242424242MyTestTrustAnchor424
+new key with seed 000000000000000000000000Trustee1
+send NYM dest=CzvneMT45XwY5eTAVQedLF role=TRUST_ANCHOR verkey=~XgrExLytAX7t2gfJGLXStB
+
+# Start trust anchor service
+cd ~/dev/trustanchor-service/
+./runserver.sh
+
+
+################################################################################
+# Reset XDI state
+cd ~/dev/dime-server
+rm xdi2*.xdi
+
+# Start DiMe on 8080
+./gradlew bootRun
+
+# Start DiMe on 8082
+SPRING_PROFILES_ACTIVE=second ./gradlew bootRun
+
+
+################################################################################
+# Start people finder service
+cd ~/dev/dime-people-finder/
+rm graph.xdi  # clean up
+mvn jetty:run
+
+
+################################################################################
+
+DiMe:8082:
+- remove DID
+- register DID
+- send to People Finder
+
+DiMe:8080:
+- remove DID

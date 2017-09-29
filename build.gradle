@@ -72,7 +72,7 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
         exclude group: 'org.springframework', module: 'spring-web'
     }
-    compile 'org.hyperledger.indy-sdk-java:indy-sdk-java:0.1-SNAPSHOT'
+    compile 'org.hyperledger:indy:1.0.0'
     compile 'com.optimaize.languagedetector:language-detector:0.6'
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
