@@ -329,7 +329,7 @@ public class ApiController extends AuthorizedController {
 		String did = didXDIAddress == null ? null : XdiService.didStringFromXDIAddress(didXDIAddress);
 		String verkey = XdiService.getProfileVerkey(profile);
 
-		if (didXDIAddress == null || verkey == null) {
+		if (dimeConfig.getSovrinSelfRegisteringDID() && (didXDIAddress == null || verkey == null)) {
 
 			try {
 

@@ -12,8 +12,11 @@ import org.hyperledger.indy.sdk.signus.SignusResults.CreateAndStoreMyDidResult;
 import org.hyperledger.indy.sdk.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
+import fi.hiit.dime.DiMeProperties;
 
 @Service
 @Scope("singleton")
@@ -30,19 +33,23 @@ public class SovrinService {
 	private Pool pool;
 	private Wallet wallet;
 
+	private final DiMeProperties dimeConfig;
+
 	public static SovrinService get() {
 
 		return instance;
 	}
 
-	public SovrinService() {
+	@Autowired
+	public SovrinService(DiMeProperties dimeConfig) {
+		this.dimeConfig = dimeConfig;
 
 		LOG.debug("Initializing...");
 
 		instance = this;
 
-		String poolLedgerConfigName = "11347-04";
-		String walletName = "trusteewallet";
+		String poolLedgerConfigName = dimeConfig.getSovrinPoolConfig();
+		String walletName = "dimewallet";
 
 		try {
 
@@ -104,15 +111,14 @@ public class SovrinService {
 		}
 
 		// create trustee DID
-
-		try {
-
-			CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameterTrustee = new CreateAndStoreMyDidJSONParameter(null, TRUSTEE_SEED, null, null);
-			CreateAndStoreMyDidResult createAndStoreMyDidResultTrustee = Signus.createAndStoreMyDid(wallet, createAndStoreMyDidJSONParameterTrustee.toJson()).get();
-			LOG.info("Created trustee DID: " + createAndStoreMyDidResultTrustee);
-		} catch (Exception ex) {
-
-			throw new RuntimeException("Cannot open pool: " + ex.getMessage(), ex);
+		if (dimeConfig.getSovrinSelfRegisteringDID()) {
+			try {
+				CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameterTrustee = new CreateAndStoreMyDidJSONParameter(null, TRUSTEE_SEED, null, null);
+				CreateAndStoreMyDidResult createAndStoreMyDidResultTrustee = Signus.createAndStoreMyDid(wallet, createAndStoreMyDidJSONParameterTrustee.toJson()).get();
+				LOG.info("Created trustee DID: " + createAndStoreMyDidResultTrustee);
+			} catch (Exception ex) {
+				throw new RuntimeException("Cannot open pool: " + ex.getMessage(), ex);
+			}
 		}
 	}
 

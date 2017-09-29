@@ -60,4 +60,12 @@ public class DiMeProperties {
     private String baseUri = "http://localhost:8080/";
     public void setBaseUri(String s) { baseUri = s; }
     public String getBaseUri() { return baseUri; }
+
+    private String sovrinPoolConfig = "11347-04";
+    public void setSovrinPoolConfig(String s) { sovrinPoolConfig = s; }
+    public String getSovrinPoolConfig() { return sovrinPoolConfig; }
+
+    private boolean sovrinSelfRegisteringDID = false;
+    public void setSovrinSelfRegisteringDID(boolean b) { sovrinSelfRegisteringDID = b; }
+    public boolean getSovrinSelfRegisteringDID() { return sovrinSelfRegisteringDID; }
 }

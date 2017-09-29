@@ -37,3 +37,11 @@
 
 # To specify the DiMe's public URI, needed by Sovrin/XDI for discovery
 # dime.baseUri=http://localhost:8080/
+
+# Name for the Sovrin pool ledger config. DiMe expects there is a file
+# with the same name + .txn in the current directory.
+# dime.sovrinPoolConfig=11347-04
+
+# Set to true if DiMe will function as its own Trust Anchor (only
+# works with test network).
+# dime.sovrinSelfRegisteringDID=false
