@@ -1,6 +1,6 @@
 {
     "name": "DiMe server",
-    "version": "0.1.3",
+    "version": "0.2.1",
     "title": "DiMe API docs",
     "description": " DiMe API documentation.",
     "url": "http://localhost:8080/api",
