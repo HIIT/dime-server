@@ -1,0 +1,21 @@
+Rough outline on how to make a DiMe release.
+
+    make clean
+    make test
+    
+    make doc
+    make apidoc
+    
+    git tag -s v0.1.2 -m "Version 0.1.2"
+    git tag -l  # verify it's there
+    
+    make run # check that new version shows in UI
+    
+    git push --tags
+    
+    make package
+    mv build/package/dime{,-0.1.2}.zip
+    scp build/package/dime-0.1.2.zip shell:/group/reknow/public_html/software/
+    
+    git checkout gh-pages
+    e index.html # point to new package
