@@ -2,6 +2,8 @@ package fi.hiit.dime.sovrin;
 
 import java.io.File;
 
+import javax.annotation.PostConstruct;
+
 import org.hyperledger.indy.sdk.LibIndy;
 import org.hyperledger.indy.sdk.pool.Pool;
 import org.hyperledger.indy.sdk.pool.PoolJSONParameters.CreatePoolLedgerConfigJSONParameter;
@@ -43,6 +45,11 @@ public class SovrinService {
 	@Autowired
 	public SovrinService(DiMeProperties dimeConfig) {
 		this.dimeConfig = dimeConfig;
+
+	}
+
+	@PostConstruct
+	public void init() {
 
 		LOG.debug("Initializing...");
 
