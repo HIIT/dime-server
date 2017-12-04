@@ -61,7 +61,7 @@ public class DiMeProperties {
     public void setBaseUri(String s) { baseUri = s; }
     public String getBaseUri() { return baseUri; }
 
-    private String sovrinPoolConfig = "11347-04";
+    private String sovrinPoolConfig;
     public void setSovrinPoolConfig(String s) { sovrinPoolConfig = s; }
     public String getSovrinPoolConfig() { return sovrinPoolConfig; }
 

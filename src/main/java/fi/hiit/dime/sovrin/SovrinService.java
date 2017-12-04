@@ -30,8 +30,8 @@ public class SovrinService {
 	public static final String TRUSTEE_VERKEY = "GJ1SzoWzavQYfNL9XkaJdrQejfztN4XqdsiV4ct3LXKL";
 	public static final String TRUSTEE_SEED = "000000000000000000000000Trustee1";
 
-	private Pool pool;
-	private Wallet wallet;
+	private Pool pool = null;
+	private Wallet wallet = null;
 
 	private final DiMeProperties dimeConfig;
 
@@ -50,6 +50,10 @@ public class SovrinService {
 
 		String poolLedgerConfigName = dimeConfig.getSovrinPoolConfig();
 		String walletName = "dimewallet";
+
+                if (poolLedgerConfigName == null) {
+                    return;
+                }
 
 		try {
 
