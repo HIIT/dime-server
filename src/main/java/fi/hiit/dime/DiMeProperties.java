@@ -49,8 +49,23 @@ public class DiMeProperties {
     public void setLeaderboardEndpoint(String s) { leaderboardEndpoint = s; }
     public String getLeaderboardEndpoint() { return leaderboardEndpoint; }
 
+    private String peoplefinderEndpoint = "https://peoplefinder.danubetech.com/xdi/graph";
+    public void setPeoplefinderEndpoint(String s) { peoplefinderEndpoint = s; }
+    public String getPeoplefinderEndpoint() { return peoplefinderEndpoint; }
+
+    private String trustanchorEndpoint = "http://localhost:8000/";
+    public void setTrustanchorEndpoint(String s) { trustanchorEndpoint = s; }
+    public String getTrustanchorEndpoint() { return trustanchorEndpoint; }
 
     private String baseUri = "http://localhost:8080/";
     public void setBaseUri(String s) { baseUri = s; }
     public String getBaseUri() { return baseUri; }
+
+    private String sovrinPoolConfig = "11347-04";
+    public void setSovrinPoolConfig(String s) { sovrinPoolConfig = s; }
+    public String getSovrinPoolConfig() { return sovrinPoolConfig; }
+
+    private boolean sovrinSelfRegisteringDID = false;
+    public void setSovrinSelfRegisteringDID(boolean b) { sovrinSelfRegisteringDID = b; }
+    public boolean getSovrinSelfRegisteringDID() { return sovrinSelfRegisteringDID; }
 }
