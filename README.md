@@ -75,7 +75,7 @@ developer [Mats Sjöberg](mailto:mats.sjoberg@iki.fi).
 
 ## License
 
-The DiMe server source code is licensed under the
+The DiMe server software is distributed under the
 [GNU Affero General Public Licence (AGPL) Version 3](https://www.gnu.org/licenses/agpl.html).
 
 [1]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
