@@ -14,7 +14,9 @@ install it directly.
 
 ### Requirements
 
-[Java 8 JDK][1] or newer (i.e. Java version 1.8 or newer) is required, and for the UI part a recent version of [Node.js](https://nodejs.org/en/).
+[Java 8 JDK][1] or newer (i.e. Java version 1.8 or newer) is required,
+and for the UI part a recent version of
+[Node.js](https://nodejs.org/en/).
 
 For Mac OS X you need to have
 [Xcode](https://developer.apple.com/xcode/) installed first. You can
@@ -69,12 +71,12 @@ The [project wiki page][3] has more detailed instructions and
 documentation of the API and development.
 
 If you have any questions, don't hesitate to contact the lead
-developer [Mats Sjöberg](mailto:mats.sjoberg@helsinki.fi).
+developer [Mats Sjöberg](mailto:mats.sjoberg@iki.fi).
 
 ## License
 
-The DiMe server source code is licensed under
-[the MIT License](https://opensource.org/licenses/MIT).
+The DiMe server source code is licensed under the
+[GNU Affero General Public Licence (AGPL) Version 3](https://www.gnu.org/licenses/agpl.html).
 
 [1]: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 [2]: https://github.com/HIIT/dime-server/wiki/Configuration

@@ -1,8 +1,11 @@
-Digital Me is free and open source software.  Specifically:
+Digital Me is free and open source software and is distributed in its
+entirety under the GNU Affero General Public Licence (AGPL) Version 3.
+
+Specifically:
 
 - The xdi2 components are licensed under GNU Affero General Public License (AGPL) Version 3. See here for more information: https://xdi2.org/license.html
 
-- libindy, Spring Framework, Liquibase components are licensed under Apache License Version 2.0.
+- libindy, Spring Framework, and Liquibase components are licensed under Apache License Version 2.0.
 
 - The H2 database engine is dual licensed and available under the MPL 2.0 (Mozilla Public License) or under the EPL 1.0 (Eclipse Public License).  For more information, see http://www.h2database.com/html/license.html.
 
