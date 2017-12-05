@@ -1,3 +1,26 @@
+/*
+  Copyright (c) 2017 University of Helsinki
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
 package fi.hiit.dime.sovrin;
 
 import java.io.File;
@@ -24,122 +47,122 @@ import fi.hiit.dime.DiMeProperties;
 @Scope("singleton")
 public class SovrinService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SovrinService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SovrinService.class);
 
-	private static SovrinService instance = null;
+    private static SovrinService instance = null;
 
-	public static final String TRUSTEE_DID = "V4SGRU86Z58d6TV7PBUe6f";
-	public static final String TRUSTEE_VERKEY = "GJ1SzoWzavQYfNL9XkaJdrQejfztN4XqdsiV4ct3LXKL";
-	public static final String TRUSTEE_SEED = "000000000000000000000000Trustee1";
+    public static final String TRUSTEE_DID = "V4SGRU86Z58d6TV7PBUe6f";
+    public static final String TRUSTEE_VERKEY = "GJ1SzoWzavQYfNL9XkaJdrQejfztN4XqdsiV4ct3LXKL";
+    public static final String TRUSTEE_SEED = "000000000000000000000000Trustee1";
 
-	private Pool pool = null;
-	private Wallet wallet = null;
+    private Pool pool = null;
+    private Wallet wallet = null;
 
-	private final DiMeProperties dimeConfig;
+    private final DiMeProperties dimeConfig;
 
-	public static SovrinService get() {
+    public static SovrinService get() {
 
-		return instance;
-	}
+        return instance;
+    }
 
-	@Autowired
-	public SovrinService(DiMeProperties dimeConfig) {
-		this.dimeConfig = dimeConfig;
+    @Autowired
+    public SovrinService(DiMeProperties dimeConfig) {
+        this.dimeConfig = dimeConfig;
 
-	}
+    }
 
-	@PostConstruct
-	public void init() {
+    @PostConstruct
+    public void init() {
 
-		LOG.debug("Initializing...");
+        LOG.debug("Initializing...");
 
-		instance = this;
+        instance = this;
 
-		String poolLedgerConfigName = dimeConfig.getSovrinPoolConfig();
-		String walletName = "dimewallet";
+        String poolLedgerConfigName = dimeConfig.getSovrinPoolConfig();
+        String walletName = "dimewallet";
 
-                if (poolLedgerConfigName == null) {
-                    return;
-                }
+        if (poolLedgerConfigName == null) {
+            return;
+        }
 
-		try {
+        try {
 
-			LOG.info("Loading libindy: " + new File("lib/libindy.so").getAbsolutePath());
-			if (! LibIndy.isInitialized()) LibIndy.init(new File("lib/libindy.so"));
-		} catch (Throwable ex) {
+            LOG.info("Loading libindy: " + new File("lib/libindy.so").getAbsolutePath());
+            if (! LibIndy.isInitialized()) LibIndy.init(new File("lib/libindy.so"));
+        } catch (Throwable ex) {
 
-			LOG.warn(ex.getMessage(), ex);
-		}
+            LOG.warn(ex.getMessage(), ex);
+        }
 
-		if (! LibIndy.isInitialized()) LibIndy.init();
+        if (! LibIndy.isInitialized()) LibIndy.init();
 
-		// create pool
+        // create pool
 
-		try {
+        try {
 
-			CreatePoolLedgerConfigJSONParameter createPoolLedgerConfigJSONParameter = new CreatePoolLedgerConfigJSONParameter(poolLedgerConfigName + ".txn");
-			Pool.createPoolLedgerConfig(poolLedgerConfigName, createPoolLedgerConfigJSONParameter.toJson()).get();
-			LOG.info("Created pool.");
-		} catch (Exception ex) {
+            CreatePoolLedgerConfigJSONParameter createPoolLedgerConfigJSONParameter = new CreatePoolLedgerConfigJSONParameter(poolLedgerConfigName + ".txn");
+            Pool.createPoolLedgerConfig(poolLedgerConfigName, createPoolLedgerConfigJSONParameter.toJson()).get();
+            LOG.info("Created pool.");
+        } catch (Exception ex) {
 
-			LOG.warn("Cannot create pool: " + ex.getMessage());
-		}
+            LOG.warn("Cannot create pool: " + ex.getMessage());
+        }
 
-		// create wallet
+        // create wallet
 
-		try {
+        try {
 
-			Wallet.createWallet(poolLedgerConfigName, walletName, "default", null, null).get();
-			LOG.info("Created wallet.");
-		} catch (Exception ex) {
+            Wallet.createWallet(poolLedgerConfigName, walletName, "default", null, null).get();
+            LOG.info("Created wallet.");
+        } catch (Exception ex) {
 
-			LOG.warn("Cannot create wallet: " + ex.getMessage());
-		}
+            LOG.warn("Cannot create wallet: " + ex.getMessage());
+        }
 
-		// open pool
+        // open pool
 
-		try {
+        try {
 
-			LOG.debug("Opening pool...");
-			OpenPoolLedgerJSONParameter openPoolLedgerJSONParameter = new OpenPoolLedgerJSONParameter(Boolean.TRUE, null, null);
-			pool = Pool.openPoolLedger(poolLedgerConfigName, openPoolLedgerJSONParameter.toJson()).get();
-			LOG.debug("Opened pool: " + pool);
-		} catch (Exception ex) {
+            LOG.debug("Opening pool...");
+            OpenPoolLedgerJSONParameter openPoolLedgerJSONParameter = new OpenPoolLedgerJSONParameter(Boolean.TRUE, null, null);
+            pool = Pool.openPoolLedger(poolLedgerConfigName, openPoolLedgerJSONParameter.toJson()).get();
+            LOG.debug("Opened pool: " + pool);
+        } catch (Exception ex) {
 
-			throw new RuntimeException("Cannot open pool: " + ex.getMessage(), ex);
-		}
+            throw new RuntimeException("Cannot open pool: " + ex.getMessage(), ex);
+        }
 
-		// open wallet
+        // open wallet
 
-		try {
+        try {
 
-			LOG.debug("Opening wallet...");
-			wallet = Wallet.openWallet(walletName, null, null).get();
-			LOG.debug("Opening wallet: " + wallet);
-		} catch (Exception ex) {
+            LOG.debug("Opening wallet...");
+            wallet = Wallet.openWallet(walletName, null, null).get();
+            LOG.debug("Opening wallet: " + wallet);
+        } catch (Exception ex) {
 
-			throw new RuntimeException("Cannot open wallet: " + ex.getMessage(), ex);
-		}
+            throw new RuntimeException("Cannot open wallet: " + ex.getMessage(), ex);
+        }
 
-		// create trustee DID
-		if (dimeConfig.getSovrinSelfRegisteringDID()) {
-			try {
-				CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameterTrustee = new CreateAndStoreMyDidJSONParameter(null, TRUSTEE_SEED, null, null);
-				CreateAndStoreMyDidResult createAndStoreMyDidResultTrustee = Signus.createAndStoreMyDid(wallet, createAndStoreMyDidJSONParameterTrustee.toJson()).get();
-				LOG.info("Created trustee DID: " + createAndStoreMyDidResultTrustee);
-			} catch (Exception ex) {
-				throw new RuntimeException("Cannot open pool: " + ex.getMessage(), ex);
-			}
-		}
-	}
+        // create trustee DID
+        if (dimeConfig.getSovrinSelfRegisteringDID()) {
+            try {
+                CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameterTrustee = new CreateAndStoreMyDidJSONParameter(null, TRUSTEE_SEED, null, null);
+                CreateAndStoreMyDidResult createAndStoreMyDidResultTrustee = Signus.createAndStoreMyDid(wallet, createAndStoreMyDidJSONParameterTrustee.toJson()).get();
+                LOG.info("Created trustee DID: " + createAndStoreMyDidResultTrustee);
+            } catch (Exception ex) {
+                throw new RuntimeException("Cannot open pool: " + ex.getMessage(), ex);
+            }
+        }
+    }
 
-	public Pool getPool() {
+    public Pool getPool() {
 
-		return this.pool;
-	}
+        return this.pool;
+    }
 
-	public Wallet getWallet() {
+    public Wallet getWallet() {
 
-		return this.wallet;
-	}
+        return this.wallet;
+    }
 }

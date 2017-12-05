@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -63,7 +63,7 @@ public class AppConfig {
 
     @Bean
     public SearchIndex searchIndex() throws Exception {
-	return new SearchIndex(dimeConfig.getLuceneIndexPath(),
+        return new SearchIndex(dimeConfig.getLuceneIndexPath(),
                                dimeConfig.getLuceneAnalyzer());
     }
 

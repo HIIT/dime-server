@@ -50,36 +50,36 @@ public class AnswerController {
 
     @Autowired
     AnswerController(EventDAO eventDAO) {
-	this.eventDAO = eventDAO;
+        this.eventDAO = eventDAO;
     }
 
     // @RequestMapping(value="/eventhist", method = RequestMethod.GET)
     // public ResponseEntity<List<EventHistAnswer>>
-    // 	eventHist(@RequestParam(defaultValue="false") String perc,
-    // 		  @RequestParam(defaultValue="actor") String groupBy) {
+    //  eventHist(@RequestParam(defaultValue="false") String perc,
+    //            @RequestParam(defaultValue="actor") String groupBy) {
 
-    // 	List<EventHistAnswer> answer = new ArrayList<EventHistAnswer>();
+    //  List<EventHistAnswer> answer = new ArrayList<EventHistAnswer>();
 
-    // 	// Set calendar to tomorrow at 00:00:00
-    // 	Calendar cal = Calendar.getInstance();
-    // 	cal.add(Calendar.DAY_OF_MONTH, 1);
-    // 	cal.set(Calendar.HOUR, 0);
-    // 	cal.set(Calendar.MINUTE, 0);
-    // 	cal.set(Calendar.SECOND, 0);
-    // 	cal.set(Calendar.MILLISECOND, 0);
+    //  // Set calendar to tomorrow at 00:00:00
+    //  Calendar cal = Calendar.getInstance();
+    //  cal.add(Calendar.DAY_OF_MONTH, 1);
+    //  cal.set(Calendar.HOUR, 0);
+    //  cal.set(Calendar.MINUTE, 0);
+    //  cal.set(Calendar.SECOND, 0);
+    //  cal.set(Calendar.MILLISECOND, 0);
 
-    // 	for (int i=0; i<10; i++) {
-    // 	    Date toDate = cal.getTime();
-    // 	    cal.add(Calendar.DAY_OF_MONTH, -1);
-    // 	    Date fromDate = cal.getTime();
+    //  for (int i=0; i<10; i++) {
+    //      Date toDate = cal.getTime();
+    //      cal.add(Calendar.DAY_OF_MONTH, -1);
+    //      Date fromDate = cal.getTime();
 
-    // 	    List<EventCount> results = eventDAO.eventHist(groupBy, fromDate, 
-    // 							  toDate,
-    // 							  !perc.equals("false"));
+    //      List<EventCount> results = eventDAO.eventHist(groupBy, fromDate, 
+    //                                                    toDate,
+    //                                                    !perc.equals("false"));
 
-    // 	    answer.add(new EventHistAnswer(fromDate, results));
-    // 	}
+    //      answer.add(new EventHistAnswer(fromDate, results));
+    //  }
 
-    // 	return new ResponseEntity<List<EventHistAnswer>>(answer, HttpStatus.OK);
+    //  return new ResponseEntity<List<EventHistAnswer>>(answer, HttpStatus.OK);
     // }
 }

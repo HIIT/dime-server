@@ -1,3 +1,26 @@
+/*
+  Copyright (c) 2016-2017 University of Helsinki
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
 package fi.hiit.dime.xdi;
 
 import java.util.Map.Entry;
@@ -29,91 +52,91 @@ import xdi2.messaging.operations.GetOperation;
 @ContributorMount(contributorXDIAddresses={"{}#dime"})
 public class DiMeXdiConnector extends AbstractContributor implements Prototype<DiMeXdiConnector> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DiMeXdiConnector.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DiMeXdiConnector.class);
 
-	public DiMeXdiConnector() {
+    public DiMeXdiConnector() {
 
-		super();
-	}
+        super();
+    }
 
-	/*
-	 * Prototype
-	 */
+    /*
+     * Prototype
+     */
 
-	@Override
-	public DiMeXdiConnector instanceFor(PrototypingContext prototypingContext) throws Xdi2MessagingException {
+    @Override
+    public DiMeXdiConnector instanceFor(PrototypingContext prototypingContext) throws Xdi2MessagingException {
 
-		// done
+        // done
 
-		return this;
-	}
+        return this;
+    }
 
-	/*
-	 * Init and shutdown
-	 */
+    /*
+     * Init and shutdown
+     */
 
-	@Override
-	public void init(MessagingContainer messagingContainer) throws Exception {
+    @Override
+    public void init(MessagingContainer messagingContainer) throws Exception {
 
-		super.init(messagingContainer);
-	}
+        super.init(messagingContainer);
+    }
 
-	/*
-	 * Contributor
-	 */
+    /*
+     * Contributor
+     */
 
-	@Override
-	public ContributorResult executeGetOnAddress(XDIAddress[] contributorXDIAddresses, XDIAddress contributorsXDIAddress, XDIAddress relativeTargetAddress, GetOperation operation, Graph operationResultGraph, ExecutionContext executionContext) throws Xdi2MessagingException {
+    @Override
+    public ContributorResult executeGetOnAddress(XDIAddress[] contributorXDIAddresses, XDIAddress contributorsXDIAddress, XDIAddress relativeTargetAddress, GetOperation operation, Graph operationResultGraph, ExecutionContext executionContext) throws Xdi2MessagingException {
 
-		XDIAddress targetXDIAddress = contributorsXDIAddress;
-		if (targetXDIAddress.equals("{}#dime")) return ContributorResult.DEFAULT;
-		if (targetXDIAddress.getNumXDIArcs() > 2) return ContributorResult.DEFAULT;
+        XDIAddress targetXDIAddress = contributorsXDIAddress;
+        if (targetXDIAddress.equals("{}#dime")) return ContributorResult.DEFAULT;
+        if (targetXDIAddress.getNumXDIArcs() > 2) return ContributorResult.DEFAULT;
 
-		// find the profile
+        // find the profile
 
-		XDIAddress didXDIAddress = XDIAddressUtil.parentXDIAddress(targetXDIAddress, 1);
+        XDIAddress didXDIAddress = XDIAddressUtil.parentXDIAddress(targetXDIAddress, 1);
 
-		Profile profile = didXDIAddress == null ? null : XdiService.findProfileByDidXDIAddress(didXDIAddress);
-		if (profile == null) { LOG.warn("Profile for DID " + didXDIAddress + " not found."); return ContributorResult.DEFAULT; }
+        Profile profile = didXDIAddress == null ? null : XdiService.findProfileByDidXDIAddress(didXDIAddress);
+        if (profile == null) { LOG.warn("Profile for DID " + didXDIAddress + " not found."); return ContributorResult.DEFAULT; }
 
-		User user = profile.user;
-		if (user == null) { LOG.warn("User for DID " + didXDIAddress + " not found."); return ContributorResult.DEFAULT; }
+        User user = profile.user;
+        if (user == null) { LOG.warn("User for DID " + didXDIAddress + " not found."); return ContributorResult.DEFAULT; }
 
-		ContextNode targetContextNode = operationResultGraph.setDeepContextNode(targetXDIAddress);
+        ContextNode targetContextNode = operationResultGraph.setDeepContextNode(targetXDIAddress);
 
-		XdiEntity userXdiEntity = XdiEntitySingleton.fromContextNode(targetContextNode);
-		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#username>"), true).setLiteralString(user.username);
-		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#email>"), true).setLiteralString(user.email);
-		userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#role>"), true).setLiteralString(user.role.name());
+        XdiEntity userXdiEntity = XdiEntitySingleton.fromContextNode(targetContextNode);
+        userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#username>"), true).setLiteralString(user.username);
+        userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#email>"), true).setLiteralString(user.email);
+        userXdiEntity.getXdiAttributeSingleton(XDIAddress.create("<#role>"), true).setLiteralString(user.role.name());
 
-		// map the profile
+        // map the profile
 
-		XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
-		XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(XDIAddress.create("#profile"), true);
-		Dictionary.setContextNodeType(profileXdiEntity.getContextNode(), profileNameXDIAddress);
+        XDIAddress profileNameXDIAddress = XdiService.XDIAddressFromProfileName(profile.name);
+        XdiEntity profileXdiEntity = userXdiEntity.getXdiEntity(XDIAddress.create("#profile"), true);
+        Dictionary.setContextNodeType(profileXdiEntity.getContextNode(), profileNameXDIAddress);
 
-		// map the tags
+        // map the tags
 
-		if (profile.tags != null) for (Tag tag : profile.tags) {
+        if (profile.tags != null) for (Tag tag : profile.tags) {
 
-			XdiAttributeCollection tagsXdiAttributeCollection = profileXdiEntity.getXdiAttributeCollection(XDIAddress.create("[<#tag>]"), true);
-			tagsXdiAttributeCollection.setXdiInstanceOrdered().setLiteralString(tag.text);
-		}
+                XdiAttributeCollection tagsXdiAttributeCollection = profileXdiEntity.getXdiAttributeCollection(XDIAddress.create("[<#tag>]"), true);
+                tagsXdiAttributeCollection.setXdiInstanceOrdered().setLiteralString(tag.text);
+            }
 
-		// map the attributes
+        // map the attributes
 
-		if (profile.attributes != null) for (Entry<String, String> entry : profile.attributes.entrySet()) {
+        if (profile.attributes != null) for (Entry<String, String> entry : profile.attributes.entrySet()) {
 
-			String key = entry.getKey();
-			String value = entry.getValue();
+                String key = entry.getKey();
+                String value = entry.getValue();
 
-			XDIAddress profileAttributeKeyXDIAddress = XdiService.XDIAddressFromProfileAttributeKey(key);
-			XdiAttribute profileAttributeXdiAttribute = profileXdiEntity.getXdiAttributeSingleton(profileAttributeKeyXDIAddress, true);
-			profileAttributeXdiAttribute.setLiteralString(value);
-		}
+                XDIAddress profileAttributeKeyXDIAddress = XdiService.XDIAddressFromProfileAttributeKey(key);
+                XdiAttribute profileAttributeXdiAttribute = profileXdiEntity.getXdiAttributeSingleton(profileAttributeKeyXDIAddress, true);
+                profileAttributeXdiAttribute.setLiteralString(value);
+            }
 
-		// done
+        // done
 
-		return ContributorResult.DEFAULT;
-	}
+        return ContributorResult.DEFAULT;
+    }
 }

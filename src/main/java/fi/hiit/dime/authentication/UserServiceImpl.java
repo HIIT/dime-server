@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -59,29 +59,29 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     UserServiceImpl(UserDAO userDAO, EventDAO eventDAO,
-		    InformationElementDAO infoElemDAO,
+                    InformationElementDAO infoElemDAO,
                     ProfileDAO profileDAO) {
-	this.userDAO = userDAO;
-	this.eventDAO = eventDAO;
-	this.infoElemDAO = infoElemDAO;
+        this.userDAO = userDAO;
+        this.eventDAO = eventDAO;
+        this.infoElemDAO = infoElemDAO;
         this.profileDAO = profileDAO;
-	this.pw = new RandomPassword();
+        this.pw = new RandomPassword();
     }
 
     /** 
-	This method is run on startup, to create a default admin user
-	if it is not already present.
+        This method is run on startup, to create a default admin user
+        if it is not already present.
     */
     @PostConstruct
     public void installAdminUser() {
-	if (getUserByUsername(ADMIN_USERNAME) == null) {
-	    String passwd = ADMIN_PASSWORD;
-	    if (passwd.isEmpty())
-		passwd = pw.getPassword(20, true, false);
+        if (getUserByUsername(ADMIN_USERNAME) == null) {
+            String passwd = ADMIN_PASSWORD;
+            if (passwd.isEmpty())
+                passwd = pw.getPassword(20, true, false);
 
             User user = new User();
             user.username = ADMIN_USERNAME;
-	    user.role = Role.ADMIN;
+            user.role = Role.ADMIN;
 
             try {
                 create(user, passwd);
@@ -89,22 +89,22 @@ public class UserServiceImpl implements UserService {
                                   "\"%s\"\n\n.", passwd);
             } catch (CannotCreateUserException e) {
             }
-	}
+        }
     }
 
     @Override
     public User getUserById(Long id) {
-	return userDAO.findById(id);
+        return userDAO.findById(id);
     }
 
     @Override
     public User getUserByUsername(String username) {
-    	return userDAO.findByUsername(username);
+        return userDAO.findByUsername(username);
     }
     
     @Override
     public Collection<User> getAllUsers() {
-	return userDAO.findAll();
+        return userDAO.findAll();
     }
 
     private void setPassword(User user, String password) throws CannotCreateUserException
@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
             throw new CannotCreateUserException(String.format("Password is too short! "+
                                                               "Please use at least %d characters.",
                                                               MIN_PASSWORD_LENGTH));
-	user.passwordHash = new BCryptPasswordEncoder().encode(password);
+        user.passwordHash = new BCryptPasswordEncoder().encode(password);
     }
 
     @Override
@@ -140,11 +140,11 @@ public class UserServiceImpl implements UserService {
         List<Profile> profiles = profileDAO.profilesForUser(id);
         for (Profile p : profiles) p.removeAllRelations();
 
-	eventDAO.removeForUser(id);
-	infoElemDAO.removeForUser(id);
+        eventDAO.removeForUser(id);
+        infoElemDAO.removeForUser(id);
         profileDAO.removeForUser(id);
-	userDAO.remove(id);
-	return true;
+        userDAO.remove(id);
+        return true;
     }
 
 }

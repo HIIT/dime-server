@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -65,7 +65,7 @@ public class CalendarEvent extends Event {
      */
     @ManyToMany(cascade=CascadeType.ALL)
     @JoinTable(name="calendarevent_participants", 
-	       joinColumns={@JoinColumn(name="calendarevent_id", referencedColumnName="id")},
-	       inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
+               joinColumns={@JoinColumn(name="calendarevent_id", referencedColumnName="id")},
+               inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
     public List<Person> participants;
 }

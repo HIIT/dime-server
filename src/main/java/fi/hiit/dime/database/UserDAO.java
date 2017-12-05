@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -45,7 +45,7 @@ public class UserDAO {
     private UserRepository repo;
 
     public User save(User obj) {
-	return repo.save(obj);
+        return repo.save(obj);
     }
 
     private void ensureUserId(User user) {
@@ -62,19 +62,19 @@ public class UserDAO {
     }
 
     public User findByUsername(String username) {
-    	User user = repo.findOneByUsername(username);
+        User user = repo.findOneByUsername(username);
         ensureUserId(user);
         return user;
     }
 
     public List<User> findAll() {
-    	List<User> users = repo.findAll();
+        List<User> users = repo.findAll();
         for (User user : users)
             ensureUserId(user);
         return users;
     }
 
     public void remove(Long id) {
-	repo.delete(id);
+        repo.delete(id);
     }
 }

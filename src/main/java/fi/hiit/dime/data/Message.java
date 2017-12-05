@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -58,8 +58,8 @@ public class Message extends InformationElement {
 
     @ManyToMany(cascade=CascadeType.ALL)
     @JoinTable(name="message_to", 
-	       joinColumns={@JoinColumn(name="message_id", referencedColumnName="id")},
-	       inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
+               joinColumns={@JoinColumn(name="message_id", referencedColumnName="id")},
+               inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
     public List<Person> to;
 
     @Column(columnDefinition="text")
@@ -67,8 +67,8 @@ public class Message extends InformationElement {
 
     @ManyToMany(cascade=CascadeType.ALL)
     @JoinTable(name="message_cc", 
-	       joinColumns={@JoinColumn(name="message_id", referencedColumnName="id")},
-	       inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
+               joinColumns={@JoinColumn(name="message_id", referencedColumnName="id")},
+               inverseJoinColumns={@JoinColumn(name="person_id", referencedColumnName="id")})
     public List<Person> cc;
 
     @OneToMany(cascade=CascadeType.ALL)
@@ -80,10 +80,10 @@ public class Message extends InformationElement {
 
     @Override
     public void autoFill() {
-	if (subject != null && subject.length() > 0 && 
-	    !plainTextContent.startsWith(subject))
-	    plainTextContent = subject + "\n\n" + plainTextContent;
-	super.autoFill();
+        if (subject != null && subject.length() > 0 && 
+            !plainTextContent.startsWith(subject))
+            plainTextContent = subject + "\n\n" + plainTextContent;
+        super.autoFill();
         if (title == null)
             title = subject;
     }

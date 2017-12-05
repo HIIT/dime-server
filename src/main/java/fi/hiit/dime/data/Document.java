@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -31,7 +31,7 @@ import javax.persistence.Entity;
 @Entity
 public class Document extends InformationElement {
     /** Mime type of the document, see:
-	https://en.wikipedia.org/wiki/MIME#Content-Type
+        https://en.wikipedia.org/wiki/MIME#Content-Type
     */
     public String mimeType;
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -30,11 +30,11 @@ public class TextSearchQuery extends SearchQuery {
     public String query;
 
     public TextSearchQuery() {
-	this.query = "";
+        this.query = "";
     }
 
     public TextSearchQuery(String query) {
-	this.query = query;
+        this.query = query;
     }
 
     // getter and setter to make Thymeleaf believe this is a "bean"
@@ -43,12 +43,12 @@ public class TextSearchQuery extends SearchQuery {
 
     @Override
     public boolean isEmpty() {
-	return query.isEmpty();
+        return query.isEmpty();
     }
     
     @Override
     public String toString() {
-	return this.query;
+        return this.query;
     }
 }
 

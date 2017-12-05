@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -44,8 +44,8 @@ public class WebSecurityConfig {
     protected void configureGlobal(AuthenticationManagerBuilder auth) 
         throws Exception 
     {
-    	auth.userDetailsService(userDetailsService)
-	    .passwordEncoder(new BCryptPasswordEncoder());
+        auth.userDetailsService(userDetailsService)
+            .passwordEncoder(new BCryptPasswordEncoder());
     }
 
 

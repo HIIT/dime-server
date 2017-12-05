@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -36,7 +36,7 @@ public class FunfEvent extends Event {
     public String probeName;
 
     /** The raw data value of the funf probe. Typically a JSON object
-	to be interpreted separately. */
+        to be interpreted separately. */
     @Column(columnDefinition="longtext")
     public String funfValue;
 
@@ -44,9 +44,9 @@ public class FunfEvent extends Event {
      */
     @Override
     public void autoFill() {
-	if (probeName != null && !probeName.isEmpty())
-	    type = "http://www.hiit.fi/ontologies/dime/#" + probeName;
+        if (probeName != null && !probeName.isEmpty())
+            type = "http://www.hiit.fi/ontologies/dime/#" + probeName;
 
-	super.autoFill();
+        super.autoFill();
     }
 }

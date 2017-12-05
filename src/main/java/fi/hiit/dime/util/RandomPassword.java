@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -34,43 +34,43 @@ public class RandomPassword {
     private SecureRandom mRand;
 
     private final static String chars_alpha =
-	"abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        "abcdefghijklmnopqrstuvwxyz" +
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     
     private final static String chars_numeric = 
-	"01234567890";
+        "01234567890";
 
     private final static String chars_symbols = 
-	"_,.;:!#%&/()={}[]?+^<>*";
+        "_,.;:!#%&/()={}[]?+^<>*";
     
     public RandomPassword() {
-	mRand = new SecureRandom();
-	// FIXME: implement handling of seed
+        mRand = new SecureRandom();
+        // FIXME: implement handling of seed
     }
 
     public String getPassword(int length, boolean numeric, boolean symbols) {
-	StringBuilder chars = new StringBuilder(chars_alpha);
-	if (numeric)
-	    chars.append(chars_numeric);
-	if (symbols)
-	    chars.append(chars_symbols);
+        StringBuilder chars = new StringBuilder(chars_alpha);
+        if (numeric)
+            chars.append(chars_numeric);
+        if (symbols)
+            chars.append(chars_symbols);
 
-	StringBuilder p = new StringBuilder(length);
-	int l = chars.length();
-	
-	for (int i=0; i<length;) {
-	    byte b[] = new byte[1];
-	    mRand.nextBytes(b);
-	    int r = b[0] & 0xff;
-	    if (r < l) {
-		p.append(chars.charAt(r));
-		i++;
-	    }
-	}
-	return p.toString();
+        StringBuilder p = new StringBuilder(length);
+        int l = chars.length();
+        
+        for (int i=0; i<length;) {
+            byte b[] = new byte[1];
+            mRand.nextBytes(b);
+            int r = b[0] & 0xff;
+            if (r < l) {
+                p.append(chars.charAt(r));
+                i++;
+            }
+        }
+        return p.toString();
     }
 
     public String getPassword(int length) {
-	return getPassword(length, true, true);
+        return getPassword(length, true, true);
     }
 }

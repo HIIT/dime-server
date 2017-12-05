@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -20,7 +20,7 @@
   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
- */
+*/
 
 package fi.hiit.dime;
 
@@ -43,25 +43,25 @@ import xdi2.transport.impl.http.impl.servlet.ServletHttpTransportResponse;
 @RequestMapping("/xdi")
 public class XdiController {
 
-	private final XdiService xdiService;
+    private final XdiService xdiService;
 
-	@Autowired
-	public XdiController(XdiService xdiService) {
+    @Autowired
+    public XdiController(XdiService xdiService) {
 
-		this.xdiService = xdiService;
-	}
+        this.xdiService = xdiService;
+    }
 
-	@RequestMapping("/**")
-	public void service(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
+    @RequestMapping("/**")
+    public void service(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
 
-		httpServletRequest.setCharacterEncoding("UTF-8");
-		httpServletResponse.setCharacterEncoding("UTF-8");
+        httpServletRequest.setCharacterEncoding("UTF-8");
+        httpServletResponse.setCharacterEncoding("UTF-8");
 
-		// execute the transport
+        // execute the transport
 
-		HttpTransportRequest request = ServletHttpTransportRequest.fromHttpServletRequest(httpServletRequest, "/xdi");
-		HttpTransportResponse response = ServletHttpTransportResponse.fromHttpServletResponse(httpServletResponse);
+        HttpTransportRequest request = ServletHttpTransportRequest.fromHttpServletRequest(httpServletRequest, "/xdi");
+        HttpTransportResponse response = ServletHttpTransportResponse.fromHttpServletResponse(httpServletResponse);
 
-		this.xdiService.getHttpTransport().execute(request, response);
-	}
+        this.xdiService.getHttpTransport().execute(request, response);
+    }
 }

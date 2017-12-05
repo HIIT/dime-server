@@ -20,7 +20,7 @@
   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
- */
+*/
 
 package fi.hiit.dime;
 
@@ -74,234 +74,234 @@ import xdi2.messaging.response.MessagingResponse;
 @RequestMapping("/api/linkcontracts")
 public class LinkContractsController extends AuthorizedController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LinkContractsController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LinkContractsController.class);
 
-	LinkContractsController() {
-	}
+    LinkContractsController() {
+    }
 
-	@RequestMapping(value="/view", method = RequestMethod.GET)
-	public ResponseEntity<List<XdiLinkContract>>
-	linkContractsView(Authentication auth)
-			throws NotFoundException, BadRequestException
-	{
-		List<XdiLinkContract> result = new ArrayList<XdiLinkContract> ();
+    @RequestMapping(value="/view", method = RequestMethod.GET)
+    public ResponseEntity<List<XdiLinkContract>>
+        linkContractsView(Authentication auth)
+        throws NotFoundException, BadRequestException
+    {
+        List<XdiLinkContract> result = new ArrayList<XdiLinkContract> ();
 
-		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
+        for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
 
-			// look in XDI graph
+            // look in XDI graph
 
-			Graph graph = XdiService.get().myGraph(profile);
-			if (graph == null) continue;
+            Graph graph = XdiService.get().myGraph(profile);
+            if (graph == null) continue;
 
-			ContextNode linkContractsContextNode = graph.getDeepContextNode(XDIAddress.create("[$contract]"));
-			ReadOnlyIterator<ContextNode> linkContractContextNodes = linkContractsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(linkContractsContextNode);
+            ContextNode linkContractsContextNode = graph.getDeepContextNode(XDIAddress.create("[$contract]"));
+            ReadOnlyIterator<ContextNode> linkContractContextNodes = linkContractsContextNode == null ? new EmptyIterator<ContextNode> () : Aggregation.getAggregationContextNodes(linkContractsContextNode);
 
-			// result
+            // result
 
-			for (ContextNode linkContractContextNode : linkContractContextNodes) {
+            for (ContextNode linkContractContextNode : linkContractContextNodes) {
 
-				if (linkContractContextNode.getXDIAddress().toString().contains("$defer")) continue;
+                if (linkContractContextNode.getXDIAddress().toString().contains("$defer")) continue;
 
-				RelationshipLinkContract linkContract = (RelationshipLinkContract) LinkContract.fromContextNode(linkContractContextNode);
-				Profile authorizingAuthorityProfile = XdiService.findProfileByDidXDIAddress(linkContract.getAuthorizingAuthority());
-				Profile requestingAuthorityProfile = XdiService.findProfileByDidXDIAddress(linkContract.getRequestingAuthority());
-				String address = linkContract.getContextNode().getXDIAddress().toString();
-				String authorizingAuthority = linkContract.getAuthorizingAuthority().toString();
-				String requestingAuthority = linkContract.getRequestingAuthority().toString();
-				String profileName = authorizingAuthorityProfile != null ? authorizingAuthorityProfile.name : (requestingAuthorityProfile != null ? requestingAuthorityProfile.name : null);
-				String direction = authorizingAuthorityProfile != null ? "outgoing" : "incoming";
-				result.add(new XdiLinkContract(
-						address, 
-						authorizingAuthority,
-						requestingAuthority,
-						profileName,
-						direction));
-			}
-		}
+                RelationshipLinkContract linkContract = (RelationshipLinkContract) LinkContract.fromContextNode(linkContractContextNode);
+                Profile authorizingAuthorityProfile = XdiService.findProfileByDidXDIAddress(linkContract.getAuthorizingAuthority());
+                Profile requestingAuthorityProfile = XdiService.findProfileByDidXDIAddress(linkContract.getRequestingAuthority());
+                String address = linkContract.getContextNode().getXDIAddress().toString();
+                String authorizingAuthority = linkContract.getAuthorizingAuthority().toString();
+                String requestingAuthority = linkContract.getRequestingAuthority().toString();
+                String profileName = authorizingAuthorityProfile != null ? authorizingAuthorityProfile.name : (requestingAuthorityProfile != null ? requestingAuthorityProfile.name : null);
+                String direction = authorizingAuthorityProfile != null ? "outgoing" : "incoming";
+                result.add(new XdiLinkContract(
+                                               address, 
+                                               authorizingAuthority,
+                                               requestingAuthority,
+                                               profileName,
+                                               direction));
+            }
+        }
 
-		// done
+        // done
 
-		return new ResponseEntity<List<XdiLinkContract>>(result, HttpStatus.OK);
-	}
+        return new ResponseEntity<List<XdiLinkContract>>(result, HttpStatus.OK);
+    }
 
-	@RequestMapping(value="/delete", method = RequestMethod.POST)
-	public ResponseEntity<String>
-	linkContractsDelete(Authentication auth, @RequestParam String address)
-			throws NotFoundException, BadRequestException
-	{
-		XDIAddress XDIaddress = XDIAddress.create(address);
+    @RequestMapping(value="/delete", method = RequestMethod.POST)
+    public ResponseEntity<String>
+        linkContractsDelete(Authentication auth, @RequestParam String address)
+        throws NotFoundException, BadRequestException
+    {
+        XDIAddress XDIaddress = XDIAddress.create(address);
 
-		for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
+        for (Profile profile : XdiService.get().profileDAO.profilesForUser(getUser(auth).getId())) {
 
-			XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+            XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
-			if (didXDIAddress == null)
-			    continue;
+            if (didXDIAddress == null)
+                continue;
 
-			// XDI request to local messaging container
+            // XDI request to local messaging container
 
-			try {
+            try {
 
-				MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
-				MessageEnvelope messageEnvelope = new MessageEnvelope();
-				Message message = messageEnvelope.createMessage(didXDIAddress, -1);
-				message.setFromXDIAddress(didXDIAddress);
-				message.setToXDIAddress(didXDIAddress);
-				message.setLinkContractClass(RootLinkContract.class);
-				message.createDelOperation(XDIaddress);
+                MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
+                MessageEnvelope messageEnvelope = new MessageEnvelope();
+                Message message = messageEnvelope.createMessage(didXDIAddress, -1);
+                message.setFromXDIAddress(didXDIAddress);
+                message.setToXDIAddress(didXDIAddress);
+                message.setLinkContractClass(RootLinkContract.class);
+                message.createDelOperation(XDIaddress);
 
-				XDILocalClient client = new XDILocalClient(messagingContainer);
-				client.send(messageEnvelope);
-			} catch (Xdi2ClientException ex) {
+                XDILocalClient client = new XDILocalClient(messagingContainer);
+                client.send(messageEnvelope);
+            } catch (Xdi2ClientException ex) {
 
-				LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
-				return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
-			}
-		}
-		
-		// done
+                LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
+                return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+                
+        // done
 
-		return new ResponseEntity<String>(HttpStatus.NO_CONTENT);
-	}
+        return new ResponseEntity<String>(HttpStatus.NO_CONTENT);
+    }
 
-	@RequestMapping(value="/data/{target}", method = RequestMethod.GET)
-	public ResponseEntity<XdiData>
-	linkContractsData(Authentication auth, @PathVariable String target)
-			throws NotFoundException, BadRequestException
-	{
-		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
-		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+    @RequestMapping(value="/data/{target}", method = RequestMethod.GET)
+    public ResponseEntity<XdiData>
+        linkContractsData(Authentication auth, @PathVariable String target)
+        throws NotFoundException, BadRequestException
+    {
+        Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
+        XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
-		XDIAddress targetXDIAddress = XDIAddress.create(target);
+        XDIAddress targetXDIAddress = XDIAddress.create(target);
 
-		// find XDI route
+        // find XDI route
 
-		XDIClientRoute<?> route;
+        XDIClientRoute<?> route;
 
-		try {
+        try {
 
-			route = XdiService.get().getXDIAgent().route(targetXDIAddress);
-		} catch (Xdi2Exception ex) {
+            route = XdiService.get().getXDIAgent().route(targetXDIAddress);
+        } catch (Xdi2Exception ex) {
 
-			throw new RuntimeException(ex.getMessage(), ex);
-		}
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
 
-		// build XDI message
+        // build XDI message
 
-		Message message = route.createMessage(didXDIAddress, -1);
-		message.setFromXDIAddress(didXDIAddress);
-		message.setToXDIAddress(targetXDIAddress);
-		message.setLinkContractXDIAddress(RelationshipLinkContract.createRelationshipLinkContractXDIAddress(targetXDIAddress, didXDIAddress, XDILinkContractConstants.XDI_ADD_GET));
-		message.createGetOperation(XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime")));
+        Message message = route.createMessage(didXDIAddress, -1);
+        message.setFromXDIAddress(didXDIAddress);
+        message.setToXDIAddress(targetXDIAddress);
+        message.setLinkContractXDIAddress(RelationshipLinkContract.createRelationshipLinkContractXDIAddress(targetXDIAddress, didXDIAddress, XDILinkContractConstants.XDI_ADD_GET));
+        message.createGetOperation(XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime")));
 
-		// send to XDI target
+        // send to XDI target
 
-		XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
+        XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
 
-		XdiData result = new XdiData();
+        XdiData result = new XdiData();
 
-		try {
+        try {
 
-/*			RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
-			SigningManipulator manipulator = new SigningManipulator();
-			manipulator.setSignatureCreator(signatureCreator);
-			client.getManipulators().addManipulator(manipulator);*/
+            /*                      RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
+                                    SigningManipulator manipulator = new SigningManipulator();
+                                    manipulator.setSignatureCreator(signatureCreator);
+                                    client.getManipulators().addManipulator(manipulator);*/
 
-			MessagingResponse response = client.send(message.getMessageEnvelope());
-			
-			Graph resultGraph = response.getResultGraph();
-			
-			for (LiteralNode literalNode : resultGraph.getRootContextNode().getAllLiteralNodes()) {
-				
-				XDIAddress key = XDIAddressUtil.localXDIAddress(literalNode.getContextNode().getXDIAddress(), -1);
-				Object value = literalNode.getLiteralData();
-				
-				if (key != null) result.data.put(key.toString(), value == null ? null : value.toString());
-			}
-		} catch (Xdi2ClientException ex) {
+            MessagingResponse response = client.send(message.getMessageEnvelope());
+                        
+            Graph resultGraph = response.getResultGraph();
+                        
+            for (LiteralNode literalNode : resultGraph.getRootContextNode().getAllLiteralNodes()) {
+                                
+                XDIAddress key = XDIAddressUtil.localXDIAddress(literalNode.getContextNode().getXDIAddress(), -1);
+                Object value = literalNode.getLiteralData();
+                                
+                if (key != null) result.data.put(key.toString(), value == null ? null : value.toString());
+            }
+        } catch (Xdi2ClientException ex) {
 
-			throw new RuntimeException(ex.getMessage(), ex);
-		}
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
 
-		// done
+        // done
 
-		return new ResponseEntity<XdiData>(result, HttpStatus.OK);
-	}
+        return new ResponseEntity<XdiData>(result, HttpStatus.OK);
+    }
 
-	@RequestMapping(value="/publicdata/{target}", method = RequestMethod.GET)
-	public ResponseEntity<XdiData>
-	linkContractsPublicData(Authentication auth, @PathVariable String target)
-			throws NotFoundException, BadRequestException
-	{
-		Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
-		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+    @RequestMapping(value="/publicdata/{target}", method = RequestMethod.GET)
+    public ResponseEntity<XdiData>
+        linkContractsPublicData(Authentication auth, @PathVariable String target)
+        throws NotFoundException, BadRequestException
+    {
+        Profile profile = XdiService.get().profileDAO.profilesForUser(getUser(auth).getId()).get(0);
+        XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
 
-		XDIAddress targetXDIAddress = XDIAddress.create(target);
+        XDIAddress targetXDIAddress = XDIAddress.create(target);
 
-		// find XDI route
+        // find XDI route
 
-		XDIClientRoute<?> route;
+        XDIClientRoute<?> route;
 
-		try {
+        try {
 
-			route = XdiService.get().getXDIAgent().route(targetXDIAddress);
-		} catch (Xdi2Exception ex) {
+            route = XdiService.get().getXDIAgent().route(targetXDIAddress);
+        } catch (Xdi2Exception ex) {
 
-			throw new RuntimeException(ex.getMessage(), ex);
-		}
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
 
-		// build XDI message
+        // build XDI message
 
-		Message message = route.createMessage(didXDIAddress, -1);
-		message.setFromXDIAddress(didXDIAddress);
-		message.setToXDIAddress(targetXDIAddress);
-		message.setLinkContractClass(PublicLinkContract.class);
-		message.createGetOperation(XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime#profile[<#tag>]")));
+        Message message = route.createMessage(didXDIAddress, -1);
+        message.setFromXDIAddress(didXDIAddress);
+        message.setToXDIAddress(targetXDIAddress);
+        message.setLinkContractClass(PublicLinkContract.class);
+        message.createGetOperation(XDIAddressUtil.concatXDIAddresses(targetXDIAddress, XDIAddress.create("#dime#profile[<#tag>]")));
 
-		// send to XDI target
+        // send to XDI target
 
-		XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
+        XDIAbstractClient<?> client = (XDIAbstractClient<?>) route.constructXDIClient();
 
-		XdiData result = new XdiData();
+        XdiData result = new XdiData();
 
-		try {
+        try {
 
-/*			RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
-			SigningManipulator manipulator = new SigningManipulator();
-			manipulator.setSignatureCreator(signatureCreator);
-			client.getManipulators().addManipulator(manipulator);*/
+            /*                      RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
+                                    SigningManipulator manipulator = new SigningManipulator();
+                                    manipulator.setSignatureCreator(signatureCreator);
+                                    client.getManipulators().addManipulator(manipulator);*/
 
-			MessagingResponse response = client.send(message.getMessageEnvelope());
-			
-			Graph resultGraph = response.getResultGraph();
-			
-			for (LiteralNode literalNode : resultGraph.getRootContextNode().getAllLiteralNodes()) {
-				
-				XDIAddress key = XDIAddressUtil.localXDIAddress(literalNode.getContextNode().getXDIAddress(), -1);
-				Object value = literalNode.getLiteralData();
-				
-				if (key != null) result.data.put(key.toString(), value == null ? null : value.toString());
-			}
-		} catch (Xdi2ClientException ex) {
+            MessagingResponse response = client.send(message.getMessageEnvelope());
+                        
+            Graph resultGraph = response.getResultGraph();
+                        
+            for (LiteralNode literalNode : resultGraph.getRootContextNode().getAllLiteralNodes()) {
+                                
+                XDIAddress key = XDIAddressUtil.localXDIAddress(literalNode.getContextNode().getXDIAddress(), -1);
+                Object value = literalNode.getLiteralData();
+                                
+                if (key != null) result.data.put(key.toString(), value == null ? null : value.toString());
+            }
+        } catch (Xdi2ClientException ex) {
 
-			throw new RuntimeException(ex.getMessage(), ex);
-		}
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
 
-		// done
+        // done
 
-		return new ResponseEntity<XdiData>(result, HttpStatus.OK);
-	}
+        return new ResponseEntity<XdiData>(result, HttpStatus.OK);
+    }
 
-	private static class XdiLinkContract {
-		public String address;
-		public String authorizingAuthority;
-		public String requestingAuthority;
-		public String profileName;
-		public String direction;
-		public XdiLinkContract(String address, String authorizingAuthority, String requestingAuthority, String profileName, String direction) { this.address = address; this.authorizingAuthority = authorizingAuthority; this.requestingAuthority = requestingAuthority; this.profileName = profileName; this.direction = direction; } 
-	}
-	
-	private static class XdiData {
-		public Map<String, String> data = new HashMap<String, String>();
-	}
+    private static class XdiLinkContract {
+        public String address;
+        public String authorizingAuthority;
+        public String requestingAuthority;
+        public String profileName;
+        public String direction;
+        public XdiLinkContract(String address, String authorizingAuthority, String requestingAuthority, String profileName, String direction) { this.address = address; this.authorizingAuthority = authorizingAuthority; this.requestingAuthority = requestingAuthority; this.profileName = profileName; this.direction = direction; } 
+    }
+        
+    private static class XdiData {
+        public Map<String, String> data = new HashMap<String, String>();
+    }
 }

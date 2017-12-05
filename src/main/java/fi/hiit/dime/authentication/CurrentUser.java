@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -27,26 +27,26 @@ package fi.hiit.dime.authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 
 public class CurrentUser extends 
-			     org.springframework.security.core.userdetails.User
+                             org.springframework.security.core.userdetails.User
 {
 
     private User user;
 
     public CurrentUser(User user) {
-	super(user.username, user.passwordHash, 
-	      AuthorityUtils.createAuthorityList(user.role.toString()));
-	this.user = user;
+        super(user.username, user.passwordHash, 
+              AuthorityUtils.createAuthorityList(user.role.toString()));
+        this.user = user;
     }
 
     public User getUser() {
-	return user;
+        return user;
     }
 
     public Long getId() {
-	return user.getId();
+        return user.getId();
     }
 
     public Role getRole() {
-	return user.role;
+        return user.role;
     }
 }

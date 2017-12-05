@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -319,34 +319,34 @@ public class DataController extends AuthorizedController {
         @apiName Post
         @apiDescription Upload a new event as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>.  The complete description of data types can be found in the <a href="http://www.hiit.fi/g/reknow/javadoc/dime-server/fi/hiit/dime/data/package-tree.html">JavaDoc of the DiMe data classes</a>.
 
-On success, the response will be the uploaded object with some fields like the id filled in.
+        On success, the response will be the uploaded object with some fields like the id filled in.
 
-A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-example.py">full working example</a> of uploading an event can be found in the git repository.
+        A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-example.py">full working example</a> of uploading an event can be found in the git repository.
         
         @apiExample {json} Example of JSON to upload
-            {
-                "@type": "SearchEvent",
-                "actor": "My example logger",
-                "query": "Some search query"
-            }
+        {
+        "@type": "SearchEvent",
+        "actor": "My example logger",
+        "query": "Some search query"
+        }
 
         @apiSuccessExample {json} Example successful response:
-            HTTP/1.1 200 OK
-            {
-                "@type": "SearchEvent",
-                "actor": "My example logger",
-                "duration": 0.0,
-                "end": 1463384282690,
-                "id": 1234,
-                "start": 1463384282690,
-                "tags": [],
-                "query": "Some search query"
-                "user": {
-                    "id": 3,
-                    "role": "USER",
-                    "username": "testuser"
-                }
-            }
+        HTTP/1.1 200 OK
+        {
+        "@type": "SearchEvent",
+        "actor": "My example logger",
+        "duration": 0.0,
+        "end": 1463384282690,
+        "id": 1234,
+        "start": 1463384282690,
+        "tags": [],
+        "query": "Some search query"
+        "user": {
+        "id": 3,
+        "role": "USER",
+        "username": "testuser"
+        }
+        }
         @apiPermission user
         @apiGroup Events
         @apiVersion 0.1.2
@@ -372,68 +372,68 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiParam {Number} id Event's unique ID
         @apiDescription On success the response will be the event with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>. The complete description of data types can be found in the <a href="http://www.hiit.fi/g/reknow/javadoc/dime-server/fi/hiit/dime/data/package-tree.html">JavaDoc of the DiMe data classes</a>
         @apiSuccessExample {json} Example successful response:
-            HTTP/1.1 200 OK
-            {
-                "@type": "DesktopEvent",
-                "actor": "DiMe browser extension",
-                "duration": 0.0,
-                "end": 1463384282690,
-                "id": 1784,
-                "origin": "0:0:0:0:0:0:0:1",
-                "start": 1463384282690,
-                "tags": [],
-                "targettedResource": {
-                    "@type": "Document",
-                    "id": 1775,
-                    "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#RemoteDataObject",
-                    "mimeType": "application/json",
-                    "plainTextContent": "Hello, world",
-                    "tags": [
-                        {
-                            "@type": "Tag",
-                            "text": "hello"
-                        },
-                        {
-                            "@type": "Tag",
-                            "text": "world"
-                        }
-                    ],
-                    "timeCreated": 1463384282789,
-                    "timeModified": 1463384282789,
-                    "title": "Hello, world",
-                    "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument",
-                    "uri": "http://example.com",
-                    "user": {
-                        "id": 3,
-                        "role": "USER",
-                        "username": "testuser"
-                    }
-                },
-                "timeCreated": 1463384282803,
-                "timeModified": 1463384282803,
-                "type": "http://www.semanticdesktop.org/ontologies/2010/01/25/nuao/#UsageEvent",
-                "user": {
-                    "id": 3,
-                    "role": "USER",
-                    "username": "testuser"
-                }
-            }
+        HTTP/1.1 200 OK
+        {
+        "@type": "DesktopEvent",
+        "actor": "DiMe browser extension",
+        "duration": 0.0,
+        "end": 1463384282690,
+        "id": 1784,
+        "origin": "0:0:0:0:0:0:0:1",
+        "start": 1463384282690,
+        "tags": [],
+        "targettedResource": {
+        "@type": "Document",
+        "id": 1775,
+        "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#RemoteDataObject",
+        "mimeType": "application/json",
+        "plainTextContent": "Hello, world",
+        "tags": [
+        {
+        "@type": "Tag",
+        "text": "hello"
+        },
+        {
+        "@type": "Tag",
+        "text": "world"
+        }
+        ],
+        "timeCreated": 1463384282789,
+        "timeModified": 1463384282789,
+        "title": "Hello, world",
+        "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument",
+        "uri": "http://example.com",
+        "user": {
+        "id": 3,
+        "role": "USER",
+        "username": "testuser"
+        }
+        },
+        "timeCreated": 1463384282803,
+        "timeModified": 1463384282803,
+        "type": "http://www.semanticdesktop.org/ontologies/2010/01/25/nuao/#UsageEvent",
+        "user": {
+        "id": 3,
+        "role": "USER",
+        "username": "testuser"
+        }
+        }
 
         @apiErrorExample {json} Example error response:
-            HTTP/1.1 404 Not Found
-            {
-                "error": "Not Found",
-                "exception": "fi.hiit.dime.AuthorizedController$NotFoundException",
-                "message": "Event not found",
-                "path": "/api/data/event/12345",
-                "status": 404,
-                "timestamp": 1466580641725
-            }
+        HTTP/1.1 404 Not Found
+        {
+        "error": "Not Found",
+        "exception": "fi.hiit.dime.AuthorizedController$NotFoundException",
+        "message": "Event not found",
+        "path": "/api/data/event/12345",
+        "status": 404,
+        "timestamp": 1466580641725
+        }
 
         @apiPermission user
         @apiGroup Events
         @apiVersion 0.1.2
-     */
+    */
     @RequestMapping(value="/event/{id}", method = RequestMethod.GET)
     public ResponseEntity<Event>
         event(Authentication auth, @PathVariable Long id) 
@@ -459,7 +459,7 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiPermission user
         @apiGroup Events
         @apiVersion 0.1.2
-     */
+    */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/event/{id}", method = RequestMethod.DELETE)
     public ResponseEntity eventDelete(Authentication auth, @PathVariable Long id) 
@@ -483,23 +483,23 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiDescription Upload several events in one request, specified as a JSON list.
 
         @apiExample {json} Example of JSON to upload
-            [
-                {
-                    "@type": "SearchEvent",
-                    "actor": "My example logger",
-                    "query": "Some search query"
-                },
-                {
-                    "@type": "SearchEvent",
-                    "actor": "My example logger",
-                    "query": "Some other query"
-                }
-            ]
+        [
+        {
+        "@type": "SearchEvent",
+        "actor": "My example logger",
+        "query": "Some search query"
+        },
+        {
+        "@type": "SearchEvent",
+        "actor": "My example logger",
+        "query": "Some other query"
+        }
+        ]
 
         @apiPermission user
         @apiGroup Events
         @apiVersion 0.1.2
-     */    
+    */    
     @RequestMapping(value="/events", method = RequestMethod.POST)
     public ResponseEntity<Event[]>
         events(Authentication auth, @RequestBody Event[] input) 
@@ -616,19 +616,19 @@ A <a href="https://github.com/HIIT/dime-server/blob/master/scripts/logger-exampl
         @apiName Post
         @apiDescription Upload a new information element as a JSON object.  For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">the Data page in the wiki</a>. 
 
-On success, the response will be the uploaded object with some fields like the id filled in.
+        On success, the response will be the uploaded object with some fields like the id filled in.
         
         @apiExample {json} Example of JSON to upload
-            {
-                "@type": "WebDocument",
-                "actor": "My web logger",
-                "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
-                "mimeType": "text/html", 
-                "plainTextContent": "The revolution has begun...", 
-                "title": "Revolution of Knowledge Work", 
-                "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
-                "uri": "http://www.reknow.fi/" 
-            }
+        {
+        "@type": "WebDocument",
+        "actor": "My web logger",
+        "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
+        "mimeType": "text/html", 
+        "plainTextContent": "The revolution has begun...", 
+        "title": "Revolution of Knowledge Work", 
+        "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
+        "uri": "http://www.reknow.fi/" 
+        }
 
         @apiPermission user
         @apiGroup Information elements
@@ -655,33 +655,33 @@ On success, the response will be the uploaded object with some fields like the i
         @apiDescription Upload several information elements in one request, specified as a JSON list.
 
         @apiExample {json} Example of JSON to upload
-            [
-                {
-                    "@type": "WebDocument",
-                    "actor": "My web logger",
-                    "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
-                    "mimeType": "text/html", 
-                    "plainTextContent": "The revolution has begun...", 
-                    "title": "Revolution of Knowledge Work", 
-                    "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
-                    "uri": "http://www.reknow.fi/" 
-                },
-                {
-                    "@type": "WebDocument",
-                    "actor": "My web logger",
-                    "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
-                    "mimeType": "text/html", 
-                    "plainTextContent": "Hello, world...", 
-                    "title": "Hello page", 
-                    "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
-                    "uri": "http://www.example.com/" 
-                }
-            ]
+        [
+        {
+        "@type": "WebDocument",
+        "actor": "My web logger",
+        "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
+        "mimeType": "text/html", 
+        "plainTextContent": "The revolution has begun...", 
+        "title": "Revolution of Knowledge Work", 
+        "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
+        "uri": "http://www.reknow.fi/" 
+        },
+        {
+        "@type": "WebDocument",
+        "actor": "My web logger",
+        "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#RemoteDataObject",
+        "mimeType": "text/html", 
+        "plainTextContent": "Hello, world...", 
+        "title": "Hello page", 
+        "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#Document", 
+        "uri": "http://www.example.com/" 
+        }
+        ]
 
         @apiPermission user
         @apiGroup Information elements
         @apiVersion 0.1.2
-     */    
+    */    
     @RequestMapping(value="/informationelements", method = RequestMethod.POST)
     public ResponseEntity<InformationElement[]>
         informationElement(Authentication auth, @RequestBody InformationElement[] input) 
@@ -708,53 +708,53 @@ On success, the response will be the uploaded object with some fields like the i
 
         @apiDescription On success the response will be the information element with the given id in JSON format. For the data types, see <a href="https://github.com/HIIT/dime-server/wiki/Data">https://github.com/HIIT/dime-server/wiki/Data</a>.
         @apiSuccessExample {json} Example successful response:
-            HTTP/1.1 200 OK
-            {
-                "@type": "Document",
-                "id": 1775,
-                "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#RemoteDataObject",
-                "mimeType": "application/json",
-                "plainTextContent": "Hello, world",
-                "tags": [
-                    {
-                        "@type": "Tag",
-                        "text": "hello"
-                    },
-                    {
-                        "@type": "Tag",
-                        "text": "world"
-                    }
-                ],
-                "timeCreated": 1463384282789,
-                "timeModified": 1463384282789,
-                "title": "Hello, world",
-                "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument",
-                "uri": "http://example.com",
-                "user": {
-                    "id": 3,
-                    "role": "USER",
-                    "username": "testuser"
-                }
-            }
+        HTTP/1.1 200 OK
+        {
+        "@type": "Document",
+        "id": 1775,
+        "isStoredAs": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#RemoteDataObject",
+        "mimeType": "application/json",
+        "plainTextContent": "Hello, world",
+        "tags": [
+        {
+        "@type": "Tag",
+        "text": "hello"
+        },
+        {
+        "@type": "Tag",
+        "text": "world"
+        }
+        ],
+        "timeCreated": 1463384282789,
+        "timeModified": 1463384282789,
+        "title": "Hello, world",
+        "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo/#PlainTextDocument",
+        "uri": "http://example.com",
+        "user": {
+        "id": 3,
+        "role": "USER",
+        "username": "testuser"
+        }
+        }
 
         @apiErrorExample {json} Example error response:
-            HTTP/1.1 404 Not Found
-            {
-                "error": "Not Found",
-                "exception": "fi.hiit.dime.AuthorizedController$NotFoundException",
-                "message": "Element not found",
-                "path": "/api/data/informationelement/12345",
-                "status": 404,
-                "timestamp": 1466580641725
-            }
+        HTTP/1.1 404 Not Found
+        {
+        "error": "Not Found",
+        "exception": "fi.hiit.dime.AuthorizedController$NotFoundException",
+        "message": "Element not found",
+        "path": "/api/data/informationelement/12345",
+        "status": 404,
+        "timestamp": 1466580641725
+        }
 
         @apiPermission user
         @apiGroup Information elements
         @apiVersion 0.1.2
-     */
+    */
     @RequestMapping(value="/informationelement/{id}",
                     method = RequestMethod.GET)
-    public ResponseEntity<InformationElement>
+                    public ResponseEntity<InformationElement>
         informationElement(Authentication auth, 
                            @PathVariable Long id,
                            @RequestParam(defaultValue="") String keywords)
@@ -786,12 +786,12 @@ On success, the response will be the uploaded object with some fields like the i
         @apiPermission user
         @apiGroup Information elements
         @apiVersion 0.1.2
-     */
+    */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/informationelement/{id}",
                     method = RequestMethod.DELETE)
-    public ResponseEntity informationElementDelete(Authentication auth, 
-                                                   @PathVariable Long id) 
+                    public ResponseEntity informationElementDelete(Authentication auth, 
+                                                                   @PathVariable Long id) 
         throws NotFoundException
     {
         User user = getUser(auth);
@@ -935,45 +935,45 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam {Number} id The information element's unique ID
         
         @apiExample {json} Example of JSON to upload
-            {
-                "@type": "Tag",
-                "text": "mytag",
-                "auto": true,
-                "time": "2016-03-16T21:22:13.000Z"
-            }
+        {
+        "@type": "Tag",
+        "text": "mytag",
+        "auto": true,
+        "time": "2016-03-16T21:22:13.000Z"
+        }
 
         @apiSuccessExample {json} Example successful response:
-            HTTP/1.1 200 OK
-            {
-                "@type": "SearchEvent",
-                "actor": "My example logger",
-                "duration": 0.0,
-                "end": 1463384282690,
-                "id": 1234,
-                "start": 1463384282690,
-                "tags": [
-                    {
-                        "@type": "Tag",
-                        "id": 1234,
-                        "text": "mytag",
-                        "auto": true,
-                        "time": "2016-03-16T21:22:13.000Z"
-                    }
-                ],
-                "query": "Some search query"
-                "user": {
-                    "id": 3,
-                    "role": "USER",
-                    "username": "testuser"
-                }
-            }
+        HTTP/1.1 200 OK
+        {
+        "@type": "SearchEvent",
+        "actor": "My example logger",
+        "duration": 0.0,
+        "end": 1463384282690,
+        "id": 1234,
+        "start": 1463384282690,
+        "tags": [
+        {
+        "@type": "Tag",
+        "id": 1234,
+        "text": "mytag",
+        "auto": true,
+        "time": "2016-03-16T21:22:13.000Z"
+        }
+        ],
+        "query": "Some search query"
+        "user": {
+        "id": 3,
+        "role": "USER",
+        "username": "testuser"
+        }
+        }
         @apiPermission user
         @apiGroup Tags
         @apiVersion 0.1.2
     */
     @RequestMapping(value="/informationelement/{id}/addtag", 
                     method = RequestMethod.POST)
-    public ResponseEntity<InformationElement>
+                    public ResponseEntity<InformationElement>
         addTag(Authentication auth, @PathVariable Long id,
                @RequestBody Tag input) 
         throws NotFoundException
@@ -991,30 +991,30 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam {Number} id The information element's unique ID
         
         @apiExample {json} Example of JSON to upload
-            [
-                {
-                    "@type": "Tag",
-                    "text": "mytag",
-                    "auto": true,
-                    "time": "2016-03-16T21:22:13.000Z"
-                },
-                {
-                    "@type": "Tag",
-                    "text": "another tag",
-                    "auto": false,
-                    "time": "2016-03-16T21:22:14.000Z"
-                }
-            ]
+        [
+        {
+        "@type": "Tag",
+        "text": "mytag",
+        "auto": true,
+        "time": "2016-03-16T21:22:13.000Z"
+        },
+        {
+        "@type": "Tag",
+        "text": "another tag",
+        "auto": false,
+        "time": "2016-03-16T21:22:14.000Z"
+        }
+        ]
 
         @apiPermission user
         @apiGroup Tags
         @apiVersion 0.1.2
-     */
+    */
     @RequestMapping(value="/informationelement/{id}/addtags", 
                     method = RequestMethod.POST)
-    public ResponseEntity<InformationElement>
+                    public ResponseEntity<InformationElement>
         addTags(Authentication auth, @PathVariable Long id,
-               @RequestBody Tag[] input) 
+                @RequestBody Tag[] input) 
         throws NotFoundException
     {
         User user = getUser(auth);
@@ -1030,12 +1030,12 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam {Number} id The information element's unique ID
         
         @apiExample {json} Example of JSON to upload
-            {
-                "@type": "Tag",
-                "text": "mytag",
-                "auto": true,
-                "time": "2016-03-16T21:22:13.000Z"
-            }
+        {
+        "@type": "Tag",
+        "text": "mytag",
+        "auto": true,
+        "time": "2016-03-16T21:22:13.000Z"
+        }
 
         @apiPermission user
         @apiGroup Tags
@@ -1043,7 +1043,7 @@ On success, the response will be the uploaded object with some fields like the i
     */
     @RequestMapping(value="/informationelement/{id}/removetag", 
                     method = RequestMethod.POST)
-    public ResponseEntity<InformationElement>
+                    public ResponseEntity<InformationElement>
         removeTag(Authentication auth, @PathVariable Long id,
                   @RequestBody Tag input) 
         throws NotFoundException
@@ -1061,17 +1061,17 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam {Number} id Event's unique ID
         
         @apiExample {json} Example of JSON to upload
-            {
-                "@type": "Tag",
-                "text": "mytag",
-                "auto": true,
-                "time": "2016-03-16T21:22:13.000Z"
-            }
+        {
+        "@type": "Tag",
+        "text": "mytag",
+        "auto": true,
+        "time": "2016-03-16T21:22:13.000Z"
+        }
 
         @apiPermission user
         @apiGroup Tags
         @apiVersion 0.1.2
-     */
+    */
     @RequestMapping(value="/event/{id}/addtag", method = RequestMethod.POST)
     public ResponseEntity<Event>
         eventAddTag(Authentication auth, @PathVariable Long id,
@@ -1090,20 +1090,20 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam {Number} id The information element's unique ID
         
         @apiExample {json} Example of JSON to upload
-            [
-                {
-                    "@type": "Tag",
-                    "text": "mytag",
-                    "auto": true,
-                    "time": "2016-03-16T21:22:13.000Z"
-                },
-                {
-                    "@type": "Tag",
-                    "text": "another tag",
-                    "auto": false,
-                    "time": "2016-03-16T21:22:14.000Z"
-                }
-            ]
+        [
+        {
+        "@type": "Tag",
+        "text": "mytag",
+        "auto": true,
+        "time": "2016-03-16T21:22:13.000Z"
+        },
+        {
+        "@type": "Tag",
+        "text": "another tag",
+        "auto": false,
+        "time": "2016-03-16T21:22:14.000Z"
+        }
+        ]
 
         @apiPermission user
         @apiGroup Tags
@@ -1111,7 +1111,7 @@ On success, the response will be the uploaded object with some fields like the i
     */
     @RequestMapping(value="/event/{id}/addtags", 
                     method = RequestMethod.POST)
-    public ResponseEntity<Event>
+                    public ResponseEntity<Event>
         eventAddTags(Authentication auth, @PathVariable Long id,
                      @RequestBody Tag[] input) 
         throws NotFoundException
@@ -1129,12 +1129,12 @@ On success, the response will be the uploaded object with some fields like the i
         @apiParam {Number} id The information element's unique ID
         
         @apiExample {json} Example of JSON to upload
-            {
-                "@type": "Tag",
-                "text": "mytag",
-                "auto": true,
-                "time": "2016-03-16T21:22:13.000Z"
-            }
+        {
+        "@type": "Tag",
+        "text": "mytag",
+        "auto": true,
+        "time": "2016-03-16T21:22:13.000Z"
+        }
 
         @apiPermission user
         @apiGroup Tags
@@ -1142,7 +1142,7 @@ On success, the response will be the uploaded object with some fields like the i
     */
     @RequestMapping(value="/event/{id}/removetag", 
                     method = RequestMethod.POST)
-    public ResponseEntity<Event>
+                    public ResponseEntity<Event>
         eventRemoveTag(Authentication auth, @PathVariable Long id,
                        @RequestBody Tag input) 
         throws NotFoundException

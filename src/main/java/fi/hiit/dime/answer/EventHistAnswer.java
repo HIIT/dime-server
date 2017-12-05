@@ -37,7 +37,7 @@ public class EventHistAnswer {
     public List<EventCount> hist;
 
     public EventHistAnswer(Date date, List<EventCount> hist) {
-	this.date = date;
-	this.hist = hist;
+        this.date = date;
+        this.hist = hist;
     }
 }

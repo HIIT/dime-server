@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015-2016 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -20,7 +20,7 @@
   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
- */
+*/
 
 package fi.hiit.dime;
 
@@ -98,471 +98,468 @@ import xdi2.messaging.container.MessagingContainer;
 @RestController
 @RequestMapping("/api")
 public class ApiController extends AuthorizedController {
-	private static final Logger LOG =
-			LoggerFactory.getLogger(ApiController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ApiController.class);
 
-	public static final int RETRIES = 3;
+    public static final int RETRIES = 3;
 
-	private final EventDAO eventDAO;
-	private final InformationElementDAO infoElemDAO;
-	private final ProfileDAO profileDAO;
+    private final EventDAO eventDAO;
+    private final InformationElementDAO infoElemDAO;
+    private final ProfileDAO profileDAO;
 
-	@Value("${application.formatted-version}")
-	private String dimeVersion;
+    @Value("${application.formatted-version}")
+    private String dimeVersion;
 
-	@Autowired
-	private DiMeProperties dimeConfig;
+    @Autowired
+    private DiMeProperties dimeConfig;
 
-	@Autowired
-	SearchIndex searchIndex;
+    @Autowired
+    SearchIndex searchIndex;
 
-	@Autowired 
-	private ObjectMapper objectMapper;
+    @Autowired 
+    private ObjectMapper objectMapper;
 
-	@Autowired
-	ApiController(EventDAO eventDAO,
-			InformationElementDAO infoElemDAO,
-			ProfileDAO profileDAO) {
-		this.eventDAO = eventDAO;
-		this.infoElemDAO = infoElemDAO;
-		this.profileDAO = profileDAO;
-	}
+    @Autowired
+    ApiController(EventDAO eventDAO,
+                  InformationElementDAO infoElemDAO,
+                  ProfileDAO profileDAO) {
+        this.eventDAO = eventDAO;
+        this.infoElemDAO = infoElemDAO;
+        this.profileDAO = profileDAO;
+    }
 
-	/**
-        Class for "dummy" API responses which just return a simple
-        message string.
-	 */
-	@JsonInclude(value=JsonInclude.Include.NON_NULL)
-	public static class ApiMessage {
-		public String message;
-		public String version;
-		public String userId;
-	}
+    /**
+       Class for "dummy" API responses which just return a simple
+       message string.
+    */
+    @JsonInclude(value=JsonInclude.Include.NON_NULL)
+    public static class ApiMessage {
+        public String message;
+        public String version;
+        public String userId;
+    }
 
-	/**
-        @api {get} /ping Ping server
-        @apiName Ping
-        @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access. Also returns the DiMe server version.  Authentication is optional, but if you're authenticated it also returns the userId of the authenticated user.
+    /**
+       @api {get} /ping Ping server
+       @apiName Ping
+       @apiDescription A way to "ping" the dime-server to see if it's running, and there is network access. Also returns the DiMe server version.  Authentication is optional, but if you're authenticated it also returns the userId of the authenticated user.
 
-        @apiExample {python} Example usage:
-            r = requests.post(server_url + '/ping',
-                              timeout=10)         # e.g. in case of network problems
-            ok = r.status_code == requests.codes.ok
+       @apiExample {python} Example usage:
+       r = requests.post(server_url + '/ping',
+       timeout=10)         # e.g. in case of network problems
+       ok = r.status_code == requests.codes.ok
 
-        @apiSuccessExample {json} Example successful response:
-            HTTP/1.1 200 OK
-            {
-                "message": "pong",
-                "version": "v0.1.2",
-                "userId": "15524094-5a7c-4b22-8bcd-ddb987a0dd85"
-            }
-        @apiGroup Status
-        @apiVersion 0.1.2
-	 */
-	@RequestMapping("/ping")
-	public ResponseEntity<ApiMessage> ping(Authentication auth, ServletRequest req) {
-		LOG.info("Received ping from " + req.getRemoteHost());
+       @apiSuccessExample {json} Example successful response:
+       HTTP/1.1 200 OK
+       {
+       "message": "pong",
+       "version": "v0.1.2",
+       "userId": "15524094-5a7c-4b22-8bcd-ddb987a0dd85"
+       }
+       @apiGroup Status
+       @apiVersion 0.1.2
+    */
+    @RequestMapping("/ping")
+    public ResponseEntity<ApiMessage> ping(Authentication auth, ServletRequest req) {
+        LOG.info("Received ping from " + req.getRemoteHost());
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-		ApiMessage msg = new ApiMessage();
-		msg.message = "pong";
-		msg.version = dimeVersion;
-		msg.userId = null;
-		if (auth != null)
-			msg.userId = getUser(auth).userId;
+        ApiMessage msg = new ApiMessage();
+        msg.message = "pong";
+        msg.version = dimeVersion;
+        msg.userId = null;
+        if (auth != null)
+            msg.userId = getUser(auth).userId;
 
-		return new ResponseEntity<ApiMessage>(msg, headers, HttpStatus.OK);
-	}
+        return new ResponseEntity<ApiMessage>(msg, headers, HttpStatus.OK);
+    }
 
-	@JsonInclude(value=JsonInclude.Include.NON_NULL)
-	public static class LeaderboardPayload {
-		public String userId;
-		public String username;
-		public Long eventCount;
-		public Double time;
-	}
+    @JsonInclude(value=JsonInclude.Include.NON_NULL)
+    public static class LeaderboardPayload {
+        public String userId;
+        public String username;
+        public Long eventCount;
+        public Double time;
+    }
 
-	/** @api {post} /updateleaderboard Update event count to the DiMe leaderboard
+    /** @api {post} /updateleaderboard Update event count to the DiMe leaderboard
         @apiName UpdateLeaderboard
         @apiDescription On success, the response will be the JSON object returned by the leaderboard server.
 
         @apiSuccessExample {json} Example successful response:
-            HTTP/1.1 200 OK
-            {
-                "username": "testuser",
-                "eventCount": 12,
-                "time": 1478859922942.0,
-                "userId": "15524094-5a7c-4b22-8bcd-ddb987a0dd85"
-            }
+        HTTP/1.1 200 OK
+        {
+        "username": "testuser",
+        "eventCount": 12,
+        "time": 1478859922942.0,
+        "userId": "15524094-5a7c-4b22-8bcd-ddb987a0dd85"
+        }
         @apiPermission user
         @apiGroup Status
         @apiVersion 0.2.0
-	 */
-	@ResponseStatus(value = HttpStatus.NO_CONTENT)
-	@RequestMapping(value="/updateleaderboard", method = RequestMethod.POST)
-	public ResponseEntity<LeaderboardPayload> updateLeaderboard(Authentication auth) {
-		User user = getUser(auth);
+    */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    @RequestMapping(value="/updateleaderboard", method = RequestMethod.POST)
+    public ResponseEntity<LeaderboardPayload> updateLeaderboard(Authentication auth) {
+        User user = getUser(auth);
 
-		LeaderboardPayload payload = new LeaderboardPayload();
-		payload.userId = user.userId;
-		payload.username = user.username;
-		payload.eventCount = eventDAO.count(user);
+        LeaderboardPayload payload = new LeaderboardPayload();
+        payload.userId = user.userId;
+        payload.username = user.username;
+        payload.eventCount = eventDAO.count(user);
 
-		RestTemplate rest = new RestTemplate();
-		String endpoint = dimeConfig.getLeaderboardEndpoint();
-		ResponseEntity<LeaderboardPayload> res = 
-				rest.postForEntity(endpoint, payload, LeaderboardPayload.class);
-		assert(res.getStatusCode().is2xxSuccessful());
+        RestTemplate rest = new RestTemplate();
+        String endpoint = dimeConfig.getLeaderboardEndpoint();
+        ResponseEntity<LeaderboardPayload> res = 
+            rest.postForEntity(endpoint, payload, LeaderboardPayload.class);
+        assert(res.getStatusCode().is2xxSuccessful());
 
-		LOG.info("Response from leaderboard ({}):", endpoint);
-		try {
-			LOG.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(res.getBody()));
-		} catch (IOException e) {
-		}
+        LOG.info("Response from leaderboard ({}):", endpoint);
+        try {
+            LOG.info(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(res.getBody()));
+        } catch (IOException e) {
+        }
 
-		return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
-	}
+        return new ResponseEntity<LeaderboardPayload>(res.getBody(), HttpStatus.OK);
+    }
 
-	private Profile getProfile(Long profileId, User user) 
-			throws NotFoundException 
-	{
-		Profile profile = profileDAO.findById(profileId, user);
+    private Profile getProfile(Long profileId, User user) 
+        throws NotFoundException 
+    {
+        Profile profile = profileDAO.findById(profileId, user);
 
-		if (profile == null || !profile.user.getId().equals(user.getId()))
-			throw new NotFoundException("Profile not found");
-		return profile;
-	}
+        if (profile == null || !profile.user.getId().equals(user.getId()))
+            throw new NotFoundException("Profile not found");
+        return profile;
+    }
 
     @JsonInclude(value=JsonInclude.Include.NON_NULL)
     public static class TrustAnchorPayload {
         public String registerURL;
     }
 
-	/** @api {get} /sendtotrustanchor Create a DID in our wallet and redirect to a Sovrin trust anchor
+    /** @api {get} /sendtotrustanchor Create a DID in our wallet and redirect to a Sovrin trust anchor
         @apiName SendToTrustAnchor
         @apiParam {Number} id The profile id
         @apiDescription On success, an HTTP redirect will be issued.
 
         @apiPermission user
         @apiGroup Status
-        @apiVersion 0.2.1
-	 */
-	@RequestMapping(value="/sendtotrustanchor/{id}", method = RequestMethod.GET)
-	public ResponseEntity<TrustAnchorPayload> sendToTrustAnchor(Authentication auth,
-                                              @PathVariable Long id)
-			throws NotFoundException
-	{
-		User user = getUser(auth);
-		Profile profile = getProfile(id, user);
+        @apiVersion 1.0
+    */
+    @RequestMapping(value="/sendtotrustanchor/{id}", method = RequestMethod.GET)
+    public ResponseEntity<TrustAnchorPayload> sendToTrustAnchor(Authentication auth,
+                                                                @PathVariable Long id)
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        Profile profile = getProfile(id, user);
 
-		LOG.info("Send to trust anchor, user {}, profile {}", user.username, profile.name);
+        LOG.info("Send to trust anchor, user {}, profile {}", user.username, profile.name);
 
-		// create DID locally
+        // create DID locally
 
-		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
-		String did = didXDIAddress == null ? null : XdiService.didStringFromXDIAddress(didXDIAddress);
-		String verkey = XdiService.getProfileVerkey(profile);
+        XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+        String did = didXDIAddress == null ? null : XdiService.didStringFromXDIAddress(didXDIAddress);
+        String verkey = XdiService.getProfileVerkey(profile);
 
-		if (didXDIAddress == null || verkey == null) {
+        if (didXDIAddress == null || verkey == null) {
 
-			try {
+            try {
 
-				// create USER DID
+                // create USER DID
 
-				CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameter = new CreateAndStoreMyDidJSONParameter(null, null, null, null);
-				CreateAndStoreMyDidResult createAndStoreMyDidResult = Signus.createAndStoreMyDid(SovrinService.get().getWallet(), createAndStoreMyDidJSONParameter.toJson()).get();
-				LOG.info("CreateAndStoreMyDidResult: " + createAndStoreMyDidResult);
+                CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameter = new CreateAndStoreMyDidJSONParameter(null, null, null, null);
+                CreateAndStoreMyDidResult createAndStoreMyDidResult = Signus.createAndStoreMyDid(SovrinService.get().getWallet(), createAndStoreMyDidJSONParameter.toJson()).get();
+                LOG.info("CreateAndStoreMyDidResult: " + createAndStoreMyDidResult);
 
-				did = createAndStoreMyDidResult.getDid();
-				didXDIAddress = XdiService.XDIAddressFromDidString(did);
-				verkey = createAndStoreMyDidResult.getVerkey();
+                did = createAndStoreMyDidResult.getDid();
+                didXDIAddress = XdiService.XDIAddressFromDidString(did);
+                verkey = createAndStoreMyDidResult.getVerkey();
 
-				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
-				XdiService.setProfileVerkey(profile, verkey);
+                XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+                XdiService.setProfileVerkey(profile, verkey);
 
-				// done
+                // done
 
-				LOG.info("Created DID: " + did + " with verkey " + verkey);
-			} catch (Exception ex) {
+                LOG.info("Created DID: " + did + " with verkey " + verkey);
+            } catch (Exception ex) {
 
-				throw new RuntimeException("Cannot create DID: " + ex.getMessage(), ex);
-			}
-		}
+                throw new RuntimeException("Cannot create DID: " + ex.getMessage(), ex);
+            }
+        }
 
-		// redirect to trust anchor service
+        // redirect to trust anchor service
 
-		String uri = dimeConfig.getTrustanchorEndpoint();
-		uri += "?did=" + did;
-		uri += "&verkey=" + verkey;
+        String uri = dimeConfig.getTrustanchorEndpoint();
+        uri += "?did=" + did;
+        uri += "&verkey=" + verkey;
 
-                //return new RedirectView(uri);
+        //return new RedirectView(uri);
 
-                TrustAnchorPayload payload = new TrustAnchorPayload();
-                payload.registerURL = uri;
-                return new ResponseEntity<TrustAnchorPayload>(payload, HttpStatus.OK);
-	}
+        TrustAnchorPayload payload = new TrustAnchorPayload();
+        payload.registerURL = uri;
+        return new ResponseEntity<TrustAnchorPayload>(payload, HttpStatus.OK);
+    }
 
-	/** @api {post} /sendtopeoplefinder Upload profile to People Finder service
+    /** @api {post} /sendtopeoplefinder Upload profile to People Finder service
         @apiName SendToPeopleFinder
         @apiParam {Number} id The profile id
         @apiDescription On success, the response will be an empty HTTP 204.
 
         @apiPermission user
         @apiGroup Status
-        @apiVersion 0.2.1
-	 */
-	@ResponseStatus(value = HttpStatus.NO_CONTENT)
-	@RequestMapping(value="/sendtopeoplefinder/{id}", method = RequestMethod.POST)
-	public ResponseEntity sendToPeopleFinder(Authentication auth, @PathVariable Long id)
-			throws NotFoundException
-	{
-		User user = getUser(auth);
-		Profile profile = getProfile(id, user);
+        @apiVersion 1.0
+    */
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    @RequestMapping(value="/sendtopeoplefinder/{id}", method = RequestMethod.POST)
+    public ResponseEntity sendToPeopleFinder(Authentication auth, @PathVariable Long id)
+        throws NotFoundException
+    {
+        User user = getUser(auth);
+        Profile profile = getProfile(id, user);
 
-		LOG.info("Send to people finder, user {}, profile {}", user.username, profile.name);
+        LOG.info("Send to people finder, user {}, profile {}", user.username, profile.name);
 
-		// create DID in Sovrin
+        // create DID in Sovrin
 
-		XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
-		String did = didXDIAddress == null ? null : XdiService.didStringFromXDIAddress(didXDIAddress);
-		String verkey = XdiService.getProfileVerkey(profile);
+        XDIAddress didXDIAddress = XdiService.getProfileDidXDIAddress(profile);
+        String did = didXDIAddress == null ? null : XdiService.didStringFromXDIAddress(didXDIAddress);
+        String verkey = XdiService.getProfileVerkey(profile);
 
-		if (dimeConfig.getSovrinSelfRegisteringDID() && (didXDIAddress == null || verkey == null)) {
+        if (dimeConfig.getSovrinSelfRegisteringDID() && (didXDIAddress == null || verkey == null)) {
 
-			try {
+            try {
 
-				// create USER DID
+                // create USER DID
 
-				CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameter = new CreateAndStoreMyDidJSONParameter(null, null, null, null);
-				CreateAndStoreMyDidResult createAndStoreMyDidResult = Signus.createAndStoreMyDid(SovrinService.get().getWallet(), createAndStoreMyDidJSONParameter.toJson()).get();
-				LOG.info("CreateAndStoreMyDidResult: " + createAndStoreMyDidResult);
+                CreateAndStoreMyDidJSONParameter createAndStoreMyDidJSONParameter = new CreateAndStoreMyDidJSONParameter(null, null, null, null);
+                CreateAndStoreMyDidResult createAndStoreMyDidResult = Signus.createAndStoreMyDid(SovrinService.get().getWallet(), createAndStoreMyDidJSONParameter.toJson()).get();
+                LOG.info("CreateAndStoreMyDidResult: " + createAndStoreMyDidResult);
 
-				did = createAndStoreMyDidResult.getDid();
-				didXDIAddress = XdiService.XDIAddressFromDidString(did);
-				verkey = createAndStoreMyDidResult.getVerkey();
+                did = createAndStoreMyDidResult.getDid();
+                didXDIAddress = XdiService.XDIAddressFromDidString(did);
+                verkey = createAndStoreMyDidResult.getVerkey();
 
-				XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
-				XdiService.setProfileVerkey(profile, verkey);
+                XdiService.setProfileDidXDIAddress(profile, didXDIAddress);
+                XdiService.setProfileVerkey(profile, verkey);
 
-				// NYM request
+                // NYM request
 
-				String buildNymRequestResult = null;
-				String signAndSubmitRequestResult = null;
+                String buildNymRequestResult = null;
+                String signAndSubmitRequestResult = null;
 
-				for (int i=0; i<RETRIES; i++) {
+                for (int i=0; i<RETRIES; i++) {
 
-					try {
+                    try {
 
-						buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_DID, did, verkey, null, null).get(5, TimeUnit.SECONDS);
-						LOG.info("Retry #" + i + ": Success: " + buildNymRequestResult);
-						break;
-					} catch (TimeoutException ex) {
+                        buildNymRequestResult = Ledger.buildNymRequest(SovrinService.TRUSTEE_DID, did, verkey, null, null).get(5, TimeUnit.SECONDS);
+                        LOG.info("Retry #" + i + ": Success: " + buildNymRequestResult);
+                        break;
+                    } catch (TimeoutException ex) {
 
-						LOG.warn("Retry #" + i + ": " + ex.getMessage());
-						if (i+1 < RETRIES) continue; else throw ex;
-					}
-				}
+                        LOG.warn("Retry #" + i + ": " + ex.getMessage());
+                        if (i+1 < RETRIES) continue; else throw ex;
+                    }
+                }
 
-				for (int i=0; i<RETRIES; i++) {
+                for (int i=0; i<RETRIES; i++) {
 
-					try {
+                    try {
 
-						signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), SovrinService.TRUSTEE_DID, buildNymRequestResult).get(5, TimeUnit.SECONDS);
-						LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
-						break;
-					} catch (TimeoutException ex) {
+                        signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), SovrinService.TRUSTEE_DID, buildNymRequestResult).get(5, TimeUnit.SECONDS);
+                        LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
+                        break;
+                    } catch (TimeoutException ex) {
 
-						LOG.warn("Retry #" + i + ": " + ex.getMessage());
-						if (i+1 < RETRIES) continue; else throw ex;
-					}
-				}
+                        LOG.warn("Retry #" + i + ": " + ex.getMessage());
+                        if (i+1 < RETRIES) continue; else throw ex;
+                    }
+                }
 
-				// done
+                // done
 
-				LOG.info("Created DID and registered in Sovrin: " + did + " with verkey " + verkey);
-			} catch (Exception ex) {
+                LOG.info("Created DID and registered in Sovrin: " + did + " with verkey " + verkey);
+            } catch (Exception ex) {
 
-				throw new RuntimeException("Cannot create DID and register in Sovrin: " + ex.getMessage(), ex);
-			}
-		}
+                throw new RuntimeException("Cannot create DID and register in Sovrin: " + ex.getMessage(), ex);
+            }
+        }
 
-		// set host in Sovrin
+        // set host in Sovrin
 
-		String uri = dimeConfig.getBaseUri();
-		if (! uri.endsWith("/")) uri += "/";
-		uri += "xdi/dime/" + didXDIAddress.toString();
+        String uri = dimeConfig.getBaseUri();
+        if (! uri.endsWith("/")) uri += "/";
+        uri += "xdi/dime/" + didXDIAddress.toString();
 
-		try {
+        try {
 
-			// ATTRIB request
+            // ATTRIB request
 
-			String buildAttribRequestResult = null;
-			String signAndSubmitRequestResult = null;
+            String buildAttribRequestResult = null;
+            String signAndSubmitRequestResult = null;
 
-			for (int i=0; i<RETRIES; i++) {
+            for (int i=0; i<RETRIES; i++) {
 
-				try {
+                try {
 
-					buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get(5, TimeUnit.SECONDS);
-					LOG.info("Retry #" + i + ": Success: " + buildAttribRequestResult);
-					break;
-				} catch (TimeoutException ex) {
+                    buildAttribRequestResult = Ledger.buildAttribRequest(did, did, null, "{\"endpoint\":{\"xdi\":\"" + uri.replace("\"", "\\\"") + "\"}}", null).get(5, TimeUnit.SECONDS);
+                    LOG.info("Retry #" + i + ": Success: " + buildAttribRequestResult);
+                    break;
+                } catch (TimeoutException ex) {
 
-					LOG.warn("Retry #" + i + ": " + ex.getMessage());
-					if (i+1 < RETRIES) continue; else throw ex;
-				}
-			}
+                    LOG.warn("Retry #" + i + ": " + ex.getMessage());
+                    if (i+1 < RETRIES) continue; else throw ex;
+                }
+            }
 
-			for (int i=0; i<RETRIES; i++) {
+            for (int i=0; i<RETRIES; i++) {
 
-				try {
+                try {
 
-					signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult).get(5, TimeUnit.SECONDS);
-					LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
-					break;
-				} catch (TimeoutException ex) {
+                    signAndSubmitRequestResult = Ledger.signAndSubmitRequest(SovrinService.get().getPool(), SovrinService.get().getWallet(), did, buildAttribRequestResult).get(5, TimeUnit.SECONDS);
+                    LOG.info("Retry #" + i + ": Success: " + signAndSubmitRequestResult);
+                    break;
+                } catch (TimeoutException ex) {
 
-					LOG.warn("Retry #" + i + ": " + ex.getMessage());
-					if (i+1 < RETRIES) continue; else throw ex;
-				}
-			}
+                    LOG.warn("Retry #" + i + ": " + ex.getMessage());
+                    if (i+1 < RETRIES) continue; else throw ex;
+                }
+            }
 
-			// done
+            // done
 
-			LOG.info("Set URI in Sovrin: " + uri);
-		} catch (Exception ex) {
+            LOG.info("Set URI in Sovrin: " + uri);
+        } catch (Exception ex) {
 
-			throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
-		}
+            throw new RuntimeException("Cannot create DID in Sovrin: " + ex.getMessage(), ex);
+        }
 
-		// prepare XDI request
+        // prepare XDI request
 
-		XDIAddress peopleFinderXDIAddress = XDIAddress.create("+!:did:sov:VpumqBbcVi86RvpEo8lvOn");
-		XDIAddress profileTagsXDIAddress = XDIAddressUtil.concatXDIAddresses(didXDIAddress, XDIAddress.create("#dime#profile[<#tag>]"));
-		XDIAddress publicLinkContractXDIAddress = PublicLinkContract.createPublicLinkContractXDIAddress(didXDIAddress);
-		Graph resultGraph;
+        XDIAddress peopleFinderXDIAddress = XDIAddress.create("+!:did:sov:VpumqBbcVi86RvpEo8lvOn");
+        XDIAddress profileTagsXDIAddress = XDIAddressUtil.concatXDIAddresses(didXDIAddress, XDIAddress.create("#dime#profile[<#tag>]"));
+        XDIAddress publicLinkContractXDIAddress = PublicLinkContract.createPublicLinkContractXDIAddress(didXDIAddress);
+        Graph resultGraph;
 
-		// XDI request to local messaging container
+        // XDI request to local messaging container
 
-		try {
+        try {
 
-			MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
-			MessageEnvelope messageEnvelope = new MessageEnvelope();
-			Message message = messageEnvelope.createMessage(didXDIAddress, -1);
-			message.createGetOperation(profileTagsXDIAddress);
-			message.createSetOperation(XDIStatement.fromComponents(XDIAddressUtil.concatXDIAddresses(publicLinkContractXDIAddress, XDILinkContractConstants.XDI_ARC_DO), XDILinkContractConstants.XDI_ADD_GET, profileTagsXDIAddress));
+            MessagingContainer messagingContainer = XdiService.get().myLocalMessagingContainer(profile);
+            MessageEnvelope messageEnvelope = new MessageEnvelope();
+            Message message = messageEnvelope.createMessage(didXDIAddress, -1);
+            message.createGetOperation(profileTagsXDIAddress);
+            message.createSetOperation(XDIStatement.fromComponents(XDIAddressUtil.concatXDIAddresses(publicLinkContractXDIAddress, XDILinkContractConstants.XDI_ARC_DO), XDILinkContractConstants.XDI_ADD_GET, profileTagsXDIAddress));
 
-			XDILocalClient client = new XDILocalClient(messagingContainer);
-			resultGraph = client.send(messageEnvelope).getResultGraph();
-		} catch (Xdi2ClientException ex) {
+            XDILocalClient client = new XDILocalClient(messagingContainer);
+            resultGraph = client.send(messageEnvelope).getResultGraph();
+        } catch (Xdi2ClientException ex) {
 
-			LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
-			return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+            LOG.error("Cannot execute local XDI message: " + ex.getMessage(), ex);
+            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-		// XDI request to People Finder
+        // XDI request to People Finder
 
-		try {
+        try {
 
-			MessageEnvelope messageEnvelope = new MessageEnvelope();
-			Message message1 = messageEnvelope.createMessage(didXDIAddress, -1);
-			message1.setFromXDIAddress(didXDIAddress);
-			message1.setToXDIAddress(peopleFinderXDIAddress);
-			message1.createDelOperation(didXDIAddress);
-			Message message2 = messageEnvelope.createMessage(didXDIAddress, -1);
-			message2.setFromXDIAddress(didXDIAddress);
-			message2.setToXDIAddress(peopleFinderXDIAddress);
-			message2.createSetOperation(resultGraph);
+            MessageEnvelope messageEnvelope = new MessageEnvelope();
+            Message message1 = messageEnvelope.createMessage(didXDIAddress, -1);
+            message1.setFromXDIAddress(didXDIAddress);
+            message1.setToXDIAddress(peopleFinderXDIAddress);
+            message1.createDelOperation(didXDIAddress);
+            Message message2 = messageEnvelope.createMessage(didXDIAddress, -1);
+            message2.setFromXDIAddress(didXDIAddress);
+            message2.setToXDIAddress(peopleFinderXDIAddress);
+            message2.createSetOperation(resultGraph);
 
-			XDIHttpClient client = new XDIHttpClient(dimeConfig.getPeoplefinderEndpoint());
-			client.send(messageEnvelope);
-			client.close();
-		} catch (Xdi2ClientException ex) {
+            XDIHttpClient client = new XDIHttpClient(dimeConfig.getPeoplefinderEndpoint());
+            client.send(messageEnvelope);
+            client.close();
+        } catch (Xdi2ClientException ex) {
 
-			LOG.error("Cannot send XDI message to People Finder: " + ex.getMessage(), ex);
-			return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+            LOG.error("Cannot send XDI message to People Finder: " + ex.getMessage(), ex);
+            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-		// On success
+        // On success
 
-		return new ResponseEntity(HttpStatus.NO_CONTENT);
-	}
+        return new ResponseEntity(HttpStatus.NO_CONTENT);
+    }
 
 
-	@Transactional(readOnly=true)
-	@Scheduled(initialDelay=30000, fixedRate=60000)
-	public void updateSearchIndex() {
-		LOG.debug("Scheduled checking of Lucene index.");
-		searchIndex.updateIndex();        
-	}
+    @Transactional(readOnly=true)
+    @Scheduled(initialDelay=30000, fixedRate=60000)
+    public void updateSearchIndex() {
+        LOG.debug("Scheduled checking of Lucene index.");
+        searchIndex.updateIndex();        
+    }
 
-	/**
+    /**
        Helper method to transform the search results into an
        appropriate format for returning from the API.
-	 */
+    */
+    protected SearchResults doSearch(SearchQuery query, String className,
+                                     String typeName, int limit, User user,
+                                     WeightType termWeighting, boolean updateIndex)
+        throws IOException, SearchQueryException
+    {
+        if (query.isEmpty())
+            return new SearchResults();
 
-	protected SearchResults doSearch(SearchQuery query, String className,
-			String typeName, int limit, User user,
-			WeightType termWeighting, boolean updateIndex)
-					throws IOException, SearchQueryException
-	{
-		if (query.isEmpty())
-			return new SearchResults();
+        if (updateIndex)
+            searchIndex.updateIndex();
 
-		if (updateIndex)
-			searchIndex.updateIndex();
+        SearchResults res = searchIndex.search(query, className, typeName,
+                                               limit, user.getId(),
+                                               termWeighting);
+        searchIndex.mapToElements(res);
 
-		SearchResults res = searchIndex.search(query, className, typeName,
-				limit, user.getId(),
-				termWeighting);
-		searchIndex.mapToElements(res);
+        LOG.info("Search query \"{}\" (limit={}) returned {} results.",
+                 query, limit, res.getNumFound());
+        return res;
+    }
 
-		LOG.info("Search query \"{}\" (limit={}) returned {} results.",
-				query, limit, res.getNumFound());
-		return res;
-	}
-
-	/**
+    /**
        Helper method to transform the information element search
        results into their corresponding events for returning from the
        API.
-	 */
+    */
+    protected SearchResults doEventSearch(SearchQuery query, String className,
+                                          String typeName, int limit, User user,
+                                          WeightType termWeighting, boolean updateIndex)
+        throws IOException, SearchQueryException
+    {
+        if (query.isEmpty())
+            return new SearchResults();
 
-	protected SearchResults doEventSearch(SearchQuery query, String className,
-			String typeName, int limit, User user,
-			WeightType termWeighting, boolean updateIndex)
-					throws IOException, SearchQueryException
-	{
-		if (query.isEmpty())
-			return new SearchResults();
+        if (updateIndex)
+            searchIndex.updateIndex();
 
-		if (updateIndex)
-			searchIndex.updateIndex();
+        SearchResults res = searchIndex.search(query, className, typeName,
+                                               limit, user.getId(),
+                                               termWeighting);
+        searchIndex.mapToEvents(res, user);
 
-		SearchResults res = searchIndex.search(query, className, typeName,
-				limit, user.getId(),
-				termWeighting);
-		searchIndex.mapToEvents(res, user);
+        LOG.info("Search query \"{}\" (limit={}) returned {} results.",
+                 query, limit, res.getNumFound());
 
-		LOG.info("Search query \"{}\" (limit={}) returned {} results.",
-				query, limit, res.getNumFound());
+        return res;
+    }
 
-		return res;
-	}
-
-	/**
+    /**
        @apiDefine user User access 
        You need to be authenticated as a registered DiMe user.
-	 */
+    */
 
-	/** HTTP end point for uploading a single event. 
+    /** HTTP end point for uploading a single event. 
         @api {get} /search Information element search
         @apiName SearchInformationElement
         @apiDescription Perform a text search on existing information elements in DiMe. The search is performed using Lucene in the DiMe backend.
 
-It returns an object that contains some meta-data and in the "docs" element a list of InformationElement objects together with a score indicating the relevance of the object to the search query. The list is sorted by this score, descending.
+        It returns an object that contains some meta-data and in the "docs" element a list of InformationElement objects together with a score indicating the relevance of the object to the search query. The list is sorted by this score, descending.
 
         @apiParam {Number} query Query text to search for
 
@@ -571,207 +568,207 @@ It returns an object that contains some meta-data and in the "docs" element a li
         @apiParam (Options) {Boolean} [updateIndex] set to "true" to force an index update before the search
 
         @apiSuccessExample {json} Example successful response:
-            HTTP/1.1 200 OK
-            {
-              "docs": [
-                {
-                  "plainTextContent": "Some text content\n",
-                  "user": {
-                    "id": "5524d8ede4b06e42cc0e0aca",
-                    "role": "USER",
-                    "username": "testuser"
-                  },
-                  "uri": "file:///home/testuser/some_file.txt",
-                  "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
-                  "mimeType": "text/plain",
-                  "timeCreated": 1430142736819,
-                  "id": "d8b5b874e4bae5a6f6260e1042281e91c69d305e",
-                  "timeModified": 1430142736819,
-                  "score": 0.75627613,
-                  "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
-                },
-                {
-                  "plainTextContent": "Some other text content",
-                  "user": {
-                    "id": "5524d8ede4b06e42cc0e0aca",
-                    "role": "USER",
-                    "username": "testuser"
-                  },
-                  "uri": "file:///home/testuser/another_file.txt",
-                  "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
-                  "mimeType": "text/plain",
-                  "timeCreated": 1430142737246,
-                  "id": "99db4832be27cff6b08a1f91afbf0401cad49d15",
-                  "timeModified": 1430142737246,
-                  "score": 0.75342464,
-                  "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
-                }
-              ],
-              "numFound": 2
-            }
+        HTTP/1.1 200 OK
+        {
+        "docs": [
+        {
+        "plainTextContent": "Some text content\n",
+        "user": {
+        "id": "5524d8ede4b06e42cc0e0aca",
+        "role": "USER",
+        "username": "testuser"
+        },
+        "uri": "file:///home/testuser/some_file.txt",
+        "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
+        "mimeType": "text/plain",
+        "timeCreated": 1430142736819,
+        "id": "d8b5b874e4bae5a6f6260e1042281e91c69d305e",
+        "timeModified": 1430142736819,
+        "score": 0.75627613,
+        "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
+        },
+        {
+        "plainTextContent": "Some other text content",
+        "user": {
+        "id": "5524d8ede4b06e42cc0e0aca",
+        "role": "USER",
+        "username": "testuser"
+        },
+        "uri": "file:///home/testuser/another_file.txt",
+        "type": "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#TextDocument",
+        "mimeType": "text/plain",
+        "timeCreated": 1430142737246,
+        "id": "99db4832be27cff6b08a1f91afbf0401cad49d15",
+        "timeModified": 1430142737246,
+        "score": 0.75342464,
+        "isStoredAs": "http://www.semanticdesktop.org/ontologies/nfo#FileDataObject"
+        }
+        ],
+        "numFound": 2
+        }
 
         @apiErrorExample {json} Example error response for erroneous Lucene query:
-            HTTP/1.1 400 OK
-            {
-              "docs": [],
-              "message": "Syntax Error, cannot parse a::  ",
-              "numFound": 0
-            }
+        HTTP/1.1 400 OK
+        {
+        "docs": [],
+        "message": "Syntax Error, cannot parse a::  ",
+        "numFound": 0
+        }
 
         @apiPermission user
         @apiGroup Search
         @apiVersion 0.1.2
-	 */
-	@RequestMapping(value="/search", method = RequestMethod.GET)
-	public ResponseEntity<SearchResults>
-	search(Authentication auth,
-			@RequestParam String query,
-			@RequestParam(value="@type", required=false) String className,
-			@RequestParam(value="type", required=false) String typeName,
-			@RequestParam(value="includeTerms", required=false, 
-			defaultValue="") String includeTerms,
-			@RequestParam(defaultValue="-1") int limit,
-			@RequestParam(defaultValue="false") boolean updateIndex)
-	{
-		User user = getUser(auth);
+    */
+    @RequestMapping(value="/search", method = RequestMethod.GET)
+    public ResponseEntity<SearchResults>
+        search(Authentication auth,
+               @RequestParam String query,
+               @RequestParam(value="@type", required=false) String className,
+               @RequestParam(value="type", required=false) String typeName,
+               @RequestParam(value="includeTerms", required=false, 
+                             defaultValue="") String includeTerms,
+               @RequestParam(defaultValue="-1") int limit,
+               @RequestParam(defaultValue="false") boolean updateIndex)
+    {
+        User user = getUser(auth);
 
-		try {
-			TextSearchQuery textQuery = new TextSearchQuery(query);
-			SearchResults results = doSearch(textQuery, className, typeName, limit, user, 
-					weightType(includeTerms), updateIndex);
+        try {
+            TextSearchQuery textQuery = new TextSearchQuery(query);
+            SearchResults results = doSearch(textQuery, className, typeName, limit, user, 
+                                             weightType(includeTerms), updateIndex);
 
-			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-		} catch (IOException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (SearchQueryException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.BAD_REQUEST);
-		}
-	}
+            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
+        }
+    }
 
-	/**
-        @api {get} /eventsearch Event search
-        @apiName SearchEvent
-        @apiDescription Perform a text search on existing events in
-        DiMe. Most events do not contain any text content by
-        themselves, and for these the search is actually performed
-        against the information element objects they are linked to. For
-        example if a document matches the search, all the events which
-        refer to the object are returned. The search is performed
-        using Lucene in the DiMe backend.
+    /**
+       @api {get} /eventsearch Event search
+       @apiName SearchEvent
+       @apiDescription Perform a text search on existing events in
+       DiMe. Most events do not contain any text content by
+       themselves, and for these the search is actually performed
+       against the information element objects they are linked to. For
+       example if a document matches the search, all the events which
+       refer to the object are returned. The search is performed
+       using Lucene in the DiMe backend.
 
-The end point returns a JSON list of event objects with their linked
-        information element object included. Note: since the
-        information elements may be repeated several times in the
-        results and their text content very long, their
-        plainTextContent field has been removed. (It can be fetched
-        separately by id.)
+       The end point returns a JSON list of event objects with their linked
+       information element object included. Note: since the
+       information elements may be repeated several times in the
+       results and their text content very long, their
+       plainTextContent field has been removed. (It can be fetched
+       separately by id.)
 
-The return format is the same as for the <a href="#api-Search-SearchInformationElement">information element search</a>.
+       The return format is the same as for the <a href="#api-Search-SearchInformationElement">information element search</a>.
 
-        @apiParam {Number} query Query text to search for
+       @apiParam {Number} query Query text to search for
 
-        @apiParam (Options) {Number} [limit] limit the number of results
-        @apiParam (Options) {Boolean} [includeTerms] set to "true" in order to include indexing terms
-        @apiParam (Options) {Boolean} [updateIndex] set to "true" to force an index update before the search
+       @apiParam (Options) {Number} [limit] limit the number of results
+       @apiParam (Options) {Boolean} [includeTerms] set to "true" in order to include indexing terms
+       @apiParam (Options) {Boolean} [updateIndex] set to "true" to force an index update before the search
 
-        @apiPermission user
-        @apiGroup Search
-        @apiVersion 0.1.2
-	 */
-	@RequestMapping(value="/eventsearch", method = RequestMethod.GET)
-	public ResponseEntity<SearchResults>
-	eventSearch(Authentication auth,
-			@RequestParam String query,
-			@RequestParam(value="@type", required=false) String className,
-			@RequestParam(value="type", required=false) String typeName,
-			@RequestParam(value="includeTerms", required=false,
-			defaultValue="") String includeTerms,
-			@RequestParam(defaultValue="-1") int limit,
-			@RequestParam(defaultValue="false") boolean updateIndex) {
-		User user = getUser(auth);
+       @apiPermission user
+       @apiGroup Search
+       @apiVersion 0.1.2
+    */
+    @RequestMapping(value="/eventsearch", method = RequestMethod.GET)
+    public ResponseEntity<SearchResults>
+        eventSearch(Authentication auth,
+                    @RequestParam String query,
+                    @RequestParam(value="@type", required=false) String className,
+                    @RequestParam(value="type", required=false) String typeName,
+                    @RequestParam(value="includeTerms", required=false,
+                                  defaultValue="") String includeTerms,
+                    @RequestParam(defaultValue="-1") int limit,
+                    @RequestParam(defaultValue="false") boolean updateIndex) {
+        User user = getUser(auth);
 
-		try {
-			TextSearchQuery textQuery = new TextSearchQuery(query);
-			SearchResults results = doEventSearch(textQuery, className, typeName, limit, user,
-					weightType(includeTerms), updateIndex);
+        try {
+            TextSearchQuery textQuery = new TextSearchQuery(query);
+            SearchResults results = doEventSearch(textQuery, className, typeName, limit, user,
+                                                  weightType(includeTerms), updateIndex);
 
-			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-		} catch (IOException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (SearchQueryException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.BAD_REQUEST);
-		}
-	}
+            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
+        }
+    }
 
-	/**
-        @api {post} /keywordsearch 
-        @apiName KeywordSearch
-        @apiDescription Perform an information element search based on
-        the POSTed weighted keywords.
+    /**
+       @api {post} /keywordsearch 
+       @apiName KeywordSearch
+       @apiDescription Perform an information element search based on
+       the POSTed weighted keywords.
 
-        @apiPermission user
-        @apiGroup Search
-        @apiVersion 0.1.2
-	 */
-	@RequestMapping(value="/keywordsearch", method = RequestMethod.POST)
-	public ResponseEntity<SearchResults>
-	search(Authentication auth, @RequestBody WeightedKeyword[] input) 
-	{
-		User user = getUser(auth);
+       @apiPermission user
+       @apiGroup Search
+       @apiVersion 0.1.2
+    */
+    @RequestMapping(value="/keywordsearch", method = RequestMethod.POST)
+    public ResponseEntity<SearchResults>
+        search(Authentication auth, @RequestBody WeightedKeyword[] input) 
+    {
+        User user = getUser(auth);
 
-		try {
-			KeywordSearchQuery query = new KeywordSearchQuery(input);
-			SearchResults results = doSearch(query, null, null,  -1, user, 
-					WeightType.Tf, true);
-			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-		} catch (IOException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (SearchQueryException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.BAD_REQUEST);
-		}
-	}
+        try {
+            KeywordSearchQuery query = new KeywordSearchQuery(input);
+            SearchResults results = doSearch(query, null, null,  -1, user, 
+                                             WeightType.Tf, true);
+            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
+        }
+    }
 
-	/**
-        @api {post} /eventkeywordsearch 
-        @apiName EventKeywordSearch
-        @apiDescription Perform an event search based on the POSTed weighted keywords.
+    /**
+       @api {post} /eventkeywordsearch 
+       @apiName EventKeywordSearch
+       @apiDescription Perform an event search based on the POSTed weighted keywords.
 
-        @apiPermission user
-        @apiGroup Search
-        @apiVersion 0.1.2
-	 */
-	@RequestMapping(value="/eventkeywordsearch", method = RequestMethod.POST)
-	public ResponseEntity<SearchResults>
-	eventSearch(Authentication auth, @RequestBody WeightedKeyword[] input) 
-	{
-		User user = getUser(auth);
+       @apiPermission user
+       @apiGroup Search
+       @apiVersion 0.1.2
+    */
+    @RequestMapping(value="/eventkeywordsearch", method = RequestMethod.POST)
+    public ResponseEntity<SearchResults>
+        eventSearch(Authentication auth, @RequestBody WeightedKeyword[] input) 
+    {
+        User user = getUser(auth);
 
-		try {
-			KeywordSearchQuery query = new KeywordSearchQuery(input);
-			SearchResults results = doEventSearch(query, null, null, -1, user, 
-					WeightType.Tf, true);
+        try {
+            KeywordSearchQuery query = new KeywordSearchQuery(input);
+            SearchResults results = doEventSearch(query, null, null, -1, user, 
+                                                  WeightType.Tf, true);
 
-			return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
-		} catch (IOException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (SearchQueryException e) {
-			return new ResponseEntity<SearchResults>
-			(new SearchResults(e.getMessage()),
-					HttpStatus.BAD_REQUEST);
-		}
-	}
+            return new ResponseEntity<SearchResults>(results, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (SearchQueryException e) {
+            return new ResponseEntity<SearchResults>
+                (new SearchResults(e.getMessage()),
+                 HttpStatus.BAD_REQUEST);
+        }
+    }
 }

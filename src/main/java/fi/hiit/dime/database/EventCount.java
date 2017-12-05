@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2015 University of Helsinki
+  Copyright (c) 2015-2017 University of Helsinki
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -32,8 +32,8 @@ public class EventCount {
     public double perc;
 
     public EventCount(String value, long count) {
-	this.value = value;
-	this.count = count;
+        this.value = value;
+        this.count = count;
     }
-}	
+}       
 
