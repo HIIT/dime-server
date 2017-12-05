@@ -79,6 +79,23 @@ public class LinkContractsController extends AuthorizedController {
     LinkContractsController() {
     }
 
+    /**
+       @api {get} /linkcontracts/view View existing link contracts
+       @apiName Get
+       @apiDescription Views current XDI link contracts (connections).
+
+        @apiExample {json} Example of output
+        [{
+    	"address": "(=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9/=!:did:sov:2xpL6mwDZU5n7ZGMuXXDU9)$get$contract",
+    	"authorizingAuthority": "=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9",
+    	"requestingAuthority": "=!:did:sov:2xpL6mwDZU5n7ZGMuXXDU9",
+    	"direction": "outgoing"
+        }]
+
+       @apiPermission user
+       @apiGroup Link contracts
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/view", method = RequestMethod.GET)
     public ResponseEntity<List<XdiLinkContract>>
         linkContractsView(Authentication auth)
@@ -124,6 +141,16 @@ public class LinkContractsController extends AuthorizedController {
         return new ResponseEntity<List<XdiLinkContract>>(result, HttpStatus.OK);
     }
 
+    /**
+       @api {post} /linkcontracts/delete Delete a single link contract
+       @apiName Delete
+       @apiDescription Deletes a single link contract given by the address parameter.
+       @apiParam {String} [address] XDI address (URL encoded)
+
+       @apiPermission user
+       @apiGroup Link contracts
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/delete", method = RequestMethod.POST)
     public ResponseEntity<String>
         linkContractsDelete(Authentication auth, @RequestParam String address)
@@ -164,6 +191,28 @@ public class LinkContractsController extends AuthorizedController {
         return new ResponseEntity<String>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+       @api {get} /linkcontracts/data/:target View private data shared via a link contract.
+       @apiName View
+       @apiDescription Views private data shared by an XDI link contract (connection).
+       @apiParam {String} target The target's XDI address, e.g. "=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9"
+
+       @apiExample {json} Example of output
+       {
+         "data": {
+           "#dime#profile[<#tag>]<@~0>": "astronomy",
+           "#dime#profile[<#tag>]<@~1>": "astrophysics",
+           "#dime#profile<#did>": "=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9",
+           "#dime<#email>": "bob@dime.com",
+           "#dime<#role>": "USER",
+           "#dime<#username>": "dimebob"
+         }
+       }
+
+       @apiPermission user
+       @apiGroup Link contracts
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/data/{target}", method = RequestMethod.GET)
     public ResponseEntity<XdiData>
         linkContractsData(Authentication auth, @PathVariable String target)
@@ -228,6 +277,24 @@ public class LinkContractsController extends AuthorizedController {
         return new ResponseEntity<XdiData>(result, HttpStatus.OK);
     }
 
+    /**
+       @api {get} /linkcontracts/publicdata/:target View public data shared via a link contract.
+       @apiName ViewPublic
+       @apiDescription Views public data shared by an XDI link contract (connection).
+       @apiParam {String} target The target's XDI address, e.g. "=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9"
+
+       @apiExample {json} Example of output
+       {
+         "data": {
+           "#dime#profile[<#tag>]<@~0>": "astronomy",
+           "#dime#profile[<#tag>]<@~1>": "astrophysics"
+         }
+       }
+
+       @apiPermission user
+       @apiGroup Link contracts
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/publicdata/{target}", method = RequestMethod.GET)
     public ResponseEntity<XdiData>
         linkContractsPublicData(Authentication auth, @PathVariable String target)
@@ -266,11 +333,11 @@ public class LinkContractsController extends AuthorizedController {
 
         try {
 
-            /*                      RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
-                                    SigningManipulator manipulator = new SigningManipulator();
-                                    manipulator.setSignatureCreator(signatureCreator);
-                                    client.getManipulators().addManipulator(manipulator);*/
-
+            /* RSASignatureCreator signatureCreator = new RSAGraphPrivateKeySignatureCreator(XdiService.get().myGraph(getUser(auth)));
+               SigningManipulator manipulator = new SigningManipulator();
+               manipulator.setSignatureCreator(signatureCreator);
+               client.getManipulators().addManipulator(manipulator);*/
+            
             MessagingResponse response = client.send(message.getMessageEnvelope());
                         
             Graph resultGraph = response.getResultGraph();

@@ -246,7 +246,7 @@ public class ApiController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Status
-        @apiVersion 1.0
+        @apiVersion 1.0.0
     */
     @RequestMapping(value="/sendtotrustanchor/{id}", method = RequestMethod.GET)
     public ResponseEntity<TrustAnchorPayload> sendToTrustAnchor(Authentication auth,
@@ -310,7 +310,7 @@ public class ApiController extends AuthorizedController {
 
         @apiPermission user
         @apiGroup Status
-        @apiVersion 1.0
+        @apiVersion 1.0.0
     */
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     @RequestMapping(value="/sendtopeoplefinder/{id}", method = RequestMethod.POST)

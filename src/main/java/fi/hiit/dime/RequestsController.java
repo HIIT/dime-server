@@ -86,6 +86,16 @@ public class RequestsController extends AuthorizedController {
     RequestsController() {
     }
 
+    /**
+       @api {post} /requests/send/:target Sends a new link contact request to target
+       @apiName Post
+       @apiDescription Sends a new XDI link contract request to target DID.
+       @apiParam {String} target The target's XDI address, e.g. "=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9"
+
+       @apiPermission user
+       @apiGroup Requests
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/send/{target}", method = RequestMethod.POST)
     public ResponseEntity<String>
         requestsSend(Authentication auth, @PathVariable String target)
@@ -149,6 +159,31 @@ public class RequestsController extends AuthorizedController {
         return new ResponseEntity<String>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+       @api {get} /requests/view View incoming link contracts
+       @apiName Get
+       @apiDescription Views pending incoming XDI link contract requests
+
+       @apiExample {json} Example of output
+       [
+	{
+    	"address": "=!:did:sov:2xpL6mwDZU5n7ZGMuXXDU9[$msg]@~0",
+    	"from": "=!:did:sov:2xpL6mwDZU5n7ZGMuXXDU9",
+    	"to": "=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9",
+    	"operation": "$connect",
+    	"operationTarget": "$get{$contract}",
+    	"operationVariables": {
+        	"{$get}": [
+            	"=!:did:sov:Vt8pgSZpGSRdD2fr3TBop9#dime"
+        	]
+    	}
+	}
+        ]
+
+       @apiPermission user
+       @apiGroup Requests
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/view", method = RequestMethod.GET)
     public ResponseEntity<List<XdiRequest>>
         requestsView(Authentication auth)
@@ -217,6 +252,16 @@ public class RequestsController extends AuthorizedController {
         return new ResponseEntity<List<XdiRequest>>(result, HttpStatus.OK);
     }
 
+    /**
+       @api {post} /requests/approve/:address Approve a pending incoming link contract request
+       @apiName Approve
+       @apiDescription Approves a pending incoming XDI link contract request
+       @apiParam {String} address XDI address of request, e.g., =!:did:sov:2xpL6mwDZU5n7ZGMuXXDU9[$msg]@~0
+
+       @apiPermission user
+       @apiGroup Requests
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/approve/{address}", method = RequestMethod.POST)
     public ResponseEntity<String>
         requestsApprove(Authentication auth, @PathVariable String address)
@@ -267,6 +312,16 @@ public class RequestsController extends AuthorizedController {
         return found ? new ResponseEntity<String>(HttpStatus.NO_CONTENT) : new ResponseEntity<String>(HttpStatus.NOT_FOUND);
     }
 
+    /**
+       @api {post} /requests/delete Delete a pending incoming XDI link contract request
+       @apiName Delete
+       @apiDescription Deletes a pending incoming XDI link contract request
+       @apiParam {String} address The address of the request (URL encoded)
+
+       @apiPermission user
+       @apiGroup Requests
+       @apiVersion 1.0.0
+    */
     @RequestMapping(value="/delete", method = RequestMethod.POST)
     public ResponseEntity<String>
         requestsDelete(Authentication auth, @RequestParam String address)

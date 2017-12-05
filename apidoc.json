@@ -1,6 +1,6 @@
 {
     "name": "DiMe server",
-    "version": "0.2.1",
+    "version": "1.0.0",
     "title": "DiMe API docs",
     "description": " DiMe API documentation.",
     "url": "http://localhost:8080/api",
@@ -17,6 +17,7 @@
         "Delete2",
         "PostTags",
         "GetTags",
+        "Approve",
         "DeleteTags",
         "PostSuggestedEvents",
         "GetSuggestedEvents",
