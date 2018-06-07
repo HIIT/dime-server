@@ -5,6 +5,7 @@ buildscript {
     dependencies {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.3.3.RELEASE'
         classpath 'org.liquibase:liquibase-gradle-plugin:1.1.1'
+        classpath 'io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE'
         classpath 'com.h2database:h2:1.4.190'
     }
 }
@@ -82,7 +83,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.11'
+    gradleVersion = '4.8'
 }
 
 task buildDocker(dependsOn: jar, type: Exec) {
